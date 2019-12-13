@@ -1,7 +1,7 @@
 
-# external-guidance
+# External Guidance backend
 
-This is a placeholder README.md for a new repository
+External Guidance backend shared between the manage-external-guidance-frontend and view-external-guidance-frontend microservices
 
 ### License
 
