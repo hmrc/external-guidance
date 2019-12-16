@@ -37,7 +37,7 @@ class MicroserviceHelloWorldControllerSpec extends WordSpec with Matchers with G
 
   private val controller = new MicroserviceHelloWorldController(appConfig, Helpers.stubControllerComponents())
 
-  "GET /" should {
+  "GET /hello-world" should {
     "return 200" in {
       val result = controller.hello()(fakeRequest)
       status(result) shouldBe Status.OK
