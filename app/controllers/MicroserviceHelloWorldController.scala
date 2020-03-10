@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,7 @@ import config.AppConfig
 import scala.concurrent.Future
 
 @Singleton()
-class MicroserviceHelloWorldController @Inject()(appConfig: AppConfig, cc: ControllerComponents)
-    extends BackendController(cc) {
+class MicroserviceHelloWorldController @Inject() (appConfig: AppConfig, cc: ControllerComponents) extends BackendController(cc) {
 
   def hello(): Action[AnyContent] = Action.async { implicit request =>
     Future.successful(Ok("Hello world"))

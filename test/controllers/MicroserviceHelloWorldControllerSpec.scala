@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,11 +29,11 @@ class MicroserviceHelloWorldControllerSpec extends WordSpec with Matchers with G
 
   private val fakeRequest = FakeRequest("GET", "/")
 
-  private val env           = Environment.simple()
+  private val env = Environment.simple()
   private val configuration = Configuration.load(env)
 
   private val serviceConfig = new ServicesConfig(configuration, new RunMode(configuration, Mode.Dev))
-  private val appConfig     = new AppConfig(configuration, serviceConfig)
+  private val appConfig = new AppConfig(configuration, serviceConfig)
 
   private val controller = new MicroserviceHelloWorldController(appConfig, Helpers.stubControllerComponents())
 

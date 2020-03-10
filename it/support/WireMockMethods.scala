@@ -29,6 +29,7 @@ trait WireMockMethods {
   }
 
   class Mapping(method: HTTPMethod, uri: String, queryParams: Map[String, String], headers: Map[String, String], body: Option[String]) {
+
     private val mapping = {
       val uriMapping = method.wireMockMapping(urlPathMatching(uri))
 
