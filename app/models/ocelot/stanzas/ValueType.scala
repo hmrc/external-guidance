@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,28 @@
  * limitations under the License.
  */
 
-package pages
+package models.ocelot.stanzas
 
-import play.api.http.Status
-import play.api.libs.ws.{WSRequest, WSResponse}
-import stubs.AuditStub
-import support.IntegrationSpec
+import play.api.libs.json._
 
-class MicroserviceHelloWorldISpec extends IntegrationSpec {
+sealed trait ValueType
 
-  "calling the hello world route" should {
-    "return an OK response" in {
-      AuditStub.audit()
-      val request = buildRequest("/external-guidance/hello-world")
-      val response: WSResponse = await(request.get())
-      response.status shouldBe Status.OK
+case object Scalar extends ValueType
+
+object ValueType {
+
+  implicit val reads: Reads[ValueType] = new Reads[ValueType] {
+
+    override def reads(json: JsValue): JsResult[ValueType] = json match {
+      case JsString("scalar") => JsSuccess(Scalar, __)
+      case _ => JsError("Invalid ValueType type")
     }
-  }
 
+  }
 }
+
+class WithName(string: String) {
+  override val toString: String = string
+}
+
+case object PageUrlValueName extends WithName("PageUrl")

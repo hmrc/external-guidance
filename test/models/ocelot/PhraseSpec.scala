@@ -1,0 +1,64 @@
+/*
+ * Copyright 2020 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package models.ocelot
+
+import org.scalatestplus.play.PlaySpec
+import play.api.libs.json._
+
+
+class PhraseSpec extends PlaySpec with ProcessJson {
+
+  val p1 = "Ask the customer if they have a tea bag"
+  val p1w = "Welsh, Ask the customer if they have a tea bag"
+  val p2 = "Do you have a tea bag?"
+  val p2w = "Welsh, Do you have a tea bag?"
+  val p3 = "Yes - they do have a tea bag"
+  val p3w = "Welsh, Yes - they do have a tea bag"
+
+  val phrase1 = s"""["$p1", "$p1w"]"""
+  val phrase2 = s"""["$p2", "$p2w"]"""
+  val phrase3 = s"""["$p3", "$p3w"]"""
+
+  "Phrase" must {
+    "deserialise " in {
+      Json.parse(phrase1).as[Phrase] mustBe Phrase(Vector(p1,p1w))
+      Json.parse(phrase2).as[Phrase] mustBe Phrase(Vector(p2,p2w))
+      Json.parse(phrase3).as[Phrase] mustBe Phrase(Vector(p3,p3w))
+    }
+  }
+
+  "Phrases section" must {
+
+    "deserialise from phrases section json" in {
+
+      Json.parse(s"""[ $phrase1, $phrase2, $phrase3 ]""").as[Vector[Phrase]] mustBe
+        Vector(Phrase(Vector(p1,p1w)), Phrase(Vector(p2, p2w)), Phrase(Vector(p3, p3w)))
+
+    }
+
+    "allow access to Phrase language strings" in {
+
+      val protoTypePhrases = Json.parse(prototypePhrasesSection).as[Vector[Phrase]]
+      val thirdPhraseIndex = 2
+      val welshLangIndex = 1
+
+      protoTypePhrases(thirdPhraseIndex).langs(welshLangIndex) mustBe "Welsh: Overview"
+    }
+
+  }
+
+}
