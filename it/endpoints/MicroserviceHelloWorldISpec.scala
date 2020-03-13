@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package pages
+package endpoints
 
 import play.api.http.Status
 import play.api.libs.ws.{WSRequest, WSResponse}
