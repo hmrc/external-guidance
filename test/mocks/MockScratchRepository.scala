@@ -23,12 +23,14 @@ import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import repositories.ScratchRepository
 
+import scala.concurrent.Future
+
 trait MockScratchRepository extends MockFactory {
   val mockScratchRepository: ScratchRepository = mock[ScratchRepository]
 
   object MockScratchRepository {
 
-    def save(process: Process): CallHandler[UUID] = {
+    def save(process: Process): CallHandler[Future[UUID]] = {
       (mockScratchRepository
         .save(_: Process))
         .expects(process)

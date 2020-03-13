@@ -23,6 +23,8 @@ import mocks.MockScratchRepository
 import models.ocelot.stanzas.InstructionStanza
 import models.ocelot.{Meta, Process}
 
+import scala.concurrent.Future
+
 class ScratchServiceSpec extends BaseSpec {
 
   private trait Test extends MockScratchRepository {
@@ -32,7 +34,7 @@ class ScratchServiceSpec extends BaseSpec {
   "calling saveScratch method with a Process" should {
     "return valid UUID" in new Test {
 
-      val expected: UUID = UUID.randomUUID()
+      val expected: Future[UUID] = Future.successful(UUID.randomUUID())
       val process: Process = Process(
         Meta("id", "title", 0, "author", 0L, 0, "file.txt"),
         Map("id" -> InstructionStanza(0, Seq(), None, stack = false)),

@@ -20,7 +20,9 @@ import java.util.UUID
 
 import models.ocelot.Process
 
+import scala.concurrent.Future
+
 class ScratchRepository {
   val dummyId: UUID = UUID.fromString("265e0178-cbe1-42ab-8418-7120ce6d0925")
-  def save(process: Process): UUID = dummyId
+  def save(process: Process): Future[UUID] = Future.successful(dummyId)
 }

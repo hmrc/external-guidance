@@ -22,10 +22,12 @@ import javax.inject.{Inject, Singleton}
 import models.ocelot
 import repositories.ScratchRepository
 
+import scala.concurrent.Future
+
 @Singleton
 class ScratchService @Inject() (repository: ScratchRepository) {
 
-  def save(process: ocelot.Process): UUID = {
+  def save(process: ocelot.Process): Future[UUID] = {
     repository.save(process)
   }
 

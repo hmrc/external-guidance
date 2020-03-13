@@ -30,7 +30,12 @@ class ScratchRepositorySpec extends BaseSpec {
         Vector.empty,
         Vector.empty
       )
-      target.save(process) mustBe target.dummyId
+
+      val result = target.save(process)
+
+      whenReady(result) { processId =>
+        processId mustBe target.dummyId
+      }
     }
   }
 }
