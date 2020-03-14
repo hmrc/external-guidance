@@ -30,12 +30,12 @@ class InstructionStanzaSpec extends BaseSpec {
 
   val validInstructionStanzaWithLinkJsonInput =
     s"""|{
-       | "type": "$stanzaType",
-       | "text": $text,
-       | "next": [ "$next" ],
-       | "link": $link,
-       | "stack": $stack
-       |}""".stripMargin
+        | "type": "$stanzaType",
+        | "text": $text,
+        | "next": [ "$next" ],
+        | "link": $link,
+        | "stack": $stack
+        |}""".stripMargin
 
   val validInstructionStanzaWithoutLinkJsonInput =
     s"""|{
@@ -45,18 +45,17 @@ class InstructionStanzaSpec extends BaseSpec {
         | "stack": $stack
         |}""".stripMargin
 
-  val validInstructionStanzaWithLinkJsObject: JsObject = Json.parse( validInstructionStanzaWithLinkJsonInput ).as[JsObject]
+  val validInstructionStanzaWithLinkJsObject: JsObject = Json.parse(validInstructionStanzaWithLinkJsonInput).as[JsObject]
 
-  val expectedValidInstructionStanzaWithLink: InstructionStanza = InstructionStanza( text, Seq( next ), Some( link ), stack )
+  val expectedValidInstructionStanzaWithLink: InstructionStanza = InstructionStanza(text, Seq(next), Some(link), stack)
 
-  val expectedValidInstructionStanzaWithoutLink: InstructionStanza = InstructionStanza( text, Seq( next ), None, stack )
-
+  val expectedValidInstructionStanzaWithoutLink: InstructionStanza = InstructionStanza(text, Seq(next), None, stack)
 
   "InstructionStanza" must {
 
     "Deserialising a valid Instruction Stanza with a link should create an instance of the class InstructionStanza" in {
 
-      val validInstructionStanzaJson: JsValue = Json.parse( validInstructionStanzaWithLinkJsonInput )
+      val validInstructionStanzaJson: JsValue = Json.parse(validInstructionStanzaWithLinkJsonInput)
 
       val validInstructionStanza: InstructionStanza = validInstructionStanzaJson.as[InstructionStanza]
 
@@ -65,7 +64,7 @@ class InstructionStanzaSpec extends BaseSpec {
 
     "Deserialising a valid Instruction Stanza without a link should create an instance of the class InstructionStanza" in {
 
-      val validInstructionStanzaJson: JsValue = Json.parse( validInstructionStanzaWithoutLinkJsonInput )
+      val validInstructionStanzaJson: JsValue = Json.parse(validInstructionStanzaWithoutLinkJsonInput)
 
       val validInstructionStanza: InstructionStanza = validInstructionStanzaJson.as[InstructionStanza]
 
@@ -73,10 +72,10 @@ class InstructionStanzaSpec extends BaseSpec {
     }
 
     /** Test for missing properties in Json object representing instruction stanzas */
-    missingJsObjectAttrTests[InstructionStanza]( validInstructionStanzaWithLinkJsObject, List( "type", "link" ) )
+    missingJsObjectAttrTests[InstructionStanza](validInstructionStanzaWithLinkJsObject, List("type", "link"))
 
     /** Test for properties of the wrong type in json object representing instruction stanzas */
-    incorrectPropertyTypeJsObjectAttrTests[InstructionStanza]( validInstructionStanzaWithLinkJsObject, List( "type" ) )
+    incorrectPropertyTypeJsObjectAttrTests[InstructionStanza](validInstructionStanzaWithLinkJsObject, List("type"))
   }
 
 }

@@ -19,7 +19,6 @@ package models.ocelot
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json._
 
-
 class PhraseSpec extends PlaySpec with ProcessJson {
 
   val p1 = "Ask the customer if they have a tea bag"
@@ -35,9 +34,9 @@ class PhraseSpec extends PlaySpec with ProcessJson {
 
   "Phrase" must {
     "deserialise " in {
-      Json.parse(phrase1).as[Phrase] mustBe Phrase(Vector(p1,p1w))
-      Json.parse(phrase2).as[Phrase] mustBe Phrase(Vector(p2,p2w))
-      Json.parse(phrase3).as[Phrase] mustBe Phrase(Vector(p3,p3w))
+      Json.parse(phrase1).as[Phrase] mustBe Phrase(Vector(p1, p1w))
+      Json.parse(phrase2).as[Phrase] mustBe Phrase(Vector(p2, p2w))
+      Json.parse(phrase3).as[Phrase] mustBe Phrase(Vector(p3, p3w))
     }
   }
 
@@ -46,7 +45,7 @@ class PhraseSpec extends PlaySpec with ProcessJson {
     "deserialise from phrases section json" in {
 
       Json.parse(s"""[ $phrase1, $phrase2, $phrase3 ]""").as[Vector[Phrase]] mustBe
-        Vector(Phrase(Vector(p1,p1w)), Phrase(Vector(p2, p2w)), Phrase(Vector(p3, p3w)))
+        Vector(Phrase(Vector(p1, p1w)), Phrase(Vector(p2, p2w)), Phrase(Vector(p3, p3w)))
 
     }
 

@@ -63,8 +63,8 @@ class LinkSpec extends BaseSpec {
 
   val linksStr: String = s"""[${linkStr1}, ${linkStr2}]"""
 
-  val link1: Link = Link( id1, dest1, title1, window)
-  val link2: Link = Link( id2, dest2, title2, window)
+  val link1: Link = Link(id1, dest1, title1, window)
+  val link2: Link = Link(id2, dest2, title2, window)
 
   "Link" must {
     "deserialise from json" in {
