@@ -17,19 +17,13 @@
 package repositories
 
 import base.BaseSpec
-import models.ocelot._
-import models.ocelot.stanzas.InstructionStanza
+import play.api.libs.json.Json
 
 class ScratchRepositorySpec extends BaseSpec {
   "Calling the saveScratch method with a Process" should {
     "return a UUID representing the id to the saved process" in {
       val target = new ScratchRepository()
-      val process = Process(
-        Meta("id", "title", 0, "author", 0L, 0, "file.txt"),
-        Map("id" -> InstructionStanza(0, Seq(), None, stack = false)),
-        Vector.empty,
-        Vector.empty
-      )
+      val process = Json.obj()
 
       val result = target.save(process)
 

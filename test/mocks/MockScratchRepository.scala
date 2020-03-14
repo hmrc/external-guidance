@@ -18,9 +18,9 @@ package mocks
 
 import java.util.UUID
 
-import models.ocelot.Process
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
+import play.api.libs.json.JsObject
 import repositories.ScratchRepository
 
 import scala.concurrent.Future
@@ -30,9 +30,9 @@ trait MockScratchRepository extends MockFactory {
 
   object MockScratchRepository {
 
-    def save(process: Process): CallHandler[Future[UUID]] = {
+    def save(process: JsObject): CallHandler[Future[UUID]] = {
       (mockScratchRepository
-        .save(_: Process))
+        .save(_: JsObject))
         .expects(process)
     }
   }

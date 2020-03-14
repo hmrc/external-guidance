@@ -20,8 +20,7 @@ import java.util.UUID
 
 import base.BaseSpec
 import mocks.MockScratchRepository
-import models.ocelot.stanzas.InstructionStanza
-import models.ocelot.{Meta, Process}
+import play.api.libs.json.{JsObject, Json}
 
 import scala.concurrent.Future
 
@@ -35,13 +34,7 @@ class ScratchServiceSpec extends BaseSpec {
     "return valid UUID" in new Test {
 
       val expected: Future[UUID] = Future.successful(UUID.randomUUID())
-      val process: Process = Process(
-        Meta("id", "title", 0, "author", 0L, 0, "file.txt"),
-        Map("id" -> InstructionStanza(0, Seq(), None, stack = false)),
-        Vector.empty,
-        Vector.empty
-      )
-
+      val process: JsObject = Json.obj()
       MockScratchRepository
         .save(process)
         .returns(expected)

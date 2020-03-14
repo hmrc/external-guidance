@@ -17,8 +17,7 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-import models.ocelot.Process
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.{Action, ControllerComponents}
 import services.ScratchService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
@@ -29,7 +28,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class ScratchController @Inject() (scratchService: ScratchService, cc: ControllerComponents) extends BackendController(cc) {
 
   def save(): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    val process = request.body.as[Process]
+    val process = request.body.as[JsObject]
     scratchService.save(process).map { id =>
       Created(Json.obj("id" -> id.toString))
     }

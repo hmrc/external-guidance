@@ -18,11 +18,11 @@ package repositories
 
 import java.util.UUID
 
-import models.ocelot.Process
+import play.api.libs.json.JsObject
 
 import scala.concurrent.Future
 
 class ScratchRepository {
   val dummyId: UUID = UUID.fromString("265e0178-cbe1-42ab-8418-7120ce6d0925")
-  def save(process: Process): Future[UUID] = Future.successful(dummyId)
+  def save(process: JsObject): Future[UUID] = Future.successful(dummyId)
 }
