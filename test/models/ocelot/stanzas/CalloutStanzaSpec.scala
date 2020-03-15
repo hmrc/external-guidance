@@ -18,145 +18,80 @@ package models.ocelot.stanzas
 
 import play.api.libs.json._
 
-import scala.util.{Failure, Success, Try}
-
 import base.BaseSpec
 
 class CalloutStanzaSpec extends BaseSpec {
 
-  val stanzaType: String = "CalloutStanza"
+  def getCalloutType[T](stanzaType: T): String = stanzaType.getClass.getSimpleName.dropRight(1)
 
-  val title: String = Title.getClass.getSimpleName.dropRight(1)
-  val subTitle: String = SubTitle.getClass.getSimpleName.dropRight(1)
-  val lede: String = Lede.getClass.getSimpleName.dropRight(1)
-  val error: String = Error.getClass.getSimpleName.dropRight(1)
+  def getStanzaJson(calloutType: String): JsValue = Json.parse(
+    s"""|{
+        |    "type": "CalloutStanza",
+        |    "noteType": "$calloutType",
+        |    "text": 0,
+        |    "next": ["1"],
+        |    "stack": false
+        |}""".stripMargin
+  )
 
-  val zero: Int = 0
-  val one: Int = 1
-  val two: Int = 2
-  val ten: Int = 10
+  def buildCalloutStanza(calloutType: CalloutType): CalloutStanza =
+    CalloutStanza(calloutType, 0, Seq("1"), stack = false)
 
-  val oneStr: String = "1"
-  val twoStr: String = "2"
-  val threeStr: String = "3"
-  val end: String = "end"
+  val title: String = getCalloutType(Title)
+  val subTitle: String = getCalloutType(SubTitle)
+  val lede: String = getCalloutType(Lede)
+  val error: String = getCalloutType(Error)
+  val section: String = getCalloutType(Section)
   val invalid: String = "invalid"
 
-  val stackFalse: Boolean = false
-  val stackTrue: Boolean = true
+  val titleCalloutStanzaInputJson: JsValue = getStanzaJson(title)
+  val subTitleCalloutStanzaInputJson: JsValue = getStanzaJson(subTitle)
+  val ledeCalloutStanzaInputJson: JsValue = getStanzaJson(lede)
+  val errorCalloutStanzaInputJson: JsValue = getStanzaJson(error)
+  val sectionCalloutStanzaInputJson: JsValue = getStanzaJson(section)
+  val invalidCalloutStanzaInputJson: JsValue = getStanzaJson(invalid)
 
-  val titleCalloutStanzaInputJson: String =
-    s"""|{
-        |    "type": "$stanzaType",
-        |    "noteType": "$title",
-        |    "text": $zero,
-        |    "next": ["$oneStr"],
-        |    "stack": $stackFalse
-        |}""".stripMargin
+  val validCalloutStanzaAsJsObject: JsObject = titleCalloutStanzaInputJson.as[JsObject]
 
-  val subTitleCalloutStanzaInputJson: String =
-    s"""|{
-        |    "type": "$stanzaType",
-        |    "noteType": "$subTitle",
-        |    "text": $one,
-        |    "next": ["$twoStr"],
-        |    "stack": $stackTrue
-        |}""".stripMargin
+  val expectedTitleCalloutStanza: CalloutStanza = buildCalloutStanza(Title)
+  val expectedSubTitleCalloutStanza: CalloutStanza = buildCalloutStanza(SubTitle)
+  val expectedLedeCalloutStanza: CalloutStanza = buildCalloutStanza(Lede)
+  val expectedErrorCalloutStanza: CalloutStanza = buildCalloutStanza(Error)
+  val expectedSectionCalloutStanza: CalloutStanza = buildCalloutStanza(Section)
 
-  val ledeCalloutStanzaInputJson: String =
-    s"""|{
-        |    "type": "$stanzaType",
-        |    "noteType": "$lede",
-        |    "text": $two,
-        |    "next": ["$threeStr"],
-        |    "stack": $stackFalse
-        |}""".stripMargin
+  val jsonToStanzaMappings: Map[JsValue, CalloutStanza] = Map(
+    titleCalloutStanzaInputJson -> expectedTitleCalloutStanza,
+    subTitleCalloutStanzaInputJson -> expectedSubTitleCalloutStanza,
+    ledeCalloutStanzaInputJson -> expectedLedeCalloutStanza,
+    errorCalloutStanzaInputJson -> expectedErrorCalloutStanza,
+    sectionCalloutStanzaInputJson -> expectedSectionCalloutStanza
+  )
 
-  val errorCalloutStanzaInputJson =
-    s"""|{
-        |    "type": "$stanzaType",
-        |    "noteType": "$error",
-        |    "text": $ten,
-        |    "next": ["$end"],
-        |    "stack": $stackFalse
-        |}""".stripMargin
+  jsonToStanzaMappings foreach { mapping =>
+    val (json, expectedStanza) = mapping
+    val jsonNoteType = (json \ "noteType").as[String]
 
-  val invalidCalloutStanzaInputJson =
-    s"""|{
-        |    "type": "$stanzaType",
-        |    "noteType": "$invalid",
-        |    "text": $ten,
-        |    "next": ["$end"],
-        |    "stack": $stackFalse
-        |}""".stripMargin
-
-  val validCalloutStanzaAsJsObject: JsObject = Json.parse(titleCalloutStanzaInputJson).as[JsObject]
-
-  val expectedTitleCalloutStanza: CalloutStanza = CalloutStanza(Title, zero, Seq(oneStr), stackFalse)
-
-  val expectedSubTitleCalloutStanza: CalloutStanza = CalloutStanza(SubTitle, one, Seq(twoStr), stackTrue)
-
-  val expectedLedeCalloutStanza: CalloutStanza = CalloutStanza(Lede, two, Seq(threeStr), stackFalse)
-
-  val expectedErrorCalloutStatus: CalloutStanza = CalloutStanza(Error, ten, Seq(end), stackFalse)
-
-  "CalloutStanza" must {
-
-    "read valid Callout stanza of type Title should create a Callout stanza with a note type of Title" in {
-
-      val titleCalloutStanzaJson: JsValue = Json.parse(titleCalloutStanzaInputJson)
-
-      val titleCalloutStanza: CalloutStanza = titleCalloutStanzaJson.as[CalloutStanza]
-
-      titleCalloutStanza mustBe expectedTitleCalloutStanza
-    }
-
-    "read valid Callout stanza of type SubTitle should create a Callout stanza with a note type of SubTitle" in {
-
-      val subTitleCalloutStanzaJson: JsValue = Json.parse(subTitleCalloutStanzaInputJson)
-
-      val subTitleCalloutStanza: CalloutStanza = subTitleCalloutStanzaJson.as[CalloutStanza]
-
-      subTitleCalloutStanza mustBe expectedSubTitleCalloutStanza
-    }
-
-    "read valid Callout stanza of type Lede should create a Callout stanza with a note type of Lede" in {
-
-      val ledeCalloutStanzaJson: JsValue = Json.parse(ledeCalloutStanzaInputJson)
-
-      val ledeCalloutStanza: CalloutStanza = ledeCalloutStanzaJson.as[CalloutStanza]
-
-      ledeCalloutStanza mustBe expectedLedeCalloutStanza
-    }
-
-    "read valid Callout stanza of type Error should create a Callout stanza with a note type of Error" in {
-
-      val errorCalloutStanzaJson: JsValue = Json.parse(errorCalloutStanzaInputJson)
-
-      val errorCalloutStanza: CalloutStanza = errorCalloutStanzaJson.as[CalloutStanza]
-
-      errorCalloutStanza mustBe expectedErrorCalloutStatus
-    }
-
-    "read Callout stanza with invalid note type should cause an exception to be raised" in {
-
-      val invalidCalloutStanzaJson = Json.parse(invalidCalloutStanzaInputJson)
-
-      Try {
-        invalidCalloutStanzaJson.as[CalloutStanza]
-      } match {
-        case Success(_) => fail("An instance of CalloutStanza should not be created when the note type is incorrect")
-        case Failure(failure) => succeed
+    s"Reading valid JSON for a $jsonNoteType Callout" should {
+      s"create a ${expectedStanza.noteType} Callout Stanza" in {
+        val calloutStanza: CalloutStanza = json.as[CalloutStanza]
+        calloutStanza mustBe expectedStanza
       }
-
     }
-
-    /** Test for missing properties in Json object representing instruction stanzas */
-    missingJsObjectAttrTests[CalloutStanza](validCalloutStanzaAsJsObject, List("type"))
-
-    /** Test for properties of the wrong type in json object representing instruction stanzas */
-    incorrectPropertyTypeJsObjectAttrTests[CalloutStanza](validCalloutStanzaAsJsObject, List("type"))
-
   }
+
+  "Reading invalid JSON for a Callout" should {
+    "cause an exception to be raised" in {
+      invalidCalloutStanzaInputJson.validate[CalloutStanza] match {
+        case JsError(_) => succeed
+        case _ => fail("An instance of CalloutStanza should not be created when the note type is incorrect")
+      }
+    }
+  }
+
+  /** Test for missing properties in Json object representing instruction stanzas */
+  missingJsObjectAttrTests[CalloutStanza](validCalloutStanzaAsJsObject, List("type"))
+
+  /** Test for properties of the wrong type in json object representing instruction stanzas */
+  incorrectPropertyTypeJsObjectAttrTests[CalloutStanza](validCalloutStanzaAsJsObject, List("type"))
 
 }

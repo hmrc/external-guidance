@@ -1,5 +1,3 @@
 # microservice specific routes
 
-GET        /hello-world             controllers.MicroserviceHelloWorldController.hello
-
-POST /scratch   controllers.ScratchController.save
+POST        /scratch        controllers.ScratchController.save

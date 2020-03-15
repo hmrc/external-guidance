@@ -17,7 +17,7 @@
 package endpoints
 
 import data.ExamplePayloads
-import play.api.http.Status
+import play.api.http.{ContentTypes, Status}
 import play.api.libs.json.{JsObject, JsValue}
 import play.api.libs.ws.WSResponse
 import stubs.AuditStub
@@ -25,23 +25,32 @@ import support.IntegrationSpec
 
 class PostScratchProcessISpec extends IntegrationSpec {
 
-  "Calling the scratch POST endpoint" should {
+  "Calling the scratch POST endpoint with a valid payload" should {
 
     lazy val request = buildRequest("/external-guidance/scratch")
     lazy val response: WSResponse = {
+      AuditStub.audit()
       await(request.post(ExamplePayloads.simpleValidProcess))
     }
 
     "return a CREATED status code" in {
-      AuditStub.audit()
       response.status shouldBe Status.CREATED
     }
 
-    "return a valid payload" in {
-      AuditStub.audit()
-      val expectedId: String = "265e0178-cbe1-42ab-8418-7120ce6d0925"
+    "return content as JSON" in {
+      response.contentType shouldBe ContentTypes.JSON
+    }
+
+    "return an id property in the response" in {
       val json = response.body[JsValue].as[JsObject]
-      (json \ "id").as[String] shouldBe expectedId
+      json.keys should contain("id")
+    }
+
+    "return an id value in the format of a UUID" in {
+      val uuidFormat = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+      val json = response.body[JsValue].as[JsObject]
+      val id = (json \ "id").as[String]
+      id.matches(uuidFormat) shouldBe true
     }
   }
 }

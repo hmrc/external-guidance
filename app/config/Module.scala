@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-package repositories
+package config
 
-import base.BaseSpec
-import play.api.libs.json.Json
+import com.google.inject.AbstractModule
+import repositories.{ScratchRepository, ScratchRepositoryImpl}
 
-class ScratchRepositorySpec extends BaseSpec {
-  "Calling the saveScratch method with a Process" should {
-    "return a UUID representing the id to the saved process" in {
-      val target = new ScratchRepository()
-      val process = Json.obj()
+class Module extends AbstractModule {
 
-      val result = target.save(process)
-
-      whenReady(result) { processId =>
-        processId mustBe target.dummyId
-      }
-    }
+  override def configure(): Unit = {
+    bind(classOf[ScratchRepository]).to(classOf[ScratchRepositoryImpl])
   }
 }
