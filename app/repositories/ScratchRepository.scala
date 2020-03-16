@@ -18,9 +18,12 @@ package repositories
 
 import java.util.UUID
 
+
 import javax.inject.{Inject, Singleton}
 import models.ScratchProcess
-import play.api.libs.json.{Format, JsObject, OFormat}
+
+import reactivemongo.play.json.ImplicitBSONHandlers.JsObjectDocumentWriter
+import play.api.libs.json.{Format, JsObject, Json, OFormat}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import repositories.formatters.ScratchProcessFormatter
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -30,6 +33,7 @@ import scala.concurrent.Future
 
 trait ScratchRepository {
   def save(process: JsObject): Future[UUID]
+  def getByUuid(uuid: String): Future[Option[JsObject]]
 }
 
 @Singleton
@@ -47,4 +51,12 @@ class ScratchRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
     val document = ScratchProcess(UUID.randomUUID(), process)
     collection.insert(ordered = false).one(document).map(_ => document.id)
   }
+
+  def getByUuid(uuid: String): Future[Option[JsObject]] =
+    collection.find(Json.obj("_id" -> uuid), None)
+              .one[ScratchProcess]
+              .map(_.map(_.process))
+
 }
+
+

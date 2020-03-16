@@ -1,3 +1,4 @@
 # microservice specific routes
 
-POST        /scratch        controllers.ScratchController.save
+GET         /scratch/:uuid   controllers.ScratchController.get(uuid: String)
+POST        /scratch         controllers.ScratchController.save

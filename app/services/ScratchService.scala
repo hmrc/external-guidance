@@ -31,4 +31,8 @@ class ScratchService @Inject() (repository: ScratchRepository) {
     repository.save(process)
   }
 
+  def getByUuid(uuid: String): Future[Option[JsObject]] = {
+    repository.getByUuid(uuid)
+  }
+
 }

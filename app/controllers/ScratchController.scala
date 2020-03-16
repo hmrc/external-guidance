@@ -18,10 +18,9 @@ package controllers
 
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.{JsObject, JsValue, Json}
-import play.api.mvc.{Action, ControllerComponents}
+import play.api.mvc.{Action, ControllerComponents, AnyContent}
 import services.ScratchService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
-
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton()
@@ -33,4 +32,12 @@ class ScratchController @Inject() (scratchService: ScratchService, cc: Controlle
       Created(Json.obj("id" -> id.toString))
     }
   }
+
+  def get(uuid: String): Action[AnyContent] = Action.async { _ =>
+    scratchService.getByUuid(uuid).map {
+      case Some(jsObject) => Ok(jsObject)
+      case None => NotFound
+    }
+  }
+
 }
