@@ -26,6 +26,7 @@ import play.api.http.ContentTypes
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import play.api.mvc.AnyContentAsEmpty
 
 import scala.concurrent.Future
 
@@ -33,8 +34,15 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
 
   private trait Test extends MockScratchService {
     val expectedId: UUID = UUID.randomUUID()
+    val uuid: String = expectedId.toString
+    val unknownUuid: String = UUID.randomUUID().toString
+    val expectedJsObj: JsObject = Json.obj()
     MockScratchService.save().returns(Future.successful(expectedId))
+    MockScratchService.getByUuid(uuid).returns(Future.successful(Some(expectedJsObj)))
+    MockScratchService.getByUuid(unknownUuid).returns(Future.successful(None))
     lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(Json.obj())
+    lazy val getRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
+
     lazy val target: ScratchController = new ScratchController(mockScratchService, stubControllerComponents())
   }
 
@@ -57,4 +65,29 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
     }
 
   }
+
+  "Calling the get action" should {
+
+    "return an Ok response" in new Test {
+      private val result = target.get(uuid)(getRequest)
+      status(result) shouldBe OK
+    }
+
+    "return content as JSON" in new Test {
+      private val result = target.get(uuid)(getRequest)
+      contentType(result) shouldBe Some(ContentTypes.JSON)
+    }
+
+    "return a UUID assigned to an attribute labelled id" in new Test {
+      private val result = target.get(uuid)(getRequest)
+      contentAsJson(result).as[JsObject] shouldBe Json.obj()
+    }
+
+    "return a NOT_FOUND response" in new Test {
+      private val result = target.get(unknownUuid)(getRequest)
+      status(result) shouldBe NOT_FOUND
+    }
+
+  }
+
 }

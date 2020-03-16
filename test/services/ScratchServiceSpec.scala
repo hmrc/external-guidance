@@ -42,4 +42,18 @@ class ScratchServiceSpec extends BaseSpec {
       target.save(process) mustBe expected
     }
   }
+
+  "calling get Scratch method with a valid uuid" should {
+    "return valid JsObject" in new Test {
+
+      val expected: Future[Option[JsObject]] = Future.successful(Some(Json.obj()))
+      val uuid: String = UUID.randomUUID().toString
+      MockScratchRepository
+        .getByUuid(uuid)
+        .returns(expected)
+
+      target.getByUuid(uuid) mustBe expected
+    }
+  }
+
 }
