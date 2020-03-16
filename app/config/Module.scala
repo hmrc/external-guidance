@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package controllers
+package config
 
-import javax.inject.{Inject, Singleton}
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
-import config.AppConfig
+import com.google.inject.AbstractModule
+import repositories.{ScratchRepository, ScratchRepositoryImpl}
 
-import scala.concurrent.Future
+class Module extends AbstractModule {
 
-@Singleton()
-class MicroserviceHelloWorldController @Inject() (appConfig: AppConfig, cc: ControllerComponents) extends BackendController(cc) {
-
-  def hello(): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok("Hello world"))
+  override def configure(): Unit = {
+    bind(classOf[ScratchRepository]).to(classOf[ScratchRepositoryImpl])
   }
 }

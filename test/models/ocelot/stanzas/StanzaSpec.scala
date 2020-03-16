@@ -30,8 +30,9 @@ class StanzaSpec extends BaseSpec {
   val next = "40"
   val stack = "false"
 
-  val validValueStanzaJson: JsObject = Json.parse(
-    s"""{
+  val validValueStanzaJson: JsObject = Json
+    .parse(
+      s"""{
       |  "type": "${stanzaType}",
       |  "values": [
       |    {
@@ -49,7 +50,8 @@ class StanzaSpec extends BaseSpec {
       |  "stack": ${stack}
       |}
     """.stripMargin
-  ).as[JsObject]
+    )
+    .as[JsObject]
 
   "Stanza" must {
 
@@ -74,10 +76,7 @@ class StanzaSpec extends BaseSpec {
 
       val stanza: Stanza = validValueStanzaJson.as[Stanza]
 
-      stanza mustBe ValueStanza(List(Value(Scalar, pageNameLabel, pageName),
-                                     Value(Scalar, pageUrlLabel, pageUrl)),
-                                Seq(next),
-                                false)
+      stanza mustBe ValueStanza(List(Value(Scalar, pageNameLabel, pageName), Value(Scalar, pageUrlLabel, pageUrl)), Seq(next), false)
     }
 
   }

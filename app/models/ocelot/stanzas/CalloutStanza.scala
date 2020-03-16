@@ -36,9 +36,3 @@ object CalloutStanza {
 }
 
 case class Callout(noteType: CalloutType, text: Phrase, override val next: Seq[String], stack: Boolean) extends PopulatedStanza
-
-object Callout {
-
-  def apply(stanza: CalloutStanza, text: Phrase): Callout =
-    Callout(stanza.noteType, text, stanza.next, stanza.stack)
-}

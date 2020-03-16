@@ -34,9 +34,3 @@ object QuestionStanza {
 }
 
 case class Question(text: Phrase, answers: Seq[Phrase], override val next: Seq[String], stack: Boolean) extends PopulatedStanza
-
-object Question {
-
-  def apply(stanza: QuestionStanza, text: Phrase, answers: Seq[Phrase]): Question =
-    Question(text, answers, stanza.next, stanza.stack)
-}

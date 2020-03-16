@@ -33,9 +33,3 @@ object ValueType {
 
   }
 }
-
-class WithName(string: String) {
-  override val toString: String = string
-}
-
-case object PageUrlValueName extends WithName("PageUrl")

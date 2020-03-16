@@ -29,8 +29,9 @@ class MetaSpec extends BaseSpec {
   val version = 2
   val filename = s"$id.js"
 
-  val validJson: JsObject = Json.parse(
-    s"""
+  val validJson: JsObject = Json
+    .parse(
+      s"""
        |{
        |   "title": "$title",
        |   "id": "$id",
@@ -41,15 +42,10 @@ class MetaSpec extends BaseSpec {
        |   "filename": "$filename"
        |}
        |""".stripMargin
-  ).as[JsObject]
+    )
+    .as[JsObject]
 
-  val validModel: Meta = Meta(id,
-    title,
-    ocelotVersion,
-    author,
-    lastUpdate,
-    version,
-    filename)
+  val validModel: Meta = Meta(id, title, ocelotVersion, author, lastUpdate, version, filename)
 
   "Meta section" must {
 

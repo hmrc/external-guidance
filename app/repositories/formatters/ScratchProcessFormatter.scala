@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-package mocks
+package repositories.formatters
 
 import java.util.UUID
 
-import org.scalamock.handlers.CallHandler
-import org.scalamock.scalatest.MockFactory
-import play.api.libs.json.JsObject
-import services.ScratchService
+import models.ScratchProcess
+import play.api.libs.json.{JsObject, JsResult, JsValue, Json, OFormat}
 
-import scala.concurrent.Future
+object ScratchProcessFormatter {
 
-trait MockScratchService extends MockFactory {
-  val mockScratchService: ScratchService = mock[ScratchService]
+  val read: JsValue => JsResult[ScratchProcess] = json =>
+    for {
+      id <- (json \ "_id").validate[UUID]
+      process <- (json \ "process").validate[JsObject]
+    } yield ScratchProcess(id, process)
 
-  object MockScratchService {
+  val write: ScratchProcess => JsObject = scratchProcess =>
+    Json.obj(
+      "_id" -> scratchProcess.id,
+      "process" -> scratchProcess.process
+    )
 
-    def save(): CallHandler[Future[UUID]] = {
-      (mockScratchService
-        .save(_: JsObject))
-        .expects(*)
-    }
-  }
+  val mongoFormat: OFormat[ScratchProcess] = OFormat(read, write)
 }

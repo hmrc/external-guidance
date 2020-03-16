@@ -1818,8 +1818,8 @@ trait ProcessJson {
     |   }
     """.stripMargin
 
-    val prototypePhrasesSection: String =
-      """
+  val prototypePhrasesSection: String =
+    """
     |   [
     |     ["Telling HMRC about extra income","Welsh: Telling HMRC about extra income"],
     |     ["Check if you need to tell HMRC about extra money you've made by selling goods or services, or renting land or property.","Welsh: Check if you need to tell HMRC about extra money you've made by selling goods or services, or renting land or property."],
@@ -1910,8 +1910,9 @@ trait ProcessJson {
   private val leftbar = false
   private val always = false
   private val popUp = false
+
   val prototypeLinksSection: String =
-      s"""[
+    s"""[
          |{
          |   "id": ${id},
          |   "dest": "${dest}",
@@ -1923,13 +1924,15 @@ trait ProcessJson {
          |}
         ]""".stripMargin
 
-  val prototypeJson: JsObject = Json.parse(
-    s"""{ "meta" : ${prototypeMetaSection},
+  val prototypeJson: JsObject = Json
+    .parse(
+      s"""{ "meta" : ${prototypeMetaSection},
          | "flow": ${prototypeFlowSection},
          | "phrases": ${prototypePhrasesSection},
          | "links": ${prototypeLinksSection},
          | "contacts": [],
          | "howto": []}""".stripMargin
-  ).as[JsObject]
+    )
+    .as[JsObject]
 
 }

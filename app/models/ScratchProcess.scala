@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-package endpoints
+package models
 
-import play.api.http.Status
-import play.api.libs.ws.{WSRequest, WSResponse}
-import stubs.AuditStub
-import support.IntegrationSpec
+import java.util.UUID
 
-class MicroserviceHelloWorldISpec extends IntegrationSpec {
+import play.api.libs.json.JsObject
 
-  "calling the hello world route" should {
-    "return an OK response" in {
-      AuditStub.audit()
-      val request = buildRequest("/external-guidance/hello-world")
-      val response: WSResponse = await(request.get())
-      response.status shouldBe Status.OK
-    }
-  }
-
-}
+case class ScratchProcess(id: UUID, process: JsObject)

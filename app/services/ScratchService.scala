@@ -19,7 +19,7 @@ package services
 import java.util.UUID
 
 import javax.inject.{Inject, Singleton}
-import models.ocelot
+import play.api.libs.json.JsObject
 import repositories.ScratchRepository
 
 import scala.concurrent.Future
@@ -27,7 +27,7 @@ import scala.concurrent.Future
 @Singleton
 class ScratchService @Inject() (repository: ScratchRepository) {
 
-  def save(process: ocelot.Process): Future[UUID] = {
+  def save(process: JsObject): Future[UUID] = {
     repository.save(process)
   }
 
