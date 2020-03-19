@@ -78,7 +78,7 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
       contentType(result) shouldBe Some(ContentTypes.JSON)
     }
 
-    "return a UUID assigned to an attribute labelled id" in new Test {
+    "confirm returned content is a jason object" in new Test {
       private val result = target.get(uuid)(getRequest)
       contentAsJson(result).as[JsObject] shouldBe Json.obj()
     }
