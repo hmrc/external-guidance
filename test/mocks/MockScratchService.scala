@@ -35,5 +35,12 @@ trait MockScratchService extends MockFactory {
         .save(_: JsObject))
         .expects(*)
     }
+
+    def getByUuid(uuid: UUID): CallHandler[Future[Option[JsObject]]] = {
+      (mockScratchService
+        .getByUuid(_: UUID))
+        .expects(uuid)
+    }
+
   }
 }
