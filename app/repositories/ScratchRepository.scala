@@ -18,7 +18,6 @@ package repositories
 
 import java.util.UUID
 
-
 import javax.inject.{Inject, Singleton}
 import models.ScratchProcess
 
@@ -33,7 +32,7 @@ import scala.concurrent.Future
 
 trait ScratchRepository {
   def save(process: JsObject): Future[UUID]
-  def getByUuid(uuid: String): Future[Option[JsObject]]
+  def getByUuid(uuid: UUID): Future[Option[JsObject]]
 }
 
 @Singleton
@@ -52,7 +51,7 @@ class ScratchRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
     collection.insert(ordered = false).one(document).map(_ => document.id)
   }
 
-  def getByUuid(uuid: String): Future[Option[JsObject]] =
+  def getByUuid(uuid: UUID): Future[Option[JsObject]] =
     collection.find(Json.obj("_id" -> uuid), None)
               .one[ScratchProcess]
               .map(_.map(_.process))

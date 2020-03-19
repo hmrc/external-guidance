@@ -16,12 +16,15 @@
 
 package controllers
 
+import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.{Action, ControllerComponents, AnyContent}
 import services.ScratchService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Try,Success,Failure}
 
 @Singleton()
 class ScratchController @Inject() (scratchService: ScratchService, cc: ControllerComponents) extends BackendController(cc) {
@@ -33,10 +36,14 @@ class ScratchController @Inject() (scratchService: ScratchService, cc: Controlle
     }
   }
 
-  def get(uuid: String): Action[AnyContent] = Action.async { _ =>
-    scratchService.getByUuid(uuid).map {
-      case Some(jsObject) => Ok(jsObject)
-      case None => NotFound
+  def get(uuidString: String): Action[AnyContent] = Action.async { _ =>
+    Try{UUID.fromString(uuidString)} match {
+      case Success(uuid) =>
+        scratchService.getByUuid(uuid).map {
+          case Some(jsObject) => Ok(jsObject)
+          case None => NotFound
+        }
+      case Failure(_) => Future.successful(NotFound)
     }
   }
 

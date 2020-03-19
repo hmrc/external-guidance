@@ -35,10 +35,11 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
   private trait Test extends MockScratchService {
     val expectedId: UUID = UUID.randomUUID()
     val uuid: String = expectedId.toString
-    val unknownUuid: String = UUID.randomUUID().toString
+    val unknownUuid: UUID = UUID.randomUUID()
     val expectedJsObj: JsObject = Json.obj()
+    val invalidUuid: String = "asdhajshdaks"
     MockScratchService.save().returns(Future.successful(expectedId))
-    MockScratchService.getByUuid(uuid).returns(Future.successful(Some(expectedJsObj)))
+    MockScratchService.getByUuid(expectedId).returns(Future.successful(Some(expectedJsObj)))
     MockScratchService.getByUuid(unknownUuid).returns(Future.successful(None))
     lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(Json.obj())
     lazy val getRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -83,11 +84,18 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
       contentAsJson(result).as[JsObject] shouldBe Json.obj()
     }
 
-    "return a NOT_FOUND response" in new Test {
-      private val result = target.get(unknownUuid)(getRequest)
+     "return a NOT_FOUND response" in new Test {
+      private val result = target.get(unknownUuid.toString)(getRequest)
       status(result) shouldBe NOT_FOUND
     }
+  }
 
+  "Calling the get action with invalid UUID string" should {
+    "return a NOT_FOUND response" in new Test {
+      private val result = target.get(invalidUuid)(getRequest)
+      status(result) shouldBe NOT_FOUND
+    }
   }
 
 }
+

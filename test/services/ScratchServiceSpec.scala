@@ -47,7 +47,7 @@ class ScratchServiceSpec extends BaseSpec {
     "return valid JsObject" in new Test {
 
       val expected: Future[Option[JsObject]] = Future.successful(Some(Json.obj()))
-      val uuid: String = UUID.randomUUID().toString
+      val uuid: UUID = UUID.randomUUID()
       MockScratchRepository
         .getByUuid(uuid)
         .returns(expected)

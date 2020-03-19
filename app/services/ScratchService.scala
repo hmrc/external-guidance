@@ -21,7 +21,6 @@ import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.JsObject
 import repositories.ScratchRepository
-
 import scala.concurrent.Future
 
 @Singleton
@@ -31,7 +30,7 @@ class ScratchService @Inject() (repository: ScratchRepository) {
     repository.save(process)
   }
 
-  def getByUuid(uuid: String): Future[Option[JsObject]] = {
+  def getByUuid(uuid: UUID): Future[Option[JsObject]] = {
     repository.getByUuid(uuid)
   }
 
