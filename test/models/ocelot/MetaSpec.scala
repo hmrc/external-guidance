@@ -16,10 +16,10 @@
 
 package models.ocelot
 
-import base.BaseSpec
+import base.UnitSpec
 import play.api.libs.json._
 
-class MetaSpec extends BaseSpec {
+class MetaSpec extends UnitSpec {
 
   val title = "Process title"
   val id = "abc90001"
@@ -51,7 +51,7 @@ class MetaSpec extends BaseSpec {
 
     "deserialise correctly" in {
       val result: Meta = validJson.as[Meta]
-      result mustBe validModel
+      result shouldBe validModel
     }
 
     missingJsObjectAttrTests[Meta](validJson)

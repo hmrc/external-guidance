@@ -19,6 +19,7 @@ package controllers
 import java.util.UUID
 
 import mocks.MockScratchService
+import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -33,69 +34,192 @@ import scala.concurrent.Future
 class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite {
 
   private trait Test extends MockScratchService {
-    val expectedId: UUID = UUID.randomUUID()
-    val uuid: String = expectedId.toString
-    val unknownUuid: UUID = UUID.randomUUID()
-    val expectedJsObj: JsObject = Json.obj()
-    val invalidUuid: String = "asdhajshdaks"
-    MockScratchService.save().returns(Future.successful(expectedId))
-    MockScratchService.getByUuid(expectedId).returns(Future.successful(Some(expectedJsObj)))
-    MockScratchService.getByUuid(unknownUuid).returns(Future.successful(None))
-    lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(Json.obj())
-    lazy val getRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
-
+    val id: String = "7a2f7eb3-6f0d-4d7f-a9b9-44a7137820ad"
     lazy val target: ScratchController = new ScratchController(mockScratchService, stubControllerComponents())
   }
 
-  "Calling the save action" should {
+  "Calling the save action" when {
 
-    "return a created response" in new Test {
-      private val result = target.save()(request)
-      status(result) shouldBe CREATED
+    "the request is valid" should {
+
+      trait ValidSaveTest extends Test {
+        val expectedId: UUID = UUID.fromString(id)
+        val process: JsObject = Json.obj()
+        MockScratchService.save(process).returns(Future.successful(Right(expectedId)))
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(process)
+      }
+
+      "return a created response" in new ValidSaveTest {
+        private val result = target.save()(request)
+        status(result) shouldBe CREATED
+      }
+
+      "return content as JSON" in new ValidSaveTest {
+        private val result = target.save()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return a UUID assigned to an attribute labelled id" in new ValidSaveTest {
+        private val result = target.save()(request)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "id").as[String] shouldBe expectedId.toString
+      }
     }
 
-    "return content as JSON" in new Test {
-      private val result = target.save()(request)
-      contentType(result) shouldBe Some(ContentTypes.JSON)
+    "the request is invalid" should {
+
+      trait InvalidSaveTest extends Test {
+        val expectedErrorCode = "BAD_REQUEST"
+        val process: JsObject = Json.obj()
+        MockScratchService.save(process).returns(Future.successful(Left(Errors(BadRequestError))))
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(process)
+      }
+
+      "return a bad request response" in new InvalidSaveTest {
+        private val result = target.save()(request)
+        status(result) shouldBe BAD_REQUEST
+      }
+
+      "return content as JSON" in new InvalidSaveTest {
+        private val result = target.save()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return an error code of BAD_REQUEST" in new InvalidSaveTest {
+        private val result = target.save()(request)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe expectedErrorCode
+      }
     }
 
-    "return a UUID assigned to an attribute labelled id" in new Test {
-      private val result = target.save()(request)
-      val data = contentAsJson(result).as[JsObject]
-      (data \ "id").as[String] shouldBe expectedId.toString
-    }
+    "a downstream error occurs" should {
 
+      trait ErrorSaveTest extends Test {
+        val expectedErrorCode = "INTERNAL_SERVER_ERROR"
+        val process: JsObject = Json.obj()
+        MockScratchService.save(process).returns(Future.successful(Left(Errors(InternalServiceError))))
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(process)
+      }
+
+      "return a internal server error response" in new ErrorSaveTest {
+        private val result = target.save()(request)
+        status(result) shouldBe INTERNAL_SERVER_ERROR
+      }
+
+      "return content as JSON" in new ErrorSaveTest {
+        private val result = target.save()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return an error code of INTERNAL_SERVER_ERROR" in new ErrorSaveTest {
+        private val result = target.save()(request)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe expectedErrorCode
+      }
+    }
   }
 
-  "Calling the get action" should {
+  "Calling the get action" when {
 
-    "return an Ok response" in new Test {
-      private val result = target.get(uuid)(getRequest)
-      status(result) shouldBe OK
+    "the request is valid" should {
+
+      trait ValidGetTest extends Test {
+        val expectedId: UUID = UUID.fromString(id)
+        val expectedProcess: JsObject = Json.obj()
+        MockScratchService.getById(id).returns(Future.successful(Right(expectedProcess)))
+        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
+      }
+
+      "return an OK response" in new ValidGetTest {
+        private val result = target.get(id)(request)
+        status(result) shouldBe OK
+      }
+
+      "return content as JSON" in new ValidGetTest {
+        private val result = target.get(id)(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "confirm returned content is a JSON object" in new ValidGetTest {
+        private val result = target.get(id)(request)
+        contentAsJson(result).as[JsObject] shouldBe expectedProcess
+      }
     }
 
-    "return content as JSON" in new Test {
-      private val result = target.get(uuid)(getRequest)
-      contentType(result) shouldBe Some(ContentTypes.JSON)
+    "the request is invalid" should {
+
+      trait InvalidGetTest extends Test {
+        val expectedErrorCode = "BAD_REQUEST"
+        MockScratchService.getById(id).returns(Future.successful(Left(Errors(BadRequestError))))
+        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
+      }
+
+      "return an bad request response" in new InvalidGetTest {
+        private val result = target.get(id)(request)
+        status(result) shouldBe BAD_REQUEST
+      }
+
+      "return content as JSON" in new InvalidGetTest {
+        private val result = target.get(id)(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return a error code of BAD_REQUEST" in new InvalidGetTest {
+        private val result = target.get(id)(request)
+        private val json = contentAsJson(result).as[JsObject]
+        (json \ "code").as[String] shouldBe expectedErrorCode
+      }
     }
 
-    "confirm returned content is a jason object" in new Test {
-      private val result = target.get(uuid)(getRequest)
-      contentAsJson(result).as[JsObject] shouldBe Json.obj()
+    "the request contains an unknown ID" should {
+
+      trait NotFoundGetTest extends Test {
+        val expectedErrorCode = "NOT_FOUND_ERROR"
+        MockScratchService.getById(id).returns(Future.successful(Left(Errors(NotFoundError))))
+        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
+      }
+
+      "return an not found response" in new NotFoundGetTest {
+        private val result = target.get(id)(request)
+        status(result) shouldBe NOT_FOUND
+      }
+
+      "return content as JSON" in new NotFoundGetTest {
+        private val result = target.get(id)(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return a error code of NOT_FOUND_ERROR" in new NotFoundGetTest {
+        private val result = target.get(id)(request)
+        private val json = contentAsJson(result).as[JsObject]
+        (json \ "code").as[String] shouldBe expectedErrorCode
+      }
     }
 
-     "return a NOT_FOUND response" in new Test {
-      private val result = target.get(unknownUuid.toString)(getRequest)
-      status(result) shouldBe NOT_FOUND
+    "a downstream error occurs" should {
+
+      trait ErrorGetTest extends Test {
+        val expectedErrorCode = "INTERNAL_SERVER_ERROR"
+        val process: JsObject = Json.obj()
+        MockScratchService.getById(id).returns(Future.successful(Left(Errors(InternalServiceError))))
+        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
+      }
+
+      "return a internal server error response" in new ErrorGetTest {
+        private val result = target.get(id)(request)
+        status(result) shouldBe INTERNAL_SERVER_ERROR
+      }
+
+      "return content as JSON" in new ErrorGetTest {
+        private val result = target.get(id)(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return an error code of INTERNAL_SERVER_ERROR" in new ErrorGetTest {
+        private val result = target.get(id)(request)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe expectedErrorCode
+      }
     }
   }
-
-  "Calling the get action with invalid UUID string" should {
-    "return a NOT_FOUND response" in new Test {
-      private val result = target.get(invalidUuid)(getRequest)
-      status(result) shouldBe NOT_FOUND
-    }
-  }
-
 }
-

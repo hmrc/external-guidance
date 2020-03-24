@@ -16,10 +16,10 @@
 
 package models.ocelot.stanzas
 
-import base.BaseSpec
+import base.UnitSpec
 import play.api.libs.json._
 
-class StanzaSpec extends BaseSpec {
+class StanzaSpec extends UnitSpec {
 
   val stanzaType = "ValueStanza"
   val valueType = "scalar"
@@ -59,7 +59,7 @@ class StanzaSpec extends BaseSpec {
 
       val stanza: Stanza = Json.parse("""{ "type": "EndStanza" }""").as[Stanza]
 
-      stanza mustBe EndStanza
+      stanza shouldBe EndStanza
     }
 
     "generate an error when an unknown stanza type is encountered" in {
@@ -76,7 +76,7 @@ class StanzaSpec extends BaseSpec {
 
       val stanza: Stanza = validValueStanzaJson.as[Stanza]
 
-      stanza mustBe ValueStanza(List(Value(Scalar, pageNameLabel, pageName), Value(Scalar, pageUrlLabel, pageUrl)), Seq(next), false)
+      stanza shouldBe ValueStanza(List(Value(Scalar, pageNameLabel, pageName), Value(Scalar, pageUrlLabel, pageUrl)), Seq(next), false)
     }
 
   }

@@ -17,10 +17,10 @@
 package base
 
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{MustMatchers, WordSpec}
+import org.scalatest.{Matchers, WordSpec}
 import play.api.libs.json._
 
-trait BaseSpec extends WordSpec with MustMatchers with ScalaFutures {
+trait UnitSpec extends WordSpec with Matchers with ScalaFutures {
 
   def missingJsObjectAttrTests[T](jsObject: JsObject, attrsToIgnore: List[String] = Nil)(implicit objectReads: Reads[T]): Unit =
     jsObject.keys.filterNot(attrsToIgnore.contains(_)).foreach { attributeName =>

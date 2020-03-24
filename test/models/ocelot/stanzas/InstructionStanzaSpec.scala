@@ -18,9 +18,9 @@ package models.ocelot.stanzas
 
 import play.api.libs.json._
 
-import base.BaseSpec
+import base.UnitSpec
 
-class InstructionStanzaSpec extends BaseSpec {
+class InstructionStanzaSpec extends UnitSpec {
 
   val stanzaType: String = "InstructionStanza"
   val text: Int = 10
@@ -59,7 +59,7 @@ class InstructionStanzaSpec extends BaseSpec {
 
       val validInstructionStanza: InstructionStanza = validInstructionStanzaJson.as[InstructionStanza]
 
-      validInstructionStanza mustBe expectedValidInstructionStanzaWithLink
+      validInstructionStanza shouldBe expectedValidInstructionStanzaWithLink
     }
 
     "Deserialising a valid Instruction Stanza without a link should create an instance of the class InstructionStanza" in {
@@ -68,7 +68,7 @@ class InstructionStanzaSpec extends BaseSpec {
 
       val validInstructionStanza: InstructionStanza = validInstructionStanzaJson.as[InstructionStanza]
 
-      validInstructionStanza mustBe expectedValidInstructionStanzaWithoutLink
+      validInstructionStanza shouldBe expectedValidInstructionStanzaWithoutLink
     }
 
     /** Test for missing properties in Json object representing instruction stanzas */
