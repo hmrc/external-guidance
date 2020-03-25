@@ -200,7 +200,6 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
 
       trait ErrorGetTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
-        val process: JsObject = Json.obj()
         MockScratchService.getById(id).returns(Future.successful(Left(Errors(InternalServiceError))))
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
