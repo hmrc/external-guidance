@@ -18,41 +18,132 @@ package services
 
 import java.util.UUID
 
-import base.BaseSpec
+import base.UnitSpec
 import mocks.MockScratchRepository
+import models.RequestOutcome
+import models.errors._
+import models.ocelot.ProcessJson
 import play.api.libs.json.{JsObject, Json}
 
 import scala.concurrent.Future
 
-class ScratchServiceSpec extends BaseSpec {
+class ScratchServiceSpec extends UnitSpec {
 
   private trait Test extends MockScratchRepository {
     lazy val target: ScratchService = new ScratchService(mockScratchRepository)
   }
 
-  "calling saveScratch method with a Process" should {
-    "return valid UUID" in new Test {
+  "Calling save method" when {
 
-      val expected: Future[UUID] = Future.successful(UUID.randomUUID())
-      val process: JsObject = Json.obj()
-      MockScratchRepository
-        .save(process)
-        .returns(expected)
+    "the JSON is valid" should {
+      "return valid UUID" in new Test with ProcessJson {
 
-      target.save(process) mustBe expected
+        val id: UUID = UUID.fromString("bf8bf6bb-0894-4df6-8209-2467bc9af6ae")
+        val expected: RequestOutcome[UUID] = Right(id)
+        val process: JsObject = validOnePageJson.as[JsObject]
+        MockScratchRepository
+          .save(process)
+          .returns(Future.successful(expected))
+
+        whenReady(target.save(process)) {
+          case Right(uuid) => uuid.toString shouldBe id.toString
+          case _ => fail
+        }
+      }
+    }
+
+    "the JSON is invalid" should {
+      "not call the scratch repository" in new Test {
+        val process: JsObject = Json.obj()
+        MockScratchRepository.save(process).never()
+        target.save(process)
+      }
+
+      "return a bad request error" in new Test {
+        val expected: RequestOutcome[UUID] = Left(Errors(BadRequestError))
+        val process: JsObject = Json.obj()
+        MockScratchRepository
+          .save(process)
+          .returns(Future.successful(expected))
+
+        whenReady(target.save(process)) {
+          case result @ Left(_) => result shouldBe expected
+          case _ => fail
+        }
+      }
+    }
+
+    "a database error occurs" should {
+      "return a internal error" in new Test with ProcessJson {
+        val repositoryResponse: RequestOutcome[UUID] = Left(Errors(DatabaseError))
+        val expected: RequestOutcome[UUID] = Left(Errors(InternalServiceError))
+        val process: JsObject = validOnePageJson.as[JsObject]
+        MockScratchRepository
+          .save(process)
+          .returns(Future.successful(repositoryResponse))
+
+        whenReady(target.save(process)) {
+          case result @ Left(_) => result shouldBe expected
+          case _ => fail
+        }
+      }
     }
   }
 
-  "calling get Scratch method with a valid uuid" should {
-    "return valid JsObject" in new Test {
+  "Calling getById method" when {
 
-      val expected: Future[Option[JsObject]] = Future.successful(Some(Json.obj()))
-      val uuid: UUID = UUID.randomUUID()
-      MockScratchRepository
-        .getByUuid(uuid)
-        .returns(expected)
+    "the ID is valid and known" should {
+      "return the corresponding scratch process" in new Test {
+        val expected: RequestOutcome[JsObject] = Right(Json.obj())
+        val id: UUID = UUID.randomUUID()
+        MockScratchRepository
+          .getById(id)
+          .returns(Future.successful(expected))
 
-      target.getByUuid(uuid) mustBe expected
+        whenReady(target.getById(id.toString)) { result =>
+          result shouldBe expected
+        }
+      }
+    }
+
+    "the ID is valid but unknown" should {
+      "return a not found error" in new Test {
+        val expected: RequestOutcome[JsObject] = Left(Errors(NotFoundError))
+        val id: UUID = UUID.randomUUID()
+        MockScratchRepository
+          .getById(id)
+          .returns(Future.successful(expected))
+
+        whenReady(target.getById(id.toString)) { result =>
+          result shouldBe expected
+        }
+      }
+    }
+
+    "the ID is invalid" should {
+      "return a bad request error" in new Test {
+        val expected: RequestOutcome[JsObject] = Left(Errors(BadRequestError))
+        val id: String = "Some invalid ID"
+
+        whenReady(target.getById(id)) { result =>
+          result shouldBe expected
+        }
+      }
+    }
+
+    "a database error occurs" should {
+      "return a internal error" in new Test {
+        val repositoryResponse: RequestOutcome[JsObject] = Left(Errors(DatabaseError))
+        val expected: RequestOutcome[JsObject] = Left(Errors(InternalServiceError))
+        val id: UUID = UUID.randomUUID()
+        MockScratchRepository
+          .getById(id)
+          .returns(Future.successful(repositoryResponse))
+
+        whenReady(target.getById(id.toString)) { result =>
+          result shouldBe expected
+        }
+      }
     }
   }
 

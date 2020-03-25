@@ -19,19 +19,49 @@ package services
 import java.util.UUID
 
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json.JsObject
+import models.RequestOutcome
+import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
+import models.ocelot.Process
+import play.api.Logger
+import play.api.libs.json.{JsError, JsObject, JsSuccess}
 import repositories.ScratchRepository
+import utils.Validators._
+
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
 class ScratchService @Inject() (repository: ScratchRepository) {
 
-  def save(process: JsObject): Future[UUID] = {
-    repository.save(process)
+  private val logger: Logger = Logger(this.getClass)
+
+  def save(process: JsObject): Future[RequestOutcome[UUID]] = {
+
+    def saveProcess(process: JsObject): Future[RequestOutcome[UUID]] = repository.save(process) map {
+      case Left(_) => Left(Errors(InternalServiceError))
+      case result => result
+    }
+
+    process.validate[Process] match {
+      case JsSuccess(_, _) => saveProcess(process)
+      case JsError(errors) =>
+        logger.warn(s"Parsing process failed with the following error(s): $errors")
+        Future { Left(Errors(BadRequestError)) }
+    }
   }
 
-  def getByUuid(uuid: UUID): Future[Option[JsObject]] = {
-    repository.getByUuid(uuid)
+  def getById(id: String): Future[RequestOutcome[JsObject]] = {
+
+    def getProcess(id: UUID): Future[RequestOutcome[JsObject]] = repository.getById(id) map {
+      case error @ Left(Errors(NotFoundError :: Nil)) => error
+      case Left(_) => Left(Errors(InternalServiceError))
+      case result => result
+    }
+
+    validateUUID(id) match {
+      case Some(id) => getProcess(id)
+      case None => Future { Left(Errors(BadRequestError)) }
+    }
   }
 
 }

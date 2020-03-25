@@ -18,11 +18,11 @@ package repositories.formatters
 
 import java.util.UUID
 
-import base.BaseSpec
+import base.UnitSpec
 import models.ScratchProcess
 import play.api.libs.json.{JsSuccess, Json}
 
-class ScratchProcessFormatterSpec extends BaseSpec {
+class ScratchProcessFormatterSpec extends UnitSpec {
 
   private val id = "3475e5c5-343d-4214-9efc-58270867214c"
   private val process = ScratchProcess(UUID.fromString(id), Json.obj())
@@ -49,7 +49,7 @@ class ScratchProcessFormatterSpec extends BaseSpec {
   "Serialising a ScratchProcess to JSON" should {
     "result in the correct JSON" in {
       val result = Json.toJson(process)(ScratchProcessFormatter.mongoFormat)
-      result mustBe json
+      result shouldBe json
     }
   }
 }

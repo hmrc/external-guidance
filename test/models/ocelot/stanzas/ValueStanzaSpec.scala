@@ -16,10 +16,10 @@
 
 package models.ocelot.stanzas
 
-import base.BaseSpec
+import base.UnitSpec
 import play.api.libs.json._
 
-class ValueStanzaSpec extends BaseSpec {
+class ValueStanzaSpec extends UnitSpec {
 
   val stanzaType = "ValueStanza"
   val valueType = "scalar"
@@ -82,12 +82,12 @@ class ValueStanzaSpec extends BaseSpec {
 
       val stanza: ValueStanza = validValueStanzaJson.as[ValueStanza]
 
-      stanza.stack mustBe false
-      stanza.next.length mustBe 1
-      stanza.next(0) mustBe next
-      stanza.values.length mustBe 2
-      stanza.values(0) mustBe Value(Scalar, pageNameLabel, pageName)
-      stanza.values(1) mustBe Value(Scalar, pageUrlLabel, pageUrl)
+      stanza.stack shouldBe false
+      stanza.next.length shouldBe 1
+      stanza.next(0) shouldBe next
+      stanza.values.length shouldBe 2
+      stanza.values(0) shouldBe Value(Scalar, pageNameLabel, pageName)
+      stanza.values(1) shouldBe Value(Scalar, pageUrlLabel, pageUrl)
     }
 
     "fail to parse if an unkown value type is found" in {
@@ -98,7 +98,7 @@ class ValueStanzaSpec extends BaseSpec {
     }
 
     "contain at least one Value object" in {
-      validValueStanzaJson.as[ValueStanza].values.length must be > 0
+      validValueStanzaJson.as[ValueStanza].values.length should be > 0
     }
 
     missingJsObjectAttrTests[ValueStanza](validValueStanzaJson, List("type"))

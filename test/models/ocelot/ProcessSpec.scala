@@ -16,11 +16,11 @@
 
 package models.ocelot
 
-import base.BaseSpec
+import base.UnitSpec
 import play.api.libs.json._
 import models.ocelot.stanzas.Stanza
 
-class ProcessSpec extends BaseSpec with ProcessJson {
+class ProcessSpec extends UnitSpec with ProcessJson {
 
   val ten: Int = 10
   val oneHundred: Int = 100
@@ -36,10 +36,10 @@ class ProcessSpec extends BaseSpec with ProcessJson {
 
     "Deserialise from prototype json" in {
 
-      process.meta mustBe meta
-      process.flow mustBe flow
-      process.phrases mustBe phrases
-      process.links mustBe links
+      process.meta shouldBe meta
+      process.flow shouldBe flow
+      process.phrases shouldBe phrases
+      process.links shouldBe links
 
     }
 
@@ -52,12 +52,12 @@ class ProcessSpec extends BaseSpec with ProcessJson {
     "Return phrase valid index" in {
 
       val phrase = Phrase(Vector("Telling HMRC about extra income", "Welsh: Telling HMRC about extra income"))
-      process.phraseOption(0) mustBe Some(phrase)
+      process.phraseOption(0) shouldBe Some(phrase)
     }
 
     "Return None for a invalid index" in {
 
-      process.phraseOption(oneHundred) mustBe None
+      process.phraseOption(oneHundred) shouldBe None
     }
   }
 
@@ -67,12 +67,12 @@ class ProcessSpec extends BaseSpec with ProcessJson {
 
       val link: Link = Link(0, "http://www.bbc.co.uk/news", "BBC News", window = false)
 
-      process.linkOption(0) mustBe Some(link)
+      process.linkOption(0) shouldBe Some(link)
     }
 
     "Return None for an invalid index" in {
 
-      process.linkOption(ten) mustBe None
+      process.linkOption(ten) shouldBe None
     }
   }
 }

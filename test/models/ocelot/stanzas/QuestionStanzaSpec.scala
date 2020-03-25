@@ -16,11 +16,10 @@
 
 package models.ocelot.stanzas
 
+import base.UnitSpec
 import play.api.libs.json._
 
-import base.BaseSpec
-
-class QuestionStanzaSpec extends BaseSpec {
+class QuestionStanzaSpec extends UnitSpec {
 
   val zero: Int = 0
   val one: Int = 1
@@ -73,7 +72,7 @@ class QuestionStanzaSpec extends BaseSpec {
 
       val twoAnswersQuestionStanza: QuestionStanza = twoAnswersQuestionStanzaJson.as[QuestionStanza]
 
-      twoAnswersQuestionStanza mustBe expectedTwoQuestionsQuestionStanza
+      twoAnswersQuestionStanza shouldBe expectedTwoQuestionsQuestionStanza
     }
 
     "reading a valid QuestionStanza with three answers should create an instance of the class QuestionStanza" in {
@@ -82,7 +81,7 @@ class QuestionStanzaSpec extends BaseSpec {
 
       val threeAnswersQuestionStanza: QuestionStanza = threeAnswersQuestionStanzaJson.as[QuestionStanza]
 
-      threeAnswersQuestionStanza mustBe expectedThreeAnswersQuestionStanza
+      threeAnswersQuestionStanza shouldBe expectedThreeAnswersQuestionStanza
     }
 
     /** Test for missing properties in Json object */

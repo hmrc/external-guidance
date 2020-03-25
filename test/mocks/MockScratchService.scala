@@ -18,6 +18,7 @@ package mocks
 
 import java.util.UUID
 
+import models.RequestOutcome
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.JsObject
@@ -30,16 +31,16 @@ trait MockScratchService extends MockFactory {
 
   object MockScratchService {
 
-    def save(): CallHandler[Future[UUID]] = {
+    def save(scratch: JsObject): CallHandler[Future[RequestOutcome[UUID]]] = {
       (mockScratchService
         .save(_: JsObject))
-        .expects(*)
+        .expects(scratch)
     }
 
-    def getByUuid(uuid: UUID): CallHandler[Future[Option[JsObject]]] = {
+    def getById(id: String): CallHandler[Future[RequestOutcome[JsObject]]] = {
       (mockScratchService
-        .getByUuid(_: UUID))
-        .expects(uuid)
+        .getById(_: String))
+        .expects(id)
     }
 
   }

@@ -16,10 +16,10 @@
 
 package models.ocelot.stanzas
 
-import org.scalatest.{MustMatchers, WordSpec}
+import base.UnitSpec
 import models.ocelot._
 
-class InstructionSpec extends WordSpec with MustMatchers {
+class InstructionSpec extends UnitSpec {
 
   trait Test {
     val text: Int = 10
@@ -46,14 +46,14 @@ class InstructionSpec extends WordSpec with MustMatchers {
 
     "contain a list of linked stanza ids drawn from placeholders within the text" in new Test {
       val instruction = Instruction(simpleInstruction, phrase0, None)
-      instruction.linkIds.length mustBe 0
+      instruction.linkIds.length shouldBe 0
     }
 
     "contain a list of linked stanza ids drawn from placeholders within the text and link" in new Test {
       val instruction = Instruction(linkInstruction, phrase0, Some(link))
-      instruction.linkIds.length mustBe 1
+      instruction.linkIds.length shouldBe 1
 
-      instruction.linkIds.contains(linkDest) mustBe true
+      instruction.linkIds.contains(linkDest) shouldBe true
     }
 
   }

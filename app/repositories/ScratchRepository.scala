@@ -19,10 +19,9 @@ package repositories
 import java.util.UUID
 
 import javax.inject.{Inject, Singleton}
-import models.ScratchProcess
-
-import reactivemongo.play.json.ImplicitBSONHandlers.JsObjectDocumentWriter
-import play.api.libs.json.{Format, JsObject, Json, OFormat}
+import models.errors.{DatabaseError, Errors, NotFoundError}
+import models.{RequestOutcome, ScratchProcess}
+import play.api.libs.json.{Format, JsObject}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import repositories.formatters.ScratchProcessFormatter
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -31,8 +30,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait ScratchRepository {
-  def save(process: JsObject): Future[UUID]
-  def getByUuid(uuid: UUID): Future[Option[JsObject]]
+  def save(process: JsObject): Future[RequestOutcome[UUID]]
+  def getById(id: UUID): Future[RequestOutcome[JsObject]]
 }
 
 @Singleton
@@ -45,17 +44,30 @@ class ScratchRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
     )
     with ScratchRepository {
 
-  def save(process: JsObject): Future[UUID] = {
-    implicit val writer: OFormat[ScratchProcess] = ScratchProcessFormatter.mongoFormat
+  def save(process: JsObject): Future[RequestOutcome[UUID]] = {
     val document = ScratchProcess(UUID.randomUUID(), process)
-    collection.insert(ordered = false).one(document).map(_ => document.id)
+    insert(document)
+      .map { _ =>
+        Right(document.id)
+      }
+      .recover {
+        case e =>
+          logger.warn(e.getMessage)
+          Left(Errors(DatabaseError))
+      }
   }
 
-  def getByUuid(uuid: UUID): Future[Option[JsObject]] =
-    collection.find(Json.obj("_id" -> uuid), None)
-              .one[ScratchProcess]
-              .map(_.map(_.process))
+  def getById(id: UUID): Future[RequestOutcome[JsObject]] = {
+    findById(id)
+      .map {
+        case Some(data) => Right(data.process)
+        case None => Left(Errors(NotFoundError))
+      }
+      .recover {
+        case e =>
+          logger.warn(e.getMessage)
+          Left(Errors(DatabaseError))
+      }
+  }
 
 }
-
-

@@ -16,11 +16,10 @@
 
 package models.ocelot.stanzas
 
+import base.UnitSpec
 import play.api.libs.json._
 
-import base.BaseSpec
-
-class CalloutStanzaSpec extends BaseSpec {
+class CalloutStanzaSpec extends UnitSpec {
 
   def getCalloutType[T](stanzaType: T): String = stanzaType.getClass.getSimpleName.dropRight(1)
 
@@ -74,7 +73,7 @@ class CalloutStanzaSpec extends BaseSpec {
     s"Reading valid JSON for a $jsonNoteType Callout" should {
       s"create a ${expectedStanza.noteType} Callout Stanza" in {
         val calloutStanza: CalloutStanza = json.as[CalloutStanza]
-        calloutStanza mustBe expectedStanza
+        calloutStanza shouldBe expectedStanza
       }
     }
   }

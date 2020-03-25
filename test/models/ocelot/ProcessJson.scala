@@ -18,9 +18,6 @@ package models.ocelot
 
 import play.api.libs.json.{JsValue, Json, JsObject}
 
-//
-// All Welsh translations are temporary placeholders and for testing purposes only
-//
 trait ProcessJson {
 
   val validOnePageJson: JsValue = Json.parse(
@@ -85,7 +82,6 @@ trait ProcessJson {
     """.stripMargin
   )
 
-  // Ocelot Prototype process demonstrating range of Stanzas and range of relevant Stanza attributes
   val prototypeMetaSection: String =
     """
     |  {
