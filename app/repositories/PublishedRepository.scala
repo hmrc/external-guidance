@@ -43,7 +43,7 @@ trait PublishedRepository {
 @Singleton
 class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
     extends ReactiveRepository[PublishedProcess, String](
-      collectionName = "published",
+      collectionName = "publishedProcesses",
       mongo = mongoComponent.mongoConnector.db,
       domainFormat = PublishedProcessFormatter.mongoFormat,
       idFormat = implicitly[Format[String]]
