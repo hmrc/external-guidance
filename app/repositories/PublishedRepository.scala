@@ -32,6 +32,8 @@ import repositories.formatters.PublishedProcessFormatter
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
+//$COVERAGE-OFF$
+
 trait PublishedRepository {
 
   def save(id: String, process: JsObject): Future[RequestOutcome[String]]
@@ -80,3 +82,5 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
   }
 
 }
+
+//$COVERAGE-ON$
