@@ -16,19 +16,28 @@
 
 package utils
 
-import java.util.UUID
+import base.UnitSpec
+
+import utils.Validators._
 
 import models.errors.{BadRequestError, Errors}
 
-object Validators {
+class ValidatorsSpec extends UnitSpec  {
 
-  def validateUUID(id: String): Option[UUID] = {
-    val format = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-    if (id.matches(format)) Some(UUID.fromString(id)) else None
+  val validProcessId: String = "ext90001"
+  val invalidProcessId: String = ""
+
+  "The validators object process identifier validation" should {
+
+    "Return a valid process id" in {
+
+      validateProcessId(validProcessId) shouldBe Right(validProcessId)
+    }
+
+    "Return a bad request error when the process id is invalid" in {
+
+      validateProcessId(invalidProcessId) shouldBe Left(Errors(BadRequestError))
+    }
   }
 
-  def validateProcessId(id: String) : Either[Errors, String] = {
-    val format = "^[a-z]{3}[0-9]{5}$"
-    if(id.matches(format)) Right(id) else Left(Errors(BadRequestError))
-  }
 }
