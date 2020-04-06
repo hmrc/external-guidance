@@ -20,9 +20,9 @@ import base.UnitSpec
 
 import utils.Validators._
 
-import models.errors.{BadRequestError, Errors}
+import models.errors.{Errors, ValidationError}
 
-class ValidatorsSpec extends UnitSpec  {
+class ValidatorsSpec extends UnitSpec {
 
   val validProcessId: String = "ext90001"
   val invalidProcessId: String = ""
@@ -36,7 +36,7 @@ class ValidatorsSpec extends UnitSpec  {
 
     "Return a bad request error when the process id is invalid" in {
 
-      validateProcessId(invalidProcessId) shouldBe Left(Errors(BadRequestError))
+      validateProcessId(invalidProcessId) shouldBe Left(Errors(ValidationError))
     }
   }
 

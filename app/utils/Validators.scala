@@ -18,7 +18,7 @@ package utils
 
 import java.util.UUID
 
-import models.errors.{BadRequestError, Errors}
+import models.errors.{Errors, ValidationError}
 
 object Validators {
 
@@ -27,8 +27,8 @@ object Validators {
     if (id.matches(format)) Some(UUID.fromString(id)) else None
   }
 
-  def validateProcessId(id: String) : Either[Errors, String] = {
+  def validateProcessId(id: String): Either[Errors, String] = {
     val format = "^[a-z]{3}[0-9]{5}$"
-    if(id.matches(format)) Right(id) else Left(Errors(BadRequestError))
+    if (id.matches(format)) Right(id) else Left(Errors(ValidationError))
   }
 }
