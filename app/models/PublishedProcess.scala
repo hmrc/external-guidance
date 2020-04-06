@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-package config
+package models
 
-import com.google.inject.AbstractModule
-import repositories.{PublishedRepository, PublishedRepositoryImpl, ScratchRepository, ScratchRepositoryImpl}
+import play.api.libs.json.JsObject
 
-class Module extends AbstractModule {
-
-  override def configure(): Unit = {
-    bind(classOf[PublishedRepository]).to(classOf[PublishedRepositoryImpl])
-    bind(classOf[ScratchRepository]).to(classOf[ScratchRepositoryImpl])
-  }
-}
+case class PublishedProcess(id: String, process: JsObject)
