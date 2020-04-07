@@ -23,7 +23,7 @@ import play.api.libs.json.Json
 
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
-import models.errors.{BadRequestError, Errors, InternalServiceError}
+import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
 
 import services.PublishedService
 
@@ -37,6 +37,7 @@ class PublishedController @Inject() (publishedService: PublishedService, cc: Con
     publishedService.getById(id).map {
       case Right(process) => Ok(process)
       case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
+      case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson((NotFoundError)))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
     }
   }

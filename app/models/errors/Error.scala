@@ -44,7 +44,7 @@ object NotFoundError
 
 object BadRequestError
     extends Error(
-      "BAD_REQUEST",
+      "BAD_REQUEST_ERROR",
       "The request is invalid."
     )
 
