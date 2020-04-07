@@ -19,35 +19,29 @@ package services
 import javax.inject.{Inject, Singleton}
 
 import models.RequestOutcome
-import models.errors.{BadRequestError, Errors}
+import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
 
 import play.api.Logger
 
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject}
 
+import repositories.PublishedRepository
 import utils.Validators._
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class PublishedService {
-
-  private[services] val stubbedProcess: JsObject = Json
-    .parse(
-      s"""|{
-        | "id": "ext90002",
-        |  "process": "{}"
-        |}""".stripMargin
-    )
-    .as[JsObject]
+class PublishedService @Inject() ( repository: PublishedRepository ) {
 
   val logger: Logger = Logger(this.getClass)
 
   def getById(id: String): Future[RequestOutcome[JsObject]] = {
 
-    def getProcess(id: String): Future[RequestOutcome[JsObject]] = {
-      Future.successful(Right(stubbedProcess))
+    def getProcess(id: String): Future[RequestOutcome[JsObject]] = repository.getById(id) map {
+      case error @ Left(Errors(Seq(NotFoundError))) => error
+      case Left(_) => Left(Errors(InternalServiceError))
+      case result => result
     }
 
     validateProcessId(id) match {
