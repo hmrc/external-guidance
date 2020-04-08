@@ -34,7 +34,7 @@ class PublishedControllerSpec extends UnitSpec with GuiceOneAppPerSuite {
 
     val validId: String = "oct90005"
 
-    lazy val target: PublishedController = new PublishedController( mockPublishedService, stubControllerComponents())
+    lazy val target: PublishedController = new PublishedController(mockPublishedService, stubControllerComponents())
 
     lazy val getRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, "/")
   }
@@ -98,7 +98,6 @@ class PublishedControllerSpec extends UnitSpec with GuiceOneAppPerSuite {
 
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
-
 
       "return the error code for BadRequestError" in new InvalidIdGetTest {
 

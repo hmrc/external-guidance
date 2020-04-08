@@ -32,7 +32,7 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class PublishedService @Inject() ( repository: PublishedRepository ) {
+class PublishedService @Inject() (repository: PublishedRepository) {
 
   val logger: Logger = Logger(this.getClass)
 

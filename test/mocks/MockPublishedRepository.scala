@@ -32,7 +32,7 @@ trait MockPublishedRepository extends MockFactory {
 
   object MockPublishedRepository {
 
-    def getById(id: String) : CallHandler[Future[RequestOutcome[JsObject]]] = {
+    def getById(id: String): CallHandler[Future[RequestOutcome[JsObject]]] = {
       (mockPublishedRepository
         .getById(_: String))
         .expects(id)

@@ -48,8 +48,8 @@ class PublishedServiceSpec extends UnitSpec {
         .getById(validId)
         .returns(Future.successful(expected))
 
-      whenReady(target.getById(validId)) {
-        result => result shouldBe expected
+      whenReady(target.getById(validId)) { result =>
+        result shouldBe expected
       }
     }
 
@@ -57,8 +57,8 @@ class PublishedServiceSpec extends UnitSpec {
 
       val expected: RequestOutcome[JsObject] = Left(Errors(BadRequestError))
 
-      whenReady(target.getById(invalidId)) {
-        result => result shouldBe expected
+      whenReady(target.getById(invalidId)) { result =>
+        result shouldBe expected
       }
     }
 
@@ -70,8 +70,8 @@ class PublishedServiceSpec extends UnitSpec {
         .getById(validId)
         .returns(Future.successful(expected))
 
-      whenReady(target.getById(validId)) {
-        result => result shouldBe expected
+      whenReady(target.getById(validId)) { result =>
+        result shouldBe expected
       }
     }
 
@@ -85,8 +85,8 @@ class PublishedServiceSpec extends UnitSpec {
         .getById(validId)
         .returns(Future.successful(repositoryError))
 
-      whenReady(target.getById(validId)) {
-        result => result shouldBe expected
+      whenReady(target.getById(validId)) { result =>
+        result shouldBe expected
       }
     }
   }

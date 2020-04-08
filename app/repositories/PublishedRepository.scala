@@ -48,6 +48,9 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
     )
     with PublishedRepository {
 
+  //TODO: Reactivate test coverage when method in use
+  
+  //$COVERAGE-OFF$
   def save(id: String, process: JsObject): Future[RequestOutcome[String]] = {
 
     logger.info(s"Saving process $id to collection published")
@@ -64,6 +67,7 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
           Left(Errors(DatabaseError))
       }
   }
+  //$COVERAGE-ON$
 
   def getById(id: String): Future[RequestOutcome[JsObject]] = {
 
@@ -80,4 +84,3 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
   }
 
 }
-
