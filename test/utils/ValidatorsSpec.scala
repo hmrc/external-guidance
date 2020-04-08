@@ -16,6 +16,8 @@
 
 package utils
 
+import java.util.UUID
+
 import base.UnitSpec
 
 import utils.Validators._
@@ -24,8 +26,26 @@ import models.errors.{Errors, ValidationError}
 
 class ValidatorsSpec extends UnitSpec {
 
+  val validUUID: String = UUID.randomUUID().toString
+  val invalidUUID: String = ""
+
   val validProcessId: String = "ext90001"
   val invalidProcessId: String = ""
+
+  "The validators object UUID identifier validation" should {
+
+    "Return a valid UUID" in {
+
+      validateUUID(validUUID) shouldBe Some(UUID.fromString(validUUID))
+
+    }
+
+    "Return nothing for an invalid UUID" in {
+
+      validateUUID(invalidUUID) shouldBe None
+
+    }
+  }
 
   "The validators object process identifier validation" should {
 

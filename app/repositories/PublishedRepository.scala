@@ -49,7 +49,7 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
     with PublishedRepository {
 
   //TODO: Reactivate test coverage when method in use
-  
+
   //$COVERAGE-OFF$
   def save(id: String, process: JsObject): Future[RequestOutcome[String]] = {
 
