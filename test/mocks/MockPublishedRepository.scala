@@ -14,21 +14,30 @@
  * limitations under the License.
  */
 
-package utils
+package mocks
 
-import java.util.UUID
+import scala.concurrent.Future
 
-import models.errors.{Errors, ValidationError}
+import play.api.libs.json.JsObject
 
-object Validators {
+import models.RequestOutcome
+import repositories.PublishedRepository
 
-  def validateUUID(id: String): Option[UUID] = {
-    val format = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-    if (id.matches(format)) Some(UUID.fromString(id)) else None
+import org.scalamock.handlers.CallHandler
+import org.scalamock.scalatest.MockFactory
+
+trait MockPublishedRepository extends MockFactory {
+
+  val mockPublishedRepository: PublishedRepository = mock[PublishedRepository]
+
+  object MockPublishedRepository {
+
+    def getById(id: String): CallHandler[Future[RequestOutcome[JsObject]]] = {
+      (mockPublishedRepository
+        .getById(_: String))
+        .expects(id)
+    }
+
   }
 
-  def validateProcessId(id: String): Either[Errors, String] = {
-    val format = "^[a-z]{3}[0-9]{5}$"
-    if (id.matches(format)) Right(id) else Left(Errors(ValidationError))
-  }
 }
