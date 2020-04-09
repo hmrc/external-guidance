@@ -28,10 +28,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 @Singleton
 class SubmittedController @Inject()(submittedService: SubmittedService, cc: ControllerComponents) extends BackendController(cc) {
 
-  def save(id: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def save: Action[JsValue] = Action.async(parse.json) { implicit request =>
     val process = request.body.as[JsObject]
 
-    submittedService.save(id, process).map {
+    submittedService.save(process).map {
       case Right(id) => Created(Json.obj("id" -> id.toString))
       case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))

@@ -16,6 +16,7 @@
 
 package controllers
 
+import data.ExamplePayloads
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
@@ -35,7 +36,8 @@ class SubmittedControllerSpec extends WordSpec with Matchers with ScalaFutures w
   private trait Test {
     val validId: String = "ext90005"
     val invalidId: String = "ext95"
-    val process: JsObject = Json.obj()
+    val process: JsObject = ExamplePayloads.simpleValidProcess.as[JsObject]
+    val invalidProcess: JsObject = Json.obj("id"-> "ext0093")
 
     val mockService: SubmittedService = mock[SubmittedService]
 
@@ -49,7 +51,7 @@ class SubmittedControllerSpec extends WordSpec with Matchers with ScalaFutures w
       trait ValidSaveTest extends Test {
         val expectedId: String = validId
         (mockService.save _)
-          .expects(validId, process)
+          .expects(process)
           .returning(Future.successful(Right(expectedId)))
           .once()
 
@@ -57,17 +59,17 @@ class SubmittedControllerSpec extends WordSpec with Matchers with ScalaFutures w
       }
 
       "return a created response" in new ValidSaveTest {
-        private val result = controller.save(validId)(request)
+        private val result = controller.save()(request)
         status(result) shouldBe CREATED
       }
 
       "return content as JSON" in new ValidSaveTest {
-        private val result = controller.save(validId)(request)
+        private val result = controller.save()(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return a UUID assigned to an attribute labelled id" in new ValidSaveTest {
-        private val result = controller.save(validId)(request)
+        private val result = controller.save()(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "id").as[String] shouldBe expectedId.toString
       }
@@ -78,24 +80,24 @@ class SubmittedControllerSpec extends WordSpec with Matchers with ScalaFutures w
       trait InvalidSaveTest extends Test {
         val expectedErrorCode = "BAD_REQUEST_ERROR"
         (mockService.save _)
-          .expects(invalidId, process)
+          .expects(invalidProcess)
           .returning(Future.successful(Left(Errors(BadRequestError))))
           .once()
-        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(process)
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidProcess)
       }
 
       "return a bad request response" in new InvalidSaveTest {
-        private val result = controller.save(invalidId)(request)
+        private val result = controller.save()(request)
         status(result) shouldBe BAD_REQUEST
       }
 
       "return content as JSON" in new InvalidSaveTest {
-        private val result = controller.save(invalidId)(request)
+        private val result = controller.save()(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return an error code of BAD_REQUEST" in new InvalidSaveTest {
-        private val result = controller.save(invalidId)(request)
+        private val result = controller.save()(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe expectedErrorCode
       }
@@ -106,24 +108,24 @@ class SubmittedControllerSpec extends WordSpec with Matchers with ScalaFutures w
       trait ErrorSaveTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         (mockService.save _)
-          .expects(invalidId, process)
+          .expects(invalidProcess)
           .returning(Future.successful(Left(Errors(InternalServiceError))))
           .once()
-        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(process)
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidProcess)
       }
 
       "return a internal server error response" in new ErrorSaveTest {
-        private val result = controller.save(invalidId)(request)
+        private val result = controller.save()(request)
         status(result) shouldBe INTERNAL_SERVER_ERROR
       }
 
       "return content as JSON" in new ErrorSaveTest {
-        private val result = controller.save(invalidId)(request)
+        private val result = controller.save()(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return an error code of INTERNAL_SERVER_ERROR" in new ErrorSaveTest {
-        private val result = controller.save(invalidId)(request)
+        private val result = controller.save()(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe expectedErrorCode
       }

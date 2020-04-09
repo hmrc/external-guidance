@@ -20,7 +20,7 @@ import javax.inject.{Inject, Singleton}
 import models.RequestOutcome
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
 import play.api.Logger
-import play.api.libs.json.JsObject
+import play.api.libs.json.{JsObject, JsResult, JsSuccess}
 import repositories.SubmittedRepository
 import utils.Validators._
 
@@ -32,19 +32,35 @@ class SubmittedService @Inject()(repository: SubmittedRepository) {
 
   private val logger: Logger = Logger(this.getClass)
 
-  def save(id: String, process: JsObject): Future[RequestOutcome[String]] = {
+  def save(process: JsObject): Future[RequestOutcome[String]] = {
 
-    def saveProcess: Future[RequestOutcome[String]] = repository.save(id, process) map {
+    def saveProcess(id: String): Future[RequestOutcome[String]] = repository.save(id, process) map {
       case Left(_) => Left(Errors(InternalServiceError))
       case result => result
     }
 
-    // TODO DO we need to also validate the JSON process conforms to specific format (like Scratch does)
-    validateProcessId(id) match {
-      case Right(_) => saveProcess
-      case Left(_) =>
-        logger.error(s"Invalid process id submitted to method save. The requested id was $id")
-        Future.successful(Left(Errors(BadRequestError)))
+    // TODO should this go into a helper class?
+    def retrieveProcessId(): Either[Errors, String] = {
+      val idResult: JsResult[String] = (process \ "meta" \"id").validate[String]
+      // Check if we found the id
+      idResult match {
+        case JsSuccess(id, _) =>
+          Right(id)
+        case _ =>
+          Left(Errors(BadRequestError))
+      }
+    }
+    retrieveProcessId() match {
+      case Right(id) =>
+        validateProcessId (id) match {
+          case Right (id) => saveProcess (id)
+          case _ =>
+            logger.error (s"Invalid process id submitted to method save. The requested id was $id")
+            Future.successful (Left (Errors (BadRequestError) ) )
+        }
+      case _ =>
+        logger.error (s"No process id found in process body.")
+        Future.successful (Left (Errors (BadRequestError) ) )
     }
   }
 

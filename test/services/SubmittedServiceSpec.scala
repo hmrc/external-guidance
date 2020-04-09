@@ -17,6 +17,7 @@
 package services
 
 import base.UnitSpec
+import data.ExamplePayloads
 import models.RequestOutcome
 import models.errors._
 import org.scalamock.scalatest.MockFactory
@@ -31,11 +32,11 @@ class SubmittedServiceSpec extends UnitSpec with MockFactory {
 
   private trait Test  {
 
-    val validId: String = "ext90005"
+    val validId: String = "oct90001"
     val invalidId: String = "ext9005"
 
-    val process: JsObject = Json.obj()
-    val invalidProcess: JsObject = Json.obj("_id"-> "ext0093")
+    val process: JsObject = ExamplePayloads.simpleValidProcess.as[JsObject]
+    val invalidProcess: JsObject = Json.obj("id"-> invalidId)
     val mockRepository: SubmittedRepository = mock[SubmittedRepository]
 
     lazy val service: SubmittedService = new SubmittedService(mockRepository)
@@ -109,7 +110,7 @@ class SubmittedServiceSpec extends UnitSpec with MockFactory {
           .returning(Future.successful(Right(validId)))
           .once()
 
-        whenReady(service.save(validId, process)) {
+        whenReady(service.save(process)) {
           case Right(id) => id shouldBe validId
           case _ => fail
         }
@@ -121,13 +122,13 @@ class SubmittedServiceSpec extends UnitSpec with MockFactory {
         (mockRepository.save _)
           .expects(invalidId, invalidProcess)
           .never()
-        service.save(invalidId, invalidProcess)
+        service.save(invalidProcess)
       }
 
       "return a bad request error" in new Test {
         val expected: RequestOutcome[String] = Left(Errors(BadRequestError))
 
-        whenReady(service.save(invalidId, invalidProcess)) {
+        whenReady(service.save(invalidProcess)) {
           case result @ Left(_) => result shouldBe expected
           case _ => fail
         }
@@ -142,7 +143,7 @@ class SubmittedServiceSpec extends UnitSpec with MockFactory {
           .expects(validId, process)
           .returning(Future.successful(repositoryResponse))
 
-        whenReady(service.save(validId, process)) {
+        whenReady(service.save(process)) {
           case result @ Left(_) => result shouldBe expected
           case _ => fail
         }
