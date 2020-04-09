@@ -42,4 +42,14 @@ object NotFoundError
       "The resource requested could not be found."
     )
 
-object BadRequestError extends Error("BAD_REQUEST", "The request is invalid.")
+object BadRequestError
+    extends Error(
+      "BAD_REQUEST_ERROR",
+      "The request is invalid."
+    )
+
+object ValidationError
+    extends Error(
+      "VALIDATION_ERROR",
+      "Input data failed validation test."
+    )

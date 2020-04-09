@@ -69,7 +69,7 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
     "the request is invalid" should {
 
       trait InvalidSaveTest extends Test {
-        val expectedErrorCode = "BAD_REQUEST"
+        val expectedErrorCode = "BAD_REQUEST_ERROR"
         val process: JsObject = Json.obj()
         MockScratchService.save(process).returns(Future.successful(Left(Errors(BadRequestError))))
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(process)
@@ -149,7 +149,7 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
     "the request is invalid" should {
 
       trait InvalidGetTest extends Test {
-        val expectedErrorCode = "BAD_REQUEST"
+        val expectedErrorCode = "BAD_REQUEST_ERROR"
         MockScratchService.getById(id).returns(Future.successful(Left(Errors(BadRequestError))))
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
