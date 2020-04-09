@@ -38,7 +38,7 @@ class GetPublishedProcessISpec extends IntegrationSpec {
 
     val processId: String = "ext90002"
 
-    lazy val request: WSRequest = buildRequest(s"/external-guidance/publish/process/$processId")
+    lazy val request: WSRequest = buildRequest(s"/external-guidance/publish/$processId")
 
     lazy val response: WSResponse = {
       AuditStub.audit()
@@ -65,7 +65,7 @@ class GetPublishedProcessISpec extends IntegrationSpec {
 
     val invalidProcessId: String = "external20"
 
-    lazy val request: WSRequest = buildRequest(s"/external-guidance/publish/process/$invalidProcessId")
+    lazy val request: WSRequest = buildRequest(s"/external-guidance/publish/$invalidProcessId")
 
     lazy val response: WSResponse = {
       AuditStub.audit()
@@ -96,7 +96,7 @@ class GetPublishedProcessISpec extends IntegrationSpec {
 
     val unknownProcessId: String = "unk10000"
 
-    lazy val request: WSRequest = buildRequest(s"/external-guidance/publish/process/$unknownProcessId")
+    lazy val request: WSRequest = buildRequest(s"/external-guidance/publish/$unknownProcessId")
 
     lazy val response: WSResponse = {
       AuditStub.audit()

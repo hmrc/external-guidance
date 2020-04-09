@@ -3,4 +3,4 @@
 GET         /scratch/:id          controllers.ScratchController.get(id)
 POST        /scratch              controllers.ScratchController.save
 
-GET         /publish/process/:id  controllers.PublishedController.get(id)
+GET         /publish/:id          controllers.PublishedController.get(id)
