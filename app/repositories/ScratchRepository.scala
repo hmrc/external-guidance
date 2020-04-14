@@ -29,6 +29,8 @@ import reactivemongo.bson.BSONDocument
 import config.AppConfig
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import reactivemongo.api.indexes.IndexType
+import reactivemongo.api.indexes.Index
 
 trait ScratchRepository {
   def save(process: JsObject): Future[RequestOutcome[UUID]]
@@ -45,8 +47,6 @@ class ScratchRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent, a
     )
     with ScratchRepository {
   
-  import reactivemongo.api.indexes.IndexType
-  import reactivemongo.api.indexes.Index
 
   override def indexes: Seq[Index] = Seq(
     Index(Seq("expireAt" -> IndexType.Ascending), name = Some("expiryIndex"), options = BSONDocument("expireAfterSeconds" -> 0))
