@@ -3,7 +3,7 @@
 GET         /scratch/:id          controllers.ScratchController.get(id)
 POST        /scratch              controllers.ScratchController.save
 
-GET         /publish/:id          controllers.PublishedController.get(id)
+GET         /published/:id        controllers.PublishedController.get(id)
 
-GET         /submit/:id          controllers.SubmittedController.get(id)
-POST        /submit              controllers.SubmittedController.save
+GET         /submit/:id           controllers.SubmittedController.get(id)
+POST        /submit               controllers.SubmittedController.save
