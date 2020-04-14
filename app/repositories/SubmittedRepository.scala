@@ -47,7 +47,6 @@ class SubmittedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
   def save(id: String, process: JsObject): Future[RequestOutcome[String]] = {
 
     logger.info(s"Saving process $id to collection submitted")
-
     val document: SubmittedProcess = SubmittedProcess(id, process)
 
     insert(document)
