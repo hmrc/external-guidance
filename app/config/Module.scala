@@ -17,12 +17,13 @@
 package config
 
 import com.google.inject.AbstractModule
-import repositories.{PublishedRepository, PublishedRepositoryImpl, ScratchRepository, ScratchRepositoryImpl}
+import repositories._
 
 class Module extends AbstractModule {
 
   override def configure(): Unit = {
     bind(classOf[PublishedRepository]).to(classOf[PublishedRepositoryImpl])
     bind(classOf[ScratchRepository]).to(classOf[ScratchRepositoryImpl])
+    bind(classOf[SubmittedRepository]).to(classOf[SubmittedRepositoryImpl])
   }
 }

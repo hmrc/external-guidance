@@ -22,7 +22,6 @@ import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundErr
 import play.api.Logger
 import play.api.libs.json.{JsObject, JsResult, JsSuccess}
 import repositories.SubmittedRepository
-import utils.Validators._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -39,7 +38,7 @@ class SubmittedService @Inject()(repository: SubmittedRepository) {
       case result => result
     }
 
-    // TODO should this go into a helper class - not even sure if this is needed as may get id passed in via controller?
+    // TODO should this go into a helper class?  Is this the correct doc structure we will receive?
     def retrieveProcessId(): Either[Errors, String] = {
       val idResult: JsResult[String] = (process \ "meta" \"id").validate[String]
       // Check if we found the id
@@ -52,12 +51,7 @@ class SubmittedService @Inject()(repository: SubmittedRepository) {
     }
     retrieveProcessId() match {
       case Right(id) =>
-        validateProcessId (id) match {
-          case Right (id) => saveProcess (id)
-          case _ =>
-            logger.error (s"Invalid process id submitted to method save. The requested id was $id")
-            Future.successful (Left (Errors (BadRequestError) ) )
-        }
+        saveProcess (id)
       case _ =>
         logger.error (s"No process id found in process body.")
         Future.successful (Left (Errors (BadRequestError) ) )
@@ -66,17 +60,10 @@ class SubmittedService @Inject()(repository: SubmittedRepository) {
 
   def getById(id: String): Future[RequestOutcome[JsObject]] = {
 
-    def getProcess: Future[RequestOutcome[JsObject]] = repository.getById(id) map {
+    repository.getById(id) map {
       case error @ Left(Errors(NotFoundError :: Nil)) => error
       case Left(_) => Left(Errors(InternalServiceError))
       case result => result
-    }
-
-    validateProcessId(id) match {
-      case Right(_) => getProcess
-      case Left(_) =>
-        logger.error(s"Invalid process id submitted to method getById. The requested id was $id")
-        Future.successful(Left(Errors(BadRequestError)))
     }
   }
 

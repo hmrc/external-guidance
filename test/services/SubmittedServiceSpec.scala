@@ -36,7 +36,7 @@ class SubmittedServiceSpec extends UnitSpec with MockFactory {
     val invalidId: String = "ext9005"
 
     val process: JsObject = ExamplePayloads.simpleValidProcess.as[JsObject]
-    val invalidProcess: JsObject = Json.obj("id"-> invalidId)
+    val invalidProcess: JsObject = Json.obj("idx"-> invalidId)
     val mockRepository: SubmittedRepository = mock[SubmittedRepository]
 
     lazy val service: SubmittedService = new SubmittedService(mockRepository)
@@ -44,7 +44,7 @@ class SubmittedServiceSpec extends UnitSpec with MockFactory {
 
   "The method getById of class SubmittedService" should {
 
-    "Return a JsObject representing an Ocelot process when the input identifies a valid process" in new Test {
+    "Return a JsObject representing the submitted ocelot process when the input identifies a valid process" in new Test {
 
       val expected: RequestOutcome[JsObject] = Right(process)
 
@@ -54,15 +54,6 @@ class SubmittedServiceSpec extends UnitSpec with MockFactory {
         .once()
 
       whenReady(service.getById(validId)) { result =>
-        result shouldBe expected
-      }
-    }
-
-    "Return a bad request response when the input identifier is invalid" in new Test {
-
-      val expected: RequestOutcome[JsObject] = Left(Errors(BadRequestError))
-
-      whenReady(service.getById(invalidId)) { result =>
         result shouldBe expected
       }
     }

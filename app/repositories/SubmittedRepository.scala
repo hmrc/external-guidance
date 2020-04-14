@@ -27,13 +27,10 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-//$COVERAGE-OFF$
-
 trait SubmittedRepository {
   def save(id: String, process: JsObject): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[JsObject]]
 }
-
 
 @Singleton
 class SubmittedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
@@ -75,5 +72,3 @@ class SubmittedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
   }
 
 }
-
-//$COVERAGE-ON$
