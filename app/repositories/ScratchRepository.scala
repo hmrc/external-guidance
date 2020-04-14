@@ -46,14 +46,14 @@ class ScratchRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent, a
       idFormat = implicitly[Format[UUID]]
     )
     with ScratchRepository {
-  
+  val timezone = DateTimeZone.forID(appConfig.scratchExpiryTZ)  
 
   override def indexes: Seq[Index] = Seq(
     Index(Seq("expireAt" -> IndexType.Ascending), name = Some("expiryIndex"), options = BSONDocument("expireAfterSeconds" -> 0))
   )
 
   def save(process: JsObject): Future[RequestOutcome[UUID]] = {
-    val expiryTime = DateTime.now(DateTimeZone.UTC).withTime(appConfig.scratchExpiryHour, appConfig.scratchExpiryMinutes, 0, 0)
+    val expiryTime = DateTime.now(timezone).withTime(appConfig.scratchExpiryHour, appConfig.scratchExpiryMinutes, 0, 0)
     val document = ScratchProcess(UUID.randomUUID(), process, expiryTime)
 
     insert(document)

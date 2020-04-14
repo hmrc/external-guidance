@@ -24,4 +24,5 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig) {
   lazy val scratchExpiryHour = servicesConfig.getInt("mongodb.scratchExpiryHour")
   lazy val scratchExpiryMinutes = servicesConfig.getInt("mongodb.scratchExpiryMinutes")
+  lazy val scratchExpiryTZ = servicesConfig.getString("mongodb.scratchExpiryTZ")
 }
