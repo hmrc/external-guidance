@@ -39,7 +39,7 @@ class SubmittedService @Inject()(repository: SubmittedRepository) {
       case result => result
     }
 
-    // TODO should this go into a helper class?
+    // TODO should this go into a helper class - not even sure if this is needed as may get id passed in via controller?
     def retrieveProcessId(): Either[Errors, String] = {
       val idResult: JsResult[String] = (process \ "meta" \"id").validate[String]
       // Check if we found the id
