@@ -17,7 +17,7 @@
 package repositories
 
 import java.util.UUID
-
+import org.joda.time.{DateTime, DateTimeZone}
 import javax.inject.{Inject, Singleton}
 import models.errors.{DatabaseError, Errors, NotFoundError}
 import models.{RequestOutcome, ScratchProcess}
@@ -25,9 +25,12 @@ import play.api.libs.json.{Format, JsObject}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import repositories.formatters.ScratchProcessFormatter
 import uk.gov.hmrc.mongo.ReactiveRepository
-
+import reactivemongo.bson.BSONDocument
+import config.AppConfig
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import reactivemongo.api.indexes.IndexType
+import reactivemongo.api.indexes.Index
 
 trait ScratchRepository {
   def save(process: JsObject): Future[RequestOutcome[UUID]]
@@ -35,7 +38,7 @@ trait ScratchRepository {
 }
 
 @Singleton
-class ScratchRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
+class ScratchRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent, appConfig: AppConfig)
     extends ReactiveRepository[ScratchProcess, UUID](
       collectionName = "scratchProcesses",
       mongo = mongoComponent.mongoConnector.db,
@@ -43,9 +46,16 @@ class ScratchRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
       idFormat = implicitly[Format[UUID]]
     )
     with ScratchRepository {
+  val timezone = DateTimeZone.forID(appConfig.scratchExpiryTZ)  
+
+  override def indexes: Seq[Index] = Seq(
+    Index(Seq("expireAt" -> IndexType.Ascending), name = Some("expiryIndex"), options = BSONDocument("expireAfterSeconds" -> 0))
+  )
 
   def save(process: JsObject): Future[RequestOutcome[UUID]] = {
-    val document = ScratchProcess(UUID.randomUUID(), process)
+    val expiryTime = DateTime.now(timezone).withTime(appConfig.scratchExpiryHour, appConfig.scratchExpiryMinutes, 0, 0)
+    val document = ScratchProcess(UUID.randomUUID(), process, expiryTime)
+
     insert(document)
       .map { _ =>
         Right(document.id)
