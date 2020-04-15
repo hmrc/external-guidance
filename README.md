@@ -97,3 +97,92 @@ Represents a valid guidance flow in JSON format.
         </tr>
     </tbody>
 </table>
+
+### `POST: /external-guidance/submitted`
+
+#### Success Response
+
+**HTTP Status**: `201`
+
+**Example Response Body**:
+```
+{
+   "id": "oct90005"
+}
+```
+
+#### Error Responses
+
+**Error response format**
+```
+{
+   "code": "ERROR_CODE",
+   "message": "Human readable error message"
+}
+```
+
+<table>
+    <thead>
+        <tr>
+            <th>HTTP Status</th>
+            <th>Error Code</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><pre>400</pre></td>
+            <td><pre>BAD_REQUEST</pre></td>
+        </tr>
+        <tr>
+            <td><pre>500</pre></td>
+            <td><pre>INTERNAL_SERVER_ERROR</pre></td>
+        </tr>
+    </tbody>
+</table>
+
+### `GET: /external-guidance/submitted/:id`
+
+#### `id` Parameter
+
+The `id` parameter is an ocelot formatted string e.g. `oct90005`
+
+#### Success Response
+
+**HTTP Status**: `200`
+
+**Response Body**
+
+Represents a valid guidance flow in JSON format.
+
+#### Error Responses
+
+**Error response format**
+```
+{
+   "code": "ERROR_CODE",
+   "message": "Human readable error message"
+}
+```
+
+<table>
+    <thead>
+        <tr>
+            <th>HTTP Status</th>
+            <th>Error Code</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><pre>400</pre></td>
+            <td><pre>BAD_REQUEST</pre></td>
+        </tr>
+        <tr>
+            <td><pre>404</pre></td>
+            <td><pre>NOT_FOUND_ERROR</pre></td>
+        </tr>
+        <tr>
+            <td><pre>500</pre></td>
+            <td><pre>INTERNAL_SERVER_ERROR</pre></td>
+        </tr>
+    </tbody>
+</table>

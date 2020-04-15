@@ -18,7 +18,6 @@ package endpoints
 
 import java.util.UUID
 
-import data.ExamplePayloads
 import play.api.http.{ContentTypes, Status}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.libs.ws.WSResponse
@@ -30,7 +29,7 @@ class PostSubmittedProcessISpec extends IntegrationSpec {
   "Calling the submitted POST endpoint with a valid payload" should {
 
     val randomId = UUID.randomUUID().toString
-    lazy val request = buildRequest("/external-guidance/submit")
+    lazy val request = buildRequest("/external-guidance/submitted")
     lazy val response: WSResponse = {
       AuditStub.audit()
       val processToSave: JsObject = Json.obj("meta" -> Json.obj("id"-> randomId))

@@ -37,7 +37,7 @@ class GetSubmittedProcessISpec extends IntegrationSpec {
   "Calling the submit GET endpoint with a valid ID" should {
 
     def populateDatabase(processToSave: JsObject): String = {
-      lazy val request = buildRequest("/external-guidance/submit")
+      lazy val request = buildRequest("/external-guidance/submitted")
 
       val result = await(request.post(processToSave))
       val json = result.body[JsValue].as[JsObject]
@@ -47,7 +47,7 @@ class GetSubmittedProcessISpec extends IntegrationSpec {
     val randomId = UUID.randomUUID().toString
     val processToSave: JsObject = Json.obj("meta" -> Json.obj("id"-> randomId))
     lazy val id = populateDatabase(processToSave)
-    lazy val request = buildRequest(s"/external-guidance/submit/$id")
+    lazy val request = buildRequest(s"/external-guidance/submitted/$id")
     lazy val response: WSResponse = {
       AuditStub.audit()
       await(request.get())
@@ -70,7 +70,7 @@ class GetSubmittedProcessISpec extends IntegrationSpec {
   "Calling the submit GET endpoint with a unknown ID" should {
 
     lazy val id = "oeh12345"
-    lazy val request = buildRequest(s"/external-guidance/submit/$id")
+    lazy val request = buildRequest(s"/external-guidance/submitted/$id")
     lazy val response: WSResponse = {
       AuditStub.audit()
       await(request.get())
