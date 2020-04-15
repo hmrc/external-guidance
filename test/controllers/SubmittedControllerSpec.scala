@@ -17,6 +17,7 @@
 package controllers
 
 import data.ExamplePayloads
+import mocks.MockSubmittedService
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
@@ -33,7 +34,7 @@ import scala.concurrent.Future
 
 class SubmittedControllerSpec extends WordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite with MockFactory {
 
-  private trait Test {
+  private trait Test extends MockSubmittedService {
     val validId: String = "ext90005"
     val invalidId: String = "ext95"
     val process: JsObject = ExamplePayloads.simpleValidProcess.as[JsObject]
@@ -41,7 +42,7 @@ class SubmittedControllerSpec extends WordSpec with Matchers with ScalaFutures w
 
     val mockService: SubmittedService = mock[SubmittedService]
 
-    lazy val controller: SubmittedController = new SubmittedController(mockService, stubControllerComponents())
+    lazy val controller: SubmittedController = new SubmittedController(mockSubmittedService, stubControllerComponents())
   }
 
   "Calling the save action" when {
@@ -50,10 +51,9 @@ class SubmittedControllerSpec extends WordSpec with Matchers with ScalaFutures w
 
       trait ValidSaveTest extends Test {
         val expectedId: String = validId
-        (mockService.save _)
-          .expects(process)
-          .returning(Future.successful(Right(expectedId)))
-          .once()
+        MockSubmittedService
+          .save(process)
+          .returns(Future.successful(Right(expectedId)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(process)
       }
@@ -71,7 +71,7 @@ class SubmittedControllerSpec extends WordSpec with Matchers with ScalaFutures w
       "return a UUID assigned to an attribute labelled id" in new ValidSaveTest {
         private val result = controller.save()(request)
         private val data = contentAsJson(result).as[JsObject]
-        (data \ "id").as[String] shouldBe expectedId.toString
+        (data \ "id").as[String] shouldBe expectedId
       }
     }
 
@@ -79,10 +79,10 @@ class SubmittedControllerSpec extends WordSpec with Matchers with ScalaFutures w
 
       trait InvalidSaveTest extends Test {
         val expectedErrorCode = "BAD_REQUEST_ERROR"
-        (mockService.save _)
-          .expects(invalidProcess)
-          .returning(Future.successful(Left(Errors(BadRequestError))))
-          .once()
+        MockSubmittedService
+          .save(invalidProcess)
+          .returns(Future.successful(Left(Errors(BadRequestError))))
+
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidProcess)
       }
 
@@ -107,10 +107,10 @@ class SubmittedControllerSpec extends WordSpec with Matchers with ScalaFutures w
 
       trait ErrorSaveTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
-        (mockService.save _)
-          .expects(invalidProcess)
-          .returning(Future.successful(Left(Errors(InternalServiceError))))
-          .once()
+        MockSubmittedService
+          .save(invalidProcess)
+          .returns(Future.successful(Left(Errors(InternalServiceError))))
+
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidProcess)
       }
 
@@ -138,10 +138,10 @@ class SubmittedControllerSpec extends WordSpec with Matchers with ScalaFutures w
 
       trait ValidGetTest extends Test {
         val expectedProcess: JsObject = Json.obj("_id" -> validId)
-        (mockService.getById _)
-          .expects(validId)
-          .returning(Future.successful(Right(expectedProcess)))
-          .once()
+        MockSubmittedService
+          .getById(validId)
+          .returns(Future.successful(Right(expectedProcess)))
+
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
 
@@ -165,10 +165,10 @@ class SubmittedControllerSpec extends WordSpec with Matchers with ScalaFutures w
 
       trait InvalidGetTest extends Test {
         val expectedErrorCode = "BAD_REQUEST_ERROR"
-        (mockService.getById _)
-          .expects(invalidId)
-          .returning(Future.successful(Left(Errors(BadRequestError))))
-          .once()
+        MockSubmittedService
+          .getById(invalidId)
+          .returns(Future.successful(Left(Errors(BadRequestError))))
+
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
 
@@ -193,10 +193,10 @@ class SubmittedControllerSpec extends WordSpec with Matchers with ScalaFutures w
 
       trait NotFoundGetTest extends Test {
         val expectedErrorCode = "NOT_FOUND_ERROR"
-        (mockService.getById _)
-          .expects(validId)
-          .returning(Future.successful(Left(Errors(NotFoundError))))
-          .once()
+        MockSubmittedService
+          .getById(validId)
+          .returns(Future.successful(Left(Errors(NotFoundError))))
+
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
 
@@ -221,10 +221,10 @@ class SubmittedControllerSpec extends WordSpec with Matchers with ScalaFutures w
 
       trait ErrorGetTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
-        (mockService.getById _)
-          .expects(validId)
-          .returning(Future.successful(Left(Errors(InternalServiceError))))
-          .once()
+        MockSubmittedService
+          .getById(validId)
+          .returns(Future.successful(Left(Errors(InternalServiceError))))
+
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
 

@@ -18,11 +18,11 @@ package services
 
 import base.UnitSpec
 import data.ExamplePayloads
+import mocks.MockSubmittedRepository
 import models.RequestOutcome
 import models.errors._
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsObject, Json}
-import repositories.SubmittedRepository
 
 import scala.concurrent.Future
 
@@ -30,16 +30,15 @@ class SubmittedServiceSpec extends UnitSpec with MockFactory {
 
   // TODO Do we need to test for invalid JSON content being sent to save method
 
-  private trait Test  {
+  private trait Test extends MockSubmittedRepository {
 
     val validId: String = "oct90001"
     val invalidId: String = "ext9005"
 
     val process: JsObject = ExamplePayloads.simpleValidProcess.as[JsObject]
     val invalidProcess: JsObject = Json.obj("idx"-> invalidId)
-    val mockRepository: SubmittedRepository = mock[SubmittedRepository]
 
-    lazy val service: SubmittedService = new SubmittedService(mockRepository)
+    lazy val service: SubmittedService = new SubmittedService(mockSubmittedRepository)
   }
 
   "The method getById of class SubmittedService" should {
@@ -48,10 +47,9 @@ class SubmittedServiceSpec extends UnitSpec with MockFactory {
 
       val expected: RequestOutcome[JsObject] = Right(process)
 
-      (mockRepository.getById _)
-        .expects(validId)
-        .returning(Future.successful(expected))
-        .once()
+      MockSubmittedRepository
+        .getById(validId)
+        .returns(Future.successful(expected))
 
       whenReady(service.getById(validId)) { result =>
         result shouldBe expected
@@ -62,10 +60,9 @@ class SubmittedServiceSpec extends UnitSpec with MockFactory {
 
       val expected: RequestOutcome[JsObject] = Left(Errors(NotFoundError))
 
-      (mockRepository.getById _)
-        .expects(validId)
-        .returning(Future.successful(expected))
-        .once()
+      MockSubmittedRepository
+        .getById(validId)
+        .returns(Future.successful(expected))
 
       whenReady(service.getById(validId)) { result =>
         result shouldBe expected
@@ -75,13 +72,11 @@ class SubmittedServiceSpec extends UnitSpec with MockFactory {
     "Return an internal server error when the repository reports a database error" in new Test {
 
       val repositoryError: RequestOutcome[JsObject] = Left(Errors(DatabaseError))
-
       val expected: RequestOutcome[JsObject] = Left(Errors(InternalServiceError))
 
-      (mockRepository.getById _)
-        .expects(validId)
-        .returning(Future.successful(repositoryError))
-        .once()
+      MockSubmittedRepository
+        .getById(validId)
+        .returns(Future.successful(repositoryError))
 
       whenReady(service.getById(validId)) { result =>
         result shouldBe expected
@@ -96,10 +91,9 @@ class SubmittedServiceSpec extends UnitSpec with MockFactory {
 
         val expected: RequestOutcome[String] = Right(validId)
 
-        (mockRepository.save _)
-          .expects(validId, process)
-          .returning(Future.successful(Right(validId)))
-          .once()
+        MockSubmittedRepository
+          .save(validId, process)
+          .returns(Future.successful(expected))
 
         whenReady(service.save(process)) {
           case Right(id) => id shouldBe validId
@@ -110,9 +104,10 @@ class SubmittedServiceSpec extends UnitSpec with MockFactory {
 
     "the id is invalid" should {
       "not call the repository" in new Test {
-        (mockRepository.save _)
-          .expects(invalidId, invalidProcess)
+        MockSubmittedRepository
+          .save(invalidId, invalidProcess)
           .never()
+
         service.save(invalidProcess)
       }
 
@@ -130,9 +125,10 @@ class SubmittedServiceSpec extends UnitSpec with MockFactory {
       "return a internal error" in new Test {
         val repositoryResponse: RequestOutcome[String] = Left(Errors(DatabaseError))
         val expected: RequestOutcome[String] = Left(Errors(InternalServiceError))
-        (mockRepository.save _)
-          .expects(validId, process)
-          .returning(Future.successful(repositoryResponse))
+
+        MockSubmittedRepository
+          .save(validId, process)
+          .returns(Future.successful(repositoryResponse))
 
         whenReady(service.save(process)) {
           case result @ Left(_) => result shouldBe expected
