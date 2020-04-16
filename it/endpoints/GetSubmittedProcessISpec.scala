@@ -17,21 +17,12 @@ package endpoints
 
 import java.util.UUID
 
-import data.ExamplePayloads
 import play.api.http.{ContentTypes, Status}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.libs.ws.WSResponse
 import stubs.AuditStub
 import support.IntegrationSpec
 
-/**
-  * Note at present this test class is dependent on the process "ext90002" being
-  * present in the Mongo collection submittedProcesses of the local database
-  * external-guidance.
-  *
-  * When the save process functionality has been developed this dependency
-  * should be removed.
-  */
 class GetSubmittedProcessISpec extends IntegrationSpec {
 
   "Calling the submit GET endpoint with a valid ID" should {

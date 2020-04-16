@@ -20,7 +20,7 @@ import javax.inject.{Inject, Singleton}
 import models.RequestOutcome
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
 import play.api.Logger
-import play.api.libs.json.{JsObject, JsResult, JsSuccess}
+import play.api.libs.json.JsObject
 import repositories.SubmittedRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -38,24 +38,15 @@ class SubmittedService @Inject()(repository: SubmittedRepository) {
       case result => result
     }
 
-    // TODO should this go into a helper class?  Is this the correct doc structure we will receive?
-    def retrieveProcessId(): Either[Errors, String] = {
-      val idResult: JsResult[String] = (process \ "meta" \"id").validate[String]
-      // Check if we found the id
-      idResult match {
-        case JsSuccess(id, _) =>
-          Right(id)
-        case _ =>
-          Left(Errors(BadRequestError))
-      }
-    }
-    retrieveProcessId() match {
-      case Right(id) =>
-        saveProcess (id)
-      case _ =>
+    def processId: Option[String] = (process \ "meta" \"id").validate[String].asOpt
+
+    processId match {
+      case Some(id) => saveProcess (id)
+      case None =>
         logger.error (s"No process id found in process body.")
         Future.successful (Left (Errors (BadRequestError) ) )
     }
+
   }
 
   def getById(id: String): Future[RequestOutcome[JsObject]] = {

@@ -102,7 +102,7 @@ class SubmittedServiceSpec extends UnitSpec with MockFactory {
       }
     }
 
-    "the id is invalid" should {
+    "the id cannot be found in the JSON" should {
       "not call the repository" in new Test {
         MockSubmittedRepository
           .save(invalidId, invalidProcess)
