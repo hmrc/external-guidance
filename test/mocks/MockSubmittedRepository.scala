@@ -35,6 +35,12 @@ trait MockSubmittedRepository extends MockFactory {
         .expects(id, process)
     }
 
+    def update(id: String, process: JsObject): CallHandler[Future[RequestOutcome[String]]] = {
+      (mockSubmittedRepository
+        .update(_: String, _: JsObject))
+        .expects(id, process)
+    }
+
     def getById(id: String): CallHandler[Future[RequestOutcome[JsObject]]] = {
       (mockSubmittedRepository
         .getById(_: String))

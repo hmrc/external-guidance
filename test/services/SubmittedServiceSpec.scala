@@ -17,9 +17,9 @@
 package services
 
 import base.UnitSpec
-import data.ExamplePayloads
 import mocks.MockSubmittedRepository
 import models.RequestOutcome
+import models.ocelot.ProcessJson
 import models.errors._
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsObject, Json}
@@ -28,14 +28,12 @@ import scala.concurrent.Future
 
 class SubmittedServiceSpec extends UnitSpec with MockFactory {
 
-  // TODO Do we need to test for invalid JSON content being sent to save method
-
-  private trait Test extends MockSubmittedRepository {
+  private trait Test extends MockSubmittedRepository with ProcessJson {
 
     val validId: String = "oct90001"
     val invalidId: String = "ext9005"
 
-    val process: JsObject = ExamplePayloads.simpleValidProcess.as[JsObject]
+    val process: JsObject = validOnePageJson.as[JsObject]
     val invalidProcess: JsObject = Json.obj("idx"-> invalidId)
 
     lazy val service: SubmittedService = new SubmittedService(mockSubmittedRepository)
@@ -92,7 +90,7 @@ class SubmittedServiceSpec extends UnitSpec with MockFactory {
         val expected: RequestOutcome[String] = Right(validId)
 
         MockSubmittedRepository
-          .save(validId, process)
+          .update(validId, process)
           .returns(Future.successful(expected))
 
         whenReady(service.save(process)) {
@@ -105,7 +103,7 @@ class SubmittedServiceSpec extends UnitSpec with MockFactory {
     "the id cannot be found in the JSON" should {
       "not call the repository" in new Test {
         MockSubmittedRepository
-          .save(invalidId, invalidProcess)
+          .update(invalidId, invalidProcess)
           .never()
 
         service.save(invalidProcess)
@@ -127,7 +125,7 @@ class SubmittedServiceSpec extends UnitSpec with MockFactory {
         val expected: RequestOutcome[String] = Left(Errors(InternalServiceError))
 
         MockSubmittedRepository
-          .save(validId, process)
+          .update(validId, process)
           .returns(Future.successful(repositoryResponse))
 
         whenReady(service.save(process)) {

@@ -16,9 +16,9 @@
 
 package controllers
 
-import data.ExamplePayloads
 import mocks.MockSubmittedService
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
+import models.ocelot.ProcessJson
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
@@ -32,12 +32,12 @@ import services.SubmittedService
 
 import scala.concurrent.Future
 
-class SubmittedControllerSpec extends WordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite with MockFactory {
+class SubmittedControllerSpec extends WordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite with MockFactory with ProcessJson {
 
   private trait Test extends MockSubmittedService {
-    val validId: String = "ext90005"
+    val validId: String = "oct90001"
     val invalidId: String = "ext95"
-    val process: JsObject = ExamplePayloads.simpleValidProcess.as[JsObject]
+    val process: JsObject = validOnePageJson.as[JsObject]
     val invalidProcess: JsObject = Json.obj("id"-> "ext0093")
 
     val mockService: SubmittedService = mock[SubmittedService]
