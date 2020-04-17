@@ -15,10 +15,9 @@
  */
 package endpoints
 
-import java.util.UUID
-
+import data.ExamplePayloads
 import play.api.http.{ContentTypes, Status}
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{JsObject, JsValue}
 import play.api.libs.ws.WSResponse
 import stubs.AuditStub
 import support.IntegrationSpec
@@ -27,7 +26,7 @@ class GetSubmittedProcessISpec extends IntegrationSpec {
 
   "Calling the submit GET endpoint with a valid ID" should {
 
-    def populateDatabase(processToSave: JsObject): String = {
+    def populateDatabase(processToSave: JsValue): String = {
       lazy val request = buildRequest("/external-guidance/submitted")
 
       val result = await(request.post(processToSave))
@@ -35,8 +34,7 @@ class GetSubmittedProcessISpec extends IntegrationSpec {
       (json \ "id").as[String]
     }
 
-    val randomId = UUID.randomUUID().toString
-    val processToSave: JsObject = Json.obj("meta" -> Json.obj("id"-> randomId))
+    val processToSave: JsValue = ExamplePayloads.simpleValidProcess
     lazy val id = populateDatabase(processToSave)
     lazy val request = buildRequest(s"/external-guidance/submitted/$id")
     lazy val response: WSResponse = {

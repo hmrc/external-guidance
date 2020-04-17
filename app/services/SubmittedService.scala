@@ -33,7 +33,7 @@ class SubmittedService @Inject()(repository: SubmittedRepository) {
 
   def save(process: JsObject): Future[RequestOutcome[String]] = {
 
-    def saveProcess(id: String): Future[RequestOutcome[String]] = repository.save(id, process) map {
+    def saveProcess(id: String): Future[RequestOutcome[String]] = repository.update(id, process) map {
       case Left(_) => Left(Errors(InternalServiceError))
       case result => result
     }

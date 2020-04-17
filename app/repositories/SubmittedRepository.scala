@@ -19,7 +19,7 @@ package repositories
 import javax.inject.{Inject, Singleton}
 import models.errors.{DatabaseError, Errors, NotFoundError}
 import models.{RequestOutcome, SubmittedProcess}
-import play.api.libs.json.{Format, JsObject}
+import play.api.libs.json.{Format, JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import repositories.formatters.SubmittedProcessFormatter
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -29,6 +29,7 @@ import scala.concurrent.Future
 
 trait SubmittedRepository {
   def save(id: String, process: JsObject): Future[RequestOutcome[String]]
+  def update(id: String, process: JsObject): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[JsObject]]
 }
 
@@ -49,6 +50,25 @@ class SubmittedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
     insert(document)
       .map { _ =>
         Right(document.id)
+      }
+      .recover {
+        case error =>
+          logger.error(s"Attempt to persist process $id to collection submitted failed with error : ${error.getMessage}")
+          Left(Errors(DatabaseError))
+      }
+  }
+
+  def update(id: String, process: JsObject): Future[RequestOutcome[String]] = {
+
+    logger.info(s"Saving process $id to collection submitted")
+    val document: SubmittedProcess = SubmittedProcess(id, process)
+
+    val selector = Json.obj("_id" -> id)
+    val entity   = Json.toJsObject(document)(SubmittedProcessFormatter.mongoFormat)
+
+    this.findAndUpdate(selector, entity, upsert = true)
+      .map { _ =>
+        Right(id)
       }
       .recover {
         case error =>
