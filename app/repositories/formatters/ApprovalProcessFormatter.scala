@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-package config
+package repositories.formatters
 
-import com.google.inject.AbstractModule
-import repositories._
+import models.ApprovalProcess
+import play.api.libs.json._
 
-class Module extends AbstractModule {
+object ApprovalProcessFormatter {
 
-  override def configure(): Unit = {
-    bind(classOf[PublishedRepository]).to(classOf[PublishedRepositoryImpl])
-    bind(classOf[ScratchRepository]).to(classOf[ScratchRepositoryImpl])
-    bind(classOf[ApprovalRepository]).to(classOf[ApprovalRepositoryImpl])
-  }
+  val read: JsValue => JsResult[ApprovalProcess] = json =>
+    for {
+      id <- (json \ "_id").validate[String]
+      process <- (json \ "process").validate[JsObject]
+    } yield ApprovalProcess(id, process)
+
+  val write: ApprovalProcess => JsObject = approvalProcess =>
+    Json.obj(
+      "_id" -> approvalProcess.id,
+      "process" -> approvalProcess.process
+    )
+
+  val mongoFormat: OFormat[ApprovalProcess] = OFormat(read, write)
 }
