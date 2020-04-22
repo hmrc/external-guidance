@@ -19,7 +19,6 @@ package repositories
 import javax.inject.{Inject, Singleton}
 import models.errors.{DatabaseError, Errors, NotFoundError}
 import models.{ApprovalProcess, RequestOutcome}
-import play.api.Logger
 import play.api.libs.json.{Format, JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import repositories.formatters.ApprovalProcessFormatter
@@ -44,7 +43,7 @@ class ApprovalRepositoryImpl @Inject()(mongoComponent: ReactiveMongoComponent)
 
   def update(id: String, process: JsObject): Future[RequestOutcome[String]] = {
 
-    Logger.info(s"Saving process $id to collection $collectionName")
+    logger.info(s"Saving process $id to collection $collectionName")
     val document: ApprovalProcess = ApprovalProcess(id, process)
 
     val selector = Json.obj("_id" -> id)
@@ -54,11 +53,13 @@ class ApprovalRepositoryImpl @Inject()(mongoComponent: ReactiveMongoComponent)
       .map { _ =>
         Right(id)
       }
+      //$COVERAGE-OFF$
       .recover {
         case error =>
-          Logger.error(s"Attempt to persist process $id to collection $collectionName failed with error : ${error.getMessage}")
+          logger.error(s"Attempt to persist process $id to collection $collectionName failed with error : ${error.getMessage}")
           Left(Errors(DatabaseError))
       }
+      //$COVERAGE-ON$
   }
 
   def getById(id: String): Future[RequestOutcome[JsObject]] = {
@@ -68,11 +69,13 @@ class ApprovalRepositoryImpl @Inject()(mongoComponent: ReactiveMongoComponent)
         case Some(approvalProcess) => Right(approvalProcess.process)
         case None => Left(Errors(NotFoundError))
       }
+      //$COVERAGE-OFF$
       .recover {
         case error =>
-          Logger.error(s"Attempt to retrieve process $id from collection $collectionName failed with error : ${error.getMessage}")
+          logger.error(s"Attempt to retrieve process $id from collection $collectionName failed with error : ${error.getMessage}")
           Left(Errors(DatabaseError))
       }
+      //$COVERAGE-ON$
   }
 
 }

@@ -29,6 +29,8 @@ import scala.concurrent.Future
 @Singleton
 class ApprovalService @Inject()(repository: ApprovalRepository) {
 
+  val logger: Logger = Logger(this.getClass)
+
   def save(process: JsObject): Future[RequestOutcome[String]] = {
 
     def saveProcess(id: String): Future[RequestOutcome[String]] = repository.update(id, process) map {
@@ -41,7 +43,7 @@ class ApprovalService @Inject()(repository: ApprovalRepository) {
     processId match {
       case Some(id) => saveProcess (id)
       case None =>
-        Logger.error (s"No process id found in process body.")
+        logger.error (s"No process id found in process body.")
         Future.successful (Left (Errors (BadRequestError) ) )
     }
 
