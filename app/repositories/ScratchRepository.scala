@@ -60,11 +60,13 @@ class ScratchRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent, a
       .map { _ =>
         Right(document.id)
       }
+      //$COVERAGE-OFF$
       .recover {
         case e =>
           logger.warn(e.getMessage)
           Left(Errors(DatabaseError))
       }
+      //$COVERAGE-ON$
   }
 
   def getById(id: UUID): Future[RequestOutcome[JsObject]] = {
@@ -73,11 +75,13 @@ class ScratchRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent, a
         case Some(data) => Right(data.process)
         case None => Left(Errors(NotFoundError))
       }
+      //$COVERAGE-OFF$
       .recover {
         case e =>
           logger.warn(e.getMessage)
           Left(Errors(DatabaseError))
       }
+      //$COVERAGE-ON$
   }
 
 }

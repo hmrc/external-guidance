@@ -67,6 +67,7 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
           Left(Errors(DatabaseError))
       }
   }
+  //$COVERAGE-ON$
 
   def getById(id: String): Future[RequestOutcome[JsObject]] = {
 
@@ -75,12 +76,13 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
         case Some(publishedProcess) => Right(publishedProcess.process)
         case None => Left(Errors(NotFoundError))
       }
+      //$COVERAGE-OFF$
       .recover {
         case error =>
           logger.error(s"Attempt to retrieve process $id from collection published failed with error : ${error.getMessage}")
           Left(Errors(DatabaseError))
       }
+      //$COVERAGE-ON$
   }
-  //$COVERAGE-ON$
 
 }
