@@ -33,13 +33,14 @@ trait ApprovalRepository {
 }
 
 @Singleton
-class ApprovalRepositoryImpl @Inject()(mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[ApprovalProcess, String](
-    collectionName = "approvalProcesses",
-    mongo = mongoComponent.mongoConnector.db,
-    domainFormat = ApprovalProcessFormatter.mongoFormat,
-    idFormat = implicitly[Format[String]]
-  ) with ApprovalRepository {
+class ApprovalRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
+    extends ReactiveRepository[ApprovalProcess, String](
+      collectionName = "approvalProcesses",
+      mongo = mongoComponent.mongoConnector.db,
+      domainFormat = ApprovalProcessFormatter.mongoFormat,
+      idFormat = implicitly[Format[String]]
+    )
+    with ApprovalRepository {
 
   def update(id: String, process: JsObject): Future[RequestOutcome[String]] = {
 
@@ -47,9 +48,10 @@ class ApprovalRepositoryImpl @Inject()(mongoComponent: ReactiveMongoComponent)
     val document: ApprovalProcess = ApprovalProcess(id, process)
 
     val selector = Json.obj("_id" -> id)
-    val entity   = Json.toJsObject(document)(ApprovalProcessFormatter.mongoFormat)
+    val entity = Json.toJsObject(document)(ApprovalProcessFormatter.mongoFormat)
 
-    this.findAndUpdate(selector, entity, upsert = true)
+    this
+      .findAndUpdate(selector, entity, upsert = true)
       .map { _ =>
         Right(id)
       }
@@ -59,7 +61,7 @@ class ApprovalRepositoryImpl @Inject()(mongoComponent: ReactiveMongoComponent)
           logger.error(s"Attempt to persist process $id to collection $collectionName failed with error : ${error.getMessage}")
           Left(Errors(DatabaseError))
       }
-      //$COVERAGE-ON$
+    //$COVERAGE-ON$
   }
 
   def getById(id: String): Future[RequestOutcome[JsObject]] = {
@@ -75,7 +77,7 @@ class ApprovalRepositoryImpl @Inject()(mongoComponent: ReactiveMongoComponent)
           logger.error(s"Attempt to retrieve process $id from collection $collectionName failed with error : ${error.getMessage}")
           Left(Errors(DatabaseError))
       }
-      //$COVERAGE-ON$
+    //$COVERAGE-ON$
   }
 
 }

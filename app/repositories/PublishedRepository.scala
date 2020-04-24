@@ -82,7 +82,7 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
           logger.error(s"Attempt to retrieve process $id from collection published failed with error : ${error.getMessage}")
           Left(Errors(DatabaseError))
       }
-      //$COVERAGE-ON$
+    //$COVERAGE-ON$
   }
 
 }

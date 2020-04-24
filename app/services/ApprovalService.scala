@@ -27,7 +27,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ApprovalService @Inject()(repository: ApprovalRepository) {
+class ApprovalService @Inject() (repository: ApprovalRepository) {
 
   val logger: Logger = Logger(this.getClass)
 
@@ -38,13 +38,13 @@ class ApprovalService @Inject()(repository: ApprovalRepository) {
       case result => result
     }
 
-    def processId: Option[String] = (process \ "meta" \"id").validate[String].asOpt
+    def processId: Option[String] = (process \ "meta" \ "id").validate[String].asOpt
 
     processId match {
-      case Some(id) => saveProcess (id)
+      case Some(id) => saveProcess(id)
       case None =>
-        logger.error (s"No process id found in process body.")
-        Future.successful (Left (Errors (BadRequestError) ) )
+        logger.error(s"No process id found in process body.")
+        Future.successful(Left(Errors(BadRequestError)))
     }
 
   }

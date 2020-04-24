@@ -26,7 +26,7 @@ import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class ApprovalController @Inject()(approvalService: ApprovalService, cc: ControllerComponents) extends BackendController(cc) {
+class ApprovalController @Inject() (approvalService: ApprovalService, cc: ControllerComponents) extends BackendController(cc) {
 
   def save: Action[JsValue] = Action.async(parse.json) { implicit request =>
     val process = request.body.as[JsObject]
