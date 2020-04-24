@@ -34,55 +34,60 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
     val invalidId: String = "ext9005"
 
     val process: JsObject = validOnePageJson.as[JsObject]
-    val invalidProcess: JsObject = Json.obj("idx"-> invalidId)
+    val invalidProcess: JsObject = Json.obj("idx" -> invalidId)
 
     lazy val service: ApprovalService = new ApprovalService(mockApprovalRepository)
   }
 
-  "The method getById of class ApprovalService" should {
+  "Calling the getById method" when {
+    "the ID identifies a valid process" should {
+      "return a JSON representing the submitted ocelot process" in new Test {
 
-    "Return a JsObject representing the submitted ocelot process when the input identifies a valid process" in new Test {
+        val expected: RequestOutcome[JsObject] = Right(process)
 
-      val expected: RequestOutcome[JsObject] = Right(process)
+        MockApprovalRepository
+          .getById(validId)
+          .returns(Future.successful(expected))
 
-      MockApprovalRepository
-        .getById(validId)
-        .returns(Future.successful(expected))
-
-      whenReady(service.getById(validId)) { result =>
-        result shouldBe expected
+        whenReady(service.getById(validId)) { result =>
+          result shouldBe expected
+        }
       }
     }
 
-    "Return a not found response when no process has the identifier input to the method" in new Test {
+    "the ID cannot be matched to a submitted process" should {
+      "return a not found response" in new Test {
 
-      val expected: RequestOutcome[JsObject] = Left(Errors(NotFoundError))
+        val expected: RequestOutcome[JsObject] = Left(Errors(NotFoundError))
 
-      MockApprovalRepository
-        .getById(validId)
-        .returns(Future.successful(expected))
+        MockApprovalRepository
+          .getById(validId)
+          .returns(Future.successful(expected))
 
-      whenReady(service.getById(validId)) { result =>
-        result shouldBe expected
+        whenReady(service.getById(validId)) { result =>
+          result shouldBe expected
+        }
       }
     }
 
-    "Return an internal server error when the repository reports a database error" in new Test {
+    "the repository reports a database error" should {
+      "return an internal server error" in new Test {
 
-      val repositoryError: RequestOutcome[JsObject] = Left(Errors(DatabaseError))
-      val expected: RequestOutcome[JsObject] = Left(Errors(InternalServiceError))
+        val repositoryError: RequestOutcome[JsObject] = Left(Errors(DatabaseError))
+        val expected: RequestOutcome[JsObject] = Left(Errors(InternalServiceError))
 
-      MockApprovalRepository
-        .getById(validId)
-        .returns(Future.successful(repositoryError))
+        MockApprovalRepository
+          .getById(validId)
+          .returns(Future.successful(repositoryError))
 
-      whenReady(service.getById(validId)) { result =>
-        result shouldBe expected
+        whenReady(service.getById(validId)) { result =>
+          result shouldBe expected
+        }
       }
     }
   }
 
-  "Calling save method" when {
+  "Calling the save method" when {
 
     "the id and JSON are valid" should {
       "return valid Id" in new Test {
@@ -100,7 +105,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
       }
     }
 
-    "the id cannot be found in the JSON" should {
+    "the JSON is invalid" should {
       "not call the repository" in new Test {
         MockApprovalRepository
           .update(invalidId, invalidProcess)

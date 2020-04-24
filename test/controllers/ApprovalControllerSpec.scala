@@ -38,7 +38,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures wi
     val validId: String = "oct90001"
     val invalidId: String = "ext95"
     val process: JsObject = validOnePageJson.as[JsObject]
-    val invalidProcess: JsObject = Json.obj("id"-> "ext0093")
+    val invalidProcess: JsObject = Json.obj("id" -> "ext0093")
 
     val mockService: ApprovalService = mock[ApprovalService]
 

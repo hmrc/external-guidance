@@ -47,7 +47,7 @@ class GetPublishedProcessISpec extends IntegrationSpec {
 
     // TODO: Reactivate tests when save functionality implemented
 
-    "return an OK status" ignore  {
+    "return an OK status" ignore {
 
       response.status shouldBe Status.OK
 
