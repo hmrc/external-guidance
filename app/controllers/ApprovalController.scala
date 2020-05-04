@@ -18,15 +18,20 @@ package controllers
 
 import javax.inject.{Inject, Singleton}
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.ApprovalService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
-
 import scala.concurrent.ExecutionContext.Implicits.global
+
+import models.{ApprovalProcess, ApprovalProcessMeta}
+import repositories.formatters.{ApprovalProcessFormatter, ApprovalProcessMetaFormatter}
 
 @Singleton
 class ApprovalController @Inject() (approvalService: ApprovalService, cc: ControllerComponents) extends BackendController(cc) {
+
+  implicit val apFormat: Format[ApprovalProcess] = ApprovalProcessFormatter.mongoFormat
+  implicit val apmFormat: Format[ApprovalProcessMeta] = ApprovalProcessMetaFormatter.mongoFormat
 
   def save: Action[JsValue] = Action.async(parse.json) { implicit request =>
     val process = request.body.as[JsObject]

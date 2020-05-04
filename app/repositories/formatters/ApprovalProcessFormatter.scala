@@ -21,6 +21,8 @@ import play.api.libs.json._
 
 object ApprovalProcessFormatter {
 
+  implicit val metaFormatter: Format[ApprovalProcessMeta] = ApprovalProcessMetaFormatter.mongoFormat
+
   val read: JsValue => JsResult[ApprovalProcess] = json =>
     for {
       id <- (json \ "_id").validate[String]

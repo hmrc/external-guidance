@@ -20,8 +20,10 @@ import javax.inject.{Inject, Singleton}
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
 import models.{ApprovalProcess, ApprovalProcessMeta, RequestOutcome}
 import play.api.Logger
-import play.api.libs.json.{JsError, JsObject, JsSuccess}
+import play.api.libs.json._
 import repositories.ApprovalRepository
+import models.{ApprovalProcess, ApprovalProcessMeta}
+import repositories.formatters.{ApprovalProcessFormatter, ApprovalProcessMetaFormatter}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -30,6 +32,9 @@ import scala.concurrent.Future
 class ApprovalService @Inject() (repository: ApprovalRepository) {
 
   val logger: Logger = Logger(this.getClass)
+  implicit val apFormat: Format[ApprovalProcess] = ApprovalProcessFormatter.mongoFormat
+  implicit val apmFormat: Format[ApprovalProcessMeta] = ApprovalProcessMetaFormatter.mongoFormat
+
 
   def save(approvalProcess: JsObject): Future[RequestOutcome[String]] = {
 

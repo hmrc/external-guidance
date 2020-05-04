@@ -22,21 +22,3 @@ import play.api.libs.json._
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 case class ApprovalProcessMeta(id: String, title: String, status: String, dateSubmitted: DateTime)
-
-object ApprovalProcessMeta {
-  implicit val dateFormat: Format[DateTime] = ReactiveMongoFormats.dateTimeFormats
-
-  implicit val reads: Reads[ApprovalProcessMeta] = (
-    (__ \ "id").read[String] and
-      (__ \ "title").read[String] and
-      (__ \ "status").read[String] and
-      (__ \ "dateSubmitted").read(ReactiveMongoFormats.dateTimeRead)
-    )(ApprovalProcessMeta.apply _)
-
-  implicit val writes: Writes[ApprovalProcessMeta] = (
-    (JsPath \ "id").write[String] and
-      (JsPath \ "title").write[String] and
-      (JsPath \ "status").write[String] and
-      (JsPath \ "dateSubmitted").write(ReactiveMongoFormats.dateTimeWrite)
-    )(unlift(ApprovalProcessMeta.unapply))
-}
