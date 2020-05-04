@@ -16,6 +16,25 @@
 
 package models
 
-import play.api.libs.json.JsObject
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
-case class ApprovalProcess(id: String, process: JsObject)
+case class ApprovalProcess(id: String, meta: ApprovalProcessMeta, process: JsObject)
+
+object ApprovalProcess {
+
+  implicit val reads: Reads[ApprovalProcess] = (
+    (__ \ "id").read[String] and
+      (__ \ "meta").read[ApprovalProcessMeta] and
+      (__ \ "process").read[JsObject]
+    )(ApprovalProcess.apply _)
+
+  implicit val writes: Writes[ApprovalProcess] = (
+    (JsPath \ "id").write[String] and
+      (JsPath \ "meta").write[ApprovalProcessMeta] and
+      (JsPath \ "process").write[JsObject]
+    )(unlift(ApprovalProcess.unapply))
+
+//  val mongoFormat: OFormat[ApprovalProcess] = OFormat(reads, writes)
+
+}

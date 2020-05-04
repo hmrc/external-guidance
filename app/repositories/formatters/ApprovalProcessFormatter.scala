@@ -16,7 +16,7 @@
 
 package repositories.formatters
 
-import models.ApprovalProcess
+import models.{ApprovalProcess, ApprovalProcessMeta}
 import play.api.libs.json._
 
 object ApprovalProcessFormatter {
@@ -24,13 +24,15 @@ object ApprovalProcessFormatter {
   val read: JsValue => JsResult[ApprovalProcess] = json =>
     for {
       id <- (json \ "_id").validate[String]
+      meta <- (json \ "meta").validate[ApprovalProcessMeta]
       process <- (json \ "process").validate[JsObject]
-    } yield ApprovalProcess(id, process)
+    } yield ApprovalProcess(id, meta, process)
 
   val write: ApprovalProcess => JsObject = approvalProcess =>
     Json.obj(
       "_id" -> approvalProcess.id,
-      "process" -> approvalProcess.process
+      "meta" -> Json.toJsFieldJsValueWrapper(approvalProcess.meta),
+      "process" -> Json.toJson(approvalProcess.process)
     )
 
   val mongoFormat: OFormat[ApprovalProcess] = OFormat(read, write)

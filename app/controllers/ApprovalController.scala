@@ -40,10 +40,19 @@ class ApprovalController @Inject() (approvalService: ApprovalService, cc: Contro
 
   def get(id: String): Action[AnyContent] = Action.async { _ =>
     approvalService.getById(id).map {
-      case Right(process) => Ok(process)
+      case Right(approvalProcess) => Ok(Json.toJson(approvalProcess))
       case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
       case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
     }
   }
+
+  def listForAdminHomePage: Action[AnyContent] = Action.async { _ =>
+    approvalService.listForHomePage().map {
+      case Right(list) =>
+        Ok(Json.toJson(list))
+      case _ => InternalServerError(Json.toJson(InternalServiceError))
+    }
+  }
+
 }
