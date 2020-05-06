@@ -142,7 +142,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
     "there are entries to return" should {
       "return a List of approval processes" in new Test {
 
-        val expected: RequestOutcome[List[ApprovalProcess]] = Right(List(approvalProcess))
+        val expected: RequestOutcome[List[ApprovalProcessSummary]] = Right(List(approvalProcessSummary))
 
         MockApprovalRepository
           .listForHomePage()
@@ -152,9 +152,9 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
           case Right(list) =>
             list.size shouldBe 1
             val entry = list.head
-            entry.id shouldBe approvalProcess.id
-            entry.title shouldBe approvalProcess.meta.title
-            entry.title shouldBe approvalProcess.meta.title
+            entry.id shouldBe approvalProcessSummary.id
+            entry.title shouldBe approvalProcessSummary.title
+            entry.status shouldBe approvalProcessSummary.status
           case _ => fail
         }
       }
@@ -163,7 +163,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
     "there are no processes in the database" should {
       "return an empty list" in new Test {
 
-        val expected: RequestOutcome[List[ApprovalProcess]] = Right(List())
+        val expected: RequestOutcome[List[ApprovalProcessSummary]] = Right(List())
         val returnedList: RequestOutcome[List[ApprovalProcessSummary]] = Right(List())
 
         MockApprovalRepository
@@ -179,7 +179,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
     "the repository reports a database error" should {
       "return an internal server error" in new Test {
 
-        val repositoryError: RequestOutcome[List[ApprovalProcess]] = Left(Errors(DatabaseError))
+        val repositoryError: RequestOutcome[List[ApprovalProcessSummary]] = Left(Errors(DatabaseError))
         val expected: RequestOutcome[List[ApprovalProcessSummary]] = Left(Errors(InternalServiceError))
 
         MockApprovalRepository

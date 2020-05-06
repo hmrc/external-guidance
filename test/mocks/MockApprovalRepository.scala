@@ -16,7 +16,7 @@
 
 package mocks
 
-import models.{ApprovalProcess, RequestOutcome}
+import models.{ApprovalProcess, ApprovalProcessSummary, RequestOutcome}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import repositories.ApprovalRepository
@@ -41,8 +41,8 @@ trait MockApprovalRepository extends MockFactory {
         .expects(id)
     }
 
-    def listForHomePage(): CallHandler[Future[RequestOutcome[List[ApprovalProcess]]]] = {
-      (mockApprovalRepository.listForHomePage: () => Future[RequestOutcome[List[ApprovalProcess]]])
+    def listForHomePage(): CallHandler[Future[RequestOutcome[List[ApprovalProcessSummary]]]] = {
+      (mockApprovalRepository.listForHomePage: () => Future[RequestOutcome[List[ApprovalProcessSummary]]])
         .expects()
     }
 

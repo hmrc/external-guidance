@@ -64,14 +64,7 @@ class ApprovalService @Inject() (repository: ApprovalRepository) {
   def listForHomePage(): Future[RequestOutcome[List[ApprovalProcessSummary]]] = {
     repository.listForHomePage().map {
       case Left(_) => Left(Errors(InternalServiceError))
-      case Right(success) =>
-        Right(
-          success
-            .map { ap =>
-              ApprovalProcessSummary(ap.meta.id, ap.meta.title, ap.meta.dateSubmitted, ap.meta.status)
-            }
-        )
+      case Right(success) => Right(success)
     }
   }
-
 }

@@ -18,7 +18,7 @@ package repositories
 
 import javax.inject.{Inject, Singleton}
 import models.errors.{DatabaseError, Errors, NotFoundError}
-import models.{ApprovalProcess, RequestOutcome}
+import models.{ApprovalProcess, ApprovalProcessSummary, RequestOutcome}
 import play.api.libs.json.{Format, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.Cursor.FailOnError
@@ -33,7 +33,7 @@ import scala.concurrent.Future
 trait ApprovalRepository {
   def update(id: String, process: ApprovalProcess): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[ApprovalProcess]]
-  def listForHomePage(): Future[RequestOutcome[List[ApprovalProcess]]]
+  def listForHomePage(): Future[RequestOutcome[List[ApprovalProcessSummary]]]
 }
 
 @Singleton
@@ -82,7 +82,7 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
     //$COVERAGE-ON$
   }
 
-  def listForHomePage(): Future[RequestOutcome[List[ApprovalProcess]]] = {
+  def listForHomePage(): Future[RequestOutcome[List[ApprovalProcessSummary]]] = {
     val selector = Json.obj()
     val projection = Some(Json.obj("meta" -> 1, "process.meta.id" -> 1))
 
@@ -93,6 +93,11 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
       )
       .cursor[ApprovalProcess](ReadPreference.primaryPreferred)
       .collect(maxDocs = -1, FailOnError[List[ApprovalProcess]]())
+      .map {
+        _.map { doc =>
+          ApprovalProcessSummary(doc.meta.id, doc.meta.title, doc.meta.dateSubmitted, doc.meta.status)
+        }
+      }
       .map(list => Right(list))
       //$COVERAGE-OFF$
       .recover {
