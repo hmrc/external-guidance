@@ -16,20 +16,23 @@
 
 package models
 
-import org.joda.time.{DateTimeZone, LocalDateTime}
+import java.time.{LocalDate, ZoneId, ZoneOffset}
+
 import play.api.libs.json.{JsObject, Json}
 
 trait ApprovalProcessJson {
 
   val validId = "oct90001"
-  val dateSubmitted: LocalDateTime = LocalDateTime.now()
-  val submittedDateInMilliseconds: Long = dateSubmitted.toDateTime(DateTimeZone.UTC).getMillis
+  val dateSubmitted: LocalDate = LocalDate.of(2020, 3, 3)
+  val submittedDateInMilliseconds: Long = dateSubmitted.atStartOfDay(ZoneOffset.UTC).toInstant.toEpochMilli
 
   val approvalProcessMeta: ApprovalProcessMeta = ApprovalProcessMeta("oct90001", "This is the title", "Ready for 2i", dateSubmitted)
   val approvalProcess: ApprovalProcess = ApprovalProcess(validId, approvalProcessMeta, Json.obj())
+  val approvalProcessSummary: ApprovalProcessSummary = ApprovalProcessSummary("oct90001", "This is the title", dateSubmitted, "Ready for 2i")
 
-  val validApprovalProcessJson: JsObject = Json.parse(
-    """
+  val validApprovalProcessJson: JsObject = Json
+    .parse(
+      """
       |{
       |  "_id" : "oct90001",
       |  "meta" : {
@@ -42,10 +45,12 @@ trait ApprovalProcessJson {
       |  }
       |}
     """.stripMargin.replace("placeholder", submittedDateInMilliseconds.toString)
-  ).as[JsObject]
+    )
+    .as[JsObject]
 
-  val expectedReturnedApprovalProcessJson: JsObject = Json.parse(
-    """
+  val expectedReturnedApprovalProcessJson: JsObject = Json
+    .parse(
+      """
       |{
       |  "id" : "oct90001",
       |  "meta" : {
@@ -58,6 +63,7 @@ trait ApprovalProcessJson {
       |  }
       |}
     """.stripMargin
-  ).as[JsObject]
+    )
+    .as[JsObject]
 
 }

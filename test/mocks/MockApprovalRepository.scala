@@ -41,10 +41,8 @@ trait MockApprovalRepository extends MockFactory {
         .expects(id)
     }
 
-
     def listForHomePage(): CallHandler[Future[RequestOutcome[List[ApprovalProcess]]]] = {
-      (mockApprovalRepository
-        .listForHomePage: () => Future[RequestOutcome[List[ApprovalProcess]]])
+      (mockApprovalRepository.listForHomePage: () => Future[RequestOutcome[List[ApprovalProcess]]])
         .expects()
     }
 

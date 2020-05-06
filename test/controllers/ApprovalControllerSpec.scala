@@ -32,8 +32,7 @@ import repositories.formatters.ApprovalProcessFormatter
 
 import scala.concurrent.Future
 
-class ApprovalControllerSpec extends WordSpec
-  with Matchers with ScalaFutures with GuiceOneAppPerSuite with MockFactory with ApprovalProcessJson {
+class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite with MockFactory with ApprovalProcessJson {
 
   private trait Test extends MockApprovalService {
     val invalidId: String = "ext95"
@@ -250,7 +249,7 @@ class ApprovalControllerSpec extends WordSpec
       trait ValidListTest extends Test {
         MockApprovalService
           .listForHomePage()
-          .returns(Future.successful(Right(List(approvalProcessMeta))))
+          .returns(Future.successful(Right(List(approvalProcessSummary))))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/list")
       }
@@ -300,6 +299,5 @@ class ApprovalControllerSpec extends WordSpec
       }
     }
   }
-
 
 }

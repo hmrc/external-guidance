@@ -17,7 +17,7 @@ package endpoints
 
 import data.ExamplePayloads
 import play.api.http.{ContentTypes, Status}
-import play.api.libs.json.{JsObject, JsValue}
+import play.api.libs.json.{JsArray, JsObject, JsValue}
 import play.api.libs.ws.WSResponse
 import stubs.AuditStub
 import support.IntegrationSpec
@@ -81,16 +81,6 @@ class GetApprovalProcessISpec extends IntegrationSpec {
 
   "Calling the approval list endpoint" should {
 
-    def populateDatabase(processToSave: JsValue): String = {
-      lazy val request = buildRequest("/external-guidance/approval")
-
-      val result = await(request.post(processToSave))
-      val json = result.body[JsValue].as[JsObject]
-      (json \ "id").as[String]
-    }
-
-    val processToSave: JsValue = ExamplePayloads.validApprovalProcessJson
-    lazy val id = populateDatabase(processToSave)
     lazy val request = buildRequest(s"/external-guidance/approval/list")
     lazy val response: WSResponse = {
       AuditStub.audit()
@@ -105,10 +95,13 @@ class GetApprovalProcessISpec extends IntegrationSpec {
       response.contentType shouldBe ContentTypes.JSON
     }
 
-//    "return the corresponding JSON in the response" in {
-//      val json = response.body[JsValue].as[JsObject]
-//      json shouldBe ExamplePayloads.expectedApprovalProcessJson
-//    }
+    "return the corresponding list as JSON in the response" in {
+      val json = response.body[JsValue]
+      json match {
+        case JsArray(_) => succeed
+        case _ => fail()
+      }
+    }
   }
 
 }

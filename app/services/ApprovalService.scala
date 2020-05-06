@@ -18,12 +18,11 @@ package services
 
 import javax.inject.{Inject, Singleton}
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
-import models.{ApprovalProcess, ApprovalProcessMeta, RequestOutcome}
+import models.{ApprovalProcess, ApprovalProcessSummary, RequestOutcome}
 import play.api.Logger
 import play.api.libs.json._
 import repositories.ApprovalRepository
-import models.{ApprovalProcess, ApprovalProcessMeta}
-import repositories.formatters.{ApprovalProcessFormatter, ApprovalProcessMetaFormatter}
+import repositories.formatters.ApprovalProcessFormatter
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -33,8 +32,6 @@ class ApprovalService @Inject() (repository: ApprovalRepository) {
 
   val logger: Logger = Logger(this.getClass)
   implicit val apFormat: Format[ApprovalProcess] = ApprovalProcessFormatter.mongoFormat
-  implicit val apmFormat: Format[ApprovalProcessMeta] = ApprovalProcessMetaFormatter.mongoFormat
-
 
   def save(approvalProcess: JsObject): Future[RequestOutcome[String]] = {
 
@@ -64,12 +61,15 @@ class ApprovalService @Inject() (repository: ApprovalRepository) {
     }
   }
 
-  def listForHomePage(): Future[RequestOutcome[List[ApprovalProcessMeta]]] = {
+  def listForHomePage(): Future[RequestOutcome[List[ApprovalProcessSummary]]] = {
     repository.listForHomePage().map {
       case Left(_) => Left(Errors(InternalServiceError))
       case Right(success) =>
-        Right(success
-          .map { ap => ApprovalProcessMeta(ap.meta.id, ap.meta.title, ap.meta.status, ap.meta.dateSubmitted)}
+        Right(
+          success
+            .map { ap =>
+              ApprovalProcessSummary(ap.meta.id, ap.meta.title, ap.meta.dateSubmitted, ap.meta.status)
+            }
         )
     }
   }

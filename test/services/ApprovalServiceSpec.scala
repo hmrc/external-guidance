@@ -18,8 +18,8 @@ package services
 
 import base.UnitSpec
 import mocks.MockApprovalRepository
-import models.{ApprovalProcess, ApprovalProcessJson, ApprovalProcessMeta, RequestOutcome}
 import models.errors._
+import models.{ApprovalProcess, ApprovalProcessJson, ApprovalProcessSummary, RequestOutcome}
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsObject, Json}
 
@@ -138,7 +138,6 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
     }
   }
 
-
   "Calling the listForHomePage method" when {
     "there are entries to return" should {
       "return a List of approval processes" in new Test {
@@ -165,7 +164,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
       "return an empty list" in new Test {
 
         val expected: RequestOutcome[List[ApprovalProcess]] = Right(List())
-        val returnedList: RequestOutcome[List[ApprovalProcessMeta]] = Right(List())
+        val returnedList: RequestOutcome[List[ApprovalProcessSummary]] = Right(List())
 
         MockApprovalRepository
           .listForHomePage()
@@ -181,7 +180,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
       "return an internal server error" in new Test {
 
         val repositoryError: RequestOutcome[List[ApprovalProcess]] = Left(Errors(DatabaseError))
-        val expected: RequestOutcome[List[ApprovalProcess]] = Left(Errors(InternalServiceError))
+        val expected: RequestOutcome[List[ApprovalProcessSummary]] = Left(Errors(InternalServiceError))
 
         MockApprovalRepository
           .listForHomePage()
@@ -193,6 +192,5 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
       }
     }
   }
-
 
 }

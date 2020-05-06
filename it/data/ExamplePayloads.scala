@@ -16,6 +16,8 @@
 
 package data
 
+import java.time.{LocalDate, ZoneOffset}
+
 import play.api.libs.json.{JsValue, Json}
 
 object ExamplePayloads {
@@ -82,6 +84,9 @@ object ExamplePayloads {
     """.stripMargin
   )
 
+  val dateSubmitted: LocalDate = LocalDate.of(2020, 3, 3)
+  val submittedDateInMilliseconds: Long = dateSubmitted.atStartOfDay(ZoneOffset.UTC).toInstant.toEpochMilli
+
   val validApprovalProcessJson: JsValue = Json.parse(
     """
       |{
@@ -89,13 +94,14 @@ object ExamplePayloads {
       |    "id" : "oct90001",
       |    "title" : "This is the title",
       |    "status" : "Ready for 2i",
-      |    "dateSubmitted" : {"$date": 1500298931016}
+      |    "dateSubmitted" : {"$date": placeholder}
       |  },
       |  "process" : {
       |  }
       |}
-      """.stripMargin
+      """.stripMargin.replace("placeholder", submittedDateInMilliseconds.toString)
   )
+
   val expectedApprovalProcessJson: JsValue = Json.parse(
     """
       |{
@@ -104,11 +110,11 @@ object ExamplePayloads {
       |    "id" : "oct90001",
       |    "title" : "This is the title",
       |    "status" : "Ready for 2i",
-      |    "dateSubmitted" : {"$date": 1500298931016}
+      |    "dateSubmitted" : {"$date": placeholder}
       |  },
       |  "process" : {
       |  }
       |}
-      """.stripMargin
+      """.stripMargin.replace("placeholder", submittedDateInMilliseconds.toString)
   )
 }

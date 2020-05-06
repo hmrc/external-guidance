@@ -16,6 +16,11 @@
 
 package models
 
+import play.api.libs.json.{Json, OFormat}
 import java.time.LocalDate
 
-case class ApprovalProcessMeta(id: String, title: String, status: String, dateSubmitted: LocalDate)
+case class ApprovalProcessSummary(id: String, title: String, lastUpdated: LocalDate, status: String)
+
+object ApprovalProcessSummary {
+  implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
+}
