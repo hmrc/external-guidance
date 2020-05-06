@@ -34,7 +34,7 @@ class GetApprovalProcessISpec extends IntegrationSpec {
       (json \ "id").as[String]
     }
 
-    val processToSave: JsValue = ExamplePayloads.simpleValidProcess
+    val processToSave: JsValue = ExamplePayloads.validApprovalProcessJson
     lazy val id = populateDatabase(processToSave)
     lazy val request = buildRequest(s"/external-guidance/approval/$id")
     lazy val response: WSResponse = {
@@ -52,7 +52,7 @@ class GetApprovalProcessISpec extends IntegrationSpec {
 
     "return the corresponding JSON in the response" in {
       val json = response.body[JsValue].as[JsObject]
-      json shouldBe processToSave
+      json shouldBe ExamplePayloads.expectedApprovalProcessJson
     }
   }
 
@@ -78,4 +78,37 @@ class GetApprovalProcessISpec extends IntegrationSpec {
       (json \ "code").as[String] shouldBe "NOT_FOUND_ERROR"
     }
   }
+
+  "Calling the approval list endpoint" should {
+
+    def populateDatabase(processToSave: JsValue): String = {
+      lazy val request = buildRequest("/external-guidance/approval")
+
+      val result = await(request.post(processToSave))
+      val json = result.body[JsValue].as[JsObject]
+      (json \ "id").as[String]
+    }
+
+    val processToSave: JsValue = ExamplePayloads.validApprovalProcessJson
+    lazy val id = populateDatabase(processToSave)
+    lazy val request = buildRequest(s"/external-guidance/approval/list")
+    lazy val response: WSResponse = {
+      AuditStub.audit()
+      await(request.get())
+    }
+
+    "return a OK status code" in {
+      response.status shouldBe Status.OK
+    }
+
+    "return content as JSON" in {
+      response.contentType shouldBe ContentTypes.JSON
+    }
+
+//    "return the corresponding JSON in the response" in {
+//      val json = response.body[JsValue].as[JsObject]
+//      json shouldBe ExamplePayloads.expectedApprovalProcessJson
+//    }
+  }
+
 }

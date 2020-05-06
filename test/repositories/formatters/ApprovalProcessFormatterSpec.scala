@@ -17,24 +17,10 @@
 package repositories.formatters
 
 import base.UnitSpec
-import models.ApprovalProcess
-import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
+import models.{ApprovalProcess, ApprovalProcessJson}
+import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 
-class ApprovalProcessFormatterSpec extends UnitSpec {
-
-  private val process: JsObject = Json.obj()
-  private val id: String = "ext90002"
-
-  private val approvalProcess: ApprovalProcess = ApprovalProcess(id, process)
-
-  private val json = Json.parse(
-    s"""
-       |{
-       | "_id": "$id",
-       | "process": {}
-       |}
-       |""".stripMargin
-  )
+class ApprovalProcessFormatterSpec extends UnitSpec with ApprovalProcessJson {
 
   private val invalidJson = Json.parse("{}")
 
@@ -42,7 +28,7 @@ class ApprovalProcessFormatterSpec extends UnitSpec {
 
     "Result in a successful conversion for valid JSON" in {
 
-      json.validate[ApprovalProcess](ApprovalProcessFormatter.mongoFormat) match {
+      validApprovalProcessJson.validate[ApprovalProcess](ApprovalProcessFormatter.mongoFormat) match {
         case JsSuccess(result, _) if result == approvalProcess => succeed
         case JsSuccess(_, _) => fail("Deserializing valid JSON did not create correct process")
         case _ => fail("Unable to parse valid Json")
@@ -62,8 +48,8 @@ class ApprovalProcessFormatterSpec extends UnitSpec {
   "Serializing an approval process into JSON" should {
 
     "Generate the expected JSON" in {
-      val result = Json.toJson(approvalProcess)(ApprovalProcessFormatter.mongoFormat)
-      result shouldBe json
+      val result: JsValue = Json.toJson(approvalProcess)(ApprovalProcessFormatter.mongoFormat)
+      result shouldBe validApprovalProcessJson.as[JsValue]
     }
   }
 

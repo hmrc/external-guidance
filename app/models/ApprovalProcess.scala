@@ -16,7 +16,6 @@
 
 package models
 
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
+import play.api.libs.json.JsObject
 
 case class ApprovalProcess(id: String, meta: ApprovalProcessMeta, process: JsObject)

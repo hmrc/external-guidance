@@ -84,21 +84,23 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
 
   def listForHomePage(): Future[RequestOutcome[List[ApprovalProcess]]] = {
     val selector = Json.obj()
-    val projection = Some(Json.obj("meta" -> 1, "process.mata.id" -> 1))
+    val projection = Some(Json.obj("meta" -> 1, "process.meta.id" -> 1))
 
-      collection
-        .find(
-          selector,
-          projection
-        )
-        .cursor[ApprovalProcess](ReadPreference.primaryPreferred)
-        .collect(maxDocs = -1, FailOnError[List[ApprovalProcess]]())
-        .map(list => Right(list))
-        .recover {
-          case error =>
-            logger.error(s"Attempt to retrieve list of processes from collection $collectionName failed with error : ${error.getMessage}")
-            Left(Errors(DatabaseError))
-        }
+    collection
+      .find(
+        selector,
+        projection
+      )
+      .cursor[ApprovalProcess](ReadPreference.primaryPreferred)
+      .collect(maxDocs = -1, FailOnError[List[ApprovalProcess]]())
+      .map(list => Right(list))
+      //$COVERAGE-OFF$
+      .recover {
+        case error =>
+          logger.error(s"Attempt to retrieve list of processes from collection $collectionName failed with error : ${error.getMessage}")
+          Left(Errors(DatabaseError))
+      }
+    //$COVERAGE-ON$
   }
 
 }

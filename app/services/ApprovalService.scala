@@ -71,9 +71,6 @@ class ApprovalService @Inject() (repository: ApprovalRepository) {
         Right(success
           .map { ap => ApprovalProcessMeta(ap.meta.id, ap.meta.title, ap.meta.status, ap.meta.dateSubmitted)}
         )
-    }.recover {
-      case e: Exception =>
-        Left(Errors(InternalServiceError))
     }
   }
 

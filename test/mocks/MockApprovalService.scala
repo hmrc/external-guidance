@@ -16,7 +16,7 @@
 
 package mocks
 
-import models.RequestOutcome
+import models.{ApprovalProcess, ApprovalProcessMeta, RequestOutcome}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.JsObject
@@ -29,7 +29,7 @@ trait MockApprovalService extends MockFactory {
 
   object MockApprovalService {
 
-    def getById(id: String): CallHandler[Future[RequestOutcome[JsObject]]] = {
+    def getById(id: String): CallHandler[Future[RequestOutcome[ApprovalProcess]]] = {
       (mockApprovalService
         .getById(_: String))
         .expects(id)
@@ -41,6 +41,11 @@ trait MockApprovalService extends MockFactory {
         .expects(process)
     }
 
-  }
+    def listForHomePage(): CallHandler[Future[RequestOutcome[List[ApprovalProcessMeta]]]] = {
+      (mockApprovalService
+        .listForHomePage: () => Future[RequestOutcome[List[ApprovalProcessMeta]]])
+        .expects()
+    }
 
+  }
 }

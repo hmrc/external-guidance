@@ -16,9 +16,6 @@
 
 package models
 
-import org.joda.time.DateTime
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import org.joda.time.LocalDateTime
 
-case class ApprovalProcessMeta(id: String, title: String, status: String, dateSubmitted: DateTime)
+case class ApprovalProcessMeta(id: String, title: String, status: String, dateSubmitted: LocalDateTime)

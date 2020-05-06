@@ -25,10 +25,10 @@ object ApprovalProcessFormatter {
 
   val read: JsValue => JsResult[ApprovalProcess] = json =>
     for {
-      id <- (json \ "_id").validate[String]
+      id <- (json \ "_id").validateOpt[String]
       meta <- (json \ "meta").validate[ApprovalProcessMeta]
       process <- (json \ "process").validate[JsObject]
-    } yield ApprovalProcess(id, meta, process)
+    } yield ApprovalProcess(id.getOrElse(meta.id), meta, process)
 
   val write: ApprovalProcess => JsObject = approvalProcess =>
     Json.obj(

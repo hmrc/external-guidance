@@ -17,20 +17,20 @@
 package repositories.formatters
 
 import models.ApprovalProcessMeta
-import org.joda.time.DateTime
+import org.joda.time.LocalDateTime
 import play.api.libs.json._
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 object ApprovalProcessMetaFormatter {
 
-  implicit val dateFormat: Format[DateTime] = ReactiveMongoFormats.dateTimeFormats
+  implicit val dateFormat: Format[LocalDateTime] = ReactiveMongoFormats.localDateTimeFormats
 
   val read: JsValue => JsResult[ApprovalProcessMeta] = json =>
     for {
       id <- (json \ "id").validate[String]
       status <- (json \ "status").validate[String]
       title <- (json \ "title").validate[String]
-      dateSubmitted <- (json \ "dateSubmitted").validate[DateTime](dateFormat)
+      dateSubmitted <- (json \ "dateSubmitted").validate[LocalDateTime](dateFormat)
     } yield ApprovalProcessMeta(id, title, status, dateSubmitted)
 
   val write: ApprovalProcessMeta => JsObject = meta =>

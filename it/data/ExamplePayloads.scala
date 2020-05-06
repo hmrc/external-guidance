@@ -81,4 +81,34 @@ object ExamplePayloads {
       |}
     """.stripMargin
   )
+
+  val validApprovalProcessJson: JsValue = Json.parse(
+    """
+      |{
+      |  "meta" : {
+      |    "id" : "oct90001",
+      |    "title" : "This is the title",
+      |    "status" : "Ready for 2i",
+      |    "dateSubmitted" : {"$date": 1500298931016}
+      |  },
+      |  "process" : {
+      |  }
+      |}
+      """.stripMargin
+  )
+  val expectedApprovalProcessJson: JsValue = Json.parse(
+    """
+      |{
+      |  "_id" : "oct90001",
+      |  "meta" : {
+      |    "id" : "oct90001",
+      |    "title" : "This is the title",
+      |    "status" : "Ready for 2i",
+      |    "dateSubmitted" : {"$date": 1500298931016}
+      |  },
+      |  "process" : {
+      |  }
+      |}
+      """.stripMargin
+  )
 }
