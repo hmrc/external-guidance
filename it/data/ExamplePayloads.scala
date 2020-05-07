@@ -93,7 +93,7 @@ object ExamplePayloads {
       |  "meta" : {
       |    "id" : "oct90001",
       |    "title" : "This is the title",
-      |    "status" : "Ready for 2i",
+      |    "status" : "SubmittedFor2iReview",
       |    "dateSubmitted" : {"$date": placeholder}
       |  },
       |  "process" : {
@@ -109,7 +109,7 @@ object ExamplePayloads {
       |  "meta" : {
       |    "id" : "oct90001",
       |    "title" : "This is the title",
-      |    "status" : "Ready for 2i",
+      |    "status" : "SubmittedFor2iReview",
       |    "dateSubmitted" : {"$date": placeholder}
       |  },
       |  "process" : {

@@ -16,7 +16,7 @@
 
 package models
 
-import java.time.{LocalDate, ZoneId, ZoneOffset}
+import java.time.{LocalDate, ZoneOffset}
 
 import play.api.libs.json.{JsObject, Json}
 
@@ -26,9 +26,9 @@ trait ApprovalProcessJson {
   val dateSubmitted: LocalDate = LocalDate.of(2020, 3, 3)
   val submittedDateInMilliseconds: Long = dateSubmitted.atStartOfDay(ZoneOffset.UTC).toInstant.toEpochMilli
 
-  val approvalProcessMeta: ApprovalProcessMeta = ApprovalProcessMeta("oct90001", "This is the title", "Ready for 2i", dateSubmitted)
+  val approvalProcessMeta: ApprovalProcessMeta = ApprovalProcessMeta("oct90001", "This is the title", "SubmittedFor2iReview", dateSubmitted)
   val approvalProcess: ApprovalProcess = ApprovalProcess(validId, approvalProcessMeta, Json.obj())
-  val approvalProcessSummary: ApprovalProcessSummary = ApprovalProcessSummary("oct90001", "This is the title", dateSubmitted, "Ready for 2i")
+  val approvalProcessSummary: ApprovalProcessSummary = ApprovalProcessSummary("oct90001", "This is the title", dateSubmitted, "SubmittedFor2iReview")
 
   val validApprovalProcessJson: JsObject = Json
     .parse(
@@ -38,31 +38,13 @@ trait ApprovalProcessJson {
       |  "meta" : {
       |    "id" : "oct90001",
       |    "title" : "This is the title",
-      |    "status" : "Ready for 2i",
+      |    "status" : "SubmittedFor2iReview",
       |    "dateSubmitted" : {"$date": placeholder}
       |  },
       |  "process" : {
       |  }
       |}
     """.stripMargin.replace("placeholder", submittedDateInMilliseconds.toString)
-    )
-    .as[JsObject]
-
-  val expectedReturnedApprovalProcessJson: JsObject = Json
-    .parse(
-      """
-      |{
-      |  "id" : "oct90001",
-      |  "meta" : {
-      |    "id" : "oct90001",
-      |    "title" : "This is the title",
-      |    "status" : "Ready for 2i",
-      |    "dateSubmitted" : {"$date": 1500298931016}
-      |  },
-      |  "process" : {
-      |  }
-      |}
-    """.stripMargin
     )
     .as[JsObject]
 
