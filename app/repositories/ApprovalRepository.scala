@@ -83,7 +83,7 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
   }
 
   def listForHomePage(): Future[RequestOutcome[List[ApprovalProcessSummary]]] = {
-    val selector = Json.obj()
+    val selector = Json.obj("meta" -> Json.obj("$exists" -> true))
     val projection = Some(Json.obj("meta" -> 1, "process.meta.id" -> 1))
 
     collection
