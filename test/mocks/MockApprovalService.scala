@@ -16,10 +16,10 @@
 
 package mocks
 
-import models.{ApprovalProcess, ApprovalProcessSummary, RequestOutcome}
+import models.{ApprovalProcess, RequestOutcome}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
-import play.api.libs.json.JsObject
+import play.api.libs.json.{JsArray, JsObject}
 import services.ApprovalService
 
 import scala.concurrent.Future
@@ -41,8 +41,8 @@ trait MockApprovalService extends MockFactory {
         .expects(process)
     }
 
-    def listForHomePage(): CallHandler[Future[RequestOutcome[List[ApprovalProcessSummary]]]] = {
-      (mockApprovalService.listForHomePage: () => Future[RequestOutcome[List[ApprovalProcessSummary]]])
+    def approvalSummaryList(): CallHandler[Future[RequestOutcome[JsArray]]] = {
+      (mockApprovalService.approvalSummaryList: () => Future[RequestOutcome[JsArray]])
         .expects()
     }
 

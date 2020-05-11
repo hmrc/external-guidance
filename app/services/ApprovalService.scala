@@ -18,7 +18,7 @@ package services
 
 import javax.inject.{Inject, Singleton}
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
-import models.{ApprovalProcess, ApprovalProcessSummary, RequestOutcome}
+import models.{ApprovalProcess, RequestOutcome}
 import play.api.Logger
 import play.api.libs.json._
 import repositories.ApprovalRepository
@@ -61,10 +61,10 @@ class ApprovalService @Inject() (repository: ApprovalRepository) {
     }
   }
 
-  def listForHomePage(): Future[RequestOutcome[List[ApprovalProcessSummary]]] = {
-    repository.listForHomePage().map {
+  def approvalSummaryList(): Future[RequestOutcome[JsArray]] = {
+    repository.approvalSummaryList().map {
       case Left(_) => Left(Errors(InternalServiceError))
-      case Right(success) => Right(success)
+      case Right(success) => Right(Json.toJson(success).as[JsArray])
     }
   }
 }

@@ -52,10 +52,10 @@ class ApprovalController @Inject() (approvalService: ApprovalService, cc: Contro
     }
   }
 
-  def listForAdminHomePage: Action[AnyContent] = Action.async { _ =>
-    approvalService.listForHomePage().map {
+  def approvalSummaryList: Action[AnyContent] = Action.async { _ =>
+    approvalService.approvalSummaryList().map {
       case Right(list) =>
-        Ok(Json.toJson(list))
+        Ok(list)
       case _ => InternalServerError(Json.toJson(InternalServiceError))
     }
   }

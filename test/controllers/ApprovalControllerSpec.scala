@@ -24,7 +24,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.ContentTypes
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -248,19 +248,19 @@ class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures wi
 
       trait ValidListTest extends Test {
         MockApprovalService
-          .listForHomePage()
-          .returns(Future.successful(Right(List(approvalProcessSummary))))
+          .approvalSummaryList()
+          .returns(Future.successful(Right(Json.toJson(List(approvalProcessSummary)).as[JsArray])))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/list")
       }
 
       "return an OK response" in new ValidListTest {
-        private val result = controller.listForAdminHomePage()(request)
+        private val result = controller.approvalSummaryList()(request)
         status(result) shouldBe OK
       }
 
       "return content as JSON" in new ValidListTest {
-        private val result = controller.listForAdminHomePage()(request)
+        private val result = controller.approvalSummaryList()(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
@@ -276,24 +276,24 @@ class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures wi
       trait ErrorGetTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockApprovalService
-          .listForHomePage()
+          .approvalSummaryList()
           .returns(Future.successful(Left(Errors(InternalServiceError))))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/list")
       }
 
       "return a internal server error response" in new ErrorGetTest {
-        private val result = controller.listForAdminHomePage()(request)
+        private val result = controller.approvalSummaryList()(request)
         status(result) shouldBe INTERNAL_SERVER_ERROR
       }
 
       "return content as JSON" in new ErrorGetTest {
-        private val result = controller.listForAdminHomePage()(request)
+        private val result = controller.approvalSummaryList()(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return an error code of INTERNAL_SERVER_ERROR" in new ErrorGetTest {
-        private val result = controller.listForAdminHomePage()(request)
+        private val result = controller.approvalSummaryList()(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe expectedErrorCode
       }

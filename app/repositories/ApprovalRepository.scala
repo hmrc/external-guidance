@@ -33,7 +33,7 @@ import scala.concurrent.Future
 trait ApprovalRepository {
   def update(id: String, process: ApprovalProcess): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[ApprovalProcess]]
-  def listForHomePage(): Future[RequestOutcome[List[ApprovalProcessSummary]]]
+  def approvalSummaryList(): Future[RequestOutcome[List[ApprovalProcessSummary]]]
 }
 
 @Singleton
@@ -82,7 +82,7 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
     //$COVERAGE-ON$
   }
 
-  def listForHomePage(): Future[RequestOutcome[List[ApprovalProcessSummary]]] = {
+  def approvalSummaryList(): Future[RequestOutcome[List[ApprovalProcessSummary]]] = {
     val selector = Json.obj("meta" -> Json.obj("$exists" -> true))
     val projection = Some(Json.obj("meta" -> 1, "process.meta.id" -> 1))
 

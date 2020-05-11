@@ -33,7 +33,7 @@ object ApprovalProcessFormatter {
   val write: ApprovalProcess => JsObject = approvalProcess =>
     Json.obj(
       "_id" -> approvalProcess.id,
-      "meta" -> Json.toJsFieldJsValueWrapper(approvalProcess.meta),
+      "meta" -> Json.toJson(approvalProcess.meta),
       "process" -> Json.toJson(approvalProcess.process)
     )
 

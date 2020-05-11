@@ -21,7 +21,8 @@ import mocks.MockApprovalRepository
 import models.errors._
 import models.{ApprovalProcess, ApprovalProcessJson, ApprovalProcessSummary, RequestOutcome}
 import org.scalamock.scalatest.MockFactory
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsArray, JsObject, Json}
+import models.ApprovalProcessSummary._
 
 import scala.concurrent.Future
 
@@ -145,11 +146,12 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
         val expected: RequestOutcome[List[ApprovalProcessSummary]] = Right(List(approvalProcessSummary))
 
         MockApprovalRepository
-          .listForHomePage()
+          .approvalSummaryList()
           .returns(Future.successful(expected))
 
-        whenReady(service.listForHomePage()) {
-          case Right(list) =>
+        whenReady(service.approvalSummaryList()) {
+          case Right(jsonList) =>
+            val list: List[ApprovalProcessSummary] = jsonList.as[List[ApprovalProcessSummary]]
             list.size shouldBe 1
             val entry = list.head
             entry.id shouldBe approvalProcessSummary.id
@@ -163,15 +165,15 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
     "there are no processes in the database" should {
       "return an empty list" in new Test {
 
-        val expected: RequestOutcome[List[ApprovalProcessSummary]] = Right(List())
+        val expected: RequestOutcome[JsArray] = Right(JsArray())
         val returnedList: RequestOutcome[List[ApprovalProcessSummary]] = Right(List())
 
         MockApprovalRepository
-          .listForHomePage()
-          .returns(Future.successful(expected))
+          .approvalSummaryList()
+          .returns(Future.successful(returnedList))
 
-        whenReady(service.listForHomePage()) { result =>
-          result shouldBe returnedList
+        whenReady(service.approvalSummaryList()) { result =>
+          result shouldBe expected
         }
       }
     }
@@ -183,10 +185,10 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
         val expected: RequestOutcome[List[ApprovalProcessSummary]] = Left(Errors(InternalServiceError))
 
         MockApprovalRepository
-          .listForHomePage()
+          .approvalSummaryList()
           .returns(Future.successful(repositoryError))
 
-        whenReady(service.listForHomePage()) { result =>
+        whenReady(service.approvalSummaryList()) { result =>
           result shouldBe expected
         }
       }
