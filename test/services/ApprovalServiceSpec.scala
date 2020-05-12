@@ -18,11 +18,11 @@ package services
 
 import base.UnitSpec
 import mocks.MockApprovalRepository
+import models.ApprovalProcessSummary._
 import models.errors._
-import models.{ApprovalProcess, ApprovalProcessJson, ApprovalProcessSummary, RequestOutcome}
+import models.{ApprovalProcessJson, ApprovalProcessSummary, RequestOutcome}
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsArray, JsObject, Json}
-import models.ApprovalProcessSummary._
 
 import scala.concurrent.Future
 
@@ -41,7 +41,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
     "the ID identifies a valid process" should {
       "return a JSON representing the submitted ocelot process" in new Test {
 
-        val expected: RequestOutcome[ApprovalProcess] = Right(approvalProcess)
+        val expected: RequestOutcome[JsObject] = Right(validApprovalProcessJson)
 
         MockApprovalRepository
           .getById(validId)
@@ -56,7 +56,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
     "the ID cannot be matched to a submitted process" should {
       "return a not found response" in new Test {
 
-        val expected: RequestOutcome[ApprovalProcess] = Left(Errors(NotFoundError))
+        val expected: RequestOutcome[JsObject] = Left(Errors(NotFoundError))
 
         MockApprovalRepository
           .getById(validId)
@@ -71,8 +71,8 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
     "the repository reports a database error" should {
       "return an internal server error" in new Test {
 
-        val repositoryError: RequestOutcome[ApprovalProcess] = Left(Errors(DatabaseError))
-        val expected: RequestOutcome[ApprovalProcess] = Left(Errors(InternalServiceError))
+        val repositoryError: RequestOutcome[JsObject] = Left(Errors(DatabaseError))
+        val expected: RequestOutcome[JsObject] = Left(Errors(InternalServiceError))
 
         MockApprovalRepository
           .getById(validId)
@@ -139,7 +139,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
     }
   }
 
-  "Calling the listForHomePage method" when {
+  "Calling the approvalSummaryList method" when {
     "there are entries to return" should {
       "return a List of approval processes" in new Test {
 

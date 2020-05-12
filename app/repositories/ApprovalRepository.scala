@@ -19,7 +19,7 @@ package repositories
 import javax.inject.{Inject, Singleton}
 import models.errors.{DatabaseError, Errors, NotFoundError}
 import models.{ApprovalProcess, ApprovalProcessSummary, RequestOutcome}
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{Format, JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.Cursor.FailOnError
 import reactivemongo.api.ReadPreference
@@ -32,7 +32,7 @@ import scala.concurrent.Future
 
 trait ApprovalRepository {
   def update(id: String, process: ApprovalProcess): Future[RequestOutcome[String]]
-  def getById(id: String): Future[RequestOutcome[ApprovalProcess]]
+  def getById(id: String): Future[RequestOutcome[JsObject]]
   def approvalSummaryList(): Future[RequestOutcome[List[ApprovalProcessSummary]]]
 }
 
@@ -66,11 +66,11 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
     //$COVERAGE-ON$
   }
 
-  def getById(id: String): Future[RequestOutcome[ApprovalProcess]] = {
+  def getById(id: String): Future[RequestOutcome[JsObject]] = {
 
     findById(id)
       .map {
-        case Some(approvalProcess) => Right(approvalProcess)
+        case Some(approvalProcess) => Right(approvalProcess.process)
         case None => Left(Errors(NotFoundError))
       }
       //$COVERAGE-OFF$

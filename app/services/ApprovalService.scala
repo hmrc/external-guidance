@@ -22,7 +22,7 @@ import models.{ApprovalProcess, RequestOutcome}
 import play.api.Logger
 import play.api.libs.json._
 import repositories.ApprovalRepository
-import repositories.formatters.ApprovalProcessFormatter
+import repositories.formatters.ApprovalProcessFormatter.mongoFormat
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -31,7 +31,6 @@ import scala.concurrent.Future
 class ApprovalService @Inject() (repository: ApprovalRepository) {
 
   val logger: Logger = Logger(this.getClass)
-  implicit val apFormat: Format[ApprovalProcess] = ApprovalProcessFormatter.mongoFormat
 
   def save(approvalProcess: JsObject): Future[RequestOutcome[String]] = {
 
@@ -52,7 +51,7 @@ class ApprovalService @Inject() (repository: ApprovalRepository) {
 
   }
 
-  def getById(id: String): Future[RequestOutcome[ApprovalProcess]] = {
+  def getById(id: String): Future[RequestOutcome[JsObject]] = {
 
     repository.getById(id) map {
       case error @ Left(Errors(NotFoundError :: Nil)) => error

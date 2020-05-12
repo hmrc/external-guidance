@@ -135,7 +135,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures wi
       trait ValidGetTest extends Test {
         MockApprovalService
           .getById(validId)
-          .returns(Future.successful(Right(approvalProcess)))
+          .returns(Future.successful(Right(validApprovalProcessJson)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
@@ -242,7 +242,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures wi
     }
   }
 
-  "Calling the listForHomePage action" when {
+  "Calling the approvalSummaryList action" when {
 
     "the request is valid" should {
 
@@ -251,7 +251,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures wi
           .approvalSummaryList()
           .returns(Future.successful(Right(Json.toJson(List(approvalProcessSummary)).as[JsArray])))
 
-        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/list")
+        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
 
       "return an OK response" in new ValidListTest {
@@ -263,12 +263,6 @@ class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures wi
         private val result = controller.approvalSummaryList()(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
-
-//      "confirm returned content is a JSON object" in new ValidListTest {
-//        private val result = controller.listForAdminHomePage()(request)
-//        val processReturned: List[ApprovalProcessMeta] = contentAsJson(result).as[List[ApprovalProcessMeta]](ApprovalProcessMetaFormatter.read)
-//        processReturned(0).id shouldBe approvalProcess.id
-//      }
     }
 
     "a downstream error occurs" should {
@@ -279,7 +273,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures wi
           .approvalSummaryList()
           .returns(Future.successful(Left(Errors(InternalServiceError))))
 
-        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/list")
+        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "")
       }
 
       "return a internal server error response" in new ErrorGetTest {

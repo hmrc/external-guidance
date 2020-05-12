@@ -52,7 +52,7 @@ class GetApprovalProcessISpec extends IntegrationSpec {
 
     "return the corresponding JSON in the response" in {
       val json = response.body[JsValue].as[JsObject]
-      json shouldBe ExamplePayloads.expectedApprovalProcessJson
+      json shouldBe ExamplePayloads.simpleValidProcess
     }
   }
 
@@ -79,9 +79,9 @@ class GetApprovalProcessISpec extends IntegrationSpec {
     }
   }
 
-  "Calling the approval list endpoint" should {
+  "Calling the approval summaries endpoint" should {
 
-    lazy val request = buildRequest(s"/external-guidance/approval/list")
+    lazy val request = buildRequest(s"/external-guidance/approval")
     lazy val response: WSResponse = {
       AuditStub.audit()
       await(request.get())

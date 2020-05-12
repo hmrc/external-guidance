@@ -19,6 +19,7 @@ package mocks
 import models.{ApprovalProcess, ApprovalProcessSummary, RequestOutcome}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
+import play.api.libs.json.JsObject
 import repositories.ApprovalRepository
 
 import scala.concurrent.Future
@@ -35,7 +36,7 @@ trait MockApprovalRepository extends MockFactory {
         .expects(id, process)
     }
 
-    def getById(id: String): CallHandler[Future[RequestOutcome[ApprovalProcess]]] = {
+    def getById(id: String): CallHandler[Future[RequestOutcome[JsObject]]] = {
       (mockApprovalRepository
         .getById(_: String))
         .expects(id)

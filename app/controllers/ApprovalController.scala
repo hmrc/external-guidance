@@ -24,14 +24,8 @@ import services.ApprovalService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import scala.concurrent.ExecutionContext.Implicits.global
 
-import models.{ApprovalProcess, ApprovalProcessMeta}
-import repositories.formatters.{ApprovalProcessFormatter, ApprovalProcessMetaFormatter}
-
 @Singleton
 class ApprovalController @Inject() (approvalService: ApprovalService, cc: ControllerComponents) extends BackendController(cc) {
-
-  implicit val apFormat: Format[ApprovalProcess] = ApprovalProcessFormatter.mongoFormat
-  implicit val apmFormat: Format[ApprovalProcessMeta] = ApprovalProcessMetaFormatter.mongoFormat
 
   def save: Action[JsValue] = Action.async(parse.json) { implicit request =>
     val process = request.body.as[JsObject]
@@ -45,7 +39,7 @@ class ApprovalController @Inject() (approvalService: ApprovalService, cc: Contro
 
   def get(id: String): Action[AnyContent] = Action.async { _ =>
     approvalService.getById(id).map {
-      case Right(approvalProcess) => Ok(Json.toJson(approvalProcess))
+      case Right(approvalProcess) => Ok(approvalProcess)
       case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
       case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
