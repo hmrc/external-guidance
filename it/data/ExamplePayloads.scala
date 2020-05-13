@@ -16,11 +16,13 @@
 
 package data
 
+import java.time.{LocalDate, ZoneOffset}
+
 import play.api.libs.json.{JsValue, Json}
 
 object ExamplePayloads {
 
-  val simpleValidProcess: JsValue = Json.parse(
+  val simpleValidProcessString: String =
     """
       |{
       |  "meta": {
@@ -80,5 +82,42 @@ object ExamplePayloads {
       |  ]
       |}
     """.stripMargin
+
+  val simpleValidProcess: JsValue = Json.parse(simpleValidProcessString)
+
+  val dateSubmitted: LocalDate = LocalDate.of(2020, 3, 3)
+  val submittedDateInMilliseconds: Long = dateSubmitted.atStartOfDay(ZoneOffset.UTC).toInstant.toEpochMilli
+
+  val validApprovalProcessJson: JsValue = Json.parse(
+    """
+      |{
+      |  "meta" : {
+      |    "id" : "oct90001",
+      |    "title" : "This is the title",
+      |    "status" : "SubmittedFor2iReview",
+      |    "dateSubmitted" : {"$date": placeholder}
+      |  },
+      |  "process" : processPlaceholder
+      |}
+      """.stripMargin
+      .replace("placeholder", submittedDateInMilliseconds.toString)
+      .replace("processPlaceholder", simpleValidProcessString)
+  )
+
+  val expectedApprovalProcessJson: JsValue = Json.parse(
+    """
+      |{
+      |  "_id" : "oct90001",
+      |  "meta" : {
+      |    "id" : "oct90001",
+      |    "title" : "This is the title",
+      |    "status" : "SubmittedFor2iReview",
+      |    "dateSubmitted" : {"$date": placeholder}
+      |  },
+      |  "process" : processPlaceholder
+      |}
+      """.stripMargin
+      .replace("placeholder", submittedDateInMilliseconds.toString)
+      .replace("processPlaceholder", simpleValidProcessString)
   )
 }

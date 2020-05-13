@@ -5,5 +5,7 @@ POST        /scratch              controllers.ScratchController.save
 
 GET         /published/:id        controllers.PublishedController.get(id)
 
+GET         /approval             controllers.ApprovalController.approvalSummaryList
 GET         /approval/:id         controllers.ApprovalController.get(id)
 POST        /approval             controllers.ApprovalController.save
+

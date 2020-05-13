@@ -18,9 +18,12 @@ package repositories
 
 import javax.inject.{Inject, Singleton}
 import models.errors.{DatabaseError, Errors, NotFoundError}
-import models.{ApprovalProcess, RequestOutcome}
+import models.{ApprovalProcess, ApprovalProcessSummary, RequestOutcome}
 import play.api.libs.json.{Format, JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
+import reactivemongo.api.Cursor.FailOnError
+import reactivemongo.api.ReadPreference
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.formatters.ApprovalProcessFormatter
 import uk.gov.hmrc.mongo.ReactiveRepository
 
@@ -28,12 +31,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait ApprovalRepository {
-  def update(id: String, process: JsObject): Future[RequestOutcome[String]]
+  def update(id: String, process: ApprovalProcess): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[JsObject]]
+  def approvalSummaryList(): Future[RequestOutcome[List[ApprovalProcessSummary]]]
 }
 
 @Singleton
-class ApprovalRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
+class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoComponent)
     extends ReactiveRepository[ApprovalProcess, String](
       collectionName = "approvalProcesses",
       mongo = mongoComponent.mongoConnector.db,
@@ -42,16 +46,14 @@ class ApprovalRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
     )
     with ApprovalRepository {
 
-  def update(id: String, process: JsObject): Future[RequestOutcome[String]] = {
+  def update(id: String, process: ApprovalProcess): Future[RequestOutcome[String]] = {
 
     logger.info(s"Saving process $id to collection $collectionName")
-    val document: ApprovalProcess = ApprovalProcess(id, process)
-
     val selector = Json.obj("_id" -> id)
-    val entity = Json.toJsObject(document)(ApprovalProcessFormatter.mongoFormat)
+    val jsonProcess = Json.toJsObject(process)(ApprovalProcessFormatter.mongoFormat)
 
     this
-      .findAndUpdate(selector, entity, upsert = true)
+      .findAndUpdate(selector, jsonProcess, upsert = true)
       .map { _ =>
         Right(id)
       }
@@ -75,6 +77,32 @@ class ApprovalRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
       .recover {
         case error =>
           logger.error(s"Attempt to retrieve process $id from collection $collectionName failed with error : ${error.getMessage}")
+          Left(Errors(DatabaseError))
+      }
+    //$COVERAGE-ON$
+  }
+
+  def approvalSummaryList(): Future[RequestOutcome[List[ApprovalProcessSummary]]] = {
+    val selector = Json.obj("meta" -> Json.obj("$exists" -> true))
+    val projection = Some(Json.obj("meta" -> 1, "process.meta.id" -> 1))
+
+    collection
+      .find(
+        selector,
+        projection
+      )
+      .cursor[ApprovalProcess](ReadPreference.primaryPreferred)
+      .collect(maxDocs = -1, FailOnError[List[ApprovalProcess]]())
+      .map {
+        _.map { doc =>
+          ApprovalProcessSummary(doc.meta.id, doc.meta.title, doc.meta.dateSubmitted, doc.meta.status)
+        }
+      }
+      .map(list => Right(list))
+      //$COVERAGE-OFF$
+      .recover {
+        case error =>
+          logger.error(s"Attempt to retrieve list of processes from collection $collectionName failed with error : ${error.getMessage}")
           Left(Errors(DatabaseError))
       }
     //$COVERAGE-ON$

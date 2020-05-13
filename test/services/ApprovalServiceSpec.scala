@@ -18,22 +18,20 @@ package services
 
 import base.UnitSpec
 import mocks.MockApprovalRepository
-import models.RequestOutcome
-import models.ocelot.ProcessJson
+import models.ApprovalProcessSummary._
 import models.errors._
+import models.{ApprovalProcessJson, ApprovalProcessSummary, RequestOutcome}
 import org.scalamock.scalatest.MockFactory
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsArray, JsObject, Json}
 
 import scala.concurrent.Future
 
 class ApprovalServiceSpec extends UnitSpec with MockFactory {
 
-  private trait Test extends MockApprovalRepository with ProcessJson {
+  private trait Test extends MockApprovalRepository with ApprovalProcessJson {
 
-    val validId: String = "oct90001"
     val invalidId: String = "ext9005"
 
-    val process: JsObject = validOnePageJson.as[JsObject]
     val invalidProcess: JsObject = Json.obj("idx" -> invalidId)
 
     lazy val service: ApprovalService = new ApprovalService(mockApprovalRepository)
@@ -43,7 +41,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
     "the ID identifies a valid process" should {
       "return a JSON representing the submitted ocelot process" in new Test {
 
-        val expected: RequestOutcome[JsObject] = Right(process)
+        val expected: RequestOutcome[JsObject] = Right(validApprovalProcessJson)
 
         MockApprovalRepository
           .getById(validId)
@@ -95,10 +93,10 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
         val expected: RequestOutcome[String] = Right(validId)
 
         MockApprovalRepository
-          .update(validId, process)
+          .update(validId, approvalProcess)
           .returns(Future.successful(expected))
 
-        whenReady(service.save(process)) {
+        whenReady(service.save(validApprovalProcessJson)) {
           case Right(id) => id shouldBe validId
           case _ => fail
         }
@@ -108,7 +106,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
     "the JSON is invalid" should {
       "not call the repository" in new Test {
         MockApprovalRepository
-          .update(invalidId, invalidProcess)
+          .update(invalidId, approvalProcess)
           .never()
 
         service.save(invalidProcess)
@@ -130,12 +128,68 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
         val expected: RequestOutcome[String] = Left(Errors(InternalServiceError))
 
         MockApprovalRepository
-          .update(validId, process)
+          .update(validId, approvalProcess)
           .returns(Future.successful(repositoryResponse))
 
-        whenReady(service.save(process)) {
+        whenReady(service.save(validApprovalProcessJson)) {
           case result @ Left(_) => result shouldBe expected
           case _ => fail
+        }
+      }
+    }
+  }
+
+  "Calling the approvalSummaryList method" when {
+    "there are entries to return" should {
+      "return a List of approval processes" in new Test {
+
+        val expected: RequestOutcome[List[ApprovalProcessSummary]] = Right(List(approvalProcessSummary))
+
+        MockApprovalRepository
+          .approvalSummaryList()
+          .returns(Future.successful(expected))
+
+        whenReady(service.approvalSummaryList()) {
+          case Right(jsonList) =>
+            val list: List[ApprovalProcessSummary] = jsonList.as[List[ApprovalProcessSummary]]
+            list.size shouldBe 1
+            val entry = list.head
+            entry.id shouldBe approvalProcessSummary.id
+            entry.title shouldBe approvalProcessSummary.title
+            entry.status shouldBe approvalProcessSummary.status
+          case _ => fail
+        }
+      }
+    }
+
+    "there are no processes in the database" should {
+      "return an empty list" in new Test {
+
+        val expected: RequestOutcome[JsArray] = Right(JsArray())
+        val returnedList: RequestOutcome[List[ApprovalProcessSummary]] = Right(List())
+
+        MockApprovalRepository
+          .approvalSummaryList()
+          .returns(Future.successful(returnedList))
+
+        whenReady(service.approvalSummaryList()) { result =>
+          result shouldBe expected
+        }
+      }
+    }
+
+    "the repository reports a database error" should {
+      "return an internal server error" in new Test {
+
+        val repositoryError: RequestOutcome[List[ApprovalProcessSummary]] = Left(Errors(DatabaseError))
+        val expected: RequestOutcome[List[ApprovalProcessSummary]] = Left(Errors(InternalServiceError))
+
+        MockApprovalRepository
+          .approvalSummaryList()
+          .returns(Future.successful(repositoryError))
+
+        whenReady(service.approvalSummaryList()) { result =>
+          result shouldBe expected
         }
       }
     }

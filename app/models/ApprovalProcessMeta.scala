@@ -16,6 +16,6 @@
 
 package models
 
-import play.api.libs.json.JsObject
+import java.time.LocalDate
 
-case class ApprovalProcess(id: String, meta: ApprovalProcessMeta, process: JsObject)
+case class ApprovalProcessMeta(id: String, title: String, status: String, dateSubmitted: LocalDate)

@@ -17,12 +17,12 @@
 package services
 
 import javax.inject.{Inject, Singleton}
-import models.RequestOutcome
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
-import models.ocelot.Process
+import models.{ApprovalProcess, RequestOutcome}
 import play.api.Logger
-import play.api.libs.json.{JsError, JsObject, JsSuccess}
+import play.api.libs.json._
 import repositories.ApprovalRepository
+import repositories.formatters.ApprovalProcessFormatter.mongoFormat
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -32,15 +32,18 @@ class ApprovalService @Inject() (repository: ApprovalRepository) {
 
   val logger: Logger = Logger(this.getClass)
 
-  def save(process: JsObject): Future[RequestOutcome[String]] = {
+  def save(approvalProcess: JsObject): Future[RequestOutcome[String]] = {
 
-    def saveProcess(id: String): Future[RequestOutcome[String]] = repository.update(id, process) map {
-      case Left(_) => Left(Errors(InternalServiceError))
-      case result => result
+    def saveProcess(process: ApprovalProcess): Future[RequestOutcome[String]] = {
+      repository.update(process.meta.id, process) map {
+        case Left(_) => Left(Errors(InternalServiceError))
+        case result => result
+      }
     }
 
-    process.validate[Process] match {
-      case JsSuccess(process, _) => saveProcess(process.meta.id)
+    approvalProcess.validate[ApprovalProcess] match {
+      case JsSuccess(process, _) =>
+        saveProcess(process)
       case JsError(errors) =>
         logger.error(s"Parsing process failed with the following error(s): $errors")
         Future { Left(Errors(BadRequestError)) }
@@ -57,4 +60,10 @@ class ApprovalService @Inject() (repository: ApprovalRepository) {
     }
   }
 
+  def approvalSummaryList(): Future[RequestOutcome[JsArray]] = {
+    repository.approvalSummaryList().map {
+      case Left(_) => Left(Errors(InternalServiceError))
+      case Right(success) => Right(Json.toJson(success).as[JsArray])
+    }
+  }
 }

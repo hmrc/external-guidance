@@ -16,6 +16,23 @@
 
 package models
 
-import play.api.libs.json.JsObject
+import java.time.{Instant, LocalDate, ZoneOffset}
 
-case class ApprovalProcess(id: String, meta: ApprovalProcessMeta, process: JsObject)
+import play.api.libs.json._
+
+trait MongoDateTimeFormats {
+
+  implicit val localDateRead: Reads[LocalDate] =
+    (__ \ "$date").read[Long].map { millis =>
+      Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate
+    }
+
+  implicit val localDateWrite: Writes[LocalDate] = (localDate: LocalDate) =>
+    Json.obj(
+      "$date" -> localDate.atStartOfDay(ZoneOffset.UTC).toInstant.toEpochMilli
+    )
+
+  implicit val localDateFormats: Format[LocalDate] = Format(localDateRead, localDateWrite)
+
+}
+object MongoDateTimeFormats extends MongoDateTimeFormats

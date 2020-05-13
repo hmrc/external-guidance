@@ -18,11 +18,10 @@ package controllers
 
 import javax.inject.{Inject, Singleton}
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.ApprovalService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
-
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
@@ -40,10 +39,19 @@ class ApprovalController @Inject() (approvalService: ApprovalService, cc: Contro
 
   def get(id: String): Action[AnyContent] = Action.async { _ =>
     approvalService.getById(id).map {
-      case Right(process) => Ok(process)
+      case Right(approvalProcess) => Ok(approvalProcess)
       case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
       case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
     }
   }
+
+  def approvalSummaryList: Action[AnyContent] = Action.async { _ =>
+    approvalService.approvalSummaryList().map {
+      case Right(list) =>
+        Ok(list)
+      case _ => InternalServerError(Json.toJson(InternalServiceError))
+    }
+  }
+
 }

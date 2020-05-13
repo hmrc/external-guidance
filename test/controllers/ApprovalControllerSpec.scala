@@ -18,29 +18,25 @@ package controllers
 
 import mocks.MockApprovalService
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
-import models.ocelot.ProcessJson
+import models.{ApprovalProcess, ApprovalProcessJson}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.ContentTypes
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import services.ApprovalService
+import repositories.formatters.ApprovalProcessFormatter
 
 import scala.concurrent.Future
 
-class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite with MockFactory with ProcessJson {
+class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite with MockFactory with ApprovalProcessJson {
 
   private trait Test extends MockApprovalService {
-    val validId: String = "oct90001"
     val invalidId: String = "ext95"
-    val process: JsObject = validOnePageJson.as[JsObject]
     val invalidProcess: JsObject = Json.obj("id" -> "ext0093")
-
-    val mockService: ApprovalService = mock[ApprovalService]
 
     lazy val controller: ApprovalController = new ApprovalController(mockApprovalService, stubControllerComponents())
   }
@@ -52,10 +48,10 @@ class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures wi
       trait ValidSaveTest extends Test {
         val expectedId: String = validId
         MockApprovalService
-          .save(process)
+          .save(validApprovalProcessJson)
           .returns(Future.successful(Right(expectedId)))
 
-        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(process)
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(validApprovalProcessJson)
       }
 
       "return a created response" in new ValidSaveTest {
@@ -137,10 +133,9 @@ class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures wi
     "the request is valid" should {
 
       trait ValidGetTest extends Test {
-        val expectedProcess: JsObject = Json.obj("_id" -> validId)
         MockApprovalService
           .getById(validId)
-          .returns(Future.successful(Right(expectedProcess)))
+          .returns(Future.successful(Right(validApprovalProcessJson)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
@@ -157,7 +152,8 @@ class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures wi
 
       "confirm returned content is a JSON object" in new ValidGetTest {
         private val result = controller.get(validId)(request)
-        contentAsJson(result).as[JsObject] shouldBe expectedProcess
+        val processReturned: ApprovalProcess = contentAsJson(result).as[ApprovalProcess](ApprovalProcessFormatter.mongoFormat)
+        processReturned.id shouldBe approvalProcess.id
       }
     }
 
@@ -245,4 +241,57 @@ class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures wi
       }
     }
   }
+
+  "Calling the approvalSummaryList action" when {
+
+    "the request is valid" should {
+
+      trait ValidListTest extends Test {
+        MockApprovalService
+          .approvalSummaryList()
+          .returns(Future.successful(Right(Json.toJson(List(approvalProcessSummary)).as[JsArray])))
+
+        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
+      }
+
+      "return an OK response" in new ValidListTest {
+        private val result = controller.approvalSummaryList()(request)
+        status(result) shouldBe OK
+      }
+
+      "return content as JSON" in new ValidListTest {
+        private val result = controller.approvalSummaryList()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+    }
+
+    "a downstream error occurs" should {
+
+      trait ErrorGetTest extends Test {
+        val expectedErrorCode = "INTERNAL_SERVER_ERROR"
+        MockApprovalService
+          .approvalSummaryList()
+          .returns(Future.successful(Left(Errors(InternalServiceError))))
+
+        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "")
+      }
+
+      "return a internal server error response" in new ErrorGetTest {
+        private val result = controller.approvalSummaryList()(request)
+        status(result) shouldBe INTERNAL_SERVER_ERROR
+      }
+
+      "return content as JSON" in new ErrorGetTest {
+        private val result = controller.approvalSummaryList()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return an error code of INTERNAL_SERVER_ERROR" in new ErrorGetTest {
+        private val result = controller.approvalSummaryList()(request)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe expectedErrorCode
+      }
+    }
+  }
+
 }

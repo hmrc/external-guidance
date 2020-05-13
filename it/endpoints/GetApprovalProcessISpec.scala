@@ -17,7 +17,7 @@ package endpoints
 
 import data.ExamplePayloads
 import play.api.http.{ContentTypes, Status}
-import play.api.libs.json.{JsObject, JsValue}
+import play.api.libs.json.{JsArray, JsObject, JsValue}
 import play.api.libs.ws.WSResponse
 import stubs.AuditStub
 import support.IntegrationSpec
@@ -34,7 +34,7 @@ class GetApprovalProcessISpec extends IntegrationSpec {
       (json \ "id").as[String]
     }
 
-    val processToSave: JsValue = ExamplePayloads.simpleValidProcess
+    val processToSave: JsValue = ExamplePayloads.validApprovalProcessJson
     lazy val id = populateDatabase(processToSave)
     lazy val request = buildRequest(s"/external-guidance/approval/$id")
     lazy val response: WSResponse = {
@@ -52,7 +52,7 @@ class GetApprovalProcessISpec extends IntegrationSpec {
 
     "return the corresponding JSON in the response" in {
       val json = response.body[JsValue].as[JsObject]
-      json shouldBe processToSave
+      json shouldBe ExamplePayloads.simpleValidProcess
     }
   }
 
@@ -78,4 +78,30 @@ class GetApprovalProcessISpec extends IntegrationSpec {
       (json \ "code").as[String] shouldBe "NOT_FOUND_ERROR"
     }
   }
+
+  "Calling the approval summaries endpoint" should {
+
+    lazy val request = buildRequest(s"/external-guidance/approval")
+    lazy val response: WSResponse = {
+      AuditStub.audit()
+      await(request.get())
+    }
+
+    "return a OK status code" in {
+      response.status shouldBe Status.OK
+    }
+
+    "return content as JSON" in {
+      response.contentType shouldBe ContentTypes.JSON
+    }
+
+    "return the corresponding list as JSON in the response" in {
+      val json = response.body[JsValue]
+      json match {
+        case JsArray(_) => succeed
+        case _ => fail()
+      }
+    }
+  }
+
 }
