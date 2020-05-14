@@ -17,11 +17,12 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
+import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError, StaleDataError}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.ApprovalService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
@@ -54,4 +55,13 @@ class ApprovalController @Inject() (approvalService: ApprovalService, cc: Contro
     }
   }
 
+  def approval2iReviewInfo(id: String): Action[AnyContent] = Action.async { _ =>
+    approvalService.approval2iReviewInfo(id).map {
+      case Right(data) => Ok(data)
+      case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
+      case Left(Errors(StaleDataError :: Nil)) => NotFound(Json.toJson(StaleDataError))
+      case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
+      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+    }
+  }
 }
