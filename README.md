@@ -240,7 +240,11 @@ Represents the list of pages that need to be 2i reviewed for the process id pass
         </tr>
         <tr>
             <td><pre>404</pre></td>
-            <td><pre>NOT_FOUND_ERROR</pre></td>
+            <td><pre>NOT_FOUND</pre></td>
+        </tr>
+        <tr>
+            <td><pre>404</pre></td>
+            <td><pre>STALE_DATA_REQUEST</pre></td>
         </tr>
         <tr>
             <td><pre>500</pre></td>
@@ -273,14 +277,7 @@ The `status` is currently one of the following options:
 
 #### Success Response
 
-**HTTP Status**: `200`
-
-**Example Response Body**:
-```
-{
-   "id": "oct90005"
-}
-```
+**HTTP Status**: `204`
 
 #### Error Responses
 
@@ -303,6 +300,14 @@ The `status` is currently one of the following options:
         <tr>
             <td><pre>400</pre></td>
             <td><pre>BAD_REQUEST</pre></td>
+        </tr>
+        <tr>
+            <td><pre>404</pre></td>
+            <td><pre>NOT_FOUND</pre></td>
+        </tr>
+        <tr>
+            <td><pre>404</pre></td>
+            <td><pre>STALE_DATA_REQUEST</pre></td>
         </tr>
         <tr>
             <td><pre>500</pre></td>
