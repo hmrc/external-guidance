@@ -42,6 +42,12 @@ object NotFoundError
       "The resource requested could not be found."
     )
 
+object StaleDataError
+  extends Error(
+    "STALE_DATA_ERROR",
+    "The resource requested has been changed."
+  )
+
 object BadRequestError
     extends Error(
       "BAD_REQUEST_ERROR",
