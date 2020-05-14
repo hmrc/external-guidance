@@ -186,3 +186,133 @@ Represents a valid guidance flow in JSON format.
         </tr>
     </tbody>
 </table>
+
+
+### `GET: /external-guidance/approval/:id/2i-review`
+
+#### `id` Parameter
+
+The `id` parameter is an ocelot formatted string e.g. `oct90005`
+
+#### Success Response
+
+**HTTP Status**: `200`
+
+**Response Body**
+
+Represents the list of pages that need to be 2i reviewed for the process id passed in, and the current status of each, in JSON format.
+```
+{
+   "id": "oct90005",
+   "title": "Telling HMRC about extra income",
+   "date_submitted": "2020 04 22",
+   "pages": [
+      {
+         "id": "<internal id for identification>",
+         "title": "<partial page url>",
+         "status": "Not started"  
+      }
+   ]
+}
+```
+
+#### Error Responses
+
+**Error response format**
+```
+{
+   "code": "ERROR_CODE",
+   "message": "Human readable error message"
+}
+```
+
+<table>
+    <thead>
+        <tr>
+            <th>HTTP Status</th>
+            <th>Error Code</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><pre>400</pre></td>
+            <td><pre>BAD_REQUEST</pre></td>
+        </tr>
+        <tr>
+            <td><pre>404</pre></td>
+            <td><pre>NOT_FOUND</pre></td>
+        </tr>
+        <tr>
+            <td><pre>404</pre></td>
+            <td><pre>STALE_DATA_REQUEST</pre></td>
+        </tr>
+        <tr>
+            <td><pre>500</pre></td>
+            <td><pre>INTERNAL_SERVER_ERROR</pre></td>
+        </tr>
+    </tbody>
+</table>
+
+### `POST: /external-guidance/approval/:id/2i-review`
+
+#### `id` Parameter
+
+The `id` parameter is an ocelot formatted string e.g. `oct90005`
+
+#### Request Body
+```
+{
+   "status": "ApprovedForPublishing"
+}
+```
+
+#### `status` Body Parameter
+
+The `status` is currently one of the following options:  
+```
+  SubmittedForFactCheck
+  WithDesignerForUpdate
+  ApprovedForPublishing
+```
+
+#### Success Response
+
+**HTTP Status**: `204`
+
+#### Error Responses
+
+**Error response format**
+```
+{
+   "code": "ERROR_CODE",
+   "message": "Human readable error message"
+}
+```
+
+<table>
+    <thead>
+        <tr>
+            <th>HTTP Status</th>
+            <th>Error Code</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><pre>400</pre></td>
+            <td><pre>BAD_REQUEST</pre></td>
+        </tr>
+        <tr>
+            <td><pre>404</pre></td>
+            <td><pre>NOT_FOUND</pre></td>
+        </tr>
+        <tr>
+            <td><pre>404</pre></td>
+            <td><pre>STALE_DATA_REQUEST</pre></td>
+        </tr>
+        <tr>
+            <td><pre>500</pre></td>
+            <td><pre>INTERNAL_SERVER_ERROR</pre></td>
+        </tr>
+    </tbody>
+</table>
+
