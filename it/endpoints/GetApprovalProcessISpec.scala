@@ -103,5 +103,4 @@ class GetApprovalProcessISpec extends IntegrationSpec {
       }
     }
   }
-
 }

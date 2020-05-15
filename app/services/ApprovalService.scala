@@ -66,4 +66,5 @@ class ApprovalService @Inject() (repository: ApprovalRepository) {
       case Right(success) => Right(Json.toJson(success).as[JsArray])
     }
   }
+
 }

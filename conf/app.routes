@@ -1,11 +1,13 @@
 # microservice specific routes
 
-GET         /scratch/:id          controllers.ScratchController.get(id)
-POST        /scratch              controllers.ScratchController.save
+GET         /scratch/:id            controllers.ScratchController.get(id)
+POST        /scratch                controllers.ScratchController.save
 
-GET         /published/:id        controllers.PublishedController.get(id)
+GET         /published/:id          controllers.PublishedController.get(id)
 
-GET         /approval             controllers.ApprovalController.approvalSummaryList
-GET         /approval/:id         controllers.ApprovalController.get(id)
-POST        /approval             controllers.ApprovalController.save
+GET         /approval               controllers.ApprovalController.approvalSummaryList
+GET         /approval/:id           controllers.ApprovalController.get(id)
+POST        /approval               controllers.ApprovalController.save
+
+GET         /approval/:id/2i-review controllers.ProcessReviewController.approval2iReviewInfo(id)
 

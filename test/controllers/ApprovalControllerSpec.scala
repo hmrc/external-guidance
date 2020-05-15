@@ -293,5 +293,4 @@ class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures wi
       }
     }
   }
-
 }

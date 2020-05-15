@@ -17,41 +17,24 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
+import models.errors._
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import services.ApprovalService
+import services.ReviewService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class ApprovalController @Inject() (approvalService: ApprovalService, cc: ControllerComponents) extends BackendController(cc) {
+class ProcessReviewController @Inject()(reviewService: ReviewService, cc: ControllerComponents) extends BackendController(cc) {
 
-  def save: Action[JsValue] = Action.async(parse.json) { implicit request =>
-    val process = request.body.as[JsObject]
-
-    approvalService.save(process).map {
-      case Right(id) => Created(Json.obj("id" -> id))
-      case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
-      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
-    }
-  }
-
-  def get(id: String): Action[AnyContent] = Action.async { _ =>
-    approvalService.getById(id).map {
-      case Right(approvalProcess) => Ok(approvalProcess)
+  def approval2iReviewInfo(id: String): Action[AnyContent] = Action.async { _ =>
+    reviewService.approval2iReviewInfo(id).map {
+      case Right(data) => Ok(Json.toJson(data).as[JsObject])
       case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
+      case Left(Errors(StaleDataError :: Nil)) => NotFound(Json.toJson(StaleDataError))
       case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
-    }
-  }
-
-  def approvalSummaryList: Action[AnyContent] = Action.async { _ =>
-    approvalService.approvalSummaryList().map {
-      case Right(list) =>
-        Ok(list)
-      case _ => InternalServerError(Json.toJson(InternalServiceError))
     }
   }
 }

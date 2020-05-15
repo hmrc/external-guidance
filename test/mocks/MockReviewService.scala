@@ -16,34 +16,22 @@
 
 package mocks
 
-import models.RequestOutcome
+import models.{ApprovalProcessReview, RequestOutcome}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
-import play.api.libs.json.{JsArray, JsObject}
-import services.ApprovalService
+import services.ReviewService
 
 import scala.concurrent.Future
 
-trait MockApprovalService extends MockFactory {
-  val mockApprovalService: ApprovalService = mock[ApprovalService]
+trait MockReviewService extends MockFactory {
+  val mockReviewService: ReviewService = mock[ReviewService]
 
-  object MockApprovalService {
-
-    def getById(id: String): CallHandler[Future[RequestOutcome[JsObject]]] = {
-      (mockApprovalService
-        .getById(_: String))
+  object MockReviewService {
+    def approval2iReviewInfo(id: String): CallHandler[Future[RequestOutcome[ApprovalProcessReview]]] = {
+      (mockReviewService
+        .approval2iReviewInfo(_: String))
         .expects(id)
     }
 
-    def save(process: JsObject): CallHandler[Future[RequestOutcome[String]]] = {
-      (mockApprovalService
-        .save(_: JsObject))
-        .expects(process)
-    }
-
-    def approvalSummaryList(): CallHandler[Future[RequestOutcome[JsArray]]] = {
-      (mockApprovalService.approvalSummaryList: () => Future[RequestOutcome[JsArray]])
-        .expects()
-    }
   }
 }
