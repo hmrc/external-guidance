@@ -103,29 +103,4 @@ class GetApprovalProcessISpec extends IntegrationSpec {
       }
     }
   }
-
-  "Calling the approval 2i Review endpoint" should {
-
-    lazy val request = buildRequest(s"/external-guidance/approval/oct90005/2i-review")
-    lazy val response: WSResponse = {
-      AuditStub.audit()
-      await(request.get())
-    }
-
-    "return a OK status code" in {
-      response.status shouldBe Status.OK
-    }
-
-    "return content as JSON" in {
-      response.contentType shouldBe ContentTypes.JSON
-    }
-
-    "return the corresponding list as JSON in the response" in {
-      val json = response.body[JsValue]
-      json match {
-        case JsObject(_) => succeed
-        case _ => fail()
-      }
-    }
-  }
 }

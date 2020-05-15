@@ -9,5 +9,5 @@ GET         /approval               controllers.ApprovalController.approvalSumma
 GET         /approval/:id           controllers.ApprovalController.get(id)
 POST        /approval               controllers.ApprovalController.save
 
-GET         /approval/:id/2i-review controllers.ApprovalController.approval2iReviewInfo(id)
+GET         /approval/:id/2i-review controllers.ProcessReviewController.approval2iReviewInfo(id)
 

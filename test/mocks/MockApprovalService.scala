@@ -45,12 +45,5 @@ trait MockApprovalService extends MockFactory {
       (mockApprovalService.approvalSummaryList: () => Future[RequestOutcome[JsArray]])
         .expects()
     }
-
-    def approval2iReviewInfo(id: String): CallHandler[Future[RequestOutcome[JsObject]]] = {
-      (mockApprovalService
-        .approval2iReviewInfo(_: String))
-        .expects(id)
-    }
-
   }
 }

@@ -14,14 +14,24 @@
  * limitations under the License.
  */
 
-package models
+package mocks
 
-import java.time.LocalDate
+import models.{ApprovalProcessReview, RequestOutcome}
+import org.scalamock.handlers.CallHandler
+import org.scalamock.scalatest.MockFactory
+import services.ReviewService
 
-import play.api.libs.json.{Json, OFormat}
+import scala.concurrent.Future
 
-case class ApprovalProcessReview(id: String, title: String, lastUpdated: LocalDate, pages: List[PageReview])
+trait MockReviewService extends MockFactory {
+  val mockReviewService: ReviewService = mock[ReviewService]
 
-object ApprovalProcessReview {
-  implicit val formats: OFormat[ApprovalProcessReview] = Json.format[ApprovalProcessReview]
+  object MockReviewService {
+    def approval2iReviewInfo(id: String): CallHandler[Future[RequestOutcome[ApprovalProcessReview]]] = {
+      (mockReviewService
+        .approval2iReviewInfo(_: String))
+        .expects(id)
+    }
+
+  }
 }

@@ -16,11 +16,9 @@
 
 package services
 
-import java.time.LocalDate
-
 import javax.inject.{Inject, Singleton}
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
-import models.{ApprovalProcess, ApprovalProcessReview, PageReview, RequestOutcome}
+import models.{ApprovalProcess, RequestOutcome}
 import play.api.Logger
 import play.api.libs.json._
 import repositories.ApprovalRepository
@@ -67,23 +65,6 @@ class ApprovalService @Inject() (repository: ApprovalRepository) {
       case Left(_) => Left(Errors(InternalServiceError))
       case Right(success) => Right(Json.toJson(success).as[JsArray])
     }
-  }
-
-  def approval2iReviewInfo(id: String): Future[RequestOutcome[JsObject]] = {
-    def mockData(): ApprovalProcessReview = {
-      ApprovalProcessReview(
-        "oct9005",
-        "Telling HMRC about extra income",
-        LocalDate.of(2020, 5, 10),
-        List(PageReview("id1", "how-did-you-earn-extra-income", "NotStarted"),
-          PageReview("id2", "sold-goods-or-services/did-you-only-sell-personal-possessions", "NotStarted"),
-          PageReview("id3", "sold-goods-or-services/have-you-made-a-profit-of-6000-or-more", "NotStarted"),
-          PageReview("id4", "sold-goods-or-services/have-you-made-1000-or-more", "NotStarted"),
-          PageReview("id5", "sold-goods-or-services/you-do-not-need-to-tell-hmrc", "NotStarted"),
-          PageReview("id6", "rent-a-property/do-you-receive-any-income", "NotStarted"),
-          PageReview("id7", "rent-a-property/have-you-rented-out-a-room", "NotStarted")))
-    }
-    Future(Right(Json.toJson(mockData()).as[JsObject]))
   }
 
 }
