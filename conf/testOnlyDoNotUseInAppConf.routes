@@ -10,4 +10,6 @@
 # Failing to follow this rule may result in test routes deployed in production.
 
 # Add all the application routes to the prod.routes file
-->         /                          prod.Routes
+->          /                                     prod.Routes
+POST        /test-only/processes/published        testOnly.controllers.PublishedController.post()
+DELETE      /test-only/processes/published/:id    testOnly.controllers.PublishedController.delete(id)
