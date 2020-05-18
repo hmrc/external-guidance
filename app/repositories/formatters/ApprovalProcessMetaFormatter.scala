@@ -16,7 +16,7 @@
 
 package repositories.formatters
 
-import java.time.LocalDate
+import java.time.{LocalDate, LocalDateTime}
 
 import models.{ApprovalProcessMeta, MongoDateTimeFormats}
 import play.api.libs.json._
@@ -24,6 +24,7 @@ import play.api.libs.json._
 object ApprovalProcessMetaFormatter {
 
   implicit val dateFormat: Format[LocalDate] = MongoDateTimeFormats.localDateFormats
+  implicit val dateTimeFormat: Format[LocalDateTime] = MongoDateTimeFormats.localDateTimeFormats
 
   val read: JsValue => JsResult[ApprovalProcessMeta] = json =>
     for {
@@ -31,14 +32,16 @@ object ApprovalProcessMetaFormatter {
       status <- (json \ "status").validate[String]
       title <- (json \ "title").validate[String]
       dateSubmitted <- (json \ "dateSubmitted").validate[LocalDate]
-    } yield ApprovalProcessMeta(id, title, status, dateSubmitted)
+      lastModified <- (json \ "lastModified").validateOpt[LocalDateTime]
+    } yield ApprovalProcessMeta(id, title, status, dateSubmitted, lastModified.getOrElse(LocalDateTime.now()))
 
   val write: ApprovalProcessMeta => JsObject = meta =>
     Json.obj(
       "id" -> meta.id,
       "status" -> meta.status,
       "title" -> meta.title,
-      "dateSubmitted" -> meta.dateSubmitted
+      "dateSubmitted" -> meta.dateSubmitted,
+      "lastModified" -> meta.lastModified
     )
 
   val mongoFormat: OFormat[ApprovalProcessMeta] = OFormat(read, write)

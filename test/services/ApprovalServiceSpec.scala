@@ -20,6 +20,7 @@ import base.UnitSpec
 import mocks.MockApprovalRepository
 import models.ApprovalProcessSummary._
 import models.errors._
+import models.ocelot.ProcessJson
 import models.{ApprovalProcessJson, ApprovalProcessSummary, RequestOutcome}
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsArray, JsObject, Json}
@@ -28,7 +29,7 @@ import scala.concurrent.Future
 
 class ApprovalServiceSpec extends UnitSpec with MockFactory {
 
-  private trait Test extends MockApprovalRepository with ApprovalProcessJson {
+  private trait Test extends MockApprovalRepository with ApprovalProcessJson with ProcessJson {
 
     val invalidId: String = "ext9005"
 
@@ -93,10 +94,10 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
         val expected: RequestOutcome[String] = Right(validId)
 
         MockApprovalRepository
-          .update(validId, approvalProcess)
+          .update(approvalProcess)
           .returns(Future.successful(expected))
 
-        whenReady(service.save(validApprovalProcessJson)) {
+        whenReady(service.save(validOnePageJson.as[JsObject])) {
           case Right(id) => id shouldBe validId
           case _ => fail
         }
@@ -106,7 +107,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
     "the JSON is invalid" should {
       "not call the repository" in new Test {
         MockApprovalRepository
-          .update(invalidId, approvalProcess)
+          .update(approvalProcess)
           .never()
 
         service.save(invalidProcess)
@@ -123,15 +124,15 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
     }
 
     "a database error occurs" should {
-      "return a internal error" in new Test {
+      "return an internal error" in new Test {
         val repositoryResponse: RequestOutcome[String] = Left(Errors(DatabaseError))
         val expected: RequestOutcome[String] = Left(Errors(InternalServiceError))
 
         MockApprovalRepository
-          .update(validId, approvalProcess)
+          .update(approvalProcess)
           .returns(Future.successful(repositoryResponse))
 
-        whenReady(service.save(validApprovalProcessJson)) {
+        whenReady(service.save(validOnePageJson.as[JsObject])) {
           case result @ Left(_) => result shouldBe expected
           case _ => fail
         }

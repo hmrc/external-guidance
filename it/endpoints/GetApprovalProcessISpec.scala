@@ -34,7 +34,7 @@ class GetApprovalProcessISpec extends IntegrationSpec {
       (json \ "id").as[String]
     }
 
-    val processToSave: JsValue = ExamplePayloads.validApprovalProcessJson
+    val processToSave: JsValue = ExamplePayloads.simpleValidProcess
     lazy val id = populateDatabase(processToSave)
     lazy val request = buildRequest(s"/external-guidance/approval/$id")
     lazy val response: WSResponse = {

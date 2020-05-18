@@ -31,7 +31,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait ApprovalRepository {
-  def update(id: String, process: ApprovalProcess): Future[RequestOutcome[String]]
+  def update(process: ApprovalProcess): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[JsObject]]
   def approvalSummaryList(): Future[RequestOutcome[List[ApprovalProcessSummary]]]
 }
@@ -46,21 +46,21 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
     )
     with ApprovalRepository {
 
-  def update(id: String, process: ApprovalProcess): Future[RequestOutcome[String]] = {
+  def update(process: ApprovalProcess): Future[RequestOutcome[String]] = {
 
-    logger.info(s"Saving process $id to collection $collectionName")
-    val selector = Json.obj("_id" -> id)
+    logger.info(s"Saving process ${process.id} to collection $collectionName")
+    val selector = Json.obj("_id" -> process.id)
     val jsonProcess = Json.toJsObject(process)(ApprovalProcessFormatter.mongoFormat)
 
     this
       .findAndUpdate(selector, jsonProcess, upsert = true)
       .map { _ =>
-        Right(id)
+        Right(process.id)
       }
       //$COVERAGE-OFF$
       .recover {
         case error =>
-          logger.error(s"Attempt to persist process $id to collection $collectionName failed with error : ${error.getMessage}")
+          logger.error(s"Attempt to persist process ${process.id} to collection $collectionName failed with error : ${error.getMessage}")
           Left(Errors(DatabaseError))
       }
     //$COVERAGE-ON$

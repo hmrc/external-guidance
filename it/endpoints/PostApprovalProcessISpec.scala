@@ -27,7 +27,7 @@ class PostApprovalProcessISpec extends IntegrationSpec {
 
   "Calling the approval POST endpoint with a valid payload" should {
 
-    val processToSave: JsValue = ExamplePayloads.validApprovalProcessJson
+    val processToSave: JsValue = ExamplePayloads.simpleValidProcess
     val idToSave = (processToSave \ "meta" \ "id").as[String]
 
     lazy val request = buildRequest("/external-guidance/approval")

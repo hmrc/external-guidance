@@ -30,10 +30,10 @@ trait MockApprovalRepository extends MockFactory {
 
   object MockApprovalRepository {
 
-    def update(id: String, process: ApprovalProcess): CallHandler[Future[RequestOutcome[String]]] = {
+    def update(process: ApprovalProcess): CallHandler[Future[RequestOutcome[String]]] = {
       (mockApprovalRepository
-        .update(_: String, _: ApprovalProcess))
-        .expects(id, process)
+        .update(_: ApprovalProcess))
+        .expects(*)
     }
 
     def getById(id: String): CallHandler[Future[RequestOutcome[JsObject]]] = {
