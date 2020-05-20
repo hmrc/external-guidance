@@ -43,7 +43,8 @@ trait ApprovalProcessJson {
       |    "lastModified" : {"$date": placeholder}
       |  },
       |  "process" : {
-      |  }
+      |  },
+      |  "version" : 1
       |}
     """.stripMargin.replaceAll("placeholder", submittedDateInMilliseconds.toString)
     )

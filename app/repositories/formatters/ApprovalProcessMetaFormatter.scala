@@ -44,5 +44,5 @@ object ApprovalProcessMetaFormatter {
       "lastModified" -> meta.lastModified
     )
 
-  val mongoFormat: OFormat[ApprovalProcessMeta] = OFormat(read, write)
+  implicit val mongoFormat: OFormat[ApprovalProcessMeta] = OFormat(read, write)
 }
