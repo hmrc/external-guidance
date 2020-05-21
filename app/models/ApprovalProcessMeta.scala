@@ -16,6 +16,12 @@
 
 package models
 
-import java.time.LocalDate
+import java.time.{LocalDate, LocalDateTime}
 
-case class ApprovalProcessMeta(id: String, title: String, status: String, dateSubmitted: LocalDate)
+case class ApprovalProcessMeta(
+    id: String,
+    title: String,
+    status: String = "ReadyFor2iReview",
+    dateSubmitted: LocalDate = LocalDate.now(),
+    lastModified: LocalDateTime = LocalDateTime.now()
+)

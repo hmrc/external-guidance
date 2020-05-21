@@ -18,4 +18,4 @@ package models
 
 import play.api.libs.json.JsObject
 
-case class ApprovalProcess(id: String, meta: ApprovalProcessMeta, process: JsObject)
+case class ApprovalProcess(id: String, meta: ApprovalProcessMeta, process: JsObject, version: Int = 1)

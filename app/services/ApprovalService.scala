@@ -18,11 +18,11 @@ package services
 
 import javax.inject.{Inject, Singleton}
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
-import models.{ApprovalProcess, RequestOutcome}
+import models.ocelot.Process
+import models.{ApprovalProcess, ApprovalProcessMeta, RequestOutcome}
 import play.api.Logger
 import play.api.libs.json._
 import repositories.ApprovalRepository
-import repositories.formatters.ApprovalProcessFormatter.mongoFormat
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -32,18 +32,22 @@ class ApprovalService @Inject() (repository: ApprovalRepository) {
 
   val logger: Logger = Logger(this.getClass)
 
-  def save(approvalProcess: JsObject): Future[RequestOutcome[String]] = {
+  def save(jsonProcess: JsObject): Future[RequestOutcome[String]] = {
 
-    def saveProcess(process: ApprovalProcess): Future[RequestOutcome[String]] = {
-      repository.update(process.meta.id, process) map {
+    def saveProcess(approvalProcess: ApprovalProcess): Future[RequestOutcome[String]] = {
+      repository.update(approvalProcess) map {
         case Left(_) => Left(Errors(InternalServiceError))
         case result => result
       }
     }
 
-    approvalProcess.validate[ApprovalProcess] match {
+    def createApprovalProcess(process: Process): ApprovalProcess = {
+      ApprovalProcess(process.meta.id, ApprovalProcessMeta(process.meta.id, process.meta.title), jsonProcess)
+    }
+
+    jsonProcess.validate[Process] match {
       case JsSuccess(process, _) =>
-        saveProcess(process)
+        saveProcess(createApprovalProcess(process))
       case JsError(errors) =>
         logger.error(s"Parsing process failed with the following error(s): $errors")
         Future { Left(Errors(BadRequestError)) }

@@ -25,13 +25,14 @@ import reactivemongo.api.Cursor.FailOnError
 import reactivemongo.api.ReadPreference
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.formatters.ApprovalProcessFormatter
+import repositories.formatters.ApprovalProcessMetaFormatter._
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait ApprovalRepository {
-  def update(id: String, process: ApprovalProcess): Future[RequestOutcome[String]]
+  def update(process: ApprovalProcess): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[JsObject]]
   def approvalSummaryList(): Future[RequestOutcome[List[ApprovalProcessSummary]]]
 }
@@ -46,21 +47,22 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
     )
     with ApprovalRepository {
 
-  def update(id: String, process: ApprovalProcess): Future[RequestOutcome[String]] = {
+  def update(approvalProcess: ApprovalProcess): Future[RequestOutcome[String]] = {
 
-    logger.info(s"Saving process $id to collection $collectionName")
-    val selector = Json.obj("_id" -> id)
-    val jsonProcess = Json.toJsObject(process)(ApprovalProcessFormatter.mongoFormat)
+    logger.info(s"Saving process ${approvalProcess.id} to collection $collectionName")
+    val selector = Json.obj("_id" -> approvalProcess.id)
+    val metaJson = Json.toJson(approvalProcess.meta)
+    val modifier = Json.obj("$inc" -> Json.obj("version" -> 1), "$set" -> Json.obj("meta" -> metaJson, "process" -> approvalProcess.process))
 
     this
-      .findAndUpdate(selector, jsonProcess, upsert = true)
+      .findAndUpdate(selector, modifier, upsert = true)
       .map { _ =>
-        Right(id)
+        Right(approvalProcess.id)
       }
       //$COVERAGE-OFF$
       .recover {
         case error =>
-          logger.error(s"Attempt to persist process $id to collection $collectionName failed with error : ${error.getMessage}")
+          logger.error(s"Attempt to persist process ${approvalProcess.id} to collection $collectionName failed with error : ${error.getMessage}")
           Left(Errors(DatabaseError))
       }
     //$COVERAGE-ON$
