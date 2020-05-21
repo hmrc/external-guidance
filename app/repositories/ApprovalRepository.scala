@@ -16,8 +16,6 @@
 
 package repositories
 
-import java.time.LocalDateTime
-
 import javax.inject.{Inject, Singleton}
 import models.errors.{DatabaseError, Errors, NotFoundError}
 import models.{ApprovalProcess, ApprovalProcessSummary, RequestOutcome}
@@ -54,8 +52,7 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
     logger.info(s"Saving process ${approvalProcess.id} to collection $collectionName")
     val selector = Json.obj("_id" -> approvalProcess.id)
     val metaJson = Json.toJson(approvalProcess.meta)
-    val modifier = Json.obj("$inc" -> Json.obj("version" -> 1),
-      "$set" -> Json.obj("meta" -> metaJson, "process" -> approvalProcess.process))
+    val modifier = Json.obj("$inc" -> Json.obj("version" -> 1), "$set" -> Json.obj("meta" -> metaJson, "process" -> approvalProcess.process))
 
     this
       .findAndUpdate(selector, modifier, upsert = true)

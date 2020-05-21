@@ -42,12 +42,7 @@ class ApprovalService @Inject() (repository: ApprovalRepository) {
     }
 
     def createApprovalProcess(process: Process): ApprovalProcess = {
-      ApprovalProcess(
-        process.meta.id,
-        ApprovalProcessMeta(
-          process.meta.id,
-          process.meta.title),
-        jsonProcess)
+      ApprovalProcess(process.meta.id, ApprovalProcessMeta(process.meta.id, process.meta.title), jsonProcess)
     }
 
     jsonProcess.validate[Process] match {

@@ -43,10 +43,10 @@ object NotFoundError
     )
 
 object StaleDataError
-  extends Error(
-    "STALE_DATA_ERROR",
-    "The resource requested has been changed."
-  )
+    extends Error(
+      "STALE_DATA_ERROR",
+      "The resource requested has been changed."
+    )
 
 object BadRequestError
     extends Error(

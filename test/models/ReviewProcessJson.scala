@@ -28,13 +28,16 @@ trait ReviewProcessJson {
     validId,
     "Telling HMRC about extra income",
     LocalDate.of(2020, 5, 10),
-    List(PageReview("id1", "how-did-you-earn-extra-income", "NotStarted"),
+    List(
+      PageReview("id1", "how-did-you-earn-extra-income", "NotStarted"),
       PageReview("id2", "sold-goods-or-services/did-you-only-sell-personal-possessions", "NotStarted"),
       PageReview("id3", "sold-goods-or-services/have-you-made-a-profit-of-6000-or-more", "NotStarted"),
       PageReview("id4", "sold-goods-or-services/have-you-made-1000-or-more", "NotStarted"),
       PageReview("id5", "sold-goods-or-services/you-do-not-need-to-tell-hmrc", "NotStarted"),
       PageReview("id6", "rent-a-property/do-you-receive-any-income", "NotStarted"),
-      PageReview("id7", "rent-a-property/have-you-rented-out-a-room", "NotStarted")))
+      PageReview("id7", "rent-a-property/have-you-rented-out-a-room", "NotStarted")
+    )
+  )
 
   val ReviewInfoJson: JsObject = Json.toJson(reviewInfo).as[JsObject]
 }

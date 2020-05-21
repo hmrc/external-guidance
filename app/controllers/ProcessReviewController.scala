@@ -26,7 +26,7 @@ import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class ProcessReviewController @Inject()(reviewService: ReviewService, cc: ControllerComponents) extends BackendController(cc) {
+class ProcessReviewController @Inject() (reviewService: ReviewService, cc: ControllerComponents) extends BackendController(cc) {
 
   def approval2iReviewInfo(id: String): Action[AnyContent] = Action.async { _ =>
     reviewService.approval2iReviewInfo(id).map {

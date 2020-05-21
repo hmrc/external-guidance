@@ -27,6 +27,7 @@ trait MockReviewService extends MockFactory {
   val mockReviewService: ReviewService = mock[ReviewService]
 
   object MockReviewService {
+
     def approval2iReviewInfo(id: String): CallHandler[Future[RequestOutcome[ApprovalProcessReview]]] = {
       (mockReviewService
         .approval2iReviewInfo(_: String))
