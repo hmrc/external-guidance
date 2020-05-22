@@ -21,7 +21,7 @@ import java.time.{LocalDate, LocalDateTime}
 case class ApprovalProcessMeta(
     id: String,
     title: String,
-    status: String = "ReadyFor2iReview",
+    status: String = "SubmittedFor2iReview",
     dateSubmitted: LocalDate = LocalDate.now(),
     lastModified: LocalDateTime = LocalDateTime.now()
 )
