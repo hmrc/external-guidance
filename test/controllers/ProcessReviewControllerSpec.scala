@@ -122,7 +122,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       }
     }
 
-    "the requested process is no longer ReadyFor2iReview" should {
+    "the requested process is no longer SubmittedFor2iReview" should {
 
       trait StaleDataTest extends Test {
         val expectedErrorCode = "STALE_DATA_ERROR"
