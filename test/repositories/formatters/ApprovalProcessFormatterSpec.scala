@@ -36,6 +36,15 @@ class ApprovalProcessFormatterSpec extends UnitSpec with ApprovalProcessJson {
       }
     }
 
+    "Result in a successful conversion for valid JSON that does not have an _id" in {
+
+      validApprovalProcessWithoutAnIdJson.validate[ApprovalProcess] match {
+        case JsSuccess(result, _) if result == approvalProcess => succeed
+        case JsSuccess(_, _) => fail("Deserializing valid JSON did not create correct process")
+        case _ => fail("Unable to parse valid Json")
+      }
+    }
+
     "Result in a failure when for invalid JSON" in {
 
       invalidJson.validate[ApprovalProcess] match {

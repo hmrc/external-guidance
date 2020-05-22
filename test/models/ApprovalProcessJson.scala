@@ -51,13 +51,32 @@ trait ApprovalProcessJson {
     )
     .as[JsObject]
 
+  val validApprovalProcessWithoutAnIdJson: JsObject = Json
+    .parse(
+      """
+        |{
+        |  "meta" : {
+        |    "id" : "oct90001",
+        |    "title" : "This is the title",
+        |    "status" : "SubmittedFor2iReview",
+        |    "dateSubmitted" : {"$date": placeholder},
+        |    "lastModified" : {"$date": placeholder}
+        |  },
+        |  "process" : {
+        |  },
+        |  "version" : 1
+        |}
+    """.stripMargin.replaceAll("placeholder", submittedDateInMilliseconds.toString)
+    )
+    .as[JsObject]
+
   val process2iReviewSummary: String =
     """
       |{
       |    "id": "$$validId$$",
       |    "title": "Telling HMRC about extra income",
       |    "lastUpdated": "2020-05-10",
-      |    "status": "ReadyFor2iReview",
+      |    "status": "SubmittedFor2iReview",
       |    "pages": [
       |        {
       |            "id": "id1",
