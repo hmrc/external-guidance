@@ -1,6 +1,9 @@
 .*
 
 !.gitignore
+.metals
+.bloop
+project/metals.sbt
 !.scalafmt.conf
 .cache
 /.classpath
