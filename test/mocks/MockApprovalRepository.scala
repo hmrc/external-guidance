@@ -16,7 +16,7 @@
 
 package mocks
 
-import models.{ApprovalProcess, ApprovalProcessSummary, RequestOutcome}
+import models.{ApprovalProcess, ApprovalProcessStatusChange, ApprovalProcessSummary, RequestOutcome}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.JsObject
@@ -45,6 +45,12 @@ trait MockApprovalRepository extends MockFactory {
     def approvalSummaryList(): CallHandler[Future[RequestOutcome[List[ApprovalProcessSummary]]]] = {
       (mockApprovalRepository.approvalSummaryList: () => Future[RequestOutcome[List[ApprovalProcessSummary]]])
         .expects()
+    }
+
+    def changeStatus(id: String, statusInfo: ApprovalProcessStatusChange): CallHandler[Future[RequestOutcome[Boolean]]] = {
+      (mockApprovalRepository
+        .changeStatus(_: String, _: ApprovalProcessStatusChange))
+        .expects(id, statusInfo)
     }
 
   }

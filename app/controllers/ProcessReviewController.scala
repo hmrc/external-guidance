@@ -17,13 +17,15 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
+import models.ApprovalProcessStatusChange
 import models.errors._
 import play.api.libs.json._
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ReviewService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 @Singleton
 class ProcessReviewController @Inject() (reviewService: ReviewService, cc: ControllerComponents) extends BackendController(cc) {
@@ -37,4 +39,20 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
     }
   }
+
+  def approvalReviewComplete(id: String): Action[JsValue] = Action.async(parse.json) { request =>
+    def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
+      reviewService.changeStatus(id, statusChangeInfo).map {
+        case Right(_) => NoContent
+        case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
+        case Left(errors) => InternalServerError(Json.toJson(errors))
+      }
+    }
+
+    request.body.validate[ApprovalProcessStatusChange] match {
+      case JsSuccess(statusChangeInfo, _) => save(statusChangeInfo)
+      case errors: JsError => Future.successful(BadRequest(JsError.toJson(errors)))
+    }
+  }
+
 }

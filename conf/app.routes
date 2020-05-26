@@ -10,4 +10,5 @@ GET         /approval/:id           controllers.ApprovalController.get(id)
 POST        /approval               controllers.ApprovalController.save
 
 GET         /approval/:id/2i-review controllers.ProcessReviewController.approval2iReviewInfo(id)
+POST        /approval/:id/2i-review controllers.ProcessReviewController.approvalReviewComplete(id)
 
