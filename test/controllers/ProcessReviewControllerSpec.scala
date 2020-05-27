@@ -187,7 +187,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait ValidTest extends Test {
         MockReviewService
           .changeStatus(validId, statusChangeInfo)
-          .returns(Future.successful(Right(true)))
+          .returns(Future.successful(Right(())))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
       }
@@ -209,7 +209,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait InvalidTest extends Test {
         MockReviewService
           .changeStatus(validId, statusChangeInfo)
-          .returns(Future.successful(Right(true)))
+          .returns(Future.successful(Right(())))
           .never()
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidStatusChangeJson)

@@ -50,7 +50,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory {
 
   "Calling the changeStatus method" when {
     "the ID identifies a valid process" should {
-      "return true to indicate the process status was updated in the database" in new Test {
+      "return to indicate the process status was updated in the database" in new Test {
 
         val expected: RequestOutcome[Unit] = Right(())
 
