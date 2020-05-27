@@ -19,21 +19,23 @@ package services
 import java.time.LocalDate
 
 import javax.inject.{Inject, Singleton}
-import models.{ApprovalProcessReview, PageReview, RequestOutcome}
+import models.errors.{Errors, InternalServiceError, NotFoundError}
+import models.{ApprovalProcessReview, ApprovalProcessStatusChange, PageReview, RequestOutcome}
 import play.api.Logger
+import repositories.ApprovalRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ReviewService @Inject() () {
+class ReviewService @Inject() (repository: ApprovalRepository) {
 
   val logger: Logger = Logger(this.getClass)
 
   def approval2iReviewInfo(id: String): Future[RequestOutcome[ApprovalProcessReview]] = {
     def mockData(): ApprovalProcessReview = {
       ApprovalProcessReview(
-        "oct9005",
+        "oct90001",
         "Telling HMRC about extra income",
         LocalDate.of(2020, 5, 10),
         List(
@@ -48,6 +50,14 @@ class ReviewService @Inject() () {
       )
     }
     Future(Right(mockData()))
+  }
+
+  def changeStatus(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] = {
+    repository.changeStatus(id, info) map {
+      case error @ Left(Errors(NotFoundError :: Nil)) => error
+      case Left(_) => Left(Errors(InternalServiceError))
+      case result => result
+    }
   }
 
 }

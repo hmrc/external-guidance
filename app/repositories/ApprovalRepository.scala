@@ -18,7 +18,7 @@ package repositories
 
 import javax.inject.{Inject, Singleton}
 import models.errors.{DatabaseError, Errors, NotFoundError}
-import models.{ApprovalProcess, ApprovalProcessSummary, RequestOutcome}
+import models.{ApprovalProcess, ApprovalProcessStatusChange, ApprovalProcessSummary, RequestOutcome}
 import play.api.libs.json.{Format, JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.Cursor.FailOnError
@@ -35,6 +35,7 @@ trait ApprovalRepository {
   def update(process: ApprovalProcess): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[JsObject]]
   def approvalSummaryList(): Future[RequestOutcome[List[ApprovalProcessSummary]]]
+  def changeStatus(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]]
 }
 
 @Singleton
@@ -105,6 +106,31 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
       .recover {
         case error =>
           logger.error(s"Attempt to retrieve list of processes from collection $collectionName failed with error : ${error.getMessage}")
+          Left(Errors(DatabaseError))
+      }
+    //$COVERAGE-ON$
+  }
+
+  def changeStatus(id: String, statusInfo: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] = {
+
+    logger.info(s"updating status of process $id to ${statusInfo.status} to collection $collectionName")
+    val selector = Json.obj("_id" -> id)
+    val modifier = Json.obj("$inc" -> Json.obj("version" -> 1), "$set" -> Json.obj("meta.status" -> statusInfo.status))
+
+    this
+      .findAndUpdate(selector, modifier)
+      .map { result =>
+        if (result.result[ApprovalProcess].isDefined) {
+          Right(())
+        } else {
+          logger.error(s"Invalid Request - could not find process $id")
+          Left(Errors(NotFoundError))
+        }
+      }
+      //$COVERAGE-OFF$
+      .recover {
+        case error =>
+          logger.error(s"Attempt to change status of process $id to collection $collectionName failed with error : ${error.getMessage}")
           Left(Errors(DatabaseError))
       }
     //$COVERAGE-ON$

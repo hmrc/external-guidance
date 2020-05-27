@@ -262,7 +262,9 @@ The `id` parameter is an ocelot formatted string e.g. `oct90005`
 #### Request Body
 ```
 {
-   "status": "ApprovedForPublishing"
+   "status": "ApprovedForPublishing",
+   "userId": "<user pid who made change>",
+   "userName": "<user name who made change>"
 }
 ```
 
