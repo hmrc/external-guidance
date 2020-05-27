@@ -52,7 +52,7 @@ class ReviewService @Inject() (repository: ApprovalRepository) {
     Future(Right(mockData()))
   }
 
-  def changeStatus(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Boolean]] = {
+  def changeStatus(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] = {
     repository.changeStatus(id, info) map {
       case error @ Left(Errors(NotFoundError :: Nil)) => error
       case Left(_) => Left(Errors(InternalServiceError))

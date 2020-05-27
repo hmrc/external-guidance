@@ -52,7 +52,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory {
     "the ID identifies a valid process" should {
       "return true to indicate the process status was updated in the database" in new Test {
 
-        val expected: RequestOutcome[Boolean] = Right(true)
+        val expected: RequestOutcome[Unit] = Right(())
 
         MockApprovalRepository
           .changeStatus("validId", statusChangeInfo)
@@ -67,7 +67,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory {
     "the ID cannot be matched to a submitted process" should {
       "return a not found response" in new Test {
 
-        val expected: RequestOutcome[Boolean] = Left(Errors(NotFoundError))
+        val expected: RequestOutcome[Unit] = Left(Errors(NotFoundError))
 
         MockApprovalRepository
           .changeStatus("validId", statusChangeInfo)
@@ -82,8 +82,8 @@ class ReviewServiceSpec extends UnitSpec with MockFactory {
     "the repository reports a database error" should {
       "return an internal server error" in new Test {
 
-        val repositoryError: RequestOutcome[Boolean] = Left(Errors(DatabaseError))
-        val expected: RequestOutcome[Boolean] = Left(Errors(InternalServiceError))
+        val repositoryError: RequestOutcome[Unit] = Left(Errors(DatabaseError))
+        val expected: RequestOutcome[Unit] = Left(Errors(InternalServiceError))
 
         MockApprovalRepository
           .changeStatus("validId", statusChangeInfo)

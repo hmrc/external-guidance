@@ -47,7 +47,7 @@ trait MockApprovalRepository extends MockFactory {
         .expects()
     }
 
-    def changeStatus(id: String, statusInfo: ApprovalProcessStatusChange): CallHandler[Future[RequestOutcome[Boolean]]] = {
+    def changeStatus(id: String, statusInfo: ApprovalProcessStatusChange): CallHandler[Future[RequestOutcome[Unit]]] = {
       (mockApprovalRepository
         .changeStatus(_: String, _: ApprovalProcessStatusChange))
         .expects(id, statusInfo)

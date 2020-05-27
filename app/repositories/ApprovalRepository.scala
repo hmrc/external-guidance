@@ -35,7 +35,7 @@ trait ApprovalRepository {
   def update(process: ApprovalProcess): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[JsObject]]
   def approvalSummaryList(): Future[RequestOutcome[List[ApprovalProcessSummary]]]
-  def changeStatus(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Boolean]]
+  def changeStatus(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]]
 }
 
 @Singleton
@@ -111,7 +111,7 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
     //$COVERAGE-ON$
   }
 
-  def changeStatus(id: String, statusInfo: ApprovalProcessStatusChange): Future[RequestOutcome[Boolean]] = {
+  def changeStatus(id: String, statusInfo: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] = {
 
     logger.info(s"updating status of process $id to ${statusInfo.status} to collection $collectionName")
     val selector = Json.obj("_id" -> id)
@@ -121,7 +121,7 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
       .findAndUpdate(selector, modifier)
       .map { result =>
         if (result.result[ApprovalProcess].isDefined) {
-          Right(true)
+          Right(())
         } else {
           logger.error(s"Invalid Request - could not find process $id")
           Left(Errors(NotFoundError))
