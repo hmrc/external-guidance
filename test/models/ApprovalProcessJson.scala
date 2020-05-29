@@ -16,7 +16,8 @@
 
 package models
 
-import java.time.{LocalDate, ZoneOffset}
+import java.time.{LocalDate, LocalDateTime, ZoneOffset}
+import java.util.UUID
 
 import play.api.libs.json.{JsObject, Json}
 
@@ -71,9 +72,9 @@ trait ApprovalProcessJson {
     .as[JsObject]
 
   val process2iReviewSummary: String =
-    """
+    s"""
       |{
-      |    "id": "$$validId$$",
+      |    "id": "$validId",
       |    "title": "Telling HMRC about extra income",
       |    "lastUpdated": "2020-05-10",
       |    "status": "SubmittedFor2iReview",
@@ -118,4 +119,61 @@ trait ApprovalProcessJson {
       |""".stripMargin.replace("$$validId$$", validId)
 
   val process2iReviewSummaryJson: JsObject = Json.parse(process2iReviewSummary).as[JsObject]
+
+  val validReviewId: String = "276cc289-a852-4af2-95ae-4bafa1c1835c"
+
+  val reviewBody: String =
+    s"""
+       |	"ocelotId" : "$validId",
+       |	"version" : 5,
+       |	"reviewType" : "factCheck",
+       |	"title" : "Customer wants to make a cup of tea",
+       |	"lastUpdated" : "2020-05-29",
+       |	"result" : "",
+       |	"completionDate" : null,
+       |	"completionUser" : null,
+       |	"pages" : [
+       |		{
+       |			"id" : "1",
+       |			"pageUrl" : "/feeling-bad",
+       |			"result" : "",
+       |			"status" : "NotStarted",
+       |			"comment" : null,
+       |			"updateDate" : {"$$date":1590760487000},
+       |			"updateUser" : ""
+       |		}
+       |	]
+    """.stripMargin
+
+  val review: String =
+    s"""
+      |{
+      |	"_id" : "$validReviewId",
+      | $reviewBody
+      |}
+    """.stripMargin
+
+  val validApprovalProcessReviewJson: JsObject = Json.parse(review).as[JsObject]
+
+  val reviewWithoutId: String =
+    s"""
+       |{
+       |  $reviewBody
+       |}
+    """.stripMargin
+
+  val validApprovalProcessReviewWithNoIdJson: JsObject = Json.parse(reviewWithoutId).as[JsObject]
+
+  val approvalProcessReview =
+    ApprovalProcessReview(
+      UUID.randomUUID(),
+      validId,
+      1,
+      "2i-review",
+      "Title",
+      List(ApprovalProcessPageReview("id", "url")),
+      LocalDate.now(),
+      "Success",
+      Some(LocalDateTime.now())
+    )
 }

@@ -16,10 +16,10 @@
 
 package controllers
 
-import data.ReviewData._
+import data.ReviewData
 import mocks.MockReviewService
+import models.ProcessReview
 import models.errors._
-import models.{ApprovalProcessReview, ReviewProcessJson}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
@@ -32,7 +32,7 @@ import play.api.test.Helpers._
 
 import scala.concurrent.Future
 
-class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite with MockFactory with ReviewProcessJson {
+class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite with MockFactory with ReviewData {
 
   private trait Test extends MockReviewService {
     val invalidId: String = "ext95"
@@ -44,26 +44,26 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
 
       trait ValidTest extends Test {
         MockReviewService
-          .approval2iReviewInfo(validId)
-          .returns(Future.successful(Right(reviewInfo)))
+          .approval2iReviewInfo(validProcessIdForReview)
+          .returns(Future.successful(Right(processReviewInfo)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
 
       "return an OK response" in new ValidTest {
-        private val result = controller.approval2iReviewInfo(validId)(request)
+        private val result = controller.approval2iReviewInfo(validProcessIdForReview)(request)
         status(result) shouldBe OK
       }
 
       "return content as JSON" in new ValidTest {
-        private val result = controller.approval2iReviewInfo(validId)(request)
+        private val result = controller.approval2iReviewInfo(validProcessIdForReview)(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "confirm returned content is a JSON object" in new ValidTest {
-        private val result = controller.approval2iReviewInfo(validId)(request)
-        val dataReturned: ApprovalProcessReview = contentAsJson(result).as[ApprovalProcessReview]
-        dataReturned.id shouldBe validId
+        private val result = controller.approval2iReviewInfo(validProcessIdForReview)(request)
+        val dataReturned: ProcessReview = contentAsJson(result).as[ProcessReview]
+        dataReturned.ocelotId shouldBe validProcessIdForReview
       }
     }
 
@@ -100,24 +100,24 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait NotFoundTest extends Test {
         val expectedErrorCode = "NOT_FOUND_ERROR"
         MockReviewService
-          .approval2iReviewInfo(validId)
+          .approval2iReviewInfo(validProcessIdForReview)
           .returns(Future.successful(Left(Errors(NotFoundError))))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
 
       "return an not found response" in new NotFoundTest {
-        private val result = controller.approval2iReviewInfo(validId)(request)
+        private val result = controller.approval2iReviewInfo(validProcessIdForReview)(request)
         status(result) shouldBe NOT_FOUND
       }
 
       "return content as JSON" in new NotFoundTest {
-        private val result = controller.approval2iReviewInfo(validId)(request)
+        private val result = controller.approval2iReviewInfo(validProcessIdForReview)(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return a error code of NOT_FOUND_ERROR" in new NotFoundTest {
-        private val result = controller.approval2iReviewInfo(validId)(request)
+        private val result = controller.approval2iReviewInfo(validProcessIdForReview)(request)
         private val json = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe expectedErrorCode
       }
@@ -128,24 +128,24 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait StaleDataTest extends Test {
         val expectedErrorCode = "STALE_DATA_ERROR"
         MockReviewService
-          .approval2iReviewInfo(validId)
+          .approval2iReviewInfo(validProcessIdForReview)
           .returns(Future.successful(Left(Errors(StaleDataError))))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
 
       "return an not found response" in new StaleDataTest {
-        private val result = controller.approval2iReviewInfo(validId)(request)
+        private val result = controller.approval2iReviewInfo(validProcessIdForReview)(request)
         status(result) shouldBe NOT_FOUND
       }
 
       "return content as JSON" in new StaleDataTest {
-        private val result = controller.approval2iReviewInfo(validId)(request)
+        private val result = controller.approval2iReviewInfo(validProcessIdForReview)(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return a error code of NOT_FOUND_ERROR" in new StaleDataTest {
-        private val result = controller.approval2iReviewInfo(validId)(request)
+        private val result = controller.approval2iReviewInfo(validProcessIdForReview)(request)
         private val json = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe expectedErrorCode
       }
@@ -156,24 +156,24 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait ErrorTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockReviewService
-          .approval2iReviewInfo(validId)
+          .approval2iReviewInfo(validProcessIdForReview)
           .returns(Future.successful(Left(Errors(InternalServiceError))))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
 
       "return a internal server error response" in new ErrorTest {
-        private val result = controller.approval2iReviewInfo(validId)(request)
+        private val result = controller.approval2iReviewInfo(validProcessIdForReview)(request)
         status(result) shouldBe INTERNAL_SERVER_ERROR
       }
 
       "return content as JSON" in new ErrorTest {
-        private val result = controller.approval2iReviewInfo(validId)(request)
+        private val result = controller.approval2iReviewInfo(validProcessIdForReview)(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return an error code of INTERNAL_SERVER_ERROR" in new ErrorTest {
-        private val result = controller.approval2iReviewInfo(validId)(request)
+        private val result = controller.approval2iReviewInfo(validProcessIdForReview)(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe expectedErrorCode
       }
@@ -186,19 +186,19 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
 
       trait ValidTest extends Test {
         MockReviewService
-          .changeStatus(validId, statusChangeInfo)
+          .changeStatus(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Right(())))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
       }
 
       "return a NO_CONTENT response" in new ValidTest {
-        private val result = controller.approvalReviewComplete(validId)(request)
+        private val result = controller.approval2iReviewComplete(validProcessIdForReview)(request)
         status(result) shouldBe NO_CONTENT
       }
 
       "return no content" in new ValidTest {
-        private val result = controller.approvalReviewComplete(validId)(request)
+        private val result = controller.approval2iReviewComplete(validProcessIdForReview)(request)
         contentType(result) shouldBe None
       }
 
@@ -208,7 +208,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
 
       trait InvalidTest extends Test {
         MockReviewService
-          .changeStatus(validId, statusChangeInfo)
+          .changeStatus(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Right(())))
           .never()
 
@@ -216,12 +216,12 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       }
 
       "return a bad request response" in new InvalidTest {
-        private val result = controller.approvalReviewComplete(invalidId)(request)
+        private val result = controller.approval2iReviewComplete(invalidId)(request)
         status(result) shouldBe BAD_REQUEST
       }
 
       "return content as JSON" in new InvalidTest {
-        private val result = controller.approvalReviewComplete(invalidId)(request)
+        private val result = controller.approval2iReviewComplete(invalidId)(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
@@ -232,24 +232,24 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait NotFoundTest extends Test {
         val expectedErrorCode = "NOT_FOUND_ERROR"
         MockReviewService
-          .changeStatus(validId, statusChangeInfo)
+          .changeStatus(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(Errors(NotFoundError))))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
       }
 
       "return an not found response" in new NotFoundTest {
-        private val result = controller.approvalReviewComplete(validId)(request)
+        private val result = controller.approval2iReviewComplete(validProcessIdForReview)(request)
         status(result) shouldBe NOT_FOUND
       }
 
       "return content as JSON" in new NotFoundTest {
-        private val result = controller.approvalReviewComplete(validId)(request)
+        private val result = controller.approval2iReviewComplete(validProcessIdForReview)(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return a error code of NOT_FOUND_ERROR" in new NotFoundTest {
-        private val result = controller.approvalReviewComplete(validId)(request)
+        private val result = controller.approval2iReviewComplete(validProcessIdForReview)(request)
         private val json = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe expectedErrorCode
       }
@@ -260,24 +260,24 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait ErrorTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockReviewService
-          .changeStatus(validId, statusChangeInfo)
+          .changeStatus(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(Errors(InternalServiceError))))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
       }
 
       "return a internal server error response" in new ErrorTest {
-        private val result = controller.approvalReviewComplete(validId)(request)
+        private val result = controller.approval2iReviewComplete(validProcessIdForReview)(request)
         status(result) shouldBe INTERNAL_SERVER_ERROR
       }
 
       "return content as JSON" in new ErrorTest {
-        private val result = controller.approvalReviewComplete(validId)(request)
+        private val result = controller.approval2iReviewComplete(validProcessIdForReview)(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return an error code of INTERNAL_SERVER_ERROR" in new ErrorTest {
-        private val result = controller.approvalReviewComplete(validId)(request)
+        private val result = controller.approval2iReviewComplete(validProcessIdForReview)(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe expectedErrorCode
       }

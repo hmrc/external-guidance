@@ -16,12 +16,13 @@
 
 package services
 
+import java.util.UUID
+
 import base.UnitSpec
-import mocks.MockApprovalRepository
-import models.ApprovalProcessSummary._
+import mocks.{MockApprovalProcessReviewRepository, MockApprovalRepository}
+import models._
 import models.errors._
 import models.ocelot.ProcessJson
-import models.{ApprovalProcessJson, ApprovalProcessSummary, RequestOutcome}
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsArray, JsObject, Json}
 
@@ -29,24 +30,34 @@ import scala.concurrent.Future
 
 class ApprovalServiceSpec extends UnitSpec with MockFactory {
 
-  private trait Test extends MockApprovalRepository with ApprovalProcessJson with ProcessJson {
+  private trait Test extends MockApprovalRepository with MockApprovalProcessReviewRepository with ApprovalProcessJson with ProcessJson {
 
     val invalidId: String = "ext9005"
 
     val invalidProcess: JsObject = Json.obj("idx" -> invalidId)
 
-    lazy val service: ApprovalService = new ApprovalService(mockApprovalRepository)
+    lazy val service: ApprovalService = new ApprovalService(mockApprovalRepository, mockApprovalProcessReviewRepository)
+
+    val processReview = ApprovalProcessReview(
+      UUID.randomUUID(),
+      "oct90001",
+      1,
+      "2i-review",
+      "title",
+      List()
+    )
   }
 
   "Calling the getById method" when {
     "the ID identifies a valid process" should {
       "return a JSON representing the submitted ocelot process" in new Test {
 
-        val expected: RequestOutcome[JsObject] = Right(validApprovalProcessJson)
+        val returnFromRepo: RequestOutcome[ApprovalProcess] = Right(approvalProcess)
+        val expected: RequestOutcome[JsObject] = Right(approvalProcess.process)
 
         MockApprovalRepository
           .getById(validId)
-          .returns(Future.successful(expected))
+          .returns(Future.successful(returnFromRepo))
 
         whenReady(service.getById(validId)) { result =>
           result shouldBe expected
@@ -57,7 +68,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
     "the ID cannot be matched to a submitted process" should {
       "return a not found response" in new Test {
 
-        val expected: RequestOutcome[JsObject] = Left(Errors(NotFoundError))
+        val expected: RequestOutcome[ApprovalProcess] = Left(Errors(NotFoundError))
 
         MockApprovalRepository
           .getById(validId)
@@ -72,7 +83,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
     "the repository reports a database error" should {
       "return an internal server error" in new Test {
 
-        val repositoryError: RequestOutcome[JsObject] = Left(Errors(DatabaseError))
+        val repositoryError: RequestOutcome[ApprovalProcess] = Left(Errors(DatabaseError))
         val expected: RequestOutcome[JsObject] = Left(Errors(InternalServiceError))
 
         MockApprovalRepository
@@ -97,9 +108,85 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
           .update(approvalProcess)
           .returns(Future.successful(expected))
 
-        whenReady(service.save(validOnePageJson.as[JsObject])) {
+        MockApprovalRepository
+          .getById("oct90001")
+          .returns(Future.successful(Right(approvalProcess)))
+
+        MockApprovalProcessReviewRepository
+          .save(processReview)
+          .returns(Future.successful(Right(processReview.id)))
+
+        whenReady(service.save(validOnePageJson.as[JsObject], "2i-review", "SubmittedFor2iReview")) {
           case Right(id) => id shouldBe validId
           case _ => fail
+        }
+      }
+    }
+
+    "the process is saved" when {
+      "the save of review data fails" should {
+        "return an internal error" in new Test {
+
+          val expected: RequestOutcome[String] = Left(Errors(InternalServiceError))
+
+          MockApprovalRepository
+            .update(approvalProcess)
+            .returns(Future.successful(Right(validId)))
+
+          MockApprovalRepository
+            .getById("oct90001")
+            .returns(Future.successful(Right(approvalProcess)))
+
+          MockApprovalProcessReviewRepository
+            .save(processReview)
+            .returns(Future.successful(Left(Errors(DatabaseError))))
+
+          whenReady(service.save(validOnePageJson.as[JsObject], "2i-review", "SubmittedFor2iReview")) {
+            case result @ Left(_) => result shouldBe expected
+            case _ => fail
+          }
+        }
+      }
+    }
+
+    "the process is saved" when {
+      "the subsequent get of the process fails with a NotFoundError" should {
+        "return an internal error" in new Test {
+
+          val expected: RequestOutcome[String] = Left(Errors(NotFoundError))
+
+          MockApprovalRepository
+            .update(approvalProcess)
+            .returns(Future.successful(Right(validId)))
+
+          MockApprovalRepository
+            .getById("oct90001")
+            .returns(Future.successful(Left(Errors(NotFoundError))))
+
+          whenReady(service.save(validOnePageJson.as[JsObject], "2i-review", "SubmittedFor2iReview")) {
+            case result @ Left(_) => result shouldBe expected
+            case _ => fail
+          }
+        }
+      }
+
+      "the subsequent get of the process fails with a DatabaseError" should {
+        "return an internal error" in new Test {
+
+          val expected: RequestOutcome[String] = Left(Errors(InternalServiceError))
+
+          MockApprovalRepository
+            .update(approvalProcess)
+            .returns(Future.successful(Right(validId)))
+
+          MockApprovalRepository
+            .getById("oct90001")
+            .returns(Future.successful(Left(Errors(DatabaseError))))
+
+          whenReady(service.save(validOnePageJson.as[JsObject], "2iReview", "SubmittedFor2iReview")) {
+            case result @ Left(_) => result shouldBe expected
+            case _ => fail
+          }
         }
       }
     }
@@ -110,13 +197,13 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
           .update(approvalProcess)
           .never()
 
-        service.save(invalidProcess)
+        service.save(invalidProcess, "2i-review", "SubmittedFor2iReview")
       }
 
       "return a bad request error" in new Test {
         val expected: RequestOutcome[String] = Left(Errors(BadRequestError))
 
-        whenReady(service.save(invalidProcess)) {
+        whenReady(service.save(invalidProcess, "2i-review", "SubmittedFor2iReview")) {
           case result @ Left(_) => result shouldBe expected
           case _ => fail
         }
@@ -132,7 +219,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
           .update(approvalProcess)
           .returns(Future.successful(repositoryResponse))
 
-        whenReady(service.save(validOnePageJson.as[JsObject])) {
+        whenReady(service.save(validOnePageJson.as[JsObject], "2i-review", "SubmittedFor2iReview")) {
           case result @ Left(_) => result shouldBe expected
           case _ => fail
         }

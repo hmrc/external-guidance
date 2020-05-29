@@ -17,8 +17,9 @@
 package data
 
 import java.time.{LocalDate, ZoneOffset}
+import java.util.UUID
 
-import models.{ApprovalProcessReview, ApprovalProcessStatusChange, PageReview}
+import models.{ApprovalProcessStatusChange, PageReview, ProcessReview}
 import play.api.libs.json.{JsObject, JsValue, Json}
 
 object ExamplePayloads {
@@ -124,9 +125,11 @@ object ExamplePayloads {
 
   val validId = "oct90001"
 
-  val processReviewInfo: ApprovalProcessReview =
-    ApprovalProcessReview(
+  val processReviewInfo: ProcessReview =
+    ProcessReview(
+      UUID.randomUUID(),
       validId,
+      1,
       "Telling HMRC about extra income",
       LocalDate.of(2020, 5, 10),
       List(

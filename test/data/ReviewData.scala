@@ -17,17 +17,20 @@
 package data
 
 import java.time.LocalDate
+import java.util.UUID
 
-import models.{ApprovalProcessReview, ApprovalProcessStatusChange, PageReview}
+import models.{ApprovalProcessStatusChange, PageReview, ProcessReview}
 import play.api.libs.json.{JsObject, JsValue, Json}
 
-object ReviewData {
+trait ReviewData {
 
-  val validId = "oct90001"
+  val validProcessIdForReview = "oct90001"
 
-  val processReviewInfo: ApprovalProcessReview =
-    ApprovalProcessReview(
-      validId,
+  val processReviewInfo: ProcessReview =
+    ProcessReview(
+      UUID.randomUUID(),
+      validProcessIdForReview,
+      1,
       "Telling HMRC about extra income",
       LocalDate.of(2020, 5, 10),
       List(
@@ -40,6 +43,7 @@ object ReviewData {
         PageReview("id7", "rent-a-property/have-you-rented-out-a-room", "NotStarted")
       )
     )
+  val reviewInfoJson: JsObject = Json.toJson(processReviewInfo).as[JsObject]
 
   val statusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", "SubmittedForFactCheck")
 

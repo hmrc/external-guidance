@@ -31,7 +31,8 @@ class ApprovalController @Inject() (approvalService: ApprovalService, cc: Contro
   def save: Action[JsValue] = Action.async(parse.json) { implicit request =>
     val process = request.body.as[JsObject]
 
-    approvalService.save(process).map {
+    // This will change when we have additional end point for fact check
+    approvalService.save(process, "2i-review", "SubmittedFor2iReview").map {
       case Right(id) => Created(Json.obj("id" -> id))
       case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))

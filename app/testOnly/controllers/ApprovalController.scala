@@ -20,18 +20,24 @@ import javax.inject.{Inject, Singleton}
 import models.errors.InternalServiceError
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import testOnly.repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
-import testOnly.repositories.ApprovalRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 @Singleton
-class ApprovalController @Inject() (testRepo: ApprovalRepository, cc: ControllerComponents) extends BackendController(cc) {
+class ApprovalController @Inject() (testRepo: ApprovalRepository, testReviewRepo: ApprovalProcessReviewRepository, cc: ControllerComponents)
+    extends BackendController(cc) {
 
   def delete(id: String): Action[AnyContent] = Action.async { _ =>
-    testRepo.delete(id).map {
-      case Right(_) => NoContent
-      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+    testRepo.delete(id).flatMap {
+      case Right(_) =>
+        testReviewRepo.delete(id).map {
+          case Right(_) => NoContent
+          case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+        }
+      case Left(_) => Future.successful(InternalServerError(Json.toJson(InternalServiceError)))
     }
   }
 }

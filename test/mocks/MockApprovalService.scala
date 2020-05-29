@@ -35,10 +35,10 @@ trait MockApprovalService extends MockFactory {
         .expects(id)
     }
 
-    def save(process: JsObject): CallHandler[Future[RequestOutcome[String]]] = {
+    def save(process: JsObject, reviewType: String = "2i-review", status: String = "SubmittedFor2iReview"): CallHandler[Future[RequestOutcome[String]]] = {
       (mockApprovalService
-        .save(_: JsObject))
-        .expects(process)
+        .save(_: JsObject, _: String, _: String))
+        .expects(process, reviewType, status)
     }
 
     def approvalSummaryList(): CallHandler[Future[RequestOutcome[JsArray]]] = {

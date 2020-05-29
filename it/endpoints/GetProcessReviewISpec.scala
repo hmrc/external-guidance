@@ -15,6 +15,7 @@
  */
 package endpoints
 
+import data.ExamplePayloads
 import play.api.http.{ContentTypes, Status}
 import play.api.libs.json.{JsObject, JsValue}
 import play.api.libs.ws.WSResponse
@@ -25,7 +26,17 @@ class GetProcessReviewISpec extends IntegrationSpec {
 
   "Calling the approval 2i Review endpoint" should {
 
-    lazy val request = buildRequest(s"/external-guidance/approval/oct90005/2i-review")
+    def populateDatabase(processToSave: JsValue): String = {
+      lazy val request = buildRequest("/external-guidance/approval")
+
+      val result = await(request.post(processToSave))
+      val json = result.body[JsValue].as[JsObject]
+      (json \ "id").as[String]
+    }
+
+    val processToSave: JsValue = ExamplePayloads.simpleValidProcess
+    lazy val id = populateDatabase(processToSave)
+    lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-review")
     lazy val response: WSResponse = {
       AuditStub.audit()
       await(request.get())

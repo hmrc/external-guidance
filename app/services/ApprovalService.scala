@@ -18,21 +18,21 @@ package services
 
 import javax.inject.{Inject, Singleton}
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
-import models.ocelot.Process
-import models.{ApprovalProcess, ApprovalProcessMeta, RequestOutcome}
+import models.{ApprovalProcess, ApprovalProcessReview, RequestOutcome}
 import play.api.Logger
 import play.api.libs.json._
-import repositories.ApprovalRepository
+import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
+import utils.ProcessUtils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ApprovalService @Inject() (repository: ApprovalRepository) {
+class ApprovalService @Inject() (repository: ApprovalRepository, reviewRepository: ApprovalProcessReviewRepository) {
 
   val logger: Logger = Logger(this.getClass)
 
-  def save(jsonProcess: JsObject): Future[RequestOutcome[String]] = {
+  def save(jsonProcess: JsObject, reviewType: String, initialStatus: String): Future[RequestOutcome[String]] = {
 
     def saveProcess(approvalProcess: ApprovalProcess): Future[RequestOutcome[String]] = {
       repository.update(approvalProcess) map {
@@ -41,16 +41,26 @@ class ApprovalService @Inject() (repository: ApprovalRepository) {
       }
     }
 
-    def createApprovalProcess(process: Process): ApprovalProcess = {
-      ApprovalProcess(process.meta.id, ApprovalProcessMeta(process.meta.id, process.meta.title), jsonProcess)
+    def saveReview(approvalProcessReview: ApprovalProcessReview): Future[RequestOutcome[String]] = {
+      reviewRepository.save(approvalProcessReview) map {
+        case Right(_) => Right(approvalProcessReview.ocelotId)
+        case _ => Left(Errors(InternalServiceError))
+      }
     }
 
-    jsonProcess.validate[Process] match {
-      case JsSuccess(process, _) =>
-        saveProcess(createApprovalProcess(process))
-      case JsError(errors) =>
-        logger.error(s"Parsing process failed with the following error(s): $errors")
-        Future { Left(Errors(BadRequestError)) }
+    validateProcess(jsonProcess) match {
+      case Right(process) =>
+        saveProcess(createApprovalProcess(process.meta.id, process.meta.title, initialStatus, jsonProcess)) flatMap {
+          case Right(savedId) =>
+            repository.getById(savedId) flatMap {
+              case Right(approvalProcess) => saveReview(createApprovalProcessReview(process, reviewType, approvalProcess.version))
+              case Left(Errors(NotFoundError :: Nil)) => Future.successful(Left(Errors(NotFoundError)))
+              case Left(_) => Future.successful(Left(Errors(InternalServiceError)))
+            }
+          case errors => Future.successful(errors)
+        }
+      case Left(_) =>
+        Future.successful(Left(Errors(BadRequestError)))
     }
 
   }
@@ -58,9 +68,9 @@ class ApprovalService @Inject() (repository: ApprovalRepository) {
   def getById(id: String): Future[RequestOutcome[JsObject]] = {
 
     repository.getById(id) map {
-      case error @ Left(Errors(NotFoundError :: Nil)) => error
+      case error @ Left(Errors(NotFoundError :: Nil)) => Left(Errors(NotFoundError))
       case Left(_) => Left(Errors(InternalServiceError))
-      case result => result
+      case Right(result) => Right(result.process)
     }
   }
 
