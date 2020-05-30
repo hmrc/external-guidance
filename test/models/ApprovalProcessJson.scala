@@ -20,6 +20,7 @@ import java.time.{LocalDate, LocalDateTime, ZoneOffset}
 import java.util.UUID
 
 import play.api.libs.json.{JsObject, Json}
+import utils.Constants._
 
 trait ApprovalProcessJson {
 
@@ -28,46 +29,48 @@ trait ApprovalProcessJson {
   val submittedDateInMilliseconds: Long = dateSubmitted.atStartOfDay(ZoneOffset.UTC).toInstant.toEpochMilli
 
   val approvalProcessMeta: ApprovalProcessMeta =
-    ApprovalProcessMeta("oct90001", "This is the title", "SubmittedFor2iReview", dateSubmitted, dateSubmitted.atStartOfDay())
+    ApprovalProcessMeta(validId, "This is the title", STATUS_SUBMITTED_FOR_2I_REVIEW, dateSubmitted, dateSubmitted.atStartOfDay())
   val approvalProcess: ApprovalProcess = ApprovalProcess(validId, approvalProcessMeta, Json.obj())
-  val approvalProcessSummary: ApprovalProcessSummary = ApprovalProcessSummary("oct90001", "This is the title", dateSubmitted, "SubmittedFor2iReview")
+
+  val approvalProcessSummary: ApprovalProcessSummary =
+    ApprovalProcessSummary(validId, "This is the title", dateSubmitted, STATUS_SUBMITTED_FOR_2I_REVIEW)
 
   val validApprovalProcessJson: JsObject = Json
     .parse(
-      """
+      s"""
       |{
-      |  "_id" : "oct90001",
+      |  "_id" : "$validId",
       |  "meta" : {
-      |    "id" : "oct90001",
+      |    "id" : "$validId",
       |    "title" : "This is the title",
-      |    "status" : "SubmittedFor2iReview",
-      |    "dateSubmitted" : {"$date": placeholder},
-      |    "lastModified" : {"$date": placeholder}
+      |    "status" : "$STATUS_SUBMITTED_FOR_2I_REVIEW",
+      |    "dateSubmitted" : {"$$date": $submittedDateInMilliseconds},
+      |    "lastModified" : {"$$date": $submittedDateInMilliseconds}
       |  },
       |  "process" : {
       |  },
       |  "version" : 1
       |}
-    """.stripMargin.replaceAll("placeholder", submittedDateInMilliseconds.toString)
+    """.stripMargin
     )
     .as[JsObject]
 
   val validApprovalProcessWithoutAnIdJson: JsObject = Json
     .parse(
-      """
+      s"""
         |{
         |  "meta" : {
-        |    "id" : "oct90001",
+        |    "id" : "$validId",
         |    "title" : "This is the title",
-        |    "status" : "SubmittedFor2iReview",
-        |    "dateSubmitted" : {"$date": placeholder},
-        |    "lastModified" : {"$date": placeholder}
+        |    "status" : "$STATUS_SUBMITTED_FOR_2I_REVIEW",
+        |    "dateSubmitted" : {"$$date": $submittedDateInMilliseconds},
+        |    "lastModified" : {"$$date": $submittedDateInMilliseconds}
         |  },
         |  "process" : {
         |  },
         |  "version" : 1
         |}
-    """.stripMargin.replaceAll("placeholder", submittedDateInMilliseconds.toString)
+    """.stripMargin
     )
     .as[JsObject]
 
@@ -77,46 +80,46 @@ trait ApprovalProcessJson {
       |    "id": "$validId",
       |    "title": "Telling HMRC about extra income",
       |    "lastUpdated": "2020-05-10",
-      |    "status": "SubmittedFor2iReview",
+      |    "status" : "$STATUS_SUBMITTED_FOR_2I_REVIEW",
       |    "pages": [
       |        {
       |            "id": "id1",
       |            "title": "how-did-you-earn-extra-income",
-      |            "status": "NotStarted"
+      |            "status": "$INITIAL_PAGE_REVIEW_STATUS"
       |        },
       |        {
       |            "id": "id2",
       |            "title": "sold-goods-or-services/did-you-only-sell-personal-possessions",
-      |            "status": "NotStarted"
+      |            "status": "$INITIAL_PAGE_REVIEW_STATUS"
       |        },
       |        {
       |            "id": "id3",
       |            "title": "sold-goods-or-services/have-you-made-a-profit-of-6000-or-more",
-      |            "status": "Not started"
+      |            "status": "$INITIAL_PAGE_REVIEW_STATUS"
       |        },
       |        {
       |            "id": "id4",
       |            "title": "sold-goods-or-services/have-you-made-1000-or-more",
-      |            "status": "Not started"
+      |            "status": "$INITIAL_PAGE_REVIEW_STATUS"
       |        },
       |        {
       |            "id": "id5",
       |            "title": "sold-goods-or-services/you-do-not-need-to-tell-hmrc",
-      |            "status": "Not started"
+      |            "status": "$INITIAL_PAGE_REVIEW_STATUS"
       |        },
       |        {
       |            "id": "id6",
       |            "title": "rent-a-property/do-you-receive-any-income",
-      |            "status": "Not started"
+      |            "status": "$INITIAL_PAGE_REVIEW_STATUS"
       |        },
       |        {
       |            "id": "id7",
       |            "title": "rent-a-property/have-you-rented-out-a-room",
-      |            "status": "Not started"
+      |            "status": "$INITIAL_PAGE_REVIEW_STATUS"
       |        }
       |    ]
       |}
-      |""".stripMargin.replace("$$validId$$", validId)
+      |""".stripMargin
 
   val process2iReviewSummaryJson: JsObject = Json.parse(process2iReviewSummary).as[JsObject]
 
@@ -126,7 +129,7 @@ trait ApprovalProcessJson {
     s"""
        |	"ocelotId" : "$validId",
        |	"version" : 5,
-       |	"reviewType" : "factCheck",
+       |	"reviewType" : "$REVIEW_TYPE_FACT_CHECK",
        |	"title" : "Customer wants to make a cup of tea",
        |	"lastUpdated" : "2020-05-29",
        |	"result" : "",
@@ -137,7 +140,7 @@ trait ApprovalProcessJson {
        |			"id" : "1",
        |			"pageUrl" : "/feeling-bad",
        |			"result" : "",
-       |			"status" : "NotStarted",
+       |			"status" : "$INITIAL_PAGE_REVIEW_STATUS",
        |			"comment" : null,
        |			"updateDate" : {"$$date":1590760487000},
        |			"updateUser" : ""
@@ -164,16 +167,16 @@ trait ApprovalProcessJson {
 
   val validApprovalProcessReviewWithNoIdJson: JsObject = Json.parse(reviewWithoutId).as[JsObject]
 
-  val approvalProcessReview =
+  val approvalProcessReview: ApprovalProcessReview =
     ApprovalProcessReview(
       UUID.randomUUID(),
       validId,
       1,
-      "2i-review",
+      REVIEW_TYPE_2I,
       "Title",
       List(ApprovalProcessPageReview("id", "url")),
       LocalDate.now(),
-      "Success",
+      REVIEW_COMPLETE_STATUS,
       Some(LocalDateTime.now())
     )
 }

@@ -22,6 +22,7 @@ import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.ApprovalService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import utils.Constants._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -32,7 +33,7 @@ class ApprovalController @Inject() (approvalService: ApprovalService, cc: Contro
     val process = request.body.as[JsObject]
 
     // This will change when we have additional end point for fact check
-    approvalService.save(process, "2i-review", "SubmittedFor2iReview").map {
+    approvalService.save(process, REVIEW_TYPE_2I, STATUS_SUBMITTED_FOR_2I_REVIEW).map {
       case Right(id) => Created(Json.obj("id" -> id))
       case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))

@@ -21,6 +21,7 @@ import java.util.UUID
 
 import models.{ApprovalProcessStatusChange, PageReview, ProcessReview}
 import play.api.libs.json.{JsObject, JsValue, Json}
+import utils.Constants._
 
 object ExamplePayloads {
 
@@ -91,36 +92,32 @@ object ExamplePayloads {
   val submittedDateInMilliseconds: Long = dateSubmitted.atStartOfDay(ZoneOffset.UTC).toInstant.toEpochMilli
 
   val validApprovalProcessJson: JsValue = Json.parse(
-    """
+    s"""
       |{
       |  "meta" : {
       |    "id" : "oct90001",
       |    "title" : "This is the title",
-      |    "status" : "SubmittedFor2iReview",
-      |    "dateSubmitted" : {"$date": placeholder}
+      |    "status" : "$STATUS_SUBMITTED_FOR_2I_REVIEW",
+      |    "dateSubmitted" : {"$$date": $submittedDateInMilliseconds}
       |  },
-      |  "process" : processPlaceholder
+      |  "process" : $simpleValidProcessString
       |}
       """.stripMargin
-      .replace("placeholder", submittedDateInMilliseconds.toString)
-      .replace("processPlaceholder", simpleValidProcessString)
   )
 
   val expectedApprovalProcessJson: JsValue = Json.parse(
-    """
+    s"""
       |{
       |  "_id" : "oct90001",
       |  "meta" : {
       |    "id" : "oct90001",
       |    "title" : "This is the title",
-      |    "status" : "SubmittedFor2iReview",
-      |    "dateSubmitted" : {"$date": placeholder}
+      |    "status" : "$STATUS_SUBMITTED_FOR_2I_REVIEW",
+      |    "dateSubmitted" : {"$$date": $submittedDateInMilliseconds}
       |  },
-      |  "process" : processPlaceholder
+      |  "process" : $simpleValidProcessString
       |}
       """.stripMargin
-      .replace("placeholder", submittedDateInMilliseconds.toString)
-      .replace("processPlaceholder", simpleValidProcessString)
   )
 
   val validId = "oct90001"
@@ -133,17 +130,17 @@ object ExamplePayloads {
       "Telling HMRC about extra income",
       LocalDate.of(2020, 5, 10),
       List(
-        PageReview("id1", "how-did-you-earn-extra-income", "NotStarted"),
-        PageReview("id2", "sold-goods-or-services/did-you-only-sell-personal-possessions", "NotStarted"),
-        PageReview("id3", "sold-goods-or-services/have-you-made-a-profit-of-6000-or-more", "NotStarted"),
-        PageReview("id4", "sold-goods-or-services/have-you-made-1000-or-more", "NotStarted"),
-        PageReview("id5", "sold-goods-or-services/you-do-not-need-to-tell-hmrc", "NotStarted"),
-        PageReview("id6", "rent-a-property/do-you-receive-any-income", "NotStarted"),
-        PageReview("id7", "rent-a-property/have-you-rented-out-a-room", "NotStarted")
+        PageReview("id1", "how-did-you-earn-extra-income", INITIAL_PAGE_REVIEW_STATUS),
+        PageReview("id2", "sold-goods-or-services/did-you-only-sell-personal-possessions", INITIAL_PAGE_REVIEW_STATUS),
+        PageReview("id3", "sold-goods-or-services/have-you-made-a-profit-of-6000-or-more", INITIAL_PAGE_REVIEW_STATUS),
+        PageReview("id4", "sold-goods-or-services/have-you-made-1000-or-more", INITIAL_PAGE_REVIEW_STATUS),
+        PageReview("id5", "sold-goods-or-services/you-do-not-need-to-tell-hmrc", INITIAL_PAGE_REVIEW_STATUS),
+        PageReview("id6", "rent-a-property/do-you-receive-any-income", INITIAL_PAGE_REVIEW_STATUS),
+        PageReview("id7", "rent-a-property/have-you-rented-out-a-room", INITIAL_PAGE_REVIEW_STATUS)
       )
     )
 
-  val statusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", "SubmittedForFactCheck")
+  val statusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", STATUS_SUBMITTED_FOR_FACT_CHECK)
 
   val statusChangeJson: JsValue = Json.toJson(statusChangeInfo)
 

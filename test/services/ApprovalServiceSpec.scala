@@ -25,6 +25,7 @@ import models.errors._
 import models.ocelot.ProcessJson
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsArray, JsObject, Json}
+import utils.Constants._
 
 import scala.concurrent.Future
 
@@ -38,14 +39,15 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
 
     lazy val service: ApprovalService = new ApprovalService(mockApprovalRepository, mockApprovalProcessReviewRepository)
 
-    val processReview = ApprovalProcessReview(
-      UUID.randomUUID(),
-      "oct90001",
-      1,
-      "2i-review",
-      "title",
-      List()
-    )
+    val processReview: ApprovalProcessReview =
+      ApprovalProcessReview(
+        UUID.randomUUID(),
+        "oct90001",
+        1,
+        REVIEW_TYPE_2I,
+        "title",
+        List()
+      )
   }
 
   "Calling the getById method" when {
@@ -116,7 +118,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
           .save(processReview)
           .returns(Future.successful(Right(processReview.id)))
 
-        whenReady(service.save(validOnePageJson.as[JsObject], "2i-review", "SubmittedFor2iReview")) {
+        whenReady(service.save(validOnePageJson.as[JsObject], REVIEW_TYPE_2I, STATUS_SUBMITTED_FOR_2I_REVIEW)) {
           case Right(id) => id shouldBe validId
           case _ => fail
         }
@@ -141,7 +143,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
             .save(processReview)
             .returns(Future.successful(Left(Errors(DatabaseError))))
 
-          whenReady(service.save(validOnePageJson.as[JsObject], "2i-review", "SubmittedFor2iReview")) {
+          whenReady(service.save(validOnePageJson.as[JsObject], REVIEW_TYPE_2I, STATUS_SUBMITTED_FOR_2I_REVIEW)) {
             case result @ Left(_) => result shouldBe expected
             case _ => fail
           }
@@ -163,7 +165,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
             .getById("oct90001")
             .returns(Future.successful(Left(Errors(NotFoundError))))
 
-          whenReady(service.save(validOnePageJson.as[JsObject], "2i-review", "SubmittedFor2iReview")) {
+          whenReady(service.save(validOnePageJson.as[JsObject], REVIEW_TYPE_2I, STATUS_SUBMITTED_FOR_2I_REVIEW)) {
             case result @ Left(_) => result shouldBe expected
             case _ => fail
           }
@@ -183,7 +185,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
             .getById("oct90001")
             .returns(Future.successful(Left(Errors(DatabaseError))))
 
-          whenReady(service.save(validOnePageJson.as[JsObject], "2iReview", "SubmittedFor2iReview")) {
+          whenReady(service.save(validOnePageJson.as[JsObject], REVIEW_TYPE_2I, STATUS_SUBMITTED_FOR_2I_REVIEW)) {
             case result @ Left(_) => result shouldBe expected
             case _ => fail
           }
@@ -197,13 +199,13 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
           .update(approvalProcess)
           .never()
 
-        service.save(invalidProcess, "2i-review", "SubmittedFor2iReview")
+        service.save(invalidProcess, REVIEW_TYPE_2I, STATUS_SUBMITTED_FOR_2I_REVIEW)
       }
 
       "return a bad request error" in new Test {
         val expected: RequestOutcome[String] = Left(Errors(BadRequestError))
 
-        whenReady(service.save(invalidProcess, "2i-review", "SubmittedFor2iReview")) {
+        whenReady(service.save(invalidProcess, REVIEW_TYPE_2I, STATUS_SUBMITTED_FOR_2I_REVIEW)) {
           case result @ Left(_) => result shouldBe expected
           case _ => fail
         }
@@ -219,7 +221,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
           .update(approvalProcess)
           .returns(Future.successful(repositoryResponse))
 
-        whenReady(service.save(validOnePageJson.as[JsObject], "2i-review", "SubmittedFor2iReview")) {
+        whenReady(service.save(validOnePageJson.as[JsObject], REVIEW_TYPE_2I, STATUS_SUBMITTED_FOR_2I_REVIEW)) {
           case result @ Left(_) => result shouldBe expected
           case _ => fail
         }

@@ -21,6 +21,7 @@ import models.errors.{Errors, InternalServiceError, NotFoundError}
 import models.{ApprovalProcessStatusChange, PageReview, ProcessReview, RequestOutcome}
 import play.api.Logger
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
+import utils.Constants._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -35,7 +36,7 @@ class ReviewService @Inject() (repository: ApprovalRepository, reviewRepository:
       case Left(Errors(NotFoundError :: Nil)) => Future.successful(Left(Errors(NotFoundError)))
       case Left(_) => Future.successful(Left(Errors(InternalServiceError)))
       case Right(process) =>
-        reviewRepository.getByIdVersionAndType(id, process.version, "2i-review") map {
+        reviewRepository.getByIdVersionAndType(id, process.version, REVIEW_TYPE_2I) map {
           case Left(Errors(NotFoundError :: Nil)) => Left(Errors(NotFoundError))
           case Left(_) => Left(Errors(InternalServiceError))
           case Right(info) =>

@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package models
+package utils
 
-import java.time.{LocalDate, LocalDateTime}
+object Constants {
+  val REVIEW_TYPE_2I: String = "2i-review"
+  val REVIEW_TYPE_FACT_CHECK: String = "fact-check"
+  val INITIAL_PAGE_REVIEW_STATUS: String = "NotStarted"
+  val REVIEW_COMPLETE_STATUS: String = "Complete"
+  val STATUS_PUBLISHED: String = "Published"
+  val STATUS_SUBMITTED_FOR_2I_REVIEW: String = "SubmittedFor2iReview"
+  val STATUS_SUBMITTED_FOR_FACT_CHECK: String = "SubmittedForFactCheck"
+  val STATUS_WITH_DESIGNER_FOR_UPDATE: String = "WithDesignerForUpdate"
+  val STATUS_APPROVED_FOR_PUBLISHING: String = "ApprovedForPublishing"
 
-import utils.Constants._
-
-case class ApprovalProcessMeta(
-    id: String,
-    title: String,
-    status: String = STATUS_SUBMITTED_FOR_2I_REVIEW,
-    dateSubmitted: LocalDate = LocalDate.now(),
-    lastModified: LocalDateTime = LocalDateTime.now()
-)
+}

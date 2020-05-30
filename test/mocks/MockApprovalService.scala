@@ -21,6 +21,7 @@ import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsArray, JsObject}
 import services.ApprovalService
+import utils.Constants._
 
 import scala.concurrent.Future
 
@@ -35,7 +36,11 @@ trait MockApprovalService extends MockFactory {
         .expects(id)
     }
 
-    def save(process: JsObject, reviewType: String = "2i-review", status: String = "SubmittedFor2iReview"): CallHandler[Future[RequestOutcome[String]]] = {
+    def save(
+        process: JsObject,
+        reviewType: String = REVIEW_TYPE_2I,
+        status: String = STATUS_SUBMITTED_FOR_2I_REVIEW
+    ): CallHandler[Future[RequestOutcome[String]]] = {
       (mockApprovalService
         .save(_: JsObject, _: String, _: String))
         .expects(process, reviewType, status)

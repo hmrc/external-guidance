@@ -22,6 +22,7 @@ import models.{ApprovalProcessReview, RequestOutcome}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import repositories.ApprovalProcessReviewRepository
+import utils.Constants._
 
 import scala.concurrent.Future
 
@@ -37,7 +38,7 @@ trait MockApprovalProcessReviewRepository extends MockFactory {
         .expects(*)
     }
 
-    def getByIdVersionAndType(id: String, version: Int = 1, reviewType: String = "2i-review"): CallHandler[Future[RequestOutcome[ApprovalProcessReview]]] = {
+    def getByIdVersionAndType(id: String, version: Int = 1, reviewType: String = REVIEW_TYPE_2I): CallHandler[Future[RequestOutcome[ApprovalProcessReview]]] = {
       (mockApprovalProcessReviewRepository
         .getByIdVersionAndType(_: String, _: Int, _: String))
         .expects(id, version, reviewType)
