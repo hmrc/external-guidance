@@ -32,6 +32,7 @@ trait ReviewData {
       UUID.randomUUID(),
       validProcessIdForReview,
       1,
+      REVIEW_TYPE_2I,
       "Telling HMRC about extra income",
       LocalDate.of(2020, 5, 10),
       List(

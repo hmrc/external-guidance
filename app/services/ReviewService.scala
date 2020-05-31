@@ -41,7 +41,7 @@ class ReviewService @Inject() (repository: ApprovalRepository, reviewRepository:
           case Left(_) => Left(Errors(InternalServiceError))
           case Right(info) =>
             val pages: List[PageReview] = info.pages.map(p => PageReview(p.id, p.pageUrl, p.status))
-            Right(ProcessReview(info.id, info.ocelotId, info.version, info.title, info.lastUpdated, pages))
+            Right(ProcessReview(info.id, info.ocelotId, info.version, info.reviewType, info.title, info.lastUpdated, pages))
         }
     }
   }
