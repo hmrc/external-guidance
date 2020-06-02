@@ -40,7 +40,7 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
     }
   }
 
-  def approvalReviewComplete(id: String): Action[JsValue] = Action.async(parse.json) { request =>
+  def approval2iReviewComplete(id: String): Action[JsValue] = Action.async(parse.json) { request =>
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
       reviewService.changeStatus(id, statusChangeInfo).map {
         case Right(_) => NoContent

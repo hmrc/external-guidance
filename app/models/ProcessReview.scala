@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package config
+package models
 
-import com.google.inject.AbstractModule
-import repositories._
+import java.time.LocalDate
+import java.util.UUID
 
-class Module extends AbstractModule {
+import play.api.libs.json.{Json, OFormat}
 
-  override def configure(): Unit = {
-    bind(classOf[PublishedRepository]).to(classOf[PublishedRepositoryImpl])
-    bind(classOf[ScratchRepository]).to(classOf[ScratchRepositoryImpl])
-    bind(classOf[ApprovalRepository]).to(classOf[ApprovalRepositoryImpl])
-    bind(classOf[ApprovalProcessReviewRepository]).to(classOf[ApprovalProcessReviewRepositoryImpl])
-  }
+case class ProcessReview(id: UUID, ocelotId: String, version: Int, reviewType: String, title: String, lastUpdated: LocalDate, pages: List[PageReview])
+
+object ProcessReview {
+  implicit val formats: OFormat[ProcessReview] = Json.format[ProcessReview]
 }

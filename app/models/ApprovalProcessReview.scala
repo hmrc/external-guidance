@@ -16,12 +16,18 @@
 
 package models
 
-import java.time.LocalDate
+import java.time.{LocalDate, LocalDateTime}
+import java.util.UUID
 
-import play.api.libs.json.{Json, OFormat}
-
-case class ApprovalProcessReview(id: String, title: String, lastUpdated: LocalDate, pages: List[PageReview])
-
-object ApprovalProcessReview {
-  implicit val formats: OFormat[ApprovalProcessReview] = Json.format[ApprovalProcessReview]
-}
+case class ApprovalProcessReview(
+    id: UUID,
+    ocelotId: String,
+    version: Int,
+    reviewType: String,
+    title: String,
+    pages: List[ApprovalProcessPageReview],
+    lastUpdated: LocalDate = LocalDate.now(),
+    result: String = "",
+    completionDate: Option[LocalDateTime] = Option.empty[LocalDateTime],
+    completionUser: Option[String] = Option.empty[String]
+)

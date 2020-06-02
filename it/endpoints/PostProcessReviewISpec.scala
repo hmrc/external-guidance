@@ -23,6 +23,7 @@ import play.api.libs.json.{JsObject, JsValue}
 import play.api.libs.ws.WSResponse
 import stubs.AuditStub
 import support.IntegrationSpec
+import utils.Constants._
 
 class PostProcessReviewISpec extends IntegrationSpec {
 
@@ -57,7 +58,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
       val list: List[ApprovalProcessSummary] = response.body[JsValue].as[List[ApprovalProcessSummary]]
       val updatedEntry = list.find(p => p.id == id)
       updatedEntry shouldBe 'defined
-      updatedEntry.get.status shouldBe "SubmittedForFactCheck"
+      updatedEntry.get.status shouldBe StatusSubmittedForFactCheck
     }
 
   }

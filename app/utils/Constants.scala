@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package config
+package utils
 
-import com.google.inject.AbstractModule
-import repositories._
+object Constants {
+  val ReviewType2i: String = "2i-review"
+  val ReviewTypeFactCheck: String = "fact-check"
+  val InitialPageReviewStatus: String = "NotStarted"
+  val ReviewCompleteStatus: String = "Complete"
+  val StatusPublished: String = "Published"
+  val StatusSubmittedFor2iReview: String = "SubmittedFor2iReview"
+  val StatusSubmittedForFactCheck: String = "SubmittedForFactCheck"
+  val StatusWithDesignerForUpdate: String = "WithDesignerForUpdate"
+  val StatusApprovedForPublishing: String = "ApprovedForPublishing"
 
-class Module extends AbstractModule {
-
-  override def configure(): Unit = {
-    bind(classOf[PublishedRepository]).to(classOf[PublishedRepositoryImpl])
-    bind(classOf[ScratchRepository]).to(classOf[ScratchRepositoryImpl])
-    bind(classOf[ApprovalRepository]).to(classOf[ApprovalRepositoryImpl])
-    bind(classOf[ApprovalProcessReviewRepository]).to(classOf[ApprovalProcessReviewRepositoryImpl])
-  }
 }

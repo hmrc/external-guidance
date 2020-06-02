@@ -17,35 +17,114 @@
 package services
 
 import base.UnitSpec
-import data.ReviewData._
-import mocks.MockApprovalRepository
-import models.RequestOutcome
+import data.ReviewData
+import mocks.{MockApprovalProcessReviewRepository, MockApprovalRepository}
 import models.errors._
+import models.{ApprovalProcessJson, RequestOutcome}
 import org.scalamock.scalatest.MockFactory
 
 import scala.concurrent.Future
 
-class ReviewServiceSpec extends UnitSpec with MockFactory {
+class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with ApprovalProcessJson {
 
-  private trait Test extends MockApprovalRepository {
+  private trait Test extends MockApprovalRepository with MockApprovalProcessReviewRepository {
 
-    lazy val service: ReviewService = new ReviewService(mockApprovalRepository)
+    lazy val service: ReviewService = new ReviewService(mockApprovalRepository, mockApprovalProcessReviewRepository)
   }
 
   "Calling the approval2iReviewInfo method" when {
     "there are entries to return" should {
       "return an ApprovalProcessReview object containing appropriate page info" in new Test {
 
+        MockApprovalRepository
+          .getById(validId)
+          .returns(Future.successful(Right(approvalProcess)))
+
+        MockApprovalProcessReviewRepository
+          .getByIdVersionAndType(validId)
+          .returns(Future.successful(Right(approvalProcessReview)))
+
         whenReady(service.approval2iReviewInfo(validId)) {
           case Right(entry) =>
-            entry.id shouldBe processReviewInfo.id
-            entry.title shouldBe processReviewInfo.title
-            entry.pages.size shouldBe processReviewInfo.pages.size
+            entry.ocelotId shouldBe validId
+            entry.title shouldBe approvalProcessReview.title
+            entry.pages.size shouldBe 1
           case _ => fail
         }
       }
     }
 
+    "the process cannot be found" should {
+      "return a NotFoundError" in new Test {
+
+        val expected: RequestOutcome[String] = Left(Errors(NotFoundError))
+
+        MockApprovalRepository
+          .getById(validId)
+          .returns(Future.successful(Left(Errors(NotFoundError))))
+
+        whenReady(service.approval2iReviewInfo(validId)) {
+          case result @ Left(_) => result shouldBe expected
+          case _ => fail
+        }
+      }
+    }
+
+    "there is an error retrieving the process" should {
+      "return an InternalServiceError" in new Test {
+
+        val expected: RequestOutcome[String] = Left(Errors(InternalServiceError))
+
+        MockApprovalRepository
+          .getById(validId)
+          .returns(Future.successful(Left(Errors(DatabaseError))))
+
+        whenReady(service.approval2iReviewInfo(validId)) {
+          case result @ Left(_) => result shouldBe expected
+          case _ => fail
+        }
+      }
+    }
+
+    "the review info cannot be found" should {
+      "return a NotFoundError" in new Test {
+
+        val expected: RequestOutcome[String] = Left(Errors(NotFoundError))
+
+        MockApprovalRepository
+          .getById(validId)
+          .returns(Future.successful(Right(approvalProcess)))
+
+        MockApprovalProcessReviewRepository
+          .getByIdVersionAndType(validId)
+          .returns(Future.successful(Left(Errors(NotFoundError))))
+
+        whenReady(service.approval2iReviewInfo(validId)) {
+          case result @ Left(_) => result shouldBe expected
+          case _ => fail
+        }
+      }
+    }
+
+    "there is a database error when retrieving the review info" should {
+      "return an InternalServiceError" in new Test {
+
+        val expected: RequestOutcome[String] = Left(Errors(InternalServiceError))
+
+        MockApprovalRepository
+          .getById(validId)
+          .returns(Future.successful(Right(approvalProcess)))
+
+        MockApprovalProcessReviewRepository
+          .getByIdVersionAndType(validId)
+          .returns(Future.successful(Left(Errors(DatabaseError))))
+
+        whenReady(service.approval2iReviewInfo(validId)) {
+          case result @ Left(_) => result shouldBe expected
+          case _ => fail
+        }
+      }
+    }
   }
 
   "Calling the changeStatus method" when {

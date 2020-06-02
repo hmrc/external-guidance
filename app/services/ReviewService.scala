@@ -16,40 +16,34 @@
 
 package services
 
-import java.time.LocalDate
-
 import javax.inject.{Inject, Singleton}
 import models.errors.{Errors, InternalServiceError, NotFoundError}
-import models.{ApprovalProcessReview, ApprovalProcessStatusChange, PageReview, RequestOutcome}
+import models.{ApprovalProcessStatusChange, PageReview, ProcessReview, RequestOutcome}
 import play.api.Logger
-import repositories.ApprovalRepository
+import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
+import utils.Constants._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ReviewService @Inject() (repository: ApprovalRepository) {
+class ReviewService @Inject() (repository: ApprovalRepository, reviewRepository: ApprovalProcessReviewRepository) {
 
   val logger: Logger = Logger(this.getClass)
 
-  def approval2iReviewInfo(id: String): Future[RequestOutcome[ApprovalProcessReview]] = {
-    def mockData(): ApprovalProcessReview = {
-      ApprovalProcessReview(
-        "oct90001",
-        "Telling HMRC about extra income",
-        LocalDate.of(2020, 5, 10),
-        List(
-          PageReview("id1", "how-did-you-earn-extra-income", "NotStarted"),
-          PageReview("id2", "sold-goods-or-services/did-you-only-sell-personal-possessions", "NotStarted"),
-          PageReview("id3", "sold-goods-or-services/have-you-made-a-profit-of-6000-or-more", "NotStarted"),
-          PageReview("id4", "sold-goods-or-services/have-you-made-1000-or-more", "NotStarted"),
-          PageReview("id5", "sold-goods-or-services/you-do-not-need-to-tell-hmrc", "NotStarted"),
-          PageReview("id6", "rent-a-property/do-you-receive-any-income", "NotStarted"),
-          PageReview("id7", "rent-a-property/have-you-rented-out-a-room", "NotStarted")
-        )
-      )
+  def approval2iReviewInfo(id: String): Future[RequestOutcome[ProcessReview]] = {
+    repository.getById(id) flatMap {
+      case Left(Errors(NotFoundError :: Nil)) => Future.successful(Left(Errors(NotFoundError)))
+      case Left(_) => Future.successful(Left(Errors(InternalServiceError)))
+      case Right(process) =>
+        reviewRepository.getByIdVersionAndType(id, process.version, ReviewType2i) map {
+          case Left(Errors(NotFoundError :: Nil)) => Left(Errors(NotFoundError))
+          case Left(_) => Left(Errors(InternalServiceError))
+          case Right(info) =>
+            val pages: List[PageReview] = info.pages.map(p => PageReview(p.id, p.pageUrl, p.status))
+            Right(ProcessReview(info.id, info.ocelotId, info.version, info.reviewType, info.title, info.lastUpdated, pages))
+        }
     }
-    Future(Right(mockData()))
   }
 
   def changeStatus(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] = {

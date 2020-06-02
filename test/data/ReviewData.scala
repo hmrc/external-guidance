@@ -17,31 +17,37 @@
 package data
 
 import java.time.LocalDate
+import java.util.UUID
 
-import models.{ApprovalProcessReview, ApprovalProcessStatusChange, PageReview}
+import models.{ApprovalProcessStatusChange, PageReview, ProcessReview}
 import play.api.libs.json.{JsObject, JsValue, Json}
+import utils.Constants._
 
-object ReviewData {
+trait ReviewData {
 
-  val validId = "oct90001"
+  val validProcessIdForReview = "oct90001"
 
-  val processReviewInfo: ApprovalProcessReview =
-    ApprovalProcessReview(
-      validId,
+  val processReviewInfo: ProcessReview =
+    ProcessReview(
+      UUID.randomUUID(),
+      validProcessIdForReview,
+      1,
+      ReviewType2i,
       "Telling HMRC about extra income",
       LocalDate.of(2020, 5, 10),
       List(
-        PageReview("id1", "how-did-you-earn-extra-income", "NotStarted"),
-        PageReview("id2", "sold-goods-or-services/did-you-only-sell-personal-possessions", "NotStarted"),
-        PageReview("id3", "sold-goods-or-services/have-you-made-a-profit-of-6000-or-more", "NotStarted"),
-        PageReview("id4", "sold-goods-or-services/have-you-made-1000-or-more", "NotStarted"),
-        PageReview("id5", "sold-goods-or-services/you-do-not-need-to-tell-hmrc", "NotStarted"),
-        PageReview("id6", "rent-a-property/do-you-receive-any-income", "NotStarted"),
-        PageReview("id7", "rent-a-property/have-you-rented-out-a-room", "NotStarted")
+        PageReview("id1", "how-did-you-earn-extra-income", InitialPageReviewStatus),
+        PageReview("id2", "sold-goods-or-services/did-you-only-sell-personal-possessions", InitialPageReviewStatus),
+        PageReview("id3", "sold-goods-or-services/have-you-made-a-profit-of-6000-or-more", InitialPageReviewStatus),
+        PageReview("id4", "sold-goods-or-services/have-you-made-1000-or-more", InitialPageReviewStatus),
+        PageReview("id5", "sold-goods-or-services/you-do-not-need-to-tell-hmrc", InitialPageReviewStatus),
+        PageReview("id6", "rent-a-property/do-you-receive-any-income", InitialPageReviewStatus),
+        PageReview("id7", "rent-a-property/have-you-rented-out-a-room", InitialPageReviewStatus)
       )
     )
+  val reviewInfoJson: JsObject = Json.toJson(processReviewInfo).as[JsObject]
 
-  val statusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", "SubmittedForFactCheck")
+  val statusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusSubmittedForFactCheck)
 
   val statusChangeJson: JsValue = Json.toJson(statusChangeInfo)
 

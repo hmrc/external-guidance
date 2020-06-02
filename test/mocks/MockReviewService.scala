@@ -16,7 +16,7 @@
 
 package mocks
 
-import models.{ApprovalProcessReview, ApprovalProcessStatusChange, RequestOutcome}
+import models.{ApprovalProcessStatusChange, ProcessReview, RequestOutcome}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import services.ReviewService
@@ -28,7 +28,7 @@ trait MockReviewService extends MockFactory {
 
   object MockReviewService {
 
-    def approval2iReviewInfo(id: String): CallHandler[Future[RequestOutcome[ApprovalProcessReview]]] = {
+    def approval2iReviewInfo(id: String): CallHandler[Future[RequestOutcome[ProcessReview]]] = {
       (mockReviewService
         .approval2iReviewInfo(_: String))
         .expects(id)

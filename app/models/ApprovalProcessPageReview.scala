@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package config
+package models
 
-import com.google.inject.AbstractModule
-import repositories._
+import java.time.LocalDateTime
 
-class Module extends AbstractModule {
+import utils.Constants
 
-  override def configure(): Unit = {
-    bind(classOf[PublishedRepository]).to(classOf[PublishedRepositoryImpl])
-    bind(classOf[ScratchRepository]).to(classOf[ScratchRepositoryImpl])
-    bind(classOf[ApprovalRepository]).to(classOf[ApprovalRepositoryImpl])
-    bind(classOf[ApprovalProcessReviewRepository]).to(classOf[ApprovalProcessReviewRepositoryImpl])
-  }
-}
+case class ApprovalProcessPageReview(
+    id: String,
+    pageUrl: String,
+    result: String = "",
+    status: String = Constants.InitialPageReviewStatus,
+    comment: Option[String] = None,
+    updateDate: LocalDateTime = LocalDateTime.now(),
+    updateUser: String = ""
+)
