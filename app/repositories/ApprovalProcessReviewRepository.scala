@@ -72,7 +72,6 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
   def getByIdVersionAndType(id: String, version: Int, reviewType: String): Future[RequestOutcome[ApprovalProcessReview]] = {
 
     val selector = Json.obj("ocelotId" -> id, "version" -> version, "reviewType" -> reviewType)
-    val projection: Option[JsObject] = Option.empty[JsObject]
 
     collection
       .find[JsObject, JsObject](selector)
