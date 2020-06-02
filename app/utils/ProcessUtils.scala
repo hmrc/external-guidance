@@ -21,7 +21,7 @@ import java.util.UUID
 import models._
 import models.errors.{BadRequestError, Errors}
 import models.ocelot.Process
-import models.ocelot.stanzas.ValueStanza
+import models.ocelot.stanzas.PageStanza
 import play.api.Logger
 import play.api.libs.json.{JsError, JsObject, JsSuccess}
 
@@ -56,16 +56,10 @@ object ProcessUtils {
 
   def extractPages(process: Process): List[ApprovalProcessPageReview] = {
 
-    def toPageReview(key: String, in: ValueStanza): List[ApprovalProcessPageReview] = {
-      in.values.collect {
-        case entry if entry.label == "PageUrl" => ApprovalProcessPageReview(key, entry.value)
-      }
-    }
-
     process.flow
-      .filter(p => p._2.isInstanceOf[ValueStanza])
-      .flatMap {
-        case (key, value) => toPageReview(key, value.asInstanceOf[ValueStanza])
+      .filter(p => p._2.isInstanceOf[PageStanza])
+      .map {
+        case (key, value) => ApprovalProcessPageReview(key, value.asInstanceOf[PageStanza].url)
       }
       .toList
 
