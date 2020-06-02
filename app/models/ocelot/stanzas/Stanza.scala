@@ -35,6 +35,7 @@ object Stanza {
         case "QuestionStanza" => JsSuccess(js.as[QuestionStanza], __)
         case "InstructionStanza" => JsSuccess(js.as[InstructionStanza], __)
         case "CalloutStanza" => JsSuccess(js.as[CalloutStanza], __)
+        case "PageStanza" => JsSuccess(js.as[PageStanza], __)
         case "ValueStanza" => JsSuccess(js.as[ValueStanza], __)
         case "EndStanza" => JsSuccess(EndStanza, __)
         case _ => JsError("Invalid Stanza type")

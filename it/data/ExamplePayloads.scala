@@ -40,14 +40,8 @@ object ExamplePayloads {
       |  "links": [],
       |  "flow": {
       |    "1": {
-      |      "type": "ValueStanza",
-      |      "values": [
-      |        {
-      |          "type": "scalar",
-      |          "label": "PageUrl",
-      |          "value": "/feeling-bad"
-      |        }
-      |      ],
+      |      "type": "PageStanza",
+      |      "url": "/feeling-bad",
       |      "next": ["3"],
       |      "stack": true
       |    },
