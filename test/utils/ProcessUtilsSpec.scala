@@ -25,7 +25,7 @@ class ProcessUtilsSpec extends UnitSpec with ProcessJson {
 
   val process: Process = prototypeJson.as[Process]
 
-  val processWithNoValueStanzas: Process = Json
+  val processWithNoPageStanzas: Process = Json
     .parse(
       """
       |{
@@ -42,70 +42,6 @@ class ProcessUtilsSpec extends UnitSpec with ProcessJson {
       |  "contacts": [],
       |  "links": [],
       |  "flow": {
-      |    "3": {
-      |      "type": "InstructionStanza",
-      |      "text": 1,
-      |      "next": [
-      |        "2"
-      |      ],
-      |      "stack": true
-      |    },
-      |    "2": {
-      |      "type": "InstructionStanza",
-      |      "text": 0,
-      |      "next": [
-      |        "end"
-      |      ],
-      |      "stack": true
-      |    },
-      |    "end": {
-      |      "type": "EndStanza"
-      |    }
-      |  },
-      |  "phrases": [
-      |    ["no - they don’t have a cup", "Welsh, no - they don’t have a cup"]
-      |  ]
-      |}
-    """.stripMargin
-    )
-    .as[Process]
-
-  val processWithValueStanzasAndMultipleUrls: Process = Json
-    .parse(
-      """
-      |{
-      |  "meta": {
-      |    "title": "Customer wants to make a cup of tea",
-      |    "id": "oct90001",
-      |    "ocelot": 1,
-      |    "lastAuthor": "000000",
-      |    "lastUpdate": 1500298931016,
-      |    "version": 4,
-      |    "filename": "oct90001.js"
-      |  },
-      |  "howto": [],
-      |  "contacts": [],
-      |  "links": [],
-      |  "flow": {
-      |    "26": {
-      |      "type": "ValueStanza",
-      |      "values": [
-      |        {
-      |          "type": "scalar",
-      |          "label": "PageUrl",
-      |          "value": "/rent/have-you-made-less-than-1000"
-      |        },
-      |        {
-      |          "type": "scalar",
-      |          "label": "PageUrl",
-      |          "value": "Telling HMRC about extra income"
-      |        }
-      |      ],
-      |      "next": [
-      |        "27"
-      |      ],
-      |      "stack": false
-      |    },
       |    "3": {
       |      "type": "InstructionStanza",
       |      "text": 1,
@@ -135,7 +71,7 @@ class ProcessUtilsSpec extends UnitSpec with ProcessJson {
     .as[Process]
 
   "Calling the extract Pages" when {
-    "the process contains ValueStanzas" should {
+    "the process contains PageStanzas" should {
 
       "return a list of pages" in {
 
@@ -144,19 +80,10 @@ class ProcessUtilsSpec extends UnitSpec with ProcessJson {
 
       }
     }
-    "the process contains ValueStanzas with multiple PageUrls" should {
 
-      "return a list of pages containing all urls" in {
-
-        val list = extractPages(processWithValueStanzasAndMultipleUrls)
-        list.size shouldBe 2
-
-      }
-    }
-
-    "the process does not contain ValueStanzas" should {
+    "the process does not contain PageStanzas" should {
       "return an empty list" in {
-        val list = extractPages(processWithNoValueStanzas)
+        val list = extractPages(processWithNoPageStanzas)
         list.size shouldBe 0
       }
     }
