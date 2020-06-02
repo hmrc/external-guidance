@@ -38,7 +38,7 @@ trait MockApprovalProcessReviewRepository extends MockFactory {
         .expects(*)
     }
 
-    def getByIdVersionAndType(id: String, version: Int = 1, reviewType: String = REVIEW_TYPE_2I): CallHandler[Future[RequestOutcome[ApprovalProcessReview]]] = {
+    def getByIdVersionAndType(id: String, version: Int = 1, reviewType: String = ReviewType2i): CallHandler[Future[RequestOutcome[ApprovalProcessReview]]] = {
       (mockApprovalProcessReviewRepository
         .getByIdVersionAndType(_: String, _: Int, _: String))
         .expects(id, version, reviewType)

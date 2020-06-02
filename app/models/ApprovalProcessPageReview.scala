@@ -18,11 +18,13 @@ package models
 
 import java.time.LocalDateTime
 
+import utils.Constants
+
 case class ApprovalProcessPageReview(
     id: String,
     pageUrl: String,
     result: String = "",
-    status: String = "NotStarted",
+    status: String = Constants.InitialPageReviewStatus,
     comment: Option[String] = None,
     updateDate: LocalDateTime = LocalDateTime.now(),
     updateUser: String = ""

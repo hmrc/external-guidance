@@ -36,7 +36,7 @@ class ReviewService @Inject() (repository: ApprovalRepository, reviewRepository:
       case Left(Errors(NotFoundError :: Nil)) => Future.successful(Left(Errors(NotFoundError)))
       case Left(_) => Future.successful(Left(Errors(InternalServiceError)))
       case Right(process) =>
-        reviewRepository.getByIdVersionAndType(id, process.version, REVIEW_TYPE_2I) map {
+        reviewRepository.getByIdVersionAndType(id, process.version, ReviewType2i) map {
           case Left(Errors(NotFoundError :: Nil)) => Left(Errors(NotFoundError))
           case Left(_) => Left(Errors(InternalServiceError))
           case Right(info) =>

@@ -17,14 +17,14 @@
 package utils
 
 object Constants {
-  val REVIEW_TYPE_2I: String = "2i-review"
-  val REVIEW_TYPE_FACT_CHECK: String = "fact-check"
-  val INITIAL_PAGE_REVIEW_STATUS: String = "NotStarted"
-  val REVIEW_COMPLETE_STATUS: String = "Complete"
-  val STATUS_PUBLISHED: String = "Published"
-  val STATUS_SUBMITTED_FOR_2I_REVIEW: String = "SubmittedFor2iReview"
-  val STATUS_SUBMITTED_FOR_FACT_CHECK: String = "SubmittedForFactCheck"
-  val STATUS_WITH_DESIGNER_FOR_UPDATE: String = "WithDesignerForUpdate"
-  val STATUS_APPROVED_FOR_PUBLISHING: String = "ApprovedForPublishing"
+  val ReviewType2i: String = "2i-review"
+  val ReviewTypeFactCheck: String = "fact-check"
+  val InitialPageReviewStatus: String = "NotStarted"
+  val ReviewCompleteStatus: String = "Complete"
+  val StatusPublished: String = "Published"
+  val StatusSubmittedFor2iReview: String = "SubmittedFor2iReview"
+  val StatusSubmittedForFactCheck: String = "SubmittedForFactCheck"
+  val StatusWithDesignerForUpdate: String = "WithDesignerForUpdate"
+  val StatusApprovedForPublishing: String = "ApprovedForPublishing"
 
 }

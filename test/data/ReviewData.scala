@@ -32,22 +32,22 @@ trait ReviewData {
       UUID.randomUUID(),
       validProcessIdForReview,
       1,
-      REVIEW_TYPE_2I,
+      ReviewType2i,
       "Telling HMRC about extra income",
       LocalDate.of(2020, 5, 10),
       List(
-        PageReview("id1", "how-did-you-earn-extra-income", INITIAL_PAGE_REVIEW_STATUS),
-        PageReview("id2", "sold-goods-or-services/did-you-only-sell-personal-possessions", INITIAL_PAGE_REVIEW_STATUS),
-        PageReview("id3", "sold-goods-or-services/have-you-made-a-profit-of-6000-or-more", INITIAL_PAGE_REVIEW_STATUS),
-        PageReview("id4", "sold-goods-or-services/have-you-made-1000-or-more", INITIAL_PAGE_REVIEW_STATUS),
-        PageReview("id5", "sold-goods-or-services/you-do-not-need-to-tell-hmrc", INITIAL_PAGE_REVIEW_STATUS),
-        PageReview("id6", "rent-a-property/do-you-receive-any-income", INITIAL_PAGE_REVIEW_STATUS),
-        PageReview("id7", "rent-a-property/have-you-rented-out-a-room", INITIAL_PAGE_REVIEW_STATUS)
+        PageReview("id1", "how-did-you-earn-extra-income", InitialPageReviewStatus),
+        PageReview("id2", "sold-goods-or-services/did-you-only-sell-personal-possessions", InitialPageReviewStatus),
+        PageReview("id3", "sold-goods-or-services/have-you-made-a-profit-of-6000-or-more", InitialPageReviewStatus),
+        PageReview("id4", "sold-goods-or-services/have-you-made-1000-or-more", InitialPageReviewStatus),
+        PageReview("id5", "sold-goods-or-services/you-do-not-need-to-tell-hmrc", InitialPageReviewStatus),
+        PageReview("id6", "rent-a-property/do-you-receive-any-income", InitialPageReviewStatus),
+        PageReview("id7", "rent-a-property/have-you-rented-out-a-room", InitialPageReviewStatus)
       )
     )
   val reviewInfoJson: JsObject = Json.toJson(processReviewInfo).as[JsObject]
 
-  val statusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", STATUS_SUBMITTED_FOR_FACT_CHECK)
+  val statusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusSubmittedForFactCheck)
 
   val statusChangeJson: JsValue = Json.toJson(statusChangeInfo)
 

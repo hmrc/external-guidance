@@ -44,7 +44,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
         UUID.randomUUID(),
         "oct90001",
         1,
-        REVIEW_TYPE_2I,
+        ReviewType2i,
         "title",
         List()
       )
@@ -118,7 +118,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
           .save(processReview)
           .returns(Future.successful(Right(processReview.id)))
 
-        whenReady(service.save(validOnePageJson.as[JsObject], REVIEW_TYPE_2I, STATUS_SUBMITTED_FOR_2I_REVIEW)) {
+        whenReady(service.save(validOnePageJson.as[JsObject], ReviewType2i, StatusSubmittedFor2iReview)) {
           case Right(id) => id shouldBe validId
           case _ => fail
         }
@@ -143,7 +143,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
             .save(processReview)
             .returns(Future.successful(Left(Errors(DatabaseError))))
 
-          whenReady(service.save(validOnePageJson.as[JsObject], REVIEW_TYPE_2I, STATUS_SUBMITTED_FOR_2I_REVIEW)) {
+          whenReady(service.save(validOnePageJson.as[JsObject], ReviewType2i, StatusSubmittedFor2iReview)) {
             case result @ Left(_) => result shouldBe expected
             case _ => fail
           }
@@ -165,7 +165,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
             .getById("oct90001")
             .returns(Future.successful(Left(Errors(NotFoundError))))
 
-          whenReady(service.save(validOnePageJson.as[JsObject], REVIEW_TYPE_2I, STATUS_SUBMITTED_FOR_2I_REVIEW)) {
+          whenReady(service.save(validOnePageJson.as[JsObject], ReviewType2i, StatusSubmittedFor2iReview)) {
             case result @ Left(_) => result shouldBe expected
             case _ => fail
           }
@@ -185,7 +185,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
             .getById("oct90001")
             .returns(Future.successful(Left(Errors(DatabaseError))))
 
-          whenReady(service.save(validOnePageJson.as[JsObject], REVIEW_TYPE_2I, STATUS_SUBMITTED_FOR_2I_REVIEW)) {
+          whenReady(service.save(validOnePageJson.as[JsObject], ReviewType2i, StatusSubmittedFor2iReview)) {
             case result @ Left(_) => result shouldBe expected
             case _ => fail
           }
@@ -199,13 +199,13 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
           .update(approvalProcess)
           .never()
 
-        service.save(invalidProcess, REVIEW_TYPE_2I, STATUS_SUBMITTED_FOR_2I_REVIEW)
+        service.save(invalidProcess, ReviewType2i, StatusSubmittedFor2iReview)
       }
 
       "return a bad request error" in new Test {
         val expected: RequestOutcome[String] = Left(Errors(BadRequestError))
 
-        whenReady(service.save(invalidProcess, REVIEW_TYPE_2I, STATUS_SUBMITTED_FOR_2I_REVIEW)) {
+        whenReady(service.save(invalidProcess, ReviewType2i, StatusSubmittedFor2iReview)) {
           case result @ Left(_) => result shouldBe expected
           case _ => fail
         }
@@ -221,7 +221,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
           .update(approvalProcess)
           .returns(Future.successful(repositoryResponse))
 
-        whenReady(service.save(validOnePageJson.as[JsObject], REVIEW_TYPE_2I, STATUS_SUBMITTED_FOR_2I_REVIEW)) {
+        whenReady(service.save(validOnePageJson.as[JsObject], ReviewType2i, StatusSubmittedFor2iReview)) {
           case result @ Left(_) => result shouldBe expected
           case _ => fail
         }

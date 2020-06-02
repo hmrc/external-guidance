@@ -68,7 +68,7 @@ class ApprovalService @Inject() (repository: ApprovalRepository, reviewRepositor
   def getById(id: String): Future[RequestOutcome[JsObject]] = {
 
     repository.getById(id) map {
-      case error @ Left(Errors(NotFoundError :: Nil)) => Left(Errors(NotFoundError))
+      case Left(Errors(NotFoundError :: Nil)) => Left(Errors(NotFoundError))
       case Left(_) => Left(Errors(InternalServiceError))
       case Right(result) => Right(result.process)
     }

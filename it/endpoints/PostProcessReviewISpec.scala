@@ -58,7 +58,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
       val list: List[ApprovalProcessSummary] = response.body[JsValue].as[List[ApprovalProcessSummary]]
       val updatedEntry = list.find(p => p.id == id)
       updatedEntry shouldBe 'defined
-      updatedEntry.get.status shouldBe STATUS_SUBMITTED_FOR_FACT_CHECK
+      updatedEntry.get.status shouldBe StatusSubmittedForFactCheck
     }
 
   }

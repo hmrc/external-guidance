@@ -29,11 +29,11 @@ trait ApprovalProcessJson {
   val submittedDateInMilliseconds: Long = dateSubmitted.atStartOfDay(ZoneOffset.UTC).toInstant.toEpochMilli
 
   val approvalProcessMeta: ApprovalProcessMeta =
-    ApprovalProcessMeta(validId, "This is the title", STATUS_SUBMITTED_FOR_2I_REVIEW, dateSubmitted, dateSubmitted.atStartOfDay())
+    ApprovalProcessMeta(validId, "This is the title", StatusSubmittedFor2iReview, dateSubmitted, dateSubmitted.atStartOfDay())
   val approvalProcess: ApprovalProcess = ApprovalProcess(validId, approvalProcessMeta, Json.obj())
 
   val approvalProcessSummary: ApprovalProcessSummary =
-    ApprovalProcessSummary(validId, "This is the title", dateSubmitted, STATUS_SUBMITTED_FOR_2I_REVIEW)
+    ApprovalProcessSummary(validId, "This is the title", dateSubmitted, StatusSubmittedFor2iReview)
 
   val validApprovalProcessJson: JsObject = Json
     .parse(
@@ -43,7 +43,7 @@ trait ApprovalProcessJson {
       |  "meta" : {
       |    "id" : "$validId",
       |    "title" : "This is the title",
-      |    "status" : "$STATUS_SUBMITTED_FOR_2I_REVIEW",
+      |    "status" : "$StatusSubmittedFor2iReview",
       |    "dateSubmitted" : {"$$date": $submittedDateInMilliseconds},
       |    "lastModified" : {"$$date": $submittedDateInMilliseconds}
       |  },
@@ -62,7 +62,7 @@ trait ApprovalProcessJson {
         |  "meta" : {
         |    "id" : "$validId",
         |    "title" : "This is the title",
-        |    "status" : "$STATUS_SUBMITTED_FOR_2I_REVIEW",
+        |    "status" : "$StatusSubmittedFor2iReview",
         |    "dateSubmitted" : {"$$date": $submittedDateInMilliseconds},
         |    "lastModified" : {"$$date": $submittedDateInMilliseconds}
         |  },
@@ -80,42 +80,42 @@ trait ApprovalProcessJson {
       |    "id": "$validId",
       |    "title": "Telling HMRC about extra income",
       |    "lastUpdated": "2020-05-10",
-      |    "status" : "$STATUS_SUBMITTED_FOR_2I_REVIEW",
+      |    "status" : "$StatusSubmittedFor2iReview",
       |    "pages": [
       |        {
       |            "id": "id1",
       |            "title": "how-did-you-earn-extra-income",
-      |            "status": "$INITIAL_PAGE_REVIEW_STATUS"
+      |            "status": "$InitialPageReviewStatus"
       |        },
       |        {
       |            "id": "id2",
       |            "title": "sold-goods-or-services/did-you-only-sell-personal-possessions",
-      |            "status": "$INITIAL_PAGE_REVIEW_STATUS"
+      |            "status": "$InitialPageReviewStatus"
       |        },
       |        {
       |            "id": "id3",
       |            "title": "sold-goods-or-services/have-you-made-a-profit-of-6000-or-more",
-      |            "status": "$INITIAL_PAGE_REVIEW_STATUS"
+      |            "status": "$InitialPageReviewStatus"
       |        },
       |        {
       |            "id": "id4",
       |            "title": "sold-goods-or-services/have-you-made-1000-or-more",
-      |            "status": "$INITIAL_PAGE_REVIEW_STATUS"
+      |            "status": "$InitialPageReviewStatus"
       |        },
       |        {
       |            "id": "id5",
       |            "title": "sold-goods-or-services/you-do-not-need-to-tell-hmrc",
-      |            "status": "$INITIAL_PAGE_REVIEW_STATUS"
+      |            "status": "$InitialPageReviewStatus"
       |        },
       |        {
       |            "id": "id6",
       |            "title": "rent-a-property/do-you-receive-any-income",
-      |            "status": "$INITIAL_PAGE_REVIEW_STATUS"
+      |            "status": "$InitialPageReviewStatus"
       |        },
       |        {
       |            "id": "id7",
       |            "title": "rent-a-property/have-you-rented-out-a-room",
-      |            "status": "$INITIAL_PAGE_REVIEW_STATUS"
+      |            "status": "$InitialPageReviewStatus"
       |        }
       |    ]
       |}
@@ -129,7 +129,7 @@ trait ApprovalProcessJson {
     s"""
        |	"ocelotId" : "$validId",
        |	"version" : 5,
-       |	"reviewType" : "$REVIEW_TYPE_FACT_CHECK",
+       |	"reviewType" : "$ReviewTypeFactCheck",
        |	"title" : "Customer wants to make a cup of tea",
        |	"lastUpdated" : "2020-05-29",
        |	"result" : "",
@@ -140,7 +140,7 @@ trait ApprovalProcessJson {
        |			"id" : "1",
        |			"pageUrl" : "/feeling-bad",
        |			"result" : "",
-       |			"status" : "$INITIAL_PAGE_REVIEW_STATUS",
+       |			"status" : "$InitialPageReviewStatus",
        |			"comment" : null,
        |			"updateDate" : {"$$date":1590760487000},
        |			"updateUser" : ""
@@ -172,11 +172,11 @@ trait ApprovalProcessJson {
       UUID.randomUUID(),
       validId,
       1,
-      REVIEW_TYPE_2I,
+      ReviewType2i,
       "Title",
       List(ApprovalProcessPageReview("id", "url")),
       LocalDate.now(),
-      REVIEW_COMPLETE_STATUS,
+      ReviewCompleteStatus,
       Some(LocalDateTime.now())
     )
 }

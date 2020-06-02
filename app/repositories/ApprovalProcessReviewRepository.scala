@@ -75,7 +75,7 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
     val projection: Option[JsObject] = Option.empty[JsObject]
 
     collection
-      .find(selector, projection)
+      .find[JsObject, JsObject](selector)
       .one[ApprovalProcessReview]
       .map {
         case Some(review) => Right(review)
