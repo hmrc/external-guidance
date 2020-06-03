@@ -69,7 +69,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
 
     "the new status is published" should {
 
-      val statusChangePublished = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
+      val statusChangePublished = ApprovalProcessStatusChange("user id", "user name", StatusApprovedForPublishing)
       val statusChangePublishedJson: JsValue = Json.toJson(statusChangePublished)
 
       lazy val response: WSResponse = {
