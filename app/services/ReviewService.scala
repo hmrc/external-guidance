@@ -46,6 +46,23 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
     }
   }
 
+  def approval2iReviewPageInfo(id: String, pageUrl: String): Future[RequestOutcome[PageReview]] = {
+    repository.getById(id) flatMap {
+      case Left(Errors(NotFoundError :: Nil)) => Future.successful(Left(Errors(NotFoundError)))
+      case Left(_) => Future.successful(Left(Errors(InternalServiceError)))
+      case Right(process) =>
+        reviewRepository.getByIdVersionAndType(id, process.version, ReviewType2i) map {
+          case Left(Errors(NotFoundError :: Nil)) => Left(Errors(NotFoundError))
+          case Left(_) => Left(Errors(InternalServiceError))
+          case Right(info) =>
+            info.pages.find(p => p.pageUrl == pageUrl) match {
+              case Some(page) => Right(PageReview(page.id, page.pageUrl, page.result))
+              case _ => Left(Errors(NotFoundError))
+            }
+        }
+    }
+  }
+
   def changeStatus(id: String, currentStatus: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] = {
 
     def getContentToUpdate: Future[Option[ApprovalProcess]] = {

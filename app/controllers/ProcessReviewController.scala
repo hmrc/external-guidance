@@ -56,4 +56,14 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
     }
   }
 
+  def approval2iReviewPageInfo(id: String, pageUrl: String): Action[AnyContent] = Action.async { _ =>
+    reviewService.approval2iReviewPageInfo(id, pageUrl).map {
+      case Right(data) => Ok(Json.toJson(data).as[JsObject])
+      case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
+      case Left(Errors(StaleDataError :: Nil)) => NotFound(Json.toJson(StaleDataError))
+      case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
+      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+    }
+  }
+
 }

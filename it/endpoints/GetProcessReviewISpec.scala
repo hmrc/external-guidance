@@ -24,18 +24,19 @@ import support.IntegrationSpec
 
 class GetProcessReviewISpec extends IntegrationSpec {
 
+  def populateDatabase(processToSave: JsValue): String = {
+    lazy val request = buildRequest("/external-guidance/approval")
+
+    val result = await(request.post(processToSave))
+    val json = result.body[JsValue].as[JsObject]
+    (json \ "id").as[String]
+  }
+
+  val processToSave: JsValue = ExamplePayloads.simpleValidProcess
+  lazy val id: String = populateDatabase(processToSave)
+
   "Calling the approval 2i Review endpoint" should {
 
-    def populateDatabase(processToSave: JsValue): String = {
-      lazy val request = buildRequest("/external-guidance/approval")
-
-      val result = await(request.post(processToSave))
-      val json = result.body[JsValue].as[JsObject]
-      (json \ "id").as[String]
-    }
-
-    val processToSave: JsValue = ExamplePayloads.simpleValidProcess
-    lazy val id = populateDatabase(processToSave)
     lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-review")
     lazy val response: WSResponse = {
       AuditStub.audit()
@@ -50,7 +51,33 @@ class GetProcessReviewISpec extends IntegrationSpec {
       response.contentType shouldBe ContentTypes.JSON
     }
 
-    "return the corresponding list as JSON in the response" in {
+    "return the corresponding data as JSON in the response" in {
+      val json = response.body[JsValue]
+      json match {
+        case JsObject(_) => succeed
+        case _ => fail()
+      }
+    }
+  }
+
+  "Calling the approval 2i Review Page Info endpoint" should {
+
+    val pageUrl: String = "/feeling-bad"
+    lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-review/$pageUrl")
+    lazy val response: WSResponse = {
+      AuditStub.audit()
+      await(request.get())
+    }
+
+    "return a OK status code" in {
+      response.status shouldBe Status.OK
+    }
+
+    "return content as JSON" in {
+      response.contentType shouldBe ContentTypes.JSON
+    }
+
+    "return the corresponding data as JSON in the response" in {
       val json = response.body[JsValue]
       json match {
         case JsObject(_) => succeed

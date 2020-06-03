@@ -318,3 +318,63 @@ The `status` is currently one of the following options:
     </tbody>
 </table>
 
+### `GET: /external-guidance/approval/:id/2i-review/:pageUrl`
+
+#### `id` Parameter
+
+The `id` parameter is an ocelot formatted string e.g. `oct90005`
+
+The `pageUrl` parameter is the page in the process being review e.g. `/page_2`
+
+#### Success Response
+
+**HTTP Status**: `200`
+
+**Response Body**
+
+Represents the current review result of the page being 2i reviewed in JSON format.
+```
+{
+ "id": "<internal id for identification>",
+ "title": "<partial page url>",
+ "result": "<value indicates pass / fail>"   
+}
+```
+
+#### Error Responses
+
+**Error response format**
+```
+{
+   "code": "ERROR_CODE",
+   "message": "Human readable error message"
+}
+```
+
+<table>
+    <thead>
+        <tr>
+            <th>HTTP Status</th>
+            <th>Error Code</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><pre>400</pre></td>
+            <td><pre>BAD_REQUEST</pre></td>
+        </tr>
+        <tr>
+            <td><pre>404</pre></td>
+            <td><pre>NOT_FOUND</pre></td>
+        </tr>
+        <tr>
+            <td><pre>404</pre></td>
+            <td><pre>STALE_DATA_REQUEST</pre></td>
+        </tr>
+        <tr>
+            <td><pre>500</pre></td>
+            <td><pre>INTERNAL_SERVER_ERROR</pre></td>
+        </tr>
+    </tbody>
+</table>
+
