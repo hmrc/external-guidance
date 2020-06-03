@@ -48,6 +48,7 @@ trait ReviewData {
   val reviewInfoJson: JsObject = Json.toJson(processReviewInfo).as[JsObject]
 
   val statusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusSubmittedForFactCheck)
+  val statusChange2iReviewInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusWithDesignerForUpdate)
 
   val statusChangeJson: JsValue = Json.toJson(statusChangeInfo)
 

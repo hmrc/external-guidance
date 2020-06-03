@@ -16,23 +16,28 @@
 
 package repositories.formatters
 
-import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
-
-import models.PublishedProcess
+import java.time.LocalDateTime
 
 import base.UnitSpec
+import models.PublishedProcess
+import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
+import repositories.formatters.PublishedProcessFormatter.mongoFormat
 
 class PublishedProcessFormatterSpec extends UnitSpec {
 
   private val process: JsObject = Json.obj()
   private val id: String = "ext90002"
 
-  private val publishedProcess: PublishedProcess = PublishedProcess(id, process)
+  private val datePublished = LocalDateTime.of(2020, 1, 1, 12, 0, 1)
+
+  private val publishedProcess: PublishedProcess = PublishedProcess(id, 1, datePublished, process)
 
   private val json = Json.parse(
     s"""
        |{
        | "_id": "$id",
+       | "version": 1,
+       | "datePublished": "2020-01-01T12:00:01",
        | "process": {}
        |}
        |""".stripMargin
@@ -44,7 +49,7 @@ class PublishedProcessFormatterSpec extends UnitSpec {
 
     "Result in a successful conversion for valid JSON" in {
 
-      json.validate[PublishedProcess](PublishedProcessFormatter.mongoFormat) match {
+      json.validate[PublishedProcess] match {
         case JsSuccess(result, _) if result == publishedProcess => succeed
         case JsSuccess(_, _) => fail("Deserializing valid JSON did not create correct process")
         case _ => fail("Unable to parse valid Json")
@@ -53,7 +58,7 @@ class PublishedProcessFormatterSpec extends UnitSpec {
 
     "Result in a failure when for invalid JSON" in {
 
-      invalidJson.validate[PublishedProcess](PublishedProcessFormatter.mongoFormat) match {
+      invalidJson.validate[PublishedProcess] match {
         case e: JsError => succeed
         case _ => fail("Invalid JSON payload should not have been successfully deserialized")
       }

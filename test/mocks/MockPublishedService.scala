@@ -16,15 +16,13 @@
 
 package mocks
 
-import scala.concurrent.Future
-
-import play.api.libs.json.JsObject
-
-import models.RequestOutcome
-import services.PublishedService
-
+import models.{PublishedProcess, RequestOutcome}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
+import play.api.libs.json.JsObject
+import services.PublishedService
+
+import scala.concurrent.Future
 
 trait MockPublishedService extends MockFactory {
 
@@ -32,12 +30,17 @@ trait MockPublishedService extends MockFactory {
 
   object MockPublishedService {
 
-    def getById(id: String): CallHandler[Future[RequestOutcome[JsObject]]] = {
+    def getById(id: String): CallHandler[Future[RequestOutcome[PublishedProcess]]] = {
       (mockPublishedService
         .getById(_: String))
         .expects(id)
     }
 
+    def save(id: String, jsonProcess: JsObject): CallHandler[Future[RequestOutcome[String]]] = {
+      (mockPublishedService
+        .save(_: String, _: JsObject))
+        .expects(id, jsonProcess)
+    }
   }
 
 }

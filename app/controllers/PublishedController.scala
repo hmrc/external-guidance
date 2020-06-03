@@ -17,15 +17,11 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import play.api.libs.json.Json
-
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
-
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
-
+import play.api.libs.json.Json
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.PublishedService
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -35,9 +31,9 @@ class PublishedController @Inject() (publishedService: PublishedService, cc: Con
   def get(id: String): Action[AnyContent] = Action.async {
 
     publishedService.getById(id).map {
-      case Right(process) => Ok(process)
+      case Right(process) => Ok(process.process)
       case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
-      case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson((NotFoundError)))
+      case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
     }
   }

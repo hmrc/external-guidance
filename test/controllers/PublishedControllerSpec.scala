@@ -16,19 +16,23 @@
 
 package controllers
 
+import java.time.LocalDateTime
+
 import base.UnitSpec
 import mocks.MockPublishedService
+import models.PublishedProcess
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
+import models.ocelot.ProcessJson
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.ContentTypes
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
+import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.api.mvc.AnyContentAsEmpty
 
 import scala.concurrent.Future
 
-class PublishedControllerSpec extends UnitSpec with GuiceOneAppPerSuite {
+class PublishedControllerSpec extends UnitSpec with GuiceOneAppPerSuite with ProcessJson {
 
   private trait Test extends MockPublishedService {
 
@@ -45,11 +49,12 @@ class PublishedControllerSpec extends UnitSpec with GuiceOneAppPerSuite {
 
       trait ValidGetTest extends Test {
 
-        val expectedProcess: JsObject = Json.obj()
+        val expectedProcess: JsObject = validOnePageJson.as[JsObject]
+        val returnedPublishedProcess: PublishedProcess = PublishedProcess(validId, 1, LocalDateTime.now(), validOnePageJson.as[JsObject])
 
         MockPublishedService
           .getById(validId)
-          .returns(Future.successful(Right(expectedProcess)))
+          .returns(Future.successful(Right(returnedPublishedProcess)))
 
       }
 

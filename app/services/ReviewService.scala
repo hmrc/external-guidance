@@ -17,8 +17,8 @@
 package services
 
 import javax.inject.{Inject, Singleton}
-import models.errors.{Errors, InternalServiceError, NotFoundError}
-import models.{ApprovalProcessStatusChange, PageReview, ProcessReview, RequestOutcome}
+import models._
+import models.errors.{DatabaseError, Errors, InternalServiceError, NotFoundError}
 import play.api.Logger
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
 import utils.Constants._
@@ -27,7 +27,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ReviewService @Inject() (repository: ApprovalRepository, reviewRepository: ApprovalProcessReviewRepository) {
+class ReviewService @Inject() (publishedService: PublishedService, repository: ApprovalRepository, reviewRepository: ApprovalProcessReviewRepository) {
 
   val logger: Logger = Logger(this.getClass)
 
@@ -46,11 +46,37 @@ class ReviewService @Inject() (repository: ApprovalRepository, reviewRepository:
     }
   }
 
-  def changeStatus(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] = {
-    repository.changeStatus(id, info) map {
-      case error @ Left(Errors(NotFoundError :: Nil)) => error
-      case Left(_) => Left(Errors(InternalServiceError))
-      case result => result
+  def changeStatus(id: String, currentStatus: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] = {
+
+    def getContentToUpdate: Future[Option[ApprovalProcess]] = {
+      repository.getById(id) map {
+        case Right(process) => if (process.meta.status == currentStatus) Some(process) else None
+        case _ => None
+      }
+    }
+
+    def publishIfRequired(approvalProcess: ApprovalProcess): Future[RequestOutcome[Unit]] = {
+      info.status match {
+        case StatusApprovedForPublishing =>
+          publishedService.save(id, approvalProcess.process) map {
+            case Right(_) => Right(())
+            case Left(errors) => Left(errors)
+          }
+        case _ => Future.successful(Right(()))
+      }
+    }
+
+    getContentToUpdate flatMap {
+      case Some(approvalProcess) =>
+        val status = if (info.status == StatusApprovedForPublishing) StatusPublished else info.status
+        repository.changeStatus(id, status, info.userId) flatMap {
+          case Left(Errors(DatabaseError :: Nil)) => Future.successful(Left(Errors(InternalServiceError)))
+          case error @ Left(Errors(NotFoundError :: Nil)) => Future.successful(error)
+          case _ => publishIfRequired(approvalProcess)
+        }
+      case None =>
+        logger.warn(s"Invalid process id submitted to method changeStatus. The requested id was $id")
+        Future.successful(Left(Errors(NotFoundError)))
     }
   }
 

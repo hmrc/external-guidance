@@ -34,10 +34,10 @@ trait MockReviewService extends MockFactory {
         .expects(id)
     }
 
-    def changeStatus(id: String, statusInfo: ApprovalProcessStatusChange): CallHandler[Future[RequestOutcome[Unit]]] = {
+    def changeStatus(id: String, currentStatus: String, statusInfo: ApprovalProcessStatusChange): CallHandler[Future[RequestOutcome[Unit]]] = {
       (mockReviewService
-        .changeStatus(_: String, _: ApprovalProcessStatusChange))
-        .expects(id, statusInfo)
+        .changeStatus(_: String, _: String, _: ApprovalProcessStatusChange))
+        .expects(id, currentStatus, statusInfo)
     }
 
   }

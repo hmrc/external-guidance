@@ -16,9 +16,11 @@
 
 package repositories
 
+import java.time.LocalDateTime
+
 import javax.inject.{Inject, Singleton}
 import models.errors.{DatabaseError, Errors, NotFoundError}
-import models.{ApprovalProcess, ApprovalProcessStatusChange, ApprovalProcessSummary, RequestOutcome}
+import models.{ApprovalProcess, ApprovalProcessSummary, RequestOutcome}
 import play.api.libs.json.{Format, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.Cursor.FailOnError
@@ -35,7 +37,7 @@ trait ApprovalRepository {
   def update(process: ApprovalProcess): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[ApprovalProcess]]
   def approvalSummaryList(): Future[RequestOutcome[List[ApprovalProcessSummary]]]
-  def changeStatus(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]]
+  def changeStatus(id: String, status: String, user: String): Future[RequestOutcome[Unit]]
 }
 
 @Singleton
@@ -111,11 +113,11 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
     //$COVERAGE-ON$
   }
 
-  def changeStatus(id: String, statusInfo: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] = {
+  def changeStatus(id: String, status: String, user: String): Future[RequestOutcome[Unit]] = {
 
-    logger.info(s"updating status of process $id to ${statusInfo.status} to collection $collectionName")
+    logger.info(s"updating status of process $id to $status to collection $collectionName")
     val selector = Json.obj("_id" -> id)
-    val modifier = Json.obj("$inc" -> Json.obj("version" -> 1), "$set" -> Json.obj("meta.status" -> statusInfo.status))
+    val modifier = Json.obj("$set" -> Json.obj("meta.status" -> status, "meta.lastModified" -> LocalDateTime.now))
 
     this
       .findAndUpdate(selector, modifier)
