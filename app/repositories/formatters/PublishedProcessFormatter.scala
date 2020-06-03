@@ -16,23 +16,28 @@
 
 package repositories.formatters
 
-import play.api.libs.json.{JsObject, JsResult, JsValue, Json, OFormat}
+import java.time.LocalDateTime
 
 import models.PublishedProcess
+import play.api.libs.json._
 
 object PublishedProcessFormatter {
 
   val read: JsValue => JsResult[PublishedProcess] = json =>
     for {
       id <- (json \ "_id").validate[String]
+      version <- (json \ "version").validate[Int]
+      datePublished <- (json \ "datePublished").validate[LocalDateTime]
       process <- (json \ "process").validate[JsObject]
-    } yield PublishedProcess(id, process)
+    } yield PublishedProcess(id, version, datePublished, process)
 
   val write: PublishedProcess => JsObject = publishedProcess =>
     Json.obj(
       "_id" -> publishedProcess.id,
+      "version" -> publishedProcess.version,
+      "datePublished" -> publishedProcess.datePublished,
       "process" -> publishedProcess.process
     )
 
-  val mongoFormat: OFormat[PublishedProcess] = OFormat(read, write)
+  implicit val mongoFormat: OFormat[PublishedProcess] = OFormat(read, write)
 }

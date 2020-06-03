@@ -17,28 +17,25 @@
 package services
 
 import javax.inject.{Inject, Singleton}
-
-import models.RequestOutcome
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
-
+import models.{PublishedProcess, RequestOutcome}
 import play.api.Logger
-
-import play.api.libs.json.{JsObject}
-
+import play.api.libs.json.JsObject
 import repositories.PublishedRepository
+import utils.ProcessUtils.validateProcess
 import utils.Validators._
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 @Singleton
 class PublishedService @Inject() (repository: PublishedRepository) {
 
   val logger: Logger = Logger(this.getClass)
 
-  def getById(id: String): Future[RequestOutcome[JsObject]] = {
+  def getById(id: String): Future[RequestOutcome[PublishedProcess]] = {
 
-    def getProcess(id: String): Future[RequestOutcome[JsObject]] = repository.getById(id) map {
+    def getProcess(id: String): Future[RequestOutcome[PublishedProcess]] = repository.getById(id) map {
       case error @ Left(Errors(Seq(NotFoundError))) => error
       case Left(_) => Left(Errors(InternalServiceError))
       case result => result
@@ -46,11 +43,27 @@ class PublishedService @Inject() (repository: PublishedRepository) {
 
     validateProcessId(id) match {
       case Right(id) => getProcess(id)
-      case Left(errors) => {
+      case Left(_) =>
         logger.error(s"Invalid process id submitted to method getById. The requested id was $id")
         Future.successful(Left(Errors(BadRequestError)))
-      }
     }
   }
+
+  def save(id: String, jsonProcess: JsObject): Future[RequestOutcome[String]] = {
+
+    def saveProcess: Future[RequestOutcome[String]] = {
+      repository.save(id, jsonProcess) map {
+        case Left(_) => Left(Errors(InternalServiceError))
+        case result => result
+      }
+    }
+
+    validateProcess(jsonProcess) match {
+      case Right(_) => saveProcess
+      case Left(_) => Future.successful(Left(Errors(BadRequestError)))
+    }
+
+  }
+
 
 }

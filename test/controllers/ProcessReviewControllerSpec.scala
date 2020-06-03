@@ -29,6 +29,7 @@ import play.api.libs.json.{JsObject, JsValue}
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import utils.Constants._
 
 import scala.concurrent.Future
 
@@ -180,13 +181,13 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
     }
   }
 
-  "Calling the approvalReviewComplete action" when {
+  "Calling the approval2iReviewComplete action" when {
 
     "the request is valid" should {
 
       trait ValidTest extends Test {
         MockReviewService
-          .changeStatus(validProcessIdForReview, statusChangeInfo)
+          .changeStatus(validProcessIdForReview, StatusSubmittedFor2iReview, statusChangeInfo)
           .returns(Future.successful(Right(())))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
@@ -208,7 +209,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
 
       trait InvalidTest extends Test {
         MockReviewService
-          .changeStatus(validProcessIdForReview, statusChangeInfo)
+          .changeStatus(validProcessIdForReview, StatusSubmittedFor2iReview, statusChangeInfo)
           .returns(Future.successful(Right(())))
           .never()
 
@@ -232,7 +233,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait NotFoundTest extends Test {
         val expectedErrorCode = "NOT_FOUND_ERROR"
         MockReviewService
-          .changeStatus(validProcessIdForReview, statusChangeInfo)
+          .changeStatus(validProcessIdForReview, StatusSubmittedFor2iReview, statusChangeInfo)
           .returns(Future.successful(Left(Errors(NotFoundError))))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
@@ -260,7 +261,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait ErrorTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockReviewService
-          .changeStatus(validProcessIdForReview, statusChangeInfo)
+          .changeStatus(validProcessIdForReview, StatusSubmittedFor2iReview, statusChangeInfo)
           .returns(Future.successful(Left(Errors(InternalServiceError))))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)

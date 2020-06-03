@@ -17,17 +17,20 @@
 package services
 
 import javax.inject.{Inject, Singleton}
+import models._
 import models.errors.{Errors, InternalServiceError, NotFoundError}
-import models.{ApprovalProcessStatusChange, PageReview, ProcessReview, RequestOutcome}
 import play.api.Logger
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
+import utils.Constants
 import utils.Constants._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ReviewService @Inject() (repository: ApprovalRepository, reviewRepository: ApprovalProcessReviewRepository) {
+class ReviewService @Inject() (publishedService: PublishedService,
+                               repository: ApprovalRepository,
+                               reviewRepository: ApprovalProcessReviewRepository) {
 
   val logger: Logger = Logger(this.getClass)
 
@@ -46,11 +49,31 @@ class ReviewService @Inject() (repository: ApprovalRepository, reviewRepository:
     }
   }
 
-  def changeStatus(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] = {
-    repository.changeStatus(id, info) map {
-      case error @ Left(Errors(NotFoundError :: Nil)) => error
-      case Left(_) => Left(Errors(InternalServiceError))
-      case result => result
+  def changeStatus(id: String, currentStatus: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] = {
+
+    def getContentToUpdate: Future[Option[ApprovalProcess]] = {
+      repository.getById(id) map  {
+        case Right(process) => if (process.meta.status == currentStatus) Some(process) else None
+        case _ => None
+      }
+    }
+
+    getContentToUpdate flatMap  {
+      case Some(approvalProcess) =>
+        repository.changeStatus(id, info) flatMap  {
+          case error @ Left(Errors(NotFoundError :: Nil)) => Future.successful(error)
+          case Left(_) => Future.successful(Left(Errors(InternalServiceError)))
+          case result =>
+            info.status match {
+              case Constants.StatusPublished =>
+                publishedService.save(id, approvalProcess.process) map {
+                  case Right(_) => result
+                  case Left(errors) => Left(errors)
+                }
+              case _ => Future.successful(result)
+            }
+        }
+      case None => Future.successful(Left(Errors(NotFoundError)))
     }
   }
 

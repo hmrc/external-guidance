@@ -18,18 +18,19 @@ package services
 
 import base.UnitSpec
 import data.ReviewData
-import mocks.{MockApprovalProcessReviewRepository, MockApprovalRepository}
+import mocks.{MockApprovalProcessReviewRepository, MockApprovalRepository, MockPublishedService}
 import models.errors._
-import models.{ApprovalProcessJson, RequestOutcome}
+import models.{ApprovalProcessJson, ApprovalProcessStatusChange, RequestOutcome}
 import org.scalamock.scalatest.MockFactory
+import utils.Constants._
 
 import scala.concurrent.Future
 
 class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with ApprovalProcessJson {
 
-  private trait Test extends MockApprovalRepository with MockApprovalProcessReviewRepository {
+  private trait Test extends MockApprovalRepository with MockApprovalProcessReviewRepository with MockPublishedService {
 
-    lazy val service: ReviewService = new ReviewService(mockApprovalRepository, mockApprovalProcessReviewRepository)
+    lazy val service: ReviewService = new ReviewService(mockPublishedService, mockApprovalRepository, mockApprovalProcessReviewRepository)
   }
 
   "Calling the approval2iReviewInfo method" when {
@@ -128,32 +129,107 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
   }
 
   "Calling the changeStatus method" when {
-    "the ID identifies a valid process" should {
-      "return to indicate the process status was updated in the database" in new Test {
+    "the ID identifies a valid process" when {
+      "the status is submitted for 2i review" should {
+        "indicate the process status was updated in the database" in new Test {
 
-        val expected: RequestOutcome[Unit] = Right(())
+          val expected: RequestOutcome[Unit] = Right(())
 
-        MockApprovalRepository
-          .changeStatus("validId", statusChangeInfo)
-          .returns(Future.successful(expected))
+          MockApprovalRepository
+            .getById("validId")
+            .returns(Future.successful(Right(approvalProcess)))
 
-        whenReady(service.changeStatus("validId", statusChangeInfo)) { result =>
-          result shouldBe expected
+          MockApprovalRepository
+            .changeStatus("validId", statusChangeInfo)
+            .returns(Future.successful(expected))
+
+          whenReady(service.changeStatus("validId", StatusSubmittedFor2iReview, statusChangeInfo)) { result =>
+            result shouldBe expected
+          }
+        }
+      }
+
+      "the status is published" should {
+        "indicate the process status was updated and published in the database" in new Test {
+
+          val expected: RequestOutcome[Unit] = Right(())
+          val publishedStatusChangeInfo = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
+
+          MockApprovalRepository
+            .getById("validId")
+            .returns(Future.successful(Right(approvalProcess)))
+
+
+          MockApprovalRepository
+            .changeStatus("validId", publishedStatusChangeInfo)
+            .returns(Future.successful(expected))
+
+          MockPublishedService
+              .save("validId", approvalProcess.process)
+              .returns(Future.successful(Right("validId")))
+
+          whenReady(service.changeStatus("validId", StatusSubmittedFor2iReview, publishedStatusChangeInfo)) { result =>
+            result shouldBe expected
+          }
         }
       }
     }
 
-    "the ID cannot be matched to a submitted process" should {
-      "return a not found response" in new Test {
+    "the ID cannot be matched to a submitted process" when {
+      "the getById fails to find the process" should {
+        "return a not found response" in new Test {
 
-        val expected: RequestOutcome[Unit] = Left(Errors(NotFoundError))
+          val expected: RequestOutcome[Unit] = Left(Errors(NotFoundError))
 
-        MockApprovalRepository
-          .changeStatus("validId", statusChangeInfo)
-          .returns(Future.successful(expected))
+          MockApprovalRepository
+            .getById("validId")
+            .returns(Future.successful(Left(Errors(NotFoundError))))
 
-        whenReady(service.changeStatus("validId", statusChangeInfo)) { result =>
-          result shouldBe expected
+          MockApprovalRepository
+            .changeStatus("validId", statusChangeInfo)
+            .returns(Future.successful(expected))
+            .never()
+
+          whenReady(service.changeStatus("validId", StatusSubmittedFor2iReview, statusChangeInfo)) { result =>
+            result shouldBe expected
+          }
+        }
+      }
+      "the getById fails to find the process with the expected status" should {
+        "return a not found response" in new Test {
+
+          val expected: RequestOutcome[Unit] = Left(Errors(NotFoundError))
+
+          MockApprovalRepository
+            .getById("validId")
+            .returns(Future.successful(Right(approvalProcess)))
+
+          MockApprovalRepository
+            .changeStatus("validId", statusChangeInfo)
+            .returns(Future.successful(expected))
+            .never()
+
+          whenReady(service.changeStatus("validId", StatusSubmittedForFactCheck, statusChangeInfo)) { result =>
+            result shouldBe expected
+          }
+        }
+      }
+      "the changeStatus fails to find the process" should {
+        "return a not found response" in new Test {
+
+          val expected: RequestOutcome[Unit] = Left(Errors(NotFoundError))
+
+          MockApprovalRepository
+            .getById("validId")
+            .returns(Future.successful(Right(approvalProcess)))
+
+          MockApprovalRepository
+            .changeStatus("validId", statusChangeInfo)
+            .returns(Future.successful(Left(Errors(NotFoundError))))
+
+          whenReady(service.changeStatus("validId", StatusSubmittedFor2iReview, statusChangeInfo)) { result =>
+            result shouldBe expected
+          }
         }
       }
     }
@@ -165,13 +241,44 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
         val expected: RequestOutcome[Unit] = Left(Errors(InternalServiceError))
 
         MockApprovalRepository
+          .getById("validId")
+          .returns(Future.successful(Right(approvalProcess)))
+
+        MockApprovalRepository
           .changeStatus("validId", statusChangeInfo)
           .returns(Future.successful(repositoryError))
 
-        whenReady(service.changeStatus("validId", statusChangeInfo)) { result =>
+        whenReady(service.changeStatus("validId", StatusSubmittedFor2iReview, statusChangeInfo)) { result =>
           result shouldBe expected
         }
       }
     }
+
+    "the process fails to be published" should {
+      "indicate a database error" in new Test {
+
+        val expectedChangeStatusResponse: RequestOutcome[Unit] = Right(())
+        val expected: RequestOutcome[Unit] = Left(Errors(InternalServiceError))
+        val publishedStatusChangeInfo = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
+
+        MockApprovalRepository
+          .getById("validId")
+          .returns(Future.successful(Right(approvalProcess)))
+
+
+        MockApprovalRepository
+          .changeStatus("validId", publishedStatusChangeInfo)
+          .returns(Future.successful(expectedChangeStatusResponse))
+
+        MockPublishedService
+          .save("validId", approvalProcess.process)
+          .returns(Future.successful(Left(Errors(InternalServiceError))))
+
+        whenReady(service.changeStatus("validId", StatusSubmittedFor2iReview, publishedStatusChangeInfo)) { result =>
+          result shouldBe expected
+        }
+      }
+    }
+
   }
 }

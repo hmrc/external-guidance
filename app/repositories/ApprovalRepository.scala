@@ -16,6 +16,8 @@
 
 package repositories
 
+import java.time.LocalDateTime
+
 import javax.inject.{Inject, Singleton}
 import models.errors.{DatabaseError, Errors, NotFoundError}
 import models.{ApprovalProcess, ApprovalProcessStatusChange, ApprovalProcessSummary, RequestOutcome}
@@ -115,7 +117,9 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
 
     logger.info(s"updating status of process $id to ${statusInfo.status} to collection $collectionName")
     val selector = Json.obj("_id" -> id)
-    val modifier = Json.obj("$inc" -> Json.obj("version" -> 1), "$set" -> Json.obj("meta.status" -> statusInfo.status))
+    val modifier = Json.obj(
+      "$inc" -> Json.obj("version" -> 1),
+      "$set" -> Json.obj("meta.status" -> statusInfo.status, "meta.lastModified" -> LocalDateTime.now))
 
     this
       .findAndUpdate(selector, modifier)

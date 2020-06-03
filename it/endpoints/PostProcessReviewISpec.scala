@@ -17,9 +17,10 @@
 package endpoints
 
 import data.ExamplePayloads._
-import models.ApprovalProcessSummary
+import models.ocelot.Process
+import models.{ApprovalProcessStatusChange, ApprovalProcessSummary}
 import play.api.http.Status._
-import play.api.libs.json.{JsObject, JsValue}
+import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.libs.ws.WSResponse
 import stubs.AuditStub
 import support.IntegrationSpec
@@ -27,7 +28,7 @@ import utils.Constants._
 
 class PostProcessReviewISpec extends IntegrationSpec {
 
-  "Calling the approvalReviewComplete POST endpoint with a valid payload" should {
+  "Calling the approval2iReviewComplete POST endpoint with a valid payload" when {
 
     def populateDatabase(processToSave: JsValue): String = {
       lazy val request = buildRequest("/external-guidance/approval")
@@ -40,27 +41,68 @@ class PostProcessReviewISpec extends IntegrationSpec {
     val processToSave: JsValue = simpleValidProcess
     lazy val id = populateDatabase(processToSave)
     lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-review")
-    lazy val response: WSResponse = {
-      AuditStub.audit()
-      await(request.post(statusChangeJson))
-    }
 
-    "return a NO_CONTENT status code" in {
-      response.status shouldBe NO_CONTENT
-    }
+    "the new status is submitted for 2i Review" should {
 
-    "status should be set to SubmittedForFactCheck" in {
-      lazy val request = buildRequest(s"/external-guidance/approval")
       lazy val response: WSResponse = {
         AuditStub.audit()
-        await(request.get())
+        await(request.post(statusChangeJson))
       }
-      val list: List[ApprovalProcessSummary] = response.body[JsValue].as[List[ApprovalProcessSummary]]
-      val updatedEntry = list.find(p => p.id == id)
-      updatedEntry shouldBe 'defined
-      updatedEntry.get.status shouldBe StatusSubmittedForFactCheck
+
+      "return a NO_CONTENT status code" in {
+        response.status shouldBe NO_CONTENT
+      }
+
+      "set the status to SubmittedFor2iReview" in {
+        lazy val request = buildRequest(s"/external-guidance/approval")
+        lazy val response: WSResponse = {
+          AuditStub.audit()
+          await(request.get())
+        }
+        val list: List[ApprovalProcessSummary] = response.body[JsValue].as[List[ApprovalProcessSummary]]
+        val updatedEntry = list.find(p => p.id == id)
+        updatedEntry shouldBe 'defined
+        updatedEntry.get.status shouldBe StatusSubmittedFor2iReview
+      }
+
     }
 
+    "the new status is published" should {
+
+      val statusChangePublished = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
+      val statusChangePublishedJson: JsValue = Json.toJson(statusChangePublished)
+
+      lazy val response: WSResponse = {
+        AuditStub.audit()
+        await(request.post(statusChangePublishedJson))
+      }
+
+      "return a NO_CONTENT status code" in {
+        response.status shouldBe NO_CONTENT
+      }
+
+      "set status to Published" in {
+        lazy val request = buildRequest(s"/external-guidance/approval")
+        lazy val response: WSResponse = {
+          AuditStub.audit()
+          await(request.get())
+        }
+        val list: List[ApprovalProcessSummary] = response.body[JsValue].as[List[ApprovalProcessSummary]]
+        val updatedEntry = list.find(p => p.id == id)
+        updatedEntry shouldBe 'defined
+        updatedEntry.get.status shouldBe StatusPublished
+      }
+
+      "process should be Published" in {
+        lazy val request = buildRequest(s"/external-guidance/published/$id")
+        lazy val response: WSResponse = {
+          AuditStub.audit()
+          await(request.get())
+        }
+        val publishedEntry: Process = response.body[JsValue].as[Process]
+        publishedEntry.meta.id shouldBe id
+      }
+    }
   }
 
   "Calling the approvalReviewComplete POST endpoint with an id that doesn't exist" should {

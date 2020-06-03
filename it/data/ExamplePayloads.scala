@@ -135,7 +135,7 @@ object ExamplePayloads {
       )
     )
 
-  val statusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusSubmittedForFactCheck)
+  val statusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusSubmittedFor2iReview)
 
   val statusChangeJson: JsValue = Json.toJson(statusChangeInfo)
 

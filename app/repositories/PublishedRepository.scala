@@ -16,26 +16,23 @@
 
 package repositories
 
+import java.time.LocalDateTime
+
 import javax.inject.{Inject, Singleton}
-
-import scala.concurrent.Future
-
-import play.api.libs.json.{Format, JsObject}
+import models.errors.{DatabaseError, Errors, NotFoundError}
+import models.{PublishedProcess, RequestOutcome}
+import play.api.libs.json.{Format, JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
-
+import repositories.formatters.PublishedProcessFormatter
 import uk.gov.hmrc.mongo.ReactiveRepository
 
-import models.{PublishedProcess, RequestOutcome}
-import models.errors.{DatabaseError, Errors, NotFoundError}
-
-import repositories.formatters.PublishedProcessFormatter
-
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 trait PublishedRepository {
 
   def save(id: String, process: JsObject): Future[RequestOutcome[String]]
-  def getById(id: String): Future[RequestOutcome[JsObject]]
+  def getById(id: String): Future[RequestOutcome[PublishedProcess]]
 }
 
 @Singleton
@@ -48,32 +45,32 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
     )
     with PublishedRepository {
 
-  //TODO: Reactivate test coverage when both methods in use
-
-  //$COVERAGE-OFF$
   def save(id: String, process: JsObject): Future[RequestOutcome[String]] = {
 
     logger.info(s"Saving process $id to collection published")
 
-    val document: PublishedProcess = PublishedProcess(id, process)
+    val selector = Json.obj("_id" -> id)
+    val modifier = Json.obj("$inc" -> Json.obj("version" -> 1), "$set" -> Json.obj("process" -> process, "datePublished" -> LocalDateTime.now()))
 
-    insert(document)
+    this
+      .findAndUpdate(selector, modifier, upsert = true)
       .map { _ =>
-        Right(document.id)
+        Right(id)
       }
+      //$COVERAGE-OFF$
       .recover {
         case error =>
           logger.error(s"Attempt to persist process $id to collection published failed with error : ${error.getMessage}")
           Left(Errors(DatabaseError))
       }
+      //$COVERAGE-ON$
   }
-  //$COVERAGE-ON$
 
-  def getById(id: String): Future[RequestOutcome[JsObject]] = {
+  def getById(id: String): Future[RequestOutcome[PublishedProcess]] = {
 
     findById(id)
       .map {
-        case Some(publishedProcess) => Right(publishedProcess.process)
+        case Some(publishedProcess) => Right(publishedProcess)
         case None => Left(Errors(NotFoundError))
       }
       //$COVERAGE-OFF$

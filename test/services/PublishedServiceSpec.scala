@@ -16,24 +16,25 @@
 
 package services
 
-import scala.concurrent.Future
-
-import play.api.libs.json.{Json, JsObject}
-
-import models.RequestOutcome
-import models.errors._
+import java.time.LocalDateTime
 
 import base.UnitSpec
 import mocks.MockPublishedRepository
+import models.errors._
+import models.ocelot.ProcessJson
+import models.{PublishedProcess, RequestOutcome}
+import play.api.libs.json.{JsObject, Json}
+
+import scala.concurrent.Future
 
 class PublishedServiceSpec extends UnitSpec {
 
-  private trait Test extends MockPublishedRepository {
+  private trait Test extends MockPublishedRepository with ProcessJson {
 
     val validId: String = "ext90005"
     val invalidId: String = "ext9005"
-
-    val process: JsObject = Json.obj()
+    val invalidProcess: JsObject = Json.obj("idx" -> invalidId)
+    val publishedProcess: PublishedProcess = PublishedProcess(validId, 1, LocalDateTime.now(), validOnePageJson.as[JsObject])
 
     lazy val target: PublishedService = new PublishedService(mockPublishedRepository)
   }
@@ -42,7 +43,7 @@ class PublishedServiceSpec extends UnitSpec {
 
     "Return a JsObject representing an Ocelot process when the input identifies a valid process" in new Test {
 
-      val expected: RequestOutcome[JsObject] = Right(process)
+      val expected: RequestOutcome[PublishedProcess] = Right(publishedProcess)
 
       MockPublishedRepository
         .getById(validId)
@@ -55,7 +56,7 @@ class PublishedServiceSpec extends UnitSpec {
 
     "Return a bad request response when the input identifier is invalid" in new Test {
 
-      val expected: RequestOutcome[JsObject] = Left(Errors(BadRequestError))
+      val expected: RequestOutcome[PublishedProcess] = Left(Errors(BadRequestError))
 
       whenReady(target.getById(invalidId)) { result =>
         result shouldBe expected
@@ -64,7 +65,7 @@ class PublishedServiceSpec extends UnitSpec {
 
     "Return a not found response when no process has the identifier input to the method" in new Test {
 
-      val expected: RequestOutcome[JsObject] = Left(Errors(NotFoundError))
+      val expected: RequestOutcome[PublishedProcess] = Left(Errors(NotFoundError))
 
       MockPublishedRepository
         .getById(validId)
@@ -77,7 +78,7 @@ class PublishedServiceSpec extends UnitSpec {
 
     "Return an internal server error when the repository reports a database error" in new Test {
 
-      val repositoryError: RequestOutcome[JsObject] = Left(Errors(DatabaseError))
+      val repositoryError: RequestOutcome[PublishedProcess] = Left(Errors(DatabaseError))
 
       val expected: RequestOutcome[JsObject] = Left(Errors(InternalServiceError))
 
@@ -90,5 +91,62 @@ class PublishedServiceSpec extends UnitSpec {
       }
     }
   }
+
+  "Calling the save method" when {
+
+    "the id and JSON are valid" should {
+      "return valid Id" in new Test {
+
+        val expected: RequestOutcome[String] = Right(validId)
+
+        MockPublishedRepository
+          .save(validId, validOnePageJson.as[JsObject])
+          .returns(Future.successful(expected))
+
+        whenReady(target.save(validId, validOnePageJson.as[JsObject])) {
+          case Right(id) => id shouldBe validId
+          case _ => fail
+        }
+      }
+    }
+
+    "the JSON is invalid" should {
+
+      "not call the repository" in new Test {
+
+        MockPublishedRepository
+          .save(validId, validOnePageJson.as[JsObject])
+          .never()
+
+        target.save(validId, invalidProcess)
+      }
+
+      "return a bad request error" in new Test {
+        val expected: RequestOutcome[String] = Left(Errors(BadRequestError))
+
+        whenReady(target.save(validId, invalidProcess)) {
+          case result @ Left(_) => result shouldBe expected
+          case _ => fail
+        }
+      }
+    }
+
+    "a database error occurs" should {
+      "return an internal error" in new Test {
+        val repositoryResponse: RequestOutcome[String] = Left(Errors(DatabaseError))
+        val expected: RequestOutcome[String] = Left(Errors(InternalServiceError))
+
+        MockPublishedRepository
+          .save(validId, validOnePageJson.as[JsObject])
+          .returns(Future.successful(repositoryResponse))
+
+        whenReady(target.save(validId, validOnePageJson.as[JsObject])) {
+          case result @ Left(_) => result shouldBe expected
+          case _ => fail
+        }
+      }
+    }
+  }
+
 
 }

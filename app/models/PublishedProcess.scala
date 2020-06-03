@@ -16,6 +16,8 @@
 
 package models
 
+import java.time.LocalDateTime
+
 import play.api.libs.json.JsObject
 
-case class PublishedProcess(id: String, process: JsObject)
+case class PublishedProcess(id: String, version: Int, datePublished: LocalDateTime, process: JsObject)

@@ -23,6 +23,7 @@ import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ReviewService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import utils.Constants._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -42,7 +43,7 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
 
   def approval2iReviewComplete(id: String): Action[JsValue] = Action.async(parse.json) { request =>
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
-      reviewService.changeStatus(id, statusChangeInfo).map {
+      reviewService.changeStatus(id, StatusSubmittedFor2iReview, statusChangeInfo).map {
         case Right(_) => NoContent
         case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
         case Left(errors) => InternalServerError(Json.toJson(errors))

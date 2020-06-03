@@ -32,8 +32,8 @@ object ApprovalProcessMetaFormatter {
       status <- (json \ "status").validate[String]
       title <- (json \ "title").validate[String]
       dateSubmitted <- (json \ "dateSubmitted").validate[LocalDate]
-      lastModified <- (json \ "lastModified").validate[LocalDateTime]
-    } yield ApprovalProcessMeta(id, title, status, dateSubmitted, lastModified)
+      lastModified <- (json \ "lastModified").validateOpt[LocalDateTime]
+    } yield ApprovalProcessMeta(id, title, status, dateSubmitted, lastModified.getOrElse(LocalDateTime.now()))
 
   val write: ApprovalProcessMeta => JsObject = meta =>
     Json.obj(
