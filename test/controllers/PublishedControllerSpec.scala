@@ -74,7 +74,6 @@ class PublishedControllerSpec extends UnitSpec with GuiceOneAppPerSuite with Pro
 
       "return expected content" in new ValidGetTest {
         private val result = target.get(validId)(getRequest)
-        println(contentAsJson(result))
         contentAsJson(result).as[JsObject] shouldBe expectedProcess
       }
     }

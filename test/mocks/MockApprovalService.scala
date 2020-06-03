@@ -37,9 +37,9 @@ trait MockApprovalService extends MockFactory {
     }
 
     def save(
-              process: JsObject,
-              reviewType: String = ReviewType2i,
-              status: String = StatusSubmittedFor2iReview
+        process: JsObject,
+        reviewType: String = ReviewType2i,
+        status: String = StatusSubmittedFor2iReview
     ): CallHandler[Future[RequestOutcome[String]]] = {
       (mockApprovalService
         .save(_: JsObject, _: String, _: String))

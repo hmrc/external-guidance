@@ -148,5 +148,4 @@ class PublishedServiceSpec extends UnitSpec {
     }
   }
 
-
 }

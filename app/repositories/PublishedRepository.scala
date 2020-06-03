@@ -63,7 +63,7 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
           logger.error(s"Attempt to persist process $id to collection published failed with error : ${error.getMessage}")
           Left(Errors(DatabaseError))
       }
-      //$COVERAGE-ON$
+    //$COVERAGE-ON$
   }
 
   def getById(id: String): Future[RequestOutcome[PublishedProcess]] = {

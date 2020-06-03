@@ -65,5 +65,4 @@ class PublishedService @Inject() (repository: PublishedRepository) {
 
   }
 
-
 }
