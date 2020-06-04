@@ -23,9 +23,9 @@ import utils.Constants
 case class ApprovalProcessPageReview(
     id: String,
     pageUrl: String,
-    result: String = "",
+    result: Option[String] = None,
     status: String = Constants.InitialPageReviewStatus,
     comment: Option[String] = None,
     updateDate: LocalDateTime = LocalDateTime.now(),
-    updateUser: String = ""
+    updateUser: Option[String] = None
 )

@@ -31,7 +31,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
 
   val logger: Logger = Logger(this.getClass)
 
-  def approval2iReviewInfo(id: String): Future[RequestOutcome[ProcessReview]] = {
+  def approval2iReviewInfo(id: String): Future[RequestOutcome[ProcessReview]] =
     repository.getById(id) flatMap {
       case Left(Errors(NotFoundError :: Nil)) => Future.successful(Left(Errors(NotFoundError)))
       case Left(_) => Future.successful(Left(Errors(InternalServiceError)))
@@ -44,19 +44,31 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
             Right(ProcessReview(info.id, info.ocelotId, info.version, info.reviewType, info.title, info.lastUpdated, pages))
         }
     }
-  }
+
+  def approval2iReviewPageInfo(id: String, pageUrl: String): Future[RequestOutcome[PageReview]] =
+    repository.getById(id) flatMap {
+      case Left(Errors(NotFoundError :: Nil)) => Future.successful(Left(Errors(NotFoundError)))
+      case Left(_) => Future.successful(Left(Errors(InternalServiceError)))
+      case Right(process) =>
+        reviewRepository.getByIdVersionAndType(id, process.version, ReviewType2i) map {
+          case Left(Errors(NotFoundError :: Nil)) => Left(Errors(NotFoundError))
+          case Left(_) => Left(Errors(InternalServiceError))
+          case Right(info) =>
+            info.pages.find(p => p.pageUrl == pageUrl) match {
+              case Some(page) => Right(PageReview(page.id, page.pageUrl, page.status))
+              case _ => Left(Errors(NotFoundError))
+            }
+        }
+    }
 
   def changeStatus(id: String, currentStatus: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] = {
 
-    def getContentToUpdate: Future[Option[ApprovalProcess]] = {
-      repository.getById(id) map {
+    def getContentToUpdate: Future[Option[ApprovalProcess]] = repository.getById(id) map {
         case Right(process) => if (process.meta.status == currentStatus) Some(process) else None
         case _ => None
       }
-    }
 
-    def publishIfRequired(approvalProcess: ApprovalProcess): Future[RequestOutcome[Unit]] = {
-      info.status match {
+    def publishIfRequired(approvalProcess: ApprovalProcess): Future[RequestOutcome[Unit]] = info.status match {
         case StatusApprovedForPublishing =>
           publishedService.save(id, approvalProcess.process) map {
             case Right(_) => Right(())
@@ -64,7 +76,6 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
           }
         case _ => Future.successful(Right(()))
       }
-    }
 
     getContentToUpdate flatMap {
       case Some(approvalProcess) =>

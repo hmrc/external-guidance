@@ -16,11 +16,13 @@
 
 package services
 
+import java.util.UUID
+
 import base.UnitSpec
 import data.ReviewData
 import mocks.{MockApprovalProcessReviewRepository, MockApprovalRepository, MockPublishedService}
+import models._
 import models.errors._
-import models.{ApprovalProcessJson, ApprovalProcessStatusChange, RequestOutcome}
 import org.scalamock.scalatest.MockFactory
 import utils.Constants._
 
@@ -279,5 +281,137 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       }
     }
 
+  }
+
+  "Calling the approval2iReviewPageInfo method" when {
+
+    trait PageInfoTest extends Test {
+
+      val processReview = ApprovalProcessReview(
+        UUID.randomUUID(),
+        "validId",
+        1,
+        ReviewType2i,
+        "This is the title",
+        List(ApprovalProcessPageReview("1", "/pageUrl", Some("result1")), ApprovalProcessPageReview("2", "/pageUrl2", Some("result2")))
+      )
+
+    }
+
+    "the ID identifies a valid process" when {
+      "the pageUrl exists in the process" should {
+        "return a populated PageReview" in new PageInfoTest {
+
+          val expected: RequestOutcome[PageReview] = Right(PageReview("2", "/pageUrl2", "NotStarted"))
+
+          MockApprovalRepository
+            .getById("validId")
+            .returns(Future.successful(Right(approvalProcess)))
+
+          MockApprovalProcessReviewRepository
+            .getByIdVersionAndType("validId", 1, ReviewType2i)
+            .returns(Future.successful(Right(processReview)))
+
+          whenReady(service.approval2iReviewPageInfo("validId", "/pageUrl2")) { result =>
+            result shouldBe expected
+          }
+        }
+      }
+      "the pageUrl does not exist in the process" should {
+        "return a NotFound error" in new PageInfoTest {
+
+          val expected: RequestOutcome[PageReview] = Left(Errors(NotFoundError))
+
+          MockApprovalRepository
+            .getById("validId")
+            .returns(Future.successful(Right(approvalProcess)))
+
+          MockApprovalProcessReviewRepository
+            .getByIdVersionAndType("validId", 1, ReviewType2i)
+            .returns(Future.successful(Right(processReview)))
+
+          whenReady(service.approval2iReviewPageInfo("validId", "/pageUrl26")) { result =>
+            result shouldBe expected
+          }
+        }
+      }
+    }
+
+    "the ID cannot be matched to an approval process" when {
+      "the getById fails to find the process" should {
+        "return a not found response" in new PageInfoTest {
+
+          val expected: RequestOutcome[Unit] = Left(Errors(NotFoundError))
+
+          MockApprovalRepository
+            .getById("validId")
+            .returns(Future.successful(Left(Errors(NotFoundError))))
+
+          MockApprovalProcessReviewRepository
+            .getByIdVersionAndType("validId", 1, ReviewType2i)
+            .never()
+
+          whenReady(service.approval2iReviewPageInfo("validId", "/pageUrl2")) { result =>
+            result shouldBe expected
+          }
+        }
+      }
+
+      "the getById method returns a DatabaseError" should {
+        "return an InternalServiceError" in new PageInfoTest {
+
+          val expected: RequestOutcome[Unit] = Left(Errors(InternalServiceError))
+
+          MockApprovalRepository
+            .getById("validId")
+            .returns(Future.successful(Left(Errors(DatabaseError))))
+
+          MockApprovalProcessReviewRepository
+            .getByIdVersionAndType("validId", 1, ReviewType2i)
+            .never()
+
+          whenReady(service.approval2iReviewPageInfo("validId", "/pageUrl2")) { result =>
+            result shouldBe expected
+          }
+        }
+      }
+      "the approval2iReviewPageInfo fails to find the process review info" should {
+        "return a not found response" in new Test {
+
+          val expected: RequestOutcome[Unit] = Left(Errors(NotFoundError))
+
+          MockApprovalRepository
+            .getById("validId")
+            .returns(Future.successful(Right(approvalProcess)))
+
+          MockApprovalProcessReviewRepository
+            .getByIdVersionAndType("validId", 1, ReviewType2i)
+            .returns(Future.successful(Left(Errors(NotFoundError))))
+
+          whenReady(service.approval2iReviewPageInfo("validId", "/pageUrl2")) { result =>
+            result shouldBe expected
+          }
+        }
+      }
+
+      "the review repository reports a database error" should {
+        "return an internal server error" in new PageInfoTest {
+
+          val expected: RequestOutcome[ApprovalProcessReview] = Left(Errors(InternalServiceError))
+
+          MockApprovalRepository
+            .getById("validId")
+            .returns(Future.successful(Right(approvalProcess)))
+
+          MockApprovalProcessReviewRepository
+            .getByIdVersionAndType("validId", 1, ReviewType2i)
+            .returns(Future.successful(Left(Errors(DatabaseError))))
+
+          whenReady(service.approval2iReviewPageInfo("validId", "/pageUrl2")) { result =>
+            result shouldBe expected
+          }
+        }
+      }
+    }
   }
 }
