@@ -18,6 +18,7 @@ package models
 
 import java.time.LocalDateTime
 
+import play.api.libs.json.{Json, OFormat}
 import utils.Constants
 
 case class ApprovalProcessPageReview(
@@ -29,3 +30,7 @@ case class ApprovalProcessPageReview(
     updateDate: LocalDateTime = LocalDateTime.now(),
     updateUser: Option[String] = None
 )
+
+object ApprovalProcessPageReview {
+  implicit val formats: OFormat[ApprovalProcessPageReview] = Json.format[ApprovalProcessPageReview]
+}

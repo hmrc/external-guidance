@@ -64,18 +64,18 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
   def changeStatus(id: String, currentStatus: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] = {
 
     def getContentToUpdate: Future[Option[ApprovalProcess]] = repository.getById(id) map {
-        case Right(process) => if (process.meta.status == currentStatus) Some(process) else None
-        case _ => None
-      }
+      case Right(process) => if (process.meta.status == currentStatus) Some(process) else None
+      case _ => None
+    }
 
     def publishIfRequired(approvalProcess: ApprovalProcess): Future[RequestOutcome[Unit]] = info.status match {
-        case StatusApprovedForPublishing =>
-          publishedService.save(id, approvalProcess.process) map {
-            case Right(_) => Right(())
-            case Left(errors) => Left(errors)
-          }
-        case _ => Future.successful(Right(()))
-      }
+      case StatusApprovedForPublishing =>
+        publishedService.save(id, approvalProcess.process) map {
+          case Right(_) => Right(())
+          case Left(errors) => Left(errors)
+        }
+      case _ => Future.successful(Right(()))
+    }
 
     getContentToUpdate flatMap {
       case Some(approvalProcess) =>
@@ -88,6 +88,19 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
       case None =>
         logger.warn(s"Invalid process id submitted to method changeStatus. The requested id was $id")
         Future.successful(Left(Errors(NotFoundError)))
+    }
+  }
+
+  def approval2iReviewPageComplete(id: String, pageUrl: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] = {
+    repository.getById(id) flatMap {
+      case Left(Errors(NotFoundError :: Nil)) => Future.successful(Left(Errors(NotFoundError)))
+      case Left(_) => Future.successful(Left(Errors(InternalServiceError)))
+      case Right(process) =>
+        reviewRepository.updatePageReview(process.id, process.version, pageUrl, reviewInfo) map {
+          case Left(Errors(NotFoundError :: Nil)) => Left(Errors(NotFoundError))
+          case Left(_) => Left(Errors(InternalServiceError))
+          case Right(_) => Right(())
+        }
     }
   }
 
