@@ -31,7 +31,7 @@ object ApprovalProcessPageReviewFormatter {
       pageUrl <- (json \ "pageUrl").validate[String]
       result <- (json \ "result").validate[String]
       status <- (json \ "status").validate[String]
-      comment <- (json \ "comment").validateOpt[String]
+      comment <- (json \ "comment").validate[String]
       updateDate <- (json \ "updateDate").validate[LocalDateTime]
       updateUser <- (json \ "updateUser").validate[String]
     } yield ApprovalProcessPageReview(id, pageUrl, result, status, comment, updateDate, updateUser)

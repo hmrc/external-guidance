@@ -25,7 +25,7 @@ case class ApprovalProcessPageReview(
     pageUrl: String,
     result: String = "",
     status: String = Constants.InitialPageReviewStatus,
-    comment: Option[String] = None,
+    comment: String = "",
     updateDate: LocalDateTime = LocalDateTime.now(),
     updateUser: String = ""
 )

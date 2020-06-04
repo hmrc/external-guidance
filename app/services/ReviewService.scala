@@ -40,7 +40,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
           case Left(Errors(NotFoundError :: Nil)) => Left(Errors(NotFoundError))
           case Left(_) => Left(Errors(InternalServiceError))
           case Right(info) =>
-            val pages: List[PageReview] = info.pages.map(p => PageReview(p.id, p.pageUrl, p.status))
+            val pages: List[PageReview] = info.pages.map(p => PageReview(p.id, p.pageUrl, p.status, p.comment))
             Right(ProcessReview(info.id, info.ocelotId, info.version, info.reviewType, info.title, info.lastUpdated, pages))
         }
     }
@@ -56,7 +56,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
           case Left(_) => Left(Errors(InternalServiceError))
           case Right(info) =>
             info.pages.find(p => p.pageUrl == pageUrl) match {
-              case Some(page) => Right(PageReview(page.id, page.pageUrl, page.result))
+              case Some(page) => Right(PageReview(page.id, page.pageUrl, page.result, page.comment))
               case _ => Left(Errors(NotFoundError))
             }
         }
