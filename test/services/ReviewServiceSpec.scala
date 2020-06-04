@@ -293,7 +293,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
         1,
         ReviewType2i,
         "This is the title",
-        List(ApprovalProcessPageReview("1", "/pageUrl", "result1"), ApprovalProcessPageReview("2", "/pageUrl2", "result2"))
+        List(ApprovalProcessPageReview("1", "/pageUrl", Some("result1")), ApprovalProcessPageReview("2", "/pageUrl2", Some("result2")))
       )
 
     }
@@ -302,7 +302,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "the pageUrl exists in the process" should {
         "return a populated PageReview" in new PageInfoTest {
 
-          val expected: RequestOutcome[PageReview] = Right(PageReview("2", "/pageUrl2", "result2"))
+          val expected: RequestOutcome[PageReview] = Right(PageReview("2", "/pageUrl2", "NotStarted"))
 
           MockApprovalRepository
             .getById("validId")
