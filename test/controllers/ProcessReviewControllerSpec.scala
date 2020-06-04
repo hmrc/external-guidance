@@ -19,7 +19,7 @@ package controllers
 import data.ReviewData
 import mocks.MockReviewService
 import models.errors._
-import models.{ApprovalProcessPageReview, PageReview, ProcessReview}
+import models.{ApprovalProcessPageReview, ProcessReview}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
@@ -293,7 +293,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait ValidTest extends Test {
 
         val pageUrl: String = "/pageUrl"
-        val pageReview: PageReview = PageReview("2", pageUrl, "result2")
+        val pageReview: ApprovalProcessPageReview = ApprovalProcessPageReview("id", pageUrl, None, "status")
 
         MockReviewService
           .approval2iReviewPageInfo(validProcessIdForReview, pageUrl)
@@ -315,7 +315,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
 
       "confirm returned content is a JSON object" in new ValidTest {
         private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, pageUrl)(request)
-        val dataReturned: PageReview = contentAsJson(result).as[PageReview]
+        val dataReturned: ApprovalProcessPageReview = contentAsJson(result).as[ApprovalProcessPageReview]
         dataReturned shouldBe pageReview
       }
     }

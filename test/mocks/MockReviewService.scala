@@ -34,7 +34,7 @@ trait MockReviewService extends MockFactory {
         .expects(id)
     }
 
-    def approval2iReviewPageInfo(id: String, pageUrl: String): CallHandler[Future[RequestOutcome[PageReview]]] = {
+    def approval2iReviewPageInfo(id: String, pageUrl: String): CallHandler[Future[RequestOutcome[ApprovalProcessPageReview]]] = {
       (mockReviewService
         .approval2iReviewPageInfo(_: String, _: String))
         .expects(id, pageUrl)

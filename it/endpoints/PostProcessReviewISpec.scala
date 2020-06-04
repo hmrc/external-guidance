@@ -20,7 +20,7 @@ import java.time.LocalDateTime
 
 import data.ExamplePayloads._
 import models.ocelot.Process
-import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange, ApprovalProcessSummary, PageReview}
+import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange, ApprovalProcessSummary}
 import play.api.http.Status._
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.libs.ws.WSResponse
@@ -135,7 +135,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
     lazy val id = populateDatabase(processToSave)
     val pageUrl = "/feeling-bad"
     lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-review/$pageUrl")
-    val content = ApprovalProcessPageReview("1", pageUrl, Some("Success"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("User1"))
+    val content = ApprovalProcessPageReview("1", pageUrl, Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("User1"))
 
     lazy val response: WSResponse = {
       AuditStub.audit()
@@ -152,7 +152,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
         AuditStub.audit()
         await(request.get())
       }
-      val updatedEntry: PageReview = response.body[JsValue].as[PageReview]
+      val updatedEntry: ApprovalProcessPageReview = response.body[JsValue].as[ApprovalProcessPageReview]
       updatedEntry.status shouldBe ReviewCompleteStatus
     }
 
