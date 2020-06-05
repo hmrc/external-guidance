@@ -105,8 +105,7 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
         )
       )
 
-    collection
-      .findAndUpdate(selector, modifier)
+    findAndUpdate(selector, modifier)
       .map { _ =>
         Right(())
       }
