@@ -198,9 +198,9 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
         }
       }
       "the getById fails to find the process with the expected status" should {
-        "return a not found response" in new Test {
+        "return a stale data response" in new Test {
 
-          val expected: RequestOutcome[Unit] = Left(Errors(NotFoundError))
+          val expected: RequestOutcome[Unit] = Left(Errors(StaleDataError))
 
           MockApprovalRepository
             .getById("validId")

@@ -16,7 +16,7 @@
 
 package repositories
 
-import java.time.{LocalDateTime, ZoneOffset}
+import java.time.{LocalDateTime, ZoneId}
 import java.util.UUID
 
 import javax.inject.{Inject, Singleton}
@@ -101,7 +101,7 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
           "pages.$.status" -> reviewInfo.status,
           "pages.$.comment" -> reviewInfo.comment,
           "pages.$.updateUser" -> reviewInfo.updateUser,
-          "pages.$.updateDate" -> Json.obj("$date" -> LocalDateTime.now().toInstant(ZoneOffset.UTC).getEpochSecond * 1000)
+          "pages.$.updateDate" -> Json.obj("$date" -> LocalDateTime.now.atZone(ZoneId.of("UTC")).toInstant.toEpochMilli)
         )
       )
 

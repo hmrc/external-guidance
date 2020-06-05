@@ -67,13 +67,12 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
   }
 
   def approval2iReviewPageComplete(id: String, pageUrl: String): Action[JsValue] = Action.async(parse.json) { request =>
-    def save(reviewInfo: ApprovalProcessPageReview): Future[Result] = {
+    def save(reviewInfo: ApprovalProcessPageReview): Future[Result] =
       reviewService.approval2iReviewPageComplete(id, pageUrl, reviewInfo).map {
         case Right(_) => NoContent
         case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
         case Left(errors) => InternalServerError(Json.toJson(errors))
       }
-    }
 
     request.body.validate[ApprovalProcessPageReview] match {
       case JsSuccess(pageInfo, _) => save(pageInfo)

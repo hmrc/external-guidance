@@ -18,7 +18,7 @@ package services
 
 import javax.inject.{Inject, Singleton}
 import models._
-import models.errors.{DatabaseError, Errors, InternalServiceError, NotFoundError}
+import models.errors._
 import play.api.Logger
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
 import utils.Constants._
@@ -63,19 +63,15 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
 
   def changeStatus(id: String, currentStatus: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] = {
 
-    def getContentToUpdate: Future[Option[ApprovalProcess]] = repository.getById(id) map {
+    def getContentToUpdate: Future[RequestOutcome[ApprovalProcess]] = repository.getById(id) map {
+      case Right(process) if process.meta.status == currentStatus => Right (process)
       case Right(process) =>
-        if (process.meta.status == currentStatus) {
-          Some (process)
-        }
-        else {
-          logger.warn(s"Invalid Process Status Change requested for process $id: " +
-            s"Expected Status: '$currentStatus' Status Found: '${process.meta.status}' Desired Status: ${info.status} ")
-          None
-        }
-      case _ =>
-        logger.warn(s"ChangeStatus - process id ($id) not found.")
-        None
+        logger.warn(s"Invalid Process Status Change requested for process $id: " +
+          s"Expected Status: '$currentStatus' Status Found: '${process.meta.status}' Desired Status: ${info.status} ")
+        Left(Errors(StaleDataError))
+      case Left(errors) =>
+        logger.warn(s"ChangeStatus - error retrieving process $id - error returned $errors.")
+        Left(errors)
     }
 
     def publishIfRequired(approvalProcess: ApprovalProcess): Future[RequestOutcome[Unit]] = info.status match {
@@ -90,7 +86,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
     }
 
     getContentToUpdate flatMap {
-      case Some(approvalProcess) =>
+      case Right(approvalProcess) =>
         val status = if (info.status == StatusApprovedForPublishing) StatusPublished else info.status
         repository.changeStatus(id, status, info.userId) flatMap {
           case Left(Errors(DatabaseError :: Nil)) => Future.successful(Left(Errors(InternalServiceError)))
@@ -99,12 +95,12 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
             Future.successful(error)
           case _ => publishIfRequired(approvalProcess)
         }
-      case None =>
-        Future.successful(Left(Errors(NotFoundError)))
+      case Left(errors) =>
+        Future.successful(Left(errors))
     }
   }
 
-  def approval2iReviewPageComplete(id: String, pageUrl: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] = {
+  def approval2iReviewPageComplete(id: String, pageUrl: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] =
     repository.getById(id) flatMap {
       case Left(Errors(NotFoundError :: Nil)) =>
         logger.warn(s"approval2iReviewPageComplete - process $id not found.")
@@ -119,6 +115,5 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
           case Right(_) => Right(())
         }
     }
-  }
 
 }
