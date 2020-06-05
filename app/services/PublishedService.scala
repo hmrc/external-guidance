@@ -53,14 +53,18 @@ class PublishedService @Inject() (repository: PublishedRepository) {
 
     def saveProcess: Future[RequestOutcome[String]] = {
       repository.save(id, jsonProcess) map {
-        case Left(_) => Left(Errors(InternalServiceError))
+        case Left(_) =>
+          logger.error(s"Request to publish $id has failed")
+          Left(Errors(InternalServiceError))
         case result => result
       }
     }
 
     validateProcess(jsonProcess) match {
       case Right(_) => saveProcess
-      case Left(_) => Future.successful(Left(Errors(BadRequestError)))
+      case Left(_) =>
+        logger.error(s"Publish process $id has failed - invalid process passed in")
+        Future.successful(Left(Errors(BadRequestError)))
     }
 
   }
