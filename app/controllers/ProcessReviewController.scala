@@ -80,4 +80,39 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
     }
   }
 
+  def approvalFactCheckInfo(id: String): Action[AnyContent] = Action.async { _ =>
+    reviewService.approvalFactCheckInfo(id).map {
+      case Right(data) => Ok(Json.toJson(data).as[JsObject])
+      case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
+      case Left(Errors(StaleDataError :: Nil)) => NotFound(Json.toJson(StaleDataError))
+      case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
+      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+    }
+  }
+
+  def approvalFactCheckComplete(id: String): Action[JsValue] = Action.async(parse.json) { request =>
+    def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
+      reviewService.changeStatus(id, StatusSubmittedForFactCheck, statusChangeInfo).map {
+        case Right(_) => NoContent
+        case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
+        case Left(errors) => InternalServerError(Json.toJson(errors))
+      }
+    }
+
+    request.body.validate[ApprovalProcessStatusChange] match {
+      case JsSuccess(statusChangeInfo, _) => save(statusChangeInfo)
+      case errors: JsError => Future.successful(BadRequest(JsError.toJson(errors)))
+    }
+  }
+
+  def approvalFactCheckPageInfo(id: String, pageUrl: String): Action[AnyContent] = Action.async { _ =>
+    reviewService.approvalFactCheckPageInfo(id, pageUrl).map {
+      case Right(data) => Ok(Json.toJson(data).as[JsObject])
+      case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
+      case Left(Errors(StaleDataError :: Nil)) => NotFound(Json.toJson(StaleDataError))
+      case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
+      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+    }
+  }
+
 }

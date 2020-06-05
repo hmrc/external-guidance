@@ -29,6 +29,7 @@ import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.formatters.ApprovalProcessFormatter
+import utils.Constants._
 
 import scala.concurrent.Future
 
@@ -41,11 +42,11 @@ class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures wi
     lazy val controller: ApprovalController = new ApprovalController(mockApprovalService, stubControllerComponents())
   }
 
-  "Calling the save action" when {
+  "Calling the saveFor2iReview action" when {
 
     "the request is valid" should {
 
-      trait ValidSaveTest extends Test {
+      trait Valid2iSaveTest extends Test {
         val expectedId: String = validId
         MockApprovalService
           .save(validApprovalProcessJson)
@@ -54,18 +55,18 @@ class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures wi
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(validApprovalProcessJson)
       }
 
-      "return a created response" in new ValidSaveTest {
-        private val result = controller.save()(request)
+      "return a created response" in new Valid2iSaveTest {
+        private val result = controller.saveFor2iReview()(request)
         status(result) shouldBe CREATED
       }
 
-      "return content as JSON" in new ValidSaveTest {
-        private val result = controller.save()(request)
+      "return content as JSON" in new Valid2iSaveTest {
+        private val result = controller.saveFor2iReview()(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
-      "return a UUID assigned to an attribute labelled id" in new ValidSaveTest {
-        private val result = controller.save()(request)
+      "return a String assigned to an attribute labelled id" in new Valid2iSaveTest {
+        private val result = controller.saveFor2iReview()(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "id").as[String] shouldBe expectedId
       }
@@ -83,17 +84,17 @@ class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures wi
       }
 
       "return a bad request response" in new InvalidSaveTest {
-        private val result = controller.save()(request)
+        private val result = controller.saveFor2iReview()(request)
         status(result) shouldBe BAD_REQUEST
       }
 
       "return content as JSON" in new InvalidSaveTest {
-        private val result = controller.save()(request)
+        private val result = controller.saveFor2iReview()(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return an error code of BAD_REQUEST" in new InvalidSaveTest {
-        private val result = controller.save()(request)
+        private val result = controller.saveFor2iReview()(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe expectedErrorCode
       }
@@ -111,17 +112,104 @@ class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures wi
       }
 
       "return a internal server error response" in new ErrorSaveTest {
-        private val result = controller.save()(request)
+        private val result = controller.saveFor2iReview()(request)
         status(result) shouldBe INTERNAL_SERVER_ERROR
       }
 
       "return content as JSON" in new ErrorSaveTest {
-        private val result = controller.save()(request)
+        private val result = controller.saveFor2iReview()(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return an error code of INTERNAL_SERVER_ERROR" in new ErrorSaveTest {
-        private val result = controller.save()(request)
+        private val result = controller.saveFor2iReview()(request)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe expectedErrorCode
+      }
+    }
+  }
+
+  "Calling the saveForFactCheck action" when {
+
+    "the request is valid" should {
+
+      trait ValidFactCheckSaveTest extends Test {
+        val expectedId: String = validId
+        MockApprovalService
+          .save(validApprovalProcessJson, ReviewTypeFactCheck, StatusSubmittedForFactCheck)
+          .returns(Future.successful(Right(expectedId)))
+
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(validApprovalProcessJson)
+      }
+
+      "return a created response" in new ValidFactCheckSaveTest {
+        private val result = controller.saveForFactCheck()(request)
+        status(result) shouldBe CREATED
+      }
+
+      "return content as JSON" in new ValidFactCheckSaveTest {
+        private val result = controller.saveForFactCheck()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return a String assigned to an attribute labelled id" in new ValidFactCheckSaveTest {
+        private val result = controller.saveForFactCheck()(request)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "id").as[String] shouldBe expectedId
+      }
+    }
+
+    "the request is invalid" should {
+
+      trait InvalidSaveTest extends Test {
+        val expectedErrorCode = "BAD_REQUEST_ERROR"
+        MockApprovalService
+          .save(invalidProcess, ReviewTypeFactCheck, StatusSubmittedForFactCheck)
+          .returns(Future.successful(Left(Errors(BadRequestError))))
+
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidProcess)
+      }
+
+      "return a bad request response" in new InvalidSaveTest {
+        private val result = controller.saveForFactCheck()(request)
+        status(result) shouldBe BAD_REQUEST
+      }
+
+      "return content as JSON" in new InvalidSaveTest {
+        private val result = controller.saveForFactCheck()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return an error code of BAD_REQUEST" in new InvalidSaveTest {
+        private val result = controller.saveForFactCheck()(request)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe expectedErrorCode
+      }
+    }
+
+    "a downstream error occurs" should {
+
+      trait ErrorSaveTest extends Test {
+        val expectedErrorCode = "INTERNAL_SERVER_ERROR"
+        MockApprovalService
+          .save(invalidProcess, ReviewTypeFactCheck, StatusSubmittedForFactCheck)
+          .returns(Future.successful(Left(Errors(InternalServiceError))))
+
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidProcess)
+      }
+
+      "return a internal server error response" in new ErrorSaveTest {
+        private val result = controller.saveForFactCheck()(request)
+        status(result) shouldBe INTERNAL_SERVER_ERROR
+      }
+
+      "return content as JSON" in new ErrorSaveTest {
+        private val result = controller.saveForFactCheck()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return an error code of INTERNAL_SERVER_ERROR" in new ErrorSaveTest {
+        private val result = controller.saveForFactCheck()(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe expectedErrorCode
       }

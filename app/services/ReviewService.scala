@@ -32,11 +32,17 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
   val logger: Logger = Logger(this.getClass)
 
   def approval2iReviewInfo(id: String): Future[RequestOutcome[ProcessReview]] =
+    getReviewInfo(id, ReviewType2i)
+
+  def approvalFactCheckInfo(id: String): Future[RequestOutcome[ProcessReview]] =
+    getReviewInfo(id, ReviewTypeFactCheck)
+
+  def getReviewInfo(id: String, reviewType: String): Future[RequestOutcome[ProcessReview]] =
     repository.getById(id) flatMap {
       case Left(Errors(NotFoundError :: Nil)) => Future.successful(Left(Errors(NotFoundError)))
       case Left(_) => Future.successful(Left(Errors(InternalServiceError)))
       case Right(process) =>
-        reviewRepository.getByIdVersionAndType(id, process.version, ReviewType2i) map {
+        reviewRepository.getByIdVersionAndType(id, process.version, reviewType) map {
           case Left(Errors(NotFoundError :: Nil)) => Left(Errors(NotFoundError))
           case Left(_) => Left(Errors(InternalServiceError))
           case Right(info) =>
@@ -45,12 +51,18 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
         }
     }
 
-  def approval2iReviewPageInfo(id: String, pageUrl: String): Future[RequestOutcome[ApprovalProcessPageReview]] =
+  def approval2iReviewPageInfo(id: String, pageUrl: String): Future[RequestOutcome[PageReview]] =
+    getPageInfo(id, pageUrl, ReviewType2i)
+
+  def approvalFactCheckPageInfo(id: String, pageUrl: String): Future[RequestOutcome[PageReview]] =
+    getPageInfo(id, pageUrl, ReviewTypeFactCheck)
+
+  def getPageInfo(id: String, pageUrl: String, reviewType: String): Future[RequestOutcome[PageReview]] =
     repository.getById(id) flatMap {
       case Left(Errors(NotFoundError :: Nil)) => Future.successful(Left(Errors(NotFoundError)))
       case Left(_) => Future.successful(Left(Errors(InternalServiceError)))
       case Right(process) =>
-        reviewRepository.getByIdVersionAndType(id, process.version, ReviewType2i) map {
+        reviewRepository.getByIdVersionAndType(id, process.version, reviewType) map {
           case Left(Errors(NotFoundError :: Nil)) => Left(Errors(NotFoundError))
           case Left(_) => Left(Errors(InternalServiceError))
           case Right(info) =>
@@ -60,6 +72,66 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
             }
         }
     }
+
+  def change2iReviewStatus(id: String, currentStatus: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] = {
+
+    def getContentToUpdate: Future[Option[ApprovalProcess]] = repository.getById(id) map {
+        case Right(process) => if (process.meta.status == currentStatus) Some(process) else None
+        case _ => None
+      }
+
+    def publishIfRequired(approvalProcess: ApprovalProcess): Future[RequestOutcome[Unit]] = info.status match {
+        case StatusApprovedForPublishing =>
+          publishedService.save(id, approvalProcess.process) map {
+            case Right(_) => Right(())
+            case Left(errors) => Left(errors)
+          }
+        case _ => Future.successful(Right(()))
+      }
+
+    getContentToUpdate flatMap {
+      case Some(approvalProcess) =>
+        val status = if (info.status == StatusApprovedForPublishing) StatusPublished else info.status
+        repository.changeStatus(id, status, info.userId) flatMap {
+          case Left(Errors(DatabaseError :: Nil)) => Future.successful(Left(Errors(InternalServiceError)))
+          case error @ Left(Errors(NotFoundError :: Nil)) => Future.successful(error)
+          case _ => publishIfRequired(approvalProcess)
+        }
+      case None =>
+        logger.warn(s"Invalid process id submitted to method changeStatus. The requested id was $id")
+        Future.successful(Left(Errors(NotFoundError)))
+    }
+  }
+
+  def changeFactCheckStatus(id: String, currentStatus: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] = {
+
+    def getContentToUpdate: Future[Option[ApprovalProcess]] = repository.getById(id) map {
+      case Right(process) => if (process.meta.status == currentStatus) Some(process) else None
+      case _ => None
+    }
+
+    def publishIfRequired(approvalProcess: ApprovalProcess): Future[RequestOutcome[Unit]] = info.status match {
+      case StatusApprovedForPublishing =>
+        publishedService.save(id, approvalProcess.process) map {
+          case Right(_) => Right(())
+          case Left(errors) => Left(errors)
+        }
+      case _ => Future.successful(Right(()))
+    }
+
+    getContentToUpdate flatMap {
+      case Some(approvalProcess) =>
+        val status = if (info.status == StatusApprovedForPublishing) StatusPublished else info.status
+        repository.changeStatus(id, status, info.userId) flatMap {
+          case Left(Errors(DatabaseError :: Nil)) => Future.successful(Left(Errors(InternalServiceError)))
+          case error @ Left(Errors(NotFoundError :: Nil)) => Future.successful(error)
+          case _ => publishIfRequired(approvalProcess)
+        }
+      case None =>
+        logger.warn(s"Invalid process id submitted to method changeStatus. The requested id was $id")
+        Future.successful(Left(Errors(NotFoundError)))
+    }
+  }
 
   def changeStatus(id: String, currentStatus: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] = {
 
