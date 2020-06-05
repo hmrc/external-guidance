@@ -16,11 +16,12 @@
 
 package repositories
 
+import java.time.{LocalDateTime, ZoneId}
 import java.util.UUID
 
 import javax.inject.{Inject, Singleton}
 import models.errors.{DatabaseError, Errors, NotFoundError}
-import models.{ApprovalProcessReview, RequestOutcome}
+import models.{ApprovalProcessPageReview, ApprovalProcessReview, RequestOutcome}
 import play.api.libs.json.{Format, JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.indexes.{Index, IndexType}
@@ -34,6 +35,7 @@ import scala.concurrent.Future
 trait ApprovalProcessReviewRepository {
   def save(review: ApprovalProcessReview): Future[RequestOutcome[UUID]]
   def getByIdVersionAndType(id: String, version: Int, reviewType: String): Future[RequestOutcome[ApprovalProcessReview]]
+  def updatePageReview(id: String, version: Int, pageUrl: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]]
 }
 
 @Singleton
@@ -89,4 +91,30 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
     //$COVERAGE-ON$
   }
 
+  def updatePageReview(id: String, version: Int, pageUrl: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] = {
+
+    val selector = Json.obj("ocelotId" -> id, "version" -> version, "pages.pageUrl" -> pageUrl)
+    val modifier =
+      Json.obj(
+        "$set" -> Json.obj(
+          "pages.$.result" -> reviewInfo.result,
+          "pages.$.status" -> reviewInfo.status,
+          "pages.$.comment" -> reviewInfo.comment,
+          "pages.$.updateUser" -> reviewInfo.updateUser,
+          "pages.$.updateDate" -> Json.obj("$date" -> LocalDateTime.now.atZone(ZoneId.of("UTC")).toInstant.toEpochMilli)
+        )
+      )
+
+    findAndUpdate(selector, modifier)
+      .map { _ =>
+        Right(())
+      }
+      //$COVERAGE-OFF$
+      .recover {
+        case error =>
+          logger.error(s"Attempt to update page review $id and pageUrl $pageUrl from collection $collectionName failed with error : ${error.getMessage}")
+          Left(Errors(DatabaseError))
+      }
+    //$COVERAGE-ON$
+  }
 }

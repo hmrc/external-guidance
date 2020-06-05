@@ -13,3 +13,4 @@ GET         /approval/:id/2i-review controllers.ProcessReviewController.approval
 POST        /approval/:id/2i-review controllers.ProcessReviewController.approval2iReviewComplete(id)
 
 GET         /approval/:id/2i-review/*page controllers.ProcessReviewController.approval2iReviewPageInfo(id, page)
+POST        /approval/:id/2i-review/*page controllers.ProcessReviewController.approval2iReviewPageComplete(id, page)

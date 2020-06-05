@@ -16,7 +16,7 @@
 
 package mocks
 
-import models.{ApprovalProcessStatusChange, PageReview, ProcessReview, RequestOutcome}
+import models._
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import services.ReviewService
@@ -34,7 +34,7 @@ trait MockReviewService extends MockFactory {
         .expects(id)
     }
 
-    def approval2iReviewPageInfo(id: String, pageUrl: String): CallHandler[Future[RequestOutcome[PageReview]]] = {
+    def approval2iReviewPageInfo(id: String, pageUrl: String): CallHandler[Future[RequestOutcome[ApprovalProcessPageReview]]] = {
       (mockReviewService
         .approval2iReviewPageInfo(_: String, _: String))
         .expects(id, pageUrl)
@@ -46,5 +46,10 @@ trait MockReviewService extends MockFactory {
         .expects(id, currentStatus, statusInfo)
     }
 
+    def approval2iReviewPageComplete(id: String, pageUrl: String, reviewInfo: ApprovalProcessPageReview): CallHandler[Future[RequestOutcome[Unit]]] = {
+      (mockReviewService
+        .approval2iReviewPageComplete(_: String, _: String, _: ApprovalProcessPageReview))
+        .expects(id, pageUrl, reviewInfo)
+    }
   }
 }

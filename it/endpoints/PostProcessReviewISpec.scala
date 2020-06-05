@@ -16,9 +16,11 @@
 
 package endpoints
 
+import java.time.LocalDateTime
+
 import data.ExamplePayloads._
 import models.ocelot.Process
-import models.{ApprovalProcessStatusChange, ApprovalProcessSummary}
+import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange, ApprovalProcessSummary}
 import play.api.http.Status._
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.libs.ws.WSResponse
@@ -105,12 +107,65 @@ class PostProcessReviewISpec extends IntegrationSpec {
     }
   }
 
-  "Calling the approvalReviewComplete POST endpoint with an id that doesn't exist" should {
+  "Calling the approval2iReviewComplete POST endpoint with an id that doesn't exist" should {
 
     lazy val request = buildRequest(s"/external-guidance/approval/xyzinvalid/2i-review")
     lazy val response: WSResponse = {
       AuditStub.audit()
       await(request.post(statusChangeJson))
+    }
+
+    "return a NOT_FOUND status code" in {
+      response.status shouldBe NOT_FOUND
+    }
+
+  }
+
+  "Calling the approval2iReviewPageComplete POST endpoint with a valid payload" should {
+
+    def populateDatabase(processToSave: JsValue): String = {
+      lazy val request = buildRequest("/external-guidance/approval")
+
+      val result = await(request.post(processToSave))
+      val json = result.body[JsValue].as[JsObject]
+      (json \ "id").as[String]
+    }
+
+    val processToSave: JsValue = simpleValidProcess
+    lazy val id = populateDatabase(processToSave)
+    val pageUrl = "/feeling-bad"
+    lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-review/$pageUrl")
+    val content = ApprovalProcessPageReview("1", pageUrl, Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("User1"))
+
+    lazy val response: WSResponse = {
+      AuditStub.audit()
+      await(request.post(Json.toJson(content)))
+    }
+
+    "return a NO_CONTENT status code" in {
+      response.status shouldBe NO_CONTENT
+    }
+
+    "set the status to ReviewCompleteStatus" in {
+      lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-review/$pageUrl")
+      lazy val response: WSResponse = {
+        AuditStub.audit()
+        await(request.get())
+      }
+      val updatedEntry: ApprovalProcessPageReview = response.body[JsValue].as[ApprovalProcessPageReview]
+      updatedEntry.status shouldBe ReviewCompleteStatus
+    }
+
+  }
+
+  "Calling the approval2iReviewPageComplete POST endpoint with an id that doesn't exist" should {
+
+    lazy val request = buildRequest(s"/external-guidance/approval/unknownId/2i-review//pageUrl")
+    val content = ApprovalProcessPageReview("1", "pageUrl", Some("Success"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("User1"))
+
+    lazy val response: WSResponse = {
+      AuditStub.audit()
+      await(request.post(Json.toJson(content)))
     }
 
     "return a NOT_FOUND status code" in {

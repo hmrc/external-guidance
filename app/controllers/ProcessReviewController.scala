@@ -17,8 +17,8 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-import models.ApprovalProcessStatusChange
 import models.errors._
+import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ReviewService
@@ -63,6 +63,20 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
       case Left(Errors(StaleDataError :: Nil)) => NotFound(Json.toJson(StaleDataError))
       case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+    }
+  }
+
+  def approval2iReviewPageComplete(id: String, pageUrl: String): Action[JsValue] = Action.async(parse.json) { request =>
+    def save(reviewInfo: ApprovalProcessPageReview): Future[Result] =
+      reviewService.approval2iReviewPageComplete(id, pageUrl, reviewInfo).map {
+        case Right(_) => NoContent
+        case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
+        case Left(errors) => InternalServerError(Json.toJson(errors))
+      }
+
+    request.body.validate[ApprovalProcessPageReview] match {
+      case JsSuccess(pageInfo, _) => save(pageInfo)
+      case errors: JsError => Future.successful(BadRequest(JsError.toJson(errors)))
     }
   }
 

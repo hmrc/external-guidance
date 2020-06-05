@@ -18,7 +18,7 @@ package mocks
 
 import java.util.UUID
 
-import models.{ApprovalProcessReview, RequestOutcome}
+import models.{ApprovalProcessPageReview, ApprovalProcessReview, RequestOutcome}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import repositories.ApprovalProcessReviewRepository
@@ -42,6 +42,12 @@ trait MockApprovalProcessReviewRepository extends MockFactory {
       (mockApprovalProcessReviewRepository
         .getByIdVersionAndType(_: String, _: Int, _: String))
         .expects(id, version, reviewType)
+    }
+
+    def updatePageReview(id: String, version: Int, pageUrl: String, reviewInfo: ApprovalProcessPageReview): CallHandler[Future[RequestOutcome[Unit]]] = {
+      (mockApprovalProcessReviewRepository
+        .updatePageReview(_: String, _: Int, _: String, _: ApprovalProcessPageReview))
+        .expects(id, version, pageUrl, reviewInfo)
     }
 
   }
