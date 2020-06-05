@@ -23,7 +23,6 @@ import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ReviewService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
-import utils.Constants._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -43,7 +42,7 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
 
   def approval2iReviewComplete(id: String): Action[JsValue] = Action.async(parse.json) { request =>
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
-      reviewService.change2iReviewStatus(id, StatusSubmittedFor2iReview, statusChangeInfo).map {
+      reviewService.twoEyeReviewComplete(id, statusChangeInfo).map {
         case Right(_) => NoContent
         case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
         case Left(errors) => InternalServerError(Json.toJson(errors))
@@ -92,7 +91,7 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
 
   def approvalFactCheckComplete(id: String): Action[JsValue] = Action.async(parse.json) { request =>
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
-      reviewService.changeFactCheckStatus(id, StatusSubmittedForFactCheck, statusChangeInfo).map {
+      reviewService.factCheckComplete(id, statusChangeInfo).map {
         case Right(_) => NoContent
         case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
         case Left(errors) => InternalServerError(Json.toJson(errors))

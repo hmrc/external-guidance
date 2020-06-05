@@ -40,10 +40,16 @@ trait MockReviewService extends MockFactory {
         .expects(id, pageUrl)
     }
 
-    def changeStatus(id: String, currentStatus: String, statusInfo: ApprovalProcessStatusChange): CallHandler[Future[RequestOutcome[Unit]]] = {
+    def approval2iReviewPageComplete(id: String, pageUrl: String, reviewInfo: ApprovalProcessPageReview): CallHandler[Future[RequestOutcome[Unit]]] = {
       (mockReviewService
-        .change2iReviewStatus(_: String, _: String, _: ApprovalProcessStatusChange))
-        .expects(id, currentStatus, statusInfo)
+        .approval2iReviewPageComplete(_: String, _: String, _: ApprovalProcessPageReview))
+        .expects(id, pageUrl, reviewInfo)
+    }
+
+    def twoEyeReviewComplete(id: String, statusInfo: ApprovalProcessStatusChange): CallHandler[Future[RequestOutcome[Unit]]] = {
+      (mockReviewService
+        .twoEyeReviewComplete(_: String, _: ApprovalProcessStatusChange))
+        .expects(id, statusInfo)
     }
 
     def approvalFactCheckInfo(id: String): CallHandler[Future[RequestOutcome[ProcessReview]]] = {
@@ -52,22 +58,17 @@ trait MockReviewService extends MockFactory {
         .expects(id)
     }
 
-    def approvalFactCheckPageInfo(id: String, pageUrl: String): CallHandler[Future[RequestOutcome[PageReview]]] = {
+    def approvalFactCheckPageInfo(id: String, pageUrl: String): CallHandler[Future[RequestOutcome[ApprovalProcessPageReview]]] = {
       (mockReviewService
         .approvalFactCheckPageInfo(_: String, _: String))
         .expects(id, pageUrl)
     }
 
-    def changeFactCheckStatus(id: String, currentStatus: String, statusInfo: ApprovalProcessStatusChange): CallHandler[Future[RequestOutcome[Unit]]] = {
+    def factCheckComplete(id: String, statusInfo: ApprovalProcessStatusChange): CallHandler[Future[RequestOutcome[Unit]]] = {
       (mockReviewService
-        .changeFactCheckStatus(_: String, _: String, _: ApprovalProcessStatusChange))
-        .expects(id, currentStatus, statusInfo)
+        .factCheckComplete(_: String, _: ApprovalProcessStatusChange))
+        .expects(id, statusInfo)
     }
 
-    def approval2iReviewPageComplete(id: String, pageUrl: String, reviewInfo: ApprovalProcessPageReview): CallHandler[Future[RequestOutcome[Unit]]] = {
-      (mockReviewService
-        .approval2iReviewPageComplete(_: String, _: String, _: ApprovalProcessPageReview))
-        .expects(id, pageUrl, reviewInfo)
-    }
   }
 }

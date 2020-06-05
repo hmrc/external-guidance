@@ -188,7 +188,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
 
       trait ValidTest extends Test {
         MockReviewService
-          .changeStatus(validProcessIdForReview, StatusSubmittedFor2iReview, statusChangeInfo)
+          .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Right(())))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
@@ -210,7 +210,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
 
       trait InvalidTest extends Test {
         MockReviewService
-          .changeStatus(validProcessIdForReview, StatusSubmittedFor2iReview, statusChangeInfo)
+          .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Right(())))
           .never()
 
@@ -234,7 +234,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait NotFoundTest extends Test {
         val expectedErrorCode = "NOT_FOUND_ERROR"
         MockReviewService
-          .changeStatus(validProcessIdForReview, StatusSubmittedFor2iReview, statusChangeInfo)
+          .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(Errors(NotFoundError))))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
@@ -262,7 +262,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait ErrorTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockReviewService
-          .changeStatus(validProcessIdForReview, StatusSubmittedFor2iReview, statusChangeInfo)
+          .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(Errors(InternalServiceError))))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
@@ -689,7 +689,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
 
       trait ValidTest extends Test {
         MockReviewService
-          .changeFactCheckStatus(validProcessIdForReview, StatusSubmittedForFactCheck, statusChangeInfo)
+          .factCheckComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Right(())))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
@@ -711,7 +711,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
 
       trait InvalidTest extends Test {
         MockReviewService
-          .changeFactCheckStatus(validProcessIdForReview, StatusSubmittedForFactCheck, statusChangeInfo)
+          .factCheckComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Right(())))
           .never()
 
@@ -735,7 +735,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait NotFoundTest extends Test {
         val expectedErrorCode = "NOT_FOUND_ERROR"
         MockReviewService
-          .changeFactCheckStatus(validProcessIdForReview, StatusSubmittedForFactCheck, statusChangeInfo)
+          .factCheckComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(Errors(NotFoundError))))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
@@ -763,7 +763,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait ErrorTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockReviewService
-          .changeFactCheckStatus(validProcessIdForReview, StatusSubmittedForFactCheck, statusChangeInfo)
+          .factCheckComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(Errors(InternalServiceError))))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
@@ -794,7 +794,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait ValidTest extends Test {
 
         val pageUrl: String = "/pageUrl"
-        val pageReview: PageReview = PageReview("2", pageUrl, "result2")
+        val pageReview: ApprovalProcessPageReview = ApprovalProcessPageReview("2", pageUrl, Some("result2"))
 
         MockReviewService
           .approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)
@@ -816,7 +816,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
 
       "confirm returned content is a JSON object" in new ValidTest {
         private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)(request)
-        val dataReturned: PageReview = contentAsJson(result).as[PageReview]
+        val dataReturned: ApprovalProcessPageReview = contentAsJson(result).as[ApprovalProcessPageReview]
         dataReturned shouldBe pageReview
       }
     }
