@@ -42,7 +42,25 @@ trait MockReviewService extends MockFactory {
 
     def changeStatus(id: String, currentStatus: String, statusInfo: ApprovalProcessStatusChange): CallHandler[Future[RequestOutcome[Unit]]] = {
       (mockReviewService
-        .changeStatus(_: String, _: String, _: ApprovalProcessStatusChange))
+        .change2iReviewStatus(_: String, _: String, _: ApprovalProcessStatusChange))
+        .expects(id, currentStatus, statusInfo)
+    }
+
+    def approvalFactCheckInfo(id: String): CallHandler[Future[RequestOutcome[ProcessReview]]] = {
+      (mockReviewService
+        .approvalFactCheckInfo(_: String))
+        .expects(id)
+    }
+
+    def approvalFactCheckPageInfo(id: String, pageUrl: String): CallHandler[Future[RequestOutcome[PageReview]]] = {
+      (mockReviewService
+        .approvalFactCheckPageInfo(_: String, _: String))
+        .expects(id, pageUrl)
+    }
+
+    def changeFactCheckStatus(id: String, currentStatus: String, statusInfo: ApprovalProcessStatusChange): CallHandler[Future[RequestOutcome[Unit]]] = {
+      (mockReviewService
+        .changeFactCheckStatus(_: String, _: String, _: ApprovalProcessStatusChange))
         .expects(id, currentStatus, statusInfo)
     }
 

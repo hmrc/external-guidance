@@ -43,7 +43,7 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
 
   def approval2iReviewComplete(id: String): Action[JsValue] = Action.async(parse.json) { request =>
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
-      reviewService.changeStatus(id, StatusSubmittedFor2iReview, statusChangeInfo).map {
+      reviewService.change2iReviewStatus(id, StatusSubmittedFor2iReview, statusChangeInfo).map {
         case Right(_) => NoContent
         case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
         case Left(errors) => InternalServerError(Json.toJson(errors))
@@ -92,7 +92,7 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
 
   def approvalFactCheckComplete(id: String): Action[JsValue] = Action.async(parse.json) { request =>
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
-      reviewService.changeStatus(id, StatusSubmittedForFactCheck, statusChangeInfo).map {
+      reviewService.changeFactCheckStatus(id, StatusSubmittedForFactCheck, statusChangeInfo).map {
         case Right(_) => NoContent
         case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
         case Left(errors) => InternalServerError(Json.toJson(errors))

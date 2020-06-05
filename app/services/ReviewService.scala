@@ -110,22 +110,13 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
       case _ => None
     }
 
-    def publishIfRequired(approvalProcess: ApprovalProcess): Future[RequestOutcome[Unit]] = info.status match {
-      case StatusApprovedForPublishing =>
-        publishedService.save(id, approvalProcess.process) map {
-          case Right(_) => Right(())
-          case Left(errors) => Left(errors)
-        }
-      case _ => Future.successful(Right(()))
-    }
-
     getContentToUpdate flatMap {
       case Some(approvalProcess) =>
         val status = if (info.status == StatusApprovedForPublishing) StatusPublished else info.status
         repository.changeStatus(id, status, info.userId) flatMap {
           case Left(Errors(DatabaseError :: Nil)) => Future.successful(Left(Errors(InternalServiceError)))
           case error @ Left(Errors(NotFoundError :: Nil)) => Future.successful(error)
-          case _ => publishIfRequired(approvalProcess)
+          case _ => Future.successful(Right((): Unit))
         }
       case None =>
         logger.warn(s"Invalid process id submitted to method changeStatus. The requested id was $id")
