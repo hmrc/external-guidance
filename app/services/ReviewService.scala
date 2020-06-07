@@ -76,7 +76,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
   def twoEyeReviewComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] = {
 
     def publishIfRequired(approvalProcess: ApprovalProcess): Future[RequestOutcome[Unit]] = info.status match {
-      case StatusApprovedForPublishing =>
+      case StatusPublished =>
         publishedService.save(id, approvalProcess.process) map {
           case Right(_) => Right(())
           case Left(errors) =>
@@ -88,10 +88,8 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
 
     getContentToUpdate(id, StatusSubmittedFor2iReview) flatMap {
       case Right(approvalProcess) =>
-        // TODO pass over status Published from manage UI
-        val status = if (info.status == StatusApprovedForPublishing) StatusPublished else info.status
-        // TODO should we include required status in repo call in case changed between check above and now
-        repository.changeStatus(id, status, info.userId) flatMap {
+        // TODO should we include required status (or version) in repo call in case changed between check above and now
+        repository.changeStatus(id, info.status, info.userId) flatMap {
           case Left(Errors(DatabaseError :: Nil)) => Future.successful(Left(Errors(InternalServiceError)))
           case error @ Left(Errors(NotFoundError :: Nil)) =>
             logger.warn(s"Change Status: process $id was not found")
@@ -103,11 +101,12 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
     }
   }
 
-  def factCheckComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] = {
-
+  def factCheckComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] =
     getContentToUpdate(id, StatusSubmittedForFactCheck) flatMap {
       case Right(_) =>
-        // TODO should we include required status in repo call in case changed between check above and now
+        // Check that all pages have been reviewed
+
+        // TODO should we include required status (or version) in repo call in case changed between check above and now
         repository.changeStatus(id, info.status, info.userId) flatMap {
           case Left(Errors(DatabaseError :: Nil)) => Future.successful(Left(Errors(InternalServiceError)))
           case error @ Left(Errors(NotFoundError :: Nil)) =>
@@ -118,7 +117,6 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
       case Left(errors) =>
         Future.successful(Left(errors))
     }
-  }
 
   private def getContentToUpdate(id: String, expectedStatus: String): Future[RequestOutcome[ApprovalProcess]] = repository.getById(id) map {
     case Right(process) if process.meta.status == expectedStatus => Right (process)

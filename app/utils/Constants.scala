@@ -25,6 +25,5 @@ object Constants {
   val StatusSubmittedFor2iReview: String = "SubmittedFor2iReview"
   val StatusSubmittedForFactCheck: String = "SubmittedForFactCheck"
   val StatusWithDesignerForUpdate: String = "WithDesignerForUpdate"
-  val StatusApprovedForPublishing: String = "ApprovedForPublishing"
 
 }

@@ -152,11 +152,11 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
         }
       }
 
-      "the status is approved for publishing" should {
+      "the status is published" should {
         "indicate the process status was updated and published in the database" in new Test {
 
           val expected: RequestOutcome[Unit] = Right(())
-          val publishedStatusChangeInfo = ApprovalProcessStatusChange("user id", "user name", StatusApprovedForPublishing)
+          val publishedStatusChangeInfo = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
 
           MockApprovalRepository
             .getById("validId")
@@ -241,7 +241,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
 
         val repositoryError: RequestOutcome[Unit] = Left(Errors(DatabaseError))
         val expected: RequestOutcome[Unit] = Left(Errors(InternalServiceError))
-        val publishedStatusChangeInfo = ApprovalProcessStatusChange("user id", "user name", StatusApprovedForPublishing)
+        val publishedStatusChangeInfo = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
 
         MockApprovalRepository
           .getById("validId")
@@ -262,7 +262,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
 
         val expectedChangeStatusResponse: RequestOutcome[Unit] = Right(())
         val expected: RequestOutcome[Unit] = Left(Errors(InternalServiceError))
-        val publishedStatusChangeInfo = ApprovalProcessStatusChange("user id", "user name", StatusApprovedForPublishing)
+        val publishedStatusChangeInfo = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
 
         MockApprovalRepository
           .getById("validId")
