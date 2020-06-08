@@ -134,7 +134,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
     val processToSave: JsValue = simpleValidProcess
     lazy val id = populateDatabase(processToSave)
     val pageUrl = "/feeling-bad"
-    lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-review/$pageUrl")
+    lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-page-review$pageUrl")
     val content = ApprovalProcessPageReview("1", pageUrl, Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("User1"))
 
     lazy val response: WSResponse = {
@@ -147,7 +147,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
     }
 
     "set the status to ReviewCompleteStatus" in {
-      lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-review/$pageUrl")
+      lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-page-review$pageUrl")
       lazy val response: WSResponse = {
         AuditStub.audit()
         await(request.get())
@@ -160,7 +160,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
 
   "Calling the approval2iReviewPageComplete POST endpoint with an id that doesn't exist" should {
 
-    lazy val request = buildRequest(s"/external-guidance/approval/unknownId/2i-review//pageUrl")
+    lazy val request = buildRequest(s"/external-guidance/approval/unknownId/2i-page-review/pageUrl")
     val content = ApprovalProcessPageReview("1", "pageUrl", Some("Success"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("User1"))
 
     lazy val response: WSResponse = {

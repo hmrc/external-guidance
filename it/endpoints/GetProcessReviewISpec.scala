@@ -63,7 +63,7 @@ class GetProcessReviewISpec extends IntegrationSpec {
   "Calling the approval 2i Review Page Info endpoint" should {
 
     val pageUrl: String = "/feeling-bad"
-    lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-review/$pageUrl")
+    lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-page-review$pageUrl")
     lazy val response: WSResponse = {
       AuditStub.audit()
       await(request.get())
