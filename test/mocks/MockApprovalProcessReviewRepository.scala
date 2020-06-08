@@ -22,7 +22,6 @@ import models.{ApprovalProcessPageReview, ApprovalProcessReview, RequestOutcome}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import repositories.ApprovalProcessReviewRepository
-import utils.Constants._
 
 import scala.concurrent.Future
 
@@ -38,16 +37,21 @@ trait MockApprovalProcessReviewRepository extends MockFactory {
         .expects(*)
     }
 
-    def getByIdVersionAndType(id: String, version: Int = 1, reviewType: String = ReviewType2i): CallHandler[Future[RequestOutcome[ApprovalProcessReview]]] = {
+    def getByIdVersionAndType(id: String, reviewType: String, version: Int = 1): CallHandler[Future[RequestOutcome[ApprovalProcessReview]]] = {
       (mockApprovalProcessReviewRepository
         .getByIdVersionAndType(_: String, _: Int, _: String))
         .expects(id, version, reviewType)
     }
 
-    def updatePageReview(id: String, version: Int, pageUrl: String, reviewInfo: ApprovalProcessPageReview): CallHandler[Future[RequestOutcome[Unit]]] = {
+    def updatePageReview(id: String,
+                         version: Int,
+                         pageUrl: String,
+                         reviewType: String,
+                         reviewInfo: ApprovalProcessPageReview
+                        ): CallHandler[Future[RequestOutcome[Unit]]] = {
       (mockApprovalProcessReviewRepository
-        .updatePageReview(_: String, _: Int, _: String, _: ApprovalProcessPageReview))
-        .expects(id, version, pageUrl, reviewInfo)
+        .updatePageReview(_: String, _: Int, _: String, _: String, _: ApprovalProcessPageReview))
+        .expects(id, version, pageUrl, reviewType, reviewInfo)
     }
 
   }

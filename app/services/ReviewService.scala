@@ -31,13 +31,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
 
   val logger: Logger = Logger(this.getClass)
 
-  def approval2iReviewInfo(id: String): Future[RequestOutcome[ProcessReview]] =
-    getReviewInfo(id, ReviewType2i)
-
-  def approvalFactCheckInfo(id: String): Future[RequestOutcome[ProcessReview]] =
-    getReviewInfo(id, ReviewTypeFactCheck)
-
-  private def getReviewInfo(id: String, reviewType: String): Future[RequestOutcome[ProcessReview]] =
+  def approvalReviewInfo(id: String, reviewType: String): Future[RequestOutcome[ProcessReview]] =
     repository.getById(id) flatMap {
       case Left(Errors(NotFoundError :: Nil)) => Future.successful(Left(Errors(NotFoundError)))
       case Left(_) => Future.successful(Left(Errors(InternalServiceError)))
@@ -51,13 +45,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
         }
     }
 
-  def approval2iReviewPageInfo(id: String, pageUrl: String): Future[RequestOutcome[ApprovalProcessPageReview]] =
-    getPageInfo(id, pageUrl, ReviewType2i)
-
-  def approvalFactCheckPageInfo(id: String, pageUrl: String): Future[RequestOutcome[ApprovalProcessPageReview]] =
-    getPageInfo(id, pageUrl, ReviewTypeFactCheck)
-
-  private def getPageInfo(id: String, pageUrl: String, reviewType: String): Future[RequestOutcome[ApprovalProcessPageReview]] =
+  def approvalPageInfo(id: String, pageUrl: String, reviewType: String): Future[RequestOutcome[ApprovalProcessPageReview]] =
     repository.getById(id) flatMap {
       case Left(Errors(NotFoundError :: Nil)) => Future.successful(Left(Errors(NotFoundError)))
       case Left(_) => Future.successful(Left(Errors(InternalServiceError)))
@@ -129,16 +117,16 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
       Left(errors)
   }
 
-  def approval2iReviewPageComplete(id: String, pageUrl: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] =
+  def approvalPageComplete(id: String, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] =
     repository.getById(id) flatMap {
       case Left(Errors(NotFoundError :: Nil)) =>
-        logger.warn(s"approval2iReviewPageComplete - process $id not found.")
+        logger.warn(s"approvalPageComplete - process $id not found.")
         Future.successful(Left(Errors(NotFoundError)))
       case Left(_) => Future.successful(Left(Errors(InternalServiceError)))
       case Right(process) =>
-        reviewRepository.updatePageReview(process.id, process.version, pageUrl, reviewInfo) map {
+        reviewRepository.updatePageReview(process.id, process.version, pageUrl, reviewType, reviewInfo) map {
           case Left(Errors(NotFoundError :: Nil)) =>
-            logger.warn(s"updatePageReview failed for process $id, version ${process.version} and pageUrl $pageUrl not found.")
+            logger.warn(s"updatePageReview failed for process $id, version ${process.version}, reviewType $reviewType and pageUrl $pageUrl not found.")
             Left(Errors(NotFoundError))
           case Left(_) => Left(Errors(InternalServiceError))
           case Right(_) => Right(())
