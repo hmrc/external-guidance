@@ -88,7 +88,7 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
   }
 
   private def pageReviewInfo(id: String, pageUrl: String, reviewType: String): Future[Result] = {
-    reviewService.approvalPageInfo(id, pageUrl, reviewType).map {
+    reviewService.approvalPageInfo(id, s"/$pageUrl", reviewType).map {
       case Right(data) => Ok(Json.toJson(data).as[JsObject])
       case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
       case Left(Errors(StaleDataError :: Nil)) => NotFound(Json.toJson(StaleDataError))
@@ -107,7 +107,7 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
 
   private def pageReviewComplete(id: String, pageUrl: String, reviewType: String, reviewJson: JsValue): Future[Result] = {
     def save(reviewInfo: ApprovalProcessPageReview): Future[Result] =
-      reviewService.approvalPageComplete(id, pageUrl, reviewType, reviewInfo).map {
+      reviewService.approvalPageComplete(id, s"/$pageUrl", reviewType, reviewInfo).map {
         case Right(_) => NoContent
         case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
         case Left(errors) => InternalServerError(Json.toJson(errors))
