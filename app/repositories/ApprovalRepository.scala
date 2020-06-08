@@ -117,7 +117,11 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
 
     logger.info(s"updating status of process $id to $status to collection $collectionName")
     val selector = Json.obj("_id" -> id)
-    val modifier = Json.obj("$set" -> Json.obj("meta.status" -> status, "meta.lastModified" -> LocalDateTime.now))
+    val modifier = Json.obj(
+      "$set" -> Json.obj(
+        "meta.status" -> status,
+        "meta.updateUser" -> user,
+        "meta.lastModified" -> LocalDateTime.now))
 
     this
       .findAndUpdate(selector, modifier)

@@ -23,7 +23,6 @@ import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ReviewService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
-import utils.Constants._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -43,7 +42,7 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
 
   def approval2iReviewComplete(id: String): Action[JsValue] = Action.async(parse.json) { request =>
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
-      reviewService.changeStatus(id, StatusSubmittedFor2iReview, statusChangeInfo).map {
+      reviewService.twoEyeReviewComplete(id, statusChangeInfo).map {
         case Right(_) => NoContent
         case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
         case Left(errors) => InternalServerError(Json.toJson(errors))
@@ -77,6 +76,41 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
     request.body.validate[ApprovalProcessPageReview] match {
       case JsSuccess(pageInfo, _) => save(pageInfo)
       case errors: JsError => Future.successful(BadRequest(JsError.toJson(errors)))
+    }
+  }
+
+  def approvalFactCheckInfo(id: String): Action[AnyContent] = Action.async { _ =>
+    reviewService.approvalFactCheckInfo(id).map {
+      case Right(data) => Ok(Json.toJson(data).as[JsObject])
+      case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
+      case Left(Errors(StaleDataError :: Nil)) => NotFound(Json.toJson(StaleDataError))
+      case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
+      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+    }
+  }
+
+  def approvalFactCheckComplete(id: String): Action[JsValue] = Action.async(parse.json) { request =>
+    def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
+      reviewService.factCheckComplete(id, statusChangeInfo).map {
+        case Right(_) => NoContent
+        case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
+        case Left(errors) => InternalServerError(Json.toJson(errors))
+      }
+    }
+
+    request.body.validate[ApprovalProcessStatusChange] match {
+      case JsSuccess(statusChangeInfo, _) => save(statusChangeInfo)
+      case errors: JsError => Future.successful(BadRequest(JsError.toJson(errors)))
+    }
+  }
+
+  def approvalFactCheckPageInfo(id: String, pageUrl: String): Action[AnyContent] = Action.async { _ =>
+    reviewService.approvalFactCheckPageInfo(id, pageUrl).map {
+      case Right(data) => Ok(Json.toJson(data).as[JsObject])
+      case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
+      case Left(Errors(StaleDataError :: Nil)) => NotFound(Json.toJson(StaleDataError))
+      case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
+      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
     }
   }
 

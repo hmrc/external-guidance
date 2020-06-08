@@ -7,10 +7,17 @@ GET         /published/:id          controllers.PublishedController.get(id)
 
 GET         /approval               controllers.ApprovalController.approvalSummaryList
 GET         /approval/:id           controllers.ApprovalController.get(id)
-POST        /approval               controllers.ApprovalController.save
+POST        /approval               controllers.ApprovalController.saveFor2iReview
+POST        /approval/fact-check    controllers.ApprovalController.saveForFactCheck
+POST        /approval/2i-review     controllers.ApprovalController.saveFor2iReview
 
 GET         /approval/:id/2i-review controllers.ProcessReviewController.approval2iReviewInfo(id)
 POST        /approval/:id/2i-review controllers.ProcessReviewController.approval2iReviewComplete(id)
 
 GET         /approval/:id/2i-review/*page controllers.ProcessReviewController.approval2iReviewPageInfo(id, page)
 POST        /approval/:id/2i-review/*page controllers.ProcessReviewController.approval2iReviewPageComplete(id, page)
+
+GET         /approval/:id/fact-check controllers.ProcessReviewController.approvalFactCheckInfo(id)
+POST        /approval/:id/fact-check controllers.ProcessReviewController.approvalFactCheckComplete(id)
+
+GET         /approval/:id/fact-check/*page controllers.ProcessReviewController.approvalFactCheckPageInfo(id, page)
