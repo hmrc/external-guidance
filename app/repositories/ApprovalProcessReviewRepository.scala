@@ -35,7 +35,7 @@ import scala.concurrent.Future
 trait ApprovalProcessReviewRepository {
   def save(review: ApprovalProcessReview): Future[RequestOutcome[UUID]]
   def getByIdVersionAndType(id: String, version: Int, reviewType: String): Future[RequestOutcome[ApprovalProcessReview]]
-  def updatePageReview(id: String, version: Int, pageUrl: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]]
+  def updatePageReview(id: String, version: Int, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]]
 }
 
 @Singleton
@@ -91,9 +91,9 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
     //$COVERAGE-ON$
   }
 
-  def updatePageReview(id: String, version: Int, pageUrl: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] = {
+  def updatePageReview(id: String, version: Int, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] = {
 
-    val selector = Json.obj("ocelotId" -> id, "version" -> version, "pages.pageUrl" -> pageUrl)
+    val selector = Json.obj("ocelotId" -> id, "version" -> version, "reviewType" -> reviewType, "pages.pageUrl" -> pageUrl)
     val modifier =
       Json.obj(
         "$set" -> Json.obj(

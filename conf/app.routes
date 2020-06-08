@@ -21,3 +21,4 @@ GET         /approval/:id/fact-check controllers.ProcessReviewController.approva
 POST        /approval/:id/fact-check controllers.ProcessReviewController.approvalFactCheckComplete(id)
 
 GET         /approval/:id/fact-check/*page controllers.ProcessReviewController.approvalFactCheckPageInfo(id, page)
+POST        /approval/:id/fact-check/*page controllers.ProcessReviewController.approvalFactCheckPageComplete(id, page)

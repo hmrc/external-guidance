@@ -26,7 +26,7 @@ import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.ContentTypes
 import play.api.libs.json.{JsObject, JsValue, Json}
-import play.api.mvc.AnyContentAsEmpty
+import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import utils.Constants._
@@ -46,7 +46,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
 
       trait ValidTest extends Test {
         MockReviewService
-          .approval2iReviewInfo(validProcessIdForReview)
+          .approvalReviewInfo(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Right(processReviewInfo)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -74,7 +74,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait InvalidTest extends Test {
         val expectedErrorCode = "BAD_REQUEST_ERROR"
         MockReviewService
-          .approval2iReviewInfo(invalidId)
+          .approvalReviewInfo(invalidId, ReviewType2i)
           .returns(Future.successful(Left(Errors(BadRequestError))))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -102,7 +102,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait NotFoundTest extends Test {
         val expectedErrorCode = "NOT_FOUND_ERROR"
         MockReviewService
-          .approval2iReviewInfo(validProcessIdForReview)
+          .approvalReviewInfo(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Left(Errors(NotFoundError))))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -130,7 +130,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait StaleDataTest extends Test {
         val expectedErrorCode = "STALE_DATA_ERROR"
         MockReviewService
-          .approval2iReviewInfo(validProcessIdForReview)
+          .approvalReviewInfo(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Left(Errors(StaleDataError))))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -158,7 +158,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait ErrorTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockReviewService
-          .approval2iReviewInfo(validProcessIdForReview)
+          .approvalReviewInfo(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Left(Errors(InternalServiceError))))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -296,7 +296,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
         val pageReview: ApprovalProcessPageReview = ApprovalProcessPageReview("id", pageUrl, None, "status")
 
         MockReviewService
-          .approval2iReviewPageInfo(validProcessIdForReview, pageUrl)
+          .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewType2i)
           .returns(Future.successful(Right(pageReview)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -326,7 +326,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
         val expectedErrorCode = "BAD_REQUEST_ERROR"
         val pageUrl: String = "/pageUrl"
         MockReviewService
-          .approval2iReviewPageInfo(validProcessIdForReview, pageUrl)
+          .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewType2i)
           .returns(Future.successful(Left(Errors(BadRequestError))))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -355,7 +355,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
         val expectedErrorCode = "NOT_FOUND_ERROR"
         val pageUrl: String = "/pageUrl"
         MockReviewService
-          .approval2iReviewPageInfo(validProcessIdForReview, pageUrl)
+          .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewType2i)
           .returns(Future.successful(Left(Errors(NotFoundError))))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -384,7 +384,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
         val expectedErrorCode = "STALE_DATA_ERROR"
         val pageUrl: String = "/pageUrl"
         MockReviewService
-          .approval2iReviewPageInfo(validProcessIdForReview, pageUrl)
+          .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewType2i)
           .returns(Future.successful(Left(Errors(StaleDataError))))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -413,7 +413,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         val pageUrl: String = "/pageUrl"
         MockReviewService
-          .approval2iReviewPageInfo(validProcessIdForReview, pageUrl)
+          .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewType2i)
           .returns(Future.successful(Left(Errors(InternalServiceError))))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -444,7 +444,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait ValidTest extends Test {
 
         MockReviewService
-          .approval2iReviewPageComplete("id", "/pageUrl", reviewUpdate)
+          .approvalPageComplete("id", "/pageUrl", ReviewType2i, reviewUpdate)
           .returns(Future.successful(Right(())))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(Json.toJson(reviewUpdate))
@@ -466,7 +466,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
 
       trait InvalidTest extends Test {
         MockReviewService
-          .approval2iReviewPageComplete("id", "/pageUrl", reviewUpdate)
+          .approvalPageComplete("id", "/pageUrl", ReviewType2i, reviewUpdate)
           .never()
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(Json.obj())
@@ -489,25 +489,23 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait NotFoundTest extends Test {
         val expectedErrorCode = "NOT_FOUND_ERROR"
         MockReviewService
-          .approval2iReviewPageComplete("id", "/pageUrl", reviewUpdate)
+          .approvalPageComplete("id", "/pageUrl", ReviewType2i, reviewUpdate)
           .returns(Future.successful(Left(Errors(NotFoundError))))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(Json.toJson(reviewUpdate))
+        val result: Future[Result] = controller.approval2iReviewPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
       }
 
       "return an not found response" in new NotFoundTest {
-        val result = controller.approval2iReviewPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
         status(result) shouldBe NOT_FOUND
       }
 
       "return content as JSON" in new NotFoundTest {
-        val result = controller.approval2iReviewPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return a error code of NOT_FOUND_ERROR" in new NotFoundTest {
-        val result = controller.approval2iReviewPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
-        val json = contentAsJson(result).as[JsObject]
+        val json: JsObject = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe expectedErrorCode
       }
     }
@@ -517,25 +515,25 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait ErrorTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockReviewService
-          .approval2iReviewPageComplete("id", "/pageUrl", reviewUpdate)
+          .approvalPageComplete("id", "/pageUrl", ReviewType2i, reviewUpdate)
           .returns(Future.successful(Left(Errors(InternalServiceError))))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(Json.toJson(reviewUpdate))
       }
 
       "return a internal server error response" in new ErrorTest {
-        val result = controller.approval2iReviewPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
+        val result: Future[Result] = controller.approval2iReviewPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
         status(result) shouldBe INTERNAL_SERVER_ERROR
       }
 
       "return content as JSON" in new ErrorTest {
-        val result = controller.approval2iReviewPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
+        val result: Future[Result] = controller.approval2iReviewPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return an error code of INTERNAL_SERVER_ERROR" in new ErrorTest {
-        val result = controller.approval2iReviewPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
-        val data = contentAsJson(result).as[JsObject]
+        val result: Future[Result] = controller.approval2iReviewPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
+        val data: JsObject = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe expectedErrorCode
       }
     }
@@ -547,7 +545,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
 
       trait ValidTest extends Test {
         MockReviewService
-          .approvalFactCheckInfo(validProcessIdForReview)
+          .approvalReviewInfo(validProcessIdForReview, ReviewTypeFactCheck)
           .returns(Future.successful(Right(processReviewInfo.copy(reviewType = ReviewTypeFactCheck))))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -567,118 +565,6 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
         private val result = controller.approvalFactCheckInfo(validProcessIdForReview)(request)
         val dataReturned: ProcessReview = contentAsJson(result).as[ProcessReview]
         dataReturned.ocelotId shouldBe validProcessIdForReview
-      }
-    }
-
-    "the request is invalid" should {
-
-      trait InvalidTest extends Test {
-        val expectedErrorCode = "BAD_REQUEST_ERROR"
-        MockReviewService
-          .approvalFactCheckInfo(invalidId)
-          .returns(Future.successful(Left(Errors(BadRequestError))))
-
-        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
-      }
-
-      "return a bad request response" in new InvalidTest {
-        private val result = controller.approvalFactCheckInfo(invalidId)(request)
-        status(result) shouldBe BAD_REQUEST
-      }
-
-      "return content as JSON" in new InvalidTest {
-        private val result = controller.approvalFactCheckInfo(invalidId)(request)
-        contentType(result) shouldBe Some(ContentTypes.JSON)
-      }
-
-      "return a error code of BAD_REQUEST" in new InvalidTest {
-        private val result = controller.approvalFactCheckInfo(invalidId)(request)
-        private val json = contentAsJson(result).as[JsObject]
-        (json \ "code").as[String] shouldBe expectedErrorCode
-      }
-    }
-
-    "the request contains an unknown ID" should {
-
-      trait NotFoundTest extends Test {
-        val expectedErrorCode = "NOT_FOUND_ERROR"
-        MockReviewService
-          .approvalFactCheckInfo(validProcessIdForReview)
-          .returns(Future.successful(Left(Errors(NotFoundError))))
-
-        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
-      }
-
-      "return an not found response" in new NotFoundTest {
-        private val result = controller.approvalFactCheckInfo(validProcessIdForReview)(request)
-        status(result) shouldBe NOT_FOUND
-      }
-
-      "return content as JSON" in new NotFoundTest {
-        private val result = controller.approvalFactCheckInfo(validProcessIdForReview)(request)
-        contentType(result) shouldBe Some(ContentTypes.JSON)
-      }
-
-      "return a error code of NOT_FOUND_ERROR" in new NotFoundTest {
-        private val result = controller.approvalFactCheckInfo(validProcessIdForReview)(request)
-        private val json = contentAsJson(result).as[JsObject]
-        (json \ "code").as[String] shouldBe expectedErrorCode
-      }
-    }
-
-    "the requested process is no longer SubmittedForFactCheck" should {
-
-      trait StaleDataTest extends Test {
-        val expectedErrorCode = "STALE_DATA_ERROR"
-        MockReviewService
-          .approvalFactCheckInfo(validProcessIdForReview)
-          .returns(Future.successful(Left(Errors(StaleDataError))))
-
-        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
-      }
-
-      "return an not found response" in new StaleDataTest {
-        private val result = controller.approvalFactCheckInfo(validProcessIdForReview)(request)
-        status(result) shouldBe NOT_FOUND
-      }
-
-      "return content as JSON" in new StaleDataTest {
-        private val result = controller.approvalFactCheckInfo(validProcessIdForReview)(request)
-        contentType(result) shouldBe Some(ContentTypes.JSON)
-      }
-
-      "return a error code of NOT_FOUND_ERROR" in new StaleDataTest {
-        private val result = controller.approvalFactCheckInfo(validProcessIdForReview)(request)
-        private val json = contentAsJson(result).as[JsObject]
-        (json \ "code").as[String] shouldBe expectedErrorCode
-      }
-    }
-
-    "a downstream error occurs" should {
-
-      trait ErrorTest extends Test {
-        val expectedErrorCode = "INTERNAL_SERVER_ERROR"
-        MockReviewService
-          .approvalFactCheckInfo(validProcessIdForReview)
-          .returns(Future.successful(Left(Errors(InternalServiceError))))
-
-        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
-      }
-
-      "return a internal server error response" in new ErrorTest {
-        private val result = controller.approvalFactCheckInfo(validProcessIdForReview)(request)
-        status(result) shouldBe INTERNAL_SERVER_ERROR
-      }
-
-      "return content as JSON" in new ErrorTest {
-        private val result = controller.approvalFactCheckInfo(validProcessIdForReview)(request)
-        contentType(result) shouldBe Some(ContentTypes.JSON)
-      }
-
-      "return an error code of INTERNAL_SERVER_ERROR" in new ErrorTest {
-        private val result = controller.approvalFactCheckInfo(validProcessIdForReview)(request)
-        private val data = contentAsJson(result).as[JsObject]
-        (data \ "code").as[String] shouldBe expectedErrorCode
       }
     }
   }
@@ -797,7 +683,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
         val pageReview: ApprovalProcessPageReview = ApprovalProcessPageReview("2", pageUrl, Some("result2"))
 
         MockReviewService
-          .approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)
+          .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewTypeFactCheck)
           .returns(Future.successful(Right(pageReview)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -821,71 +707,13 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       }
     }
 
-    "the request is invalid" should {
-
-      trait InvalidTest extends Test {
-        val expectedErrorCode = "BAD_REQUEST_ERROR"
-        val pageUrl: String = "/pageUrl"
-        MockReviewService
-          .approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)
-          .returns(Future.successful(Left(Errors(BadRequestError))))
-
-        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
-      }
-
-      "return a bad request response" in new InvalidTest {
-        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)(request)
-        status(result) shouldBe BAD_REQUEST
-      }
-
-      "return content as JSON" in new InvalidTest {
-        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)(request)
-        contentType(result) shouldBe Some(ContentTypes.JSON)
-      }
-
-      "return a error code of BAD_REQUEST" in new InvalidTest {
-        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)(request)
-        private val json = contentAsJson(result).as[JsObject]
-        (json \ "code").as[String] shouldBe expectedErrorCode
-      }
-    }
-
-    "the request contains an unknown ID" should {
-
-      trait NotFoundTest extends Test {
-        val expectedErrorCode = "NOT_FOUND_ERROR"
-        val pageUrl: String = "/pageUrl"
-        MockReviewService
-          .approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)
-          .returns(Future.successful(Left(Errors(NotFoundError))))
-
-        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
-      }
-
-      "return an not found response" in new NotFoundTest {
-        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)(request)
-        status(result) shouldBe NOT_FOUND
-      }
-
-      "return content as JSON" in new NotFoundTest {
-        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)(request)
-        contentType(result) shouldBe Some(ContentTypes.JSON)
-      }
-
-      "return a error code of NOT_FOUND_ERROR" in new NotFoundTest {
-        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)(request)
-        private val json = contentAsJson(result).as[JsObject]
-        (json \ "code").as[String] shouldBe expectedErrorCode
-      }
-    }
-
     "the requested process is no longer SubmittedForFactCheck" should {
 
       trait StaleDataTest extends Test {
         val expectedErrorCode = "STALE_DATA_ERROR"
         val pageUrl: String = "/pageUrl"
         MockReviewService
-          .approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)
+          .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewTypeFactCheck)
           .returns(Future.successful(Left(Errors(StaleDataError))))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -908,33 +736,33 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       }
     }
 
-    "a downstream error occurs" should {
-
-      trait ErrorTest extends Test {
-        val expectedErrorCode = "INTERNAL_SERVER_ERROR"
-        val pageUrl: String = "/pageUrl"
-        MockReviewService
-          .approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)
-          .returns(Future.successful(Left(Errors(InternalServiceError))))
-
-        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
-      }
-
-      "return a internal server error response" in new ErrorTest {
-        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)(request)
-        status(result) shouldBe INTERNAL_SERVER_ERROR
-      }
-
-      "return content as JSON" in new ErrorTest {
-        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)(request)
-        contentType(result) shouldBe Some(ContentTypes.JSON)
-      }
-
-      "return an error code of INTERNAL_SERVER_ERROR" in new ErrorTest {
-        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)(request)
-        private val data = contentAsJson(result).as[JsObject]
-        (data \ "code").as[String] shouldBe expectedErrorCode
-      }
-    }
   }
+
+  "Calling the approvalFactCheckPageComplete action" when {
+
+    "the request is valid" should {
+
+      trait ValidTest extends Test {
+
+        MockReviewService
+          .approvalPageComplete("id", "/pageUrl", ReviewTypeFactCheck, reviewUpdate)
+          .returns(Future.successful(Right(())))
+
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(Json.toJson(reviewUpdate))
+      }
+
+      "return a NO_CONTENT response" in new ValidTest {
+        private val result = controller.approvalFactCheckPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
+        status(result) shouldBe NO_CONTENT
+      }
+
+      "return no content" in new ValidTest {
+        private val result = controller.approvalFactCheckPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
+        contentType(result) shouldBe None
+      }
+
+    }
+
+  }
+
 }
