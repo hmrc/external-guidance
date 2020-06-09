@@ -304,17 +304,17 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       }
 
       "return an OK response" in new ValidTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         status(result) shouldBe OK
       }
 
       "return content as JSON" in new ValidTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "confirm returned content is a JSON object" in new ValidTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         val dataReturned: ApprovalProcessPageReview = contentAsJson(result).as[ApprovalProcessPageReview]
         dataReturned shouldBe pageReview
       }
@@ -333,17 +333,17 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       }
 
       "return a bad request response" in new InvalidTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         status(result) shouldBe BAD_REQUEST
       }
 
       "return content as JSON" in new InvalidTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return a error code of BAD_REQUEST" in new InvalidTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         private val json = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe expectedErrorCode
       }
@@ -362,17 +362,17 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       }
 
       "return an not found response" in new NotFoundTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         status(result) shouldBe NOT_FOUND
       }
 
       "return content as JSON" in new NotFoundTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return a error code of NOT_FOUND_ERROR" in new NotFoundTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         private val json = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe expectedErrorCode
       }
@@ -391,17 +391,17 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       }
 
       "return an not found response" in new StaleDataTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         status(result) shouldBe NOT_FOUND
       }
 
       "return content as JSON" in new StaleDataTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return a error code of NOT_FOUND_ERROR" in new StaleDataTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         private val json = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe expectedErrorCode
       }
@@ -420,17 +420,17 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       }
 
       "return a internal server error response" in new ErrorTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         status(result) shouldBe INTERNAL_SERVER_ERROR
       }
 
       "return content as JSON" in new ErrorTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return an error code of INTERNAL_SERVER_ERROR" in new ErrorTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe expectedErrorCode
       }
@@ -451,12 +451,12 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       }
 
       "return a NO_CONTENT response" in new ValidTest {
-        private val result = controller.approval2iReviewPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
+        private val result = controller.approval2iReviewPageComplete(reviewUpdate.id, "pageUrl")(request)
         status(result) shouldBe NO_CONTENT
       }
 
       "return no content" in new ValidTest {
-        private val result = controller.approval2iReviewPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
+        private val result = controller.approval2iReviewPageComplete(reviewUpdate.id, "pageUrl")(request)
         contentType(result) shouldBe None
       }
 
@@ -473,12 +473,12 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       }
 
       "return a bad request response" in new InvalidTest {
-        private val result = controller.approval2iReviewPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
+        private val result = controller.approval2iReviewPageComplete(reviewUpdate.id, "pageUrl")(request)
         status(result) shouldBe BAD_REQUEST
       }
 
       "return content as JSON" in new InvalidTest {
-        private val result = controller.approval2iReviewPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
+        private val result = controller.approval2iReviewPageComplete(reviewUpdate.id, "pageUrl")(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
@@ -493,7 +493,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
           .returns(Future.successful(Left(Errors(NotFoundError))))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(Json.toJson(reviewUpdate))
-        val result: Future[Result] = controller.approval2iReviewPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
+        val result: Future[Result] = controller.approval2iReviewPageComplete(reviewUpdate.id, "pageUrl")(request)
       }
 
       "return an not found response" in new NotFoundTest {
@@ -522,17 +522,17 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       }
 
       "return a internal server error response" in new ErrorTest {
-        val result: Future[Result] = controller.approval2iReviewPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
+        val result: Future[Result] = controller.approval2iReviewPageComplete(reviewUpdate.id, "pageUrl")(request)
         status(result) shouldBe INTERNAL_SERVER_ERROR
       }
 
       "return content as JSON" in new ErrorTest {
-        val result: Future[Result] = controller.approval2iReviewPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
+        val result: Future[Result] = controller.approval2iReviewPageComplete(reviewUpdate.id, "pageUrl")(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return an error code of INTERNAL_SERVER_ERROR" in new ErrorTest {
-        val result: Future[Result] = controller.approval2iReviewPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
+        val result: Future[Result] = controller.approval2iReviewPageComplete(reviewUpdate.id, "pageUrl")(request)
         val data: JsObject = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe expectedErrorCode
       }
@@ -691,17 +691,17 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       }
 
       "return an OK response" in new ValidTest {
-        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, "pageUrl")(request)
         status(result) shouldBe OK
       }
 
       "return content as JSON" in new ValidTest {
-        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, "pageUrl")(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "confirm returned content is a JSON object" in new ValidTest {
-        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, "pageUrl")(request)
         val dataReturned: ApprovalProcessPageReview = contentAsJson(result).as[ApprovalProcessPageReview]
         dataReturned shouldBe pageReview
       }
@@ -720,17 +720,17 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       }
 
       "return an not found response" in new StaleDataTest {
-        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, "pageUrl")(request)
         status(result) shouldBe NOT_FOUND
       }
 
       "return content as JSON" in new StaleDataTest {
-        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, "pageUrl")(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return a error code of NOT_FOUND_ERROR" in new StaleDataTest {
-        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, pageUrl)(request)
+        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, "pageUrl")(request)
         private val json = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe expectedErrorCode
       }
@@ -752,12 +752,12 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       }
 
       "return a NO_CONTENT response" in new ValidTest {
-        private val result = controller.approvalFactCheckPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
+        private val result = controller.approvalFactCheckPageComplete(reviewUpdate.id, "pageUrl")(request)
         status(result) shouldBe NO_CONTENT
       }
 
       "return no content" in new ValidTest {
-        private val result = controller.approvalFactCheckPageComplete(reviewUpdate.id, reviewUpdate.pageUrl)(request)
+        private val result = controller.approvalFactCheckPageComplete(reviewUpdate.id, "pageUrl")(request)
         contentType(result) shouldBe None
       }
 

@@ -11,14 +11,18 @@ POST        /approval               controllers.ApprovalController.saveFor2iRevi
 POST        /approval/fact-check    controllers.ApprovalController.saveForFactCheck
 POST        /approval/2i-review     controllers.ApprovalController.saveFor2iReview
 
-GET         /approval/:id/2i-review controllers.ProcessReviewController.approval2iReviewInfo(id)
-POST        /approval/:id/2i-review controllers.ProcessReviewController.approval2iReviewComplete(id)
+GET         /approval/:id/2i-review                     controllers.ProcessReviewController.approval2iReviewInfo(id)
+POST        /approval/:id/2i-review                     controllers.ProcessReviewController.approval2iReviewComplete(id)
 
-GET         /approval/:id/2i-review/*page controllers.ProcessReviewController.approval2iReviewPageInfo(id, page)
-POST        /approval/:id/2i-review/*page controllers.ProcessReviewController.approval2iReviewPageComplete(id, page)
+GET         /approval/:id/2i-page-review/*page          controllers.ProcessReviewController.approval2iReviewPageInfo(id, page)
+POST        /approval/:id/2i-page-review/*page          controllers.ProcessReviewController.approval2iReviewPageComplete(id, page)
+GET         /approval/:id/2i-page-review/               controllers.ProcessReviewController.approval2iReviewPageInfo(id, page: String ?= "")
+POST        /approval/:id/2i-page-review/               controllers.ProcessReviewController.approval2iReviewPageComplete(id, page: String ?= "")
 
-GET         /approval/:id/fact-check controllers.ProcessReviewController.approvalFactCheckInfo(id)
-POST        /approval/:id/fact-check controllers.ProcessReviewController.approvalFactCheckComplete(id)
+GET         /approval/:id/fact-check                    controllers.ProcessReviewController.approvalFactCheckInfo(id)
+POST        /approval/:id/fact-check                    controllers.ProcessReviewController.approvalFactCheckComplete(id)
 
-GET         /approval/:id/fact-check/*page controllers.ProcessReviewController.approvalFactCheckPageInfo(id, page)
-POST        /approval/:id/fact-check/*page controllers.ProcessReviewController.approvalFactCheckPageComplete(id, page)
+GET         /approval/:id/fact-check-page-review/*page  controllers.ProcessReviewController.approvalFactCheckPageInfo(id, page)
+POST        /approval/:id/fact-check-page-review/*page  controllers.ProcessReviewController.approvalFactCheckPageComplete(id, page)
+GET         /approval/:id/fact-check-page-review/       controllers.ProcessReviewController.approvalFactCheckPageInfo(id, page: String ?= "")
+POST        /approval/:id/fact-check-page-review/       controllers.ProcessReviewController.approvalFactCheckPageComplete(id, page: String ?= "")
