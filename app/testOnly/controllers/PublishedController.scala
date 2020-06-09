@@ -33,7 +33,7 @@ class PublishedController @Inject() (publishedRepo: PublishedRepository, testRep
 
   def post(): Action[JsValue] = Action.async(parse.json) { request =>
     def save(process: Process): Future[Result] = {
-      publishedRepo.save(process.meta.id, request.body.as[JsObject]).map {
+      publishedRepo.save(process.meta.id, "system", request.body.as[JsObject]).map {
         case Right(id) => Created(id)
         case Left(errors) => InternalServerError(Json.toJson(errors))
       }

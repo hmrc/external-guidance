@@ -35,6 +35,7 @@ import scala.concurrent.Future
 trait ApprovalProcessReviewRepository {
   def save(review: ApprovalProcessReview): Future[RequestOutcome[UUID]]
   def getByIdVersionAndType(id: String, version: Int, reviewType: String): Future[RequestOutcome[ApprovalProcessReview]]
+  def updateReview(id: String, version: Int, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]]
   def updatePageReview(id: String, version: Int, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]]
 }
 
@@ -113,6 +114,31 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
       .recover {
         case error =>
           logger.error(s"Attempt to update page review $id and pageUrl $pageUrl from collection $collectionName failed with error : ${error.getMessage}")
+          Left(Errors(DatabaseError))
+      }
+    //$COVERAGE-ON$
+  }
+
+  def updateReview(id: String, version: Int, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]] = {
+
+    val selector = Json.obj("ocelotId" -> id, "version" -> version, "reviewType" -> reviewType)
+    val modifier =
+      Json.obj(
+        "$set" -> Json.obj(
+          "result" -> result,
+          "completionUser" -> updateUser,
+          "completionDate" -> Json.obj("$date" -> LocalDateTime.now.atZone(ZoneId.of("UTC")).toInstant.toEpochMilli)
+        )
+      )
+
+    findAndUpdate(selector, modifier)
+      .map { _ =>
+        Right(())
+      }
+      //$COVERAGE-OFF$
+      .recover {
+        case error =>
+          logger.error(s"Attempt to update review $id from collection $collectionName failed with error : ${error.getMessage}")
           Left(Errors(DatabaseError))
       }
     //$COVERAGE-ON$

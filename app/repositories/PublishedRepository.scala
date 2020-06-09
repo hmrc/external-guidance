@@ -16,7 +16,7 @@
 
 package repositories
 
-import java.time.LocalDateTime
+import java.time.{LocalDateTime, ZoneId}
 
 import javax.inject.{Inject, Singleton}
 import models.errors.{DatabaseError, Errors, NotFoundError}
@@ -31,7 +31,7 @@ import scala.concurrent.Future
 
 trait PublishedRepository {
 
-  def save(id: String, process: JsObject): Future[RequestOutcome[String]]
+  def save(id: String, user: String, process: JsObject): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[PublishedProcess]]
 }
 
@@ -45,12 +45,19 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
     )
     with PublishedRepository {
 
-  def save(id: String, process: JsObject): Future[RequestOutcome[String]] = {
+  def save(id: String, user: String, process: JsObject): Future[RequestOutcome[String]] = {
 
     logger.info(s"Saving process $id to collection published")
 
     val selector = Json.obj("_id" -> id)
-    val modifier = Json.obj("$inc" -> Json.obj("version" -> 1), "$set" -> Json.obj("process" -> process, "datePublished" -> LocalDateTime.now()))
+    val modifier = Json.obj(
+      "$inc" -> Json.obj("version" -> 1),
+      "$set" -> Json.obj(
+        "process" -> process,
+        "publishedBy" -> user,
+        "datePublished" -> Json.obj("$date" -> LocalDateTime.now.atZone(ZoneId.of("UTC")).toInstant.toEpochMilli)
+      )
+    )
 
     this
       .findAndUpdate(selector, modifier, upsert = true)

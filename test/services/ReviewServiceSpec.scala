@@ -142,6 +142,10 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
             .getById("validId")
             .returns(Future.successful(Right(approvalProcess)))
 
+          MockApprovalProcessReviewRepository
+              .updateReview("validId", approvalProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, statusChange2iReviewInfo.status)
+            .returns(Future.successful(expected))
+
           MockApprovalRepository
             .changeStatus("validId", StatusWithDesignerForUpdate, "user id")
             .returns(Future.successful(expected))
@@ -162,12 +166,16 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
             .getById("validId")
             .returns(Future.successful(Right(approvalProcess)))
 
+          MockApprovalProcessReviewRepository
+            .updateReview("validId", approvalProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, StatusPublished)
+            .returns(Future.successful(expected))
+
           MockApprovalRepository
             .changeStatus("validId", StatusPublished, "user id")
             .returns(Future.successful(expected))
 
           MockPublishedService
-            .save("validId", approvalProcess.process)
+            .save("validId", publishedStatusChangeInfo.userId, approvalProcess.process)
             .returns(Future.successful(Right("validId")))
 
           whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
@@ -186,6 +194,10 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
           MockApprovalRepository
             .getById("validId")
             .returns(Future.successful(Left(Errors(NotFoundError))))
+
+          MockApprovalProcessReviewRepository
+            .updateReview("validId", approvalProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, statusChange2iReviewInfo.status)
+            .returns(Future.successful(Right(())))
 
           MockApprovalRepository
             .changeStatus("validId", StatusPublished, "userId")
@@ -206,10 +218,32 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
             .getById("validId")
             .returns(Future.successful(Right(approvalProcess.copy(meta = approvalProcess.meta.copy(status = StatusSubmittedForFactCheck)))))
 
+          MockApprovalProcessReviewRepository
+            .updateReview("validId", approvalProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, statusChange2iReviewInfo.status)
+            .returns(Future.successful(Right(())))
+
           MockApprovalRepository
             .changeStatus("validId", StatusPublished, "userId")
             .returns(Future.successful(expected))
             .never()
+
+          whenReady(service.twoEyeReviewComplete("validId", statusChange2iReviewInfo)) { result =>
+            result shouldBe expected
+          }
+        }
+      }
+      "the updateReview fails to update the details" should {
+        "return a not found response" in new Test {
+
+          val expected: RequestOutcome[Unit] = Left(Errors(NotFoundError))
+
+          MockApprovalRepository
+            .getById("validId")
+            .returns(Future.successful(Right(approvalProcess)))
+
+          MockApprovalProcessReviewRepository
+            .updateReview("validId", approvalProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, statusChange2iReviewInfo.status)
+            .returns(Future.successful(expected))
 
           whenReady(service.twoEyeReviewComplete("validId", statusChange2iReviewInfo)) { result =>
             result shouldBe expected
@@ -224,6 +258,10 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
           MockApprovalRepository
             .getById("validId")
             .returns(Future.successful(Right(approvalProcess)))
+
+          MockApprovalProcessReviewRepository
+            .updateReview("validId", approvalProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, statusChange2iReviewInfo.status)
+            .returns(Future.successful(Right(())))
 
           MockApprovalRepository
             .changeStatus("validId", StatusWithDesignerForUpdate, "user id")
@@ -247,6 +285,10 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
           .getById("validId")
           .returns(Future.successful(Right(approvalProcess)))
 
+        MockApprovalProcessReviewRepository
+          .updateReview("validId", approvalProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, StatusPublished)
+          .returns(Future.successful(Right(())))
+
         MockApprovalRepository
           .changeStatus("validId", StatusPublished, "user id")
           .returns(Future.successful(repositoryError))
@@ -268,12 +310,16 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
           .getById("validId")
           .returns(Future.successful(Right(approvalProcess)))
 
+        MockApprovalProcessReviewRepository
+          .updateReview("validId", approvalProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, StatusPublished)
+          .returns(Future.successful(Right(())))
+
         MockApprovalRepository
           .changeStatus("validId", StatusPublished, "user id")
           .returns(Future.successful(expectedChangeStatusResponse))
 
         MockPublishedService
-          .save("validId", approvalProcess.process)
+          .save("validId", publishedStatusChangeInfo.userId, approvalProcess.process)
           .returns(Future.successful(Left(Errors(InternalServiceError))))
 
         whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
@@ -287,13 +333,14 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
   "Calling the approvalPageInfo method" when {
 
     trait PageInfoTest extends Test {
+      val currentDateTime: LocalDateTime = LocalDateTime.now()
       val processReview: ApprovalProcessReview = ApprovalProcessReview(
         UUID.randomUUID(),
         "validId",
         1,
         ReviewType2i,
         "This is the title",
-        List(ApprovalProcessPageReview("1", "/pageUrl", Some("result1")), ApprovalProcessPageReview("2", "/pageUrl2", Some("NotStarted")))
+        List(ApprovalProcessPageReview("1", "/pageUrl", Some("result1")), ApprovalProcessPageReview("2", "/pageUrl2", Some("NotStarted"), updateDate = currentDateTime))
       )
 
     }
@@ -302,7 +349,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "the pageUrl exists in the process" should {
         "return a populated PageReview" in new PageInfoTest {
 
-          val expected: RequestOutcome[ApprovalProcessPageReview] = Right(ApprovalProcessPageReview("2", "/pageUrl2", Some("NotStarted")))
+          val expected: RequestOutcome[ApprovalProcessPageReview] = Right(ApprovalProcessPageReview("2", "/pageUrl2", Some("NotStarted"), updateDate = currentDateTime))
 
           MockApprovalRepository
             .getById("validId")
@@ -542,6 +589,10 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
             .getById("validId")
             .returns(Future.successful(Right(factCheckProcess)))
 
+          MockApprovalProcessReviewRepository
+            .updateReview("validId", approvalProcess.version, ReviewTypeFactCheck, statusChange2iReviewInfo.userId, statusChange2iReviewInfo.status)
+            .returns(Future.successful(Right(())))
+
           MockApprovalRepository
             .changeStatus("validId", StatusWithDesignerForUpdate, "user id")
             .returns(Future.successful(expected))
@@ -588,6 +639,24 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
           }
         }
       }
+      "the updateReview fails to update the details" should {
+        "return a not found response" in new Test {
+
+          val expected: RequestOutcome[Unit] = Left(Errors(NotFoundError))
+
+          MockApprovalRepository
+            .getById("validId")
+            .returns(Future.successful(Right(factCheckProcess)))
+
+          MockApprovalProcessReviewRepository
+            .updateReview("validId", factCheckProcess.version, ReviewTypeFactCheck, statusChange2iReviewInfo.userId, statusChange2iReviewInfo.status)
+            .returns(Future.successful(Left(Errors(NotFoundError))))
+
+          whenReady(service.factCheckComplete("validId", statusChange2iReviewInfo)) { result =>
+            result shouldBe expected
+          }
+        }
+      }
       "the changeStatus fails to find the process" should {
         "return a not found response" in new Test {
 
@@ -596,6 +665,10 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
           MockApprovalRepository
             .getById("validId")
             .returns(Future.successful(Right(factCheckProcess)))
+
+          MockApprovalProcessReviewRepository
+            .updateReview("validId", approvalProcess.version, ReviewTypeFactCheck, statusChange2iReviewInfo.userId, statusChange2iReviewInfo.status)
+            .returns(Future.successful(Right(())))
 
           MockApprovalRepository
             .changeStatus("validId", StatusWithDesignerForUpdate, "user id")
@@ -618,6 +691,10 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
         MockApprovalRepository
           .getById("validId")
           .returns(Future.successful(Right(factCheckProcess)))
+
+        MockApprovalProcessReviewRepository
+          .updateReview("validId", approvalProcess.version, ReviewTypeFactCheck, statusChange2iReviewInfo.userId, statusChange2iReviewInfo.status)
+          .returns(Future.successful(Right(())))
 
         MockApprovalRepository
           .changeStatus("validId", StatusWithDesignerForUpdate, "user id")

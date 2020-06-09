@@ -65,7 +65,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
 
     def publishIfRequired(approvalProcess: ApprovalProcess): Future[RequestOutcome[Unit]] = info.status match {
       case StatusPublished =>
-        publishedService.save(id, approvalProcess.process) map {
+        publishedService.save(id, info.userId, approvalProcess.process) map {
           case Right(_) => Right(())
           case Left(errors) =>
             logger.error(s"Failed to publish $id - $errors")
@@ -76,13 +76,19 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
 
     getContentToUpdate(id, StatusSubmittedFor2iReview) flatMap {
       case Right(approvalProcess) =>
-        // TODO should we include required status (or version) in repo call in case changed between check above and now
-        repository.changeStatus(id, info.status, info.userId) flatMap {
-          case Left(Errors(DatabaseError :: Nil)) => Future.successful(Left(Errors(InternalServiceError)))
-          case error @ Left(Errors(NotFoundError :: Nil)) =>
-            logger.warn(s"Change Status: process $id was not found")
-            Future.successful(error)
-          case _ => publishIfRequired(approvalProcess)
+        updateReviewOnCompletion(id, approvalProcess.version, ReviewType2i, info.userId, info.status) flatMap {
+          case Right(()) =>
+            // TODO should we include required status (or version) in repo call in case changed between check above and now
+            repository.changeStatus(id, info.status, info.userId) flatMap {
+              case Left(Errors(DatabaseError :: Nil)) => Future.successful(Left(Errors(InternalServiceError)))
+              case error@Left(Errors(NotFoundError :: Nil)) =>
+                logger.warn(s"Change Status: process $id was not found")
+                Future.successful(error)
+              case _ => publishIfRequired(approvalProcess)
+            }
+          case Left(errors) =>
+            logger.error(s"Could not change status of fact check review for process $id")
+            Future.successful(Left(errors))
         }
       case Left(errors) =>
         Future.successful(Left(errors))
@@ -91,20 +97,28 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
 
   def factCheckComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] =
     getContentToUpdate(id, StatusSubmittedForFactCheck) flatMap {
-      case Right(_) =>
-        // Check that all pages have been reviewed
-
-        // TODO should we include required status (or version) in repo call in case changed between check above and now
-        repository.changeStatus(id, info.status, info.userId) flatMap {
-          case Left(Errors(DatabaseError :: Nil)) => Future.successful(Left(Errors(InternalServiceError)))
-          case error @ Left(Errors(NotFoundError :: Nil)) =>
-            logger.warn(s"Change Status: process $id was not found")
-            Future.successful(error)
-          case _ => Future.successful(Right(()))
+      case Right(approvalProcess) =>
+        updateReviewOnCompletion(id, approvalProcess.version, ReviewTypeFactCheck, info.userId, info.status) flatMap {
+          case Right(()) =>
+            // TODO should we include required status (or version) in repo call in case changed between check above and now
+            repository.changeStatus(id, info.status, info.userId) flatMap {
+              case Left(Errors(DatabaseError :: Nil)) => Future.successful(Left(Errors(InternalServiceError)))
+              case error@Left(Errors(NotFoundError :: Nil)) =>
+                logger.warn(s"Change Status: process $id was not found")
+                Future.successful(error)
+              case _ => Future.successful(Right(()))
+            }
+          case Left(errors) =>
+            logger.error(s"Could not change status of fact check review for process $id")
+            Future.successful(Left(errors))
         }
       case Left(errors) =>
         Future.successful(Left(errors))
     }
+
+  private def updateReviewOnCompletion(id: String, version: Int, reviewType: String, user: String, status: String): Future[RequestOutcome[Unit]] = {
+    reviewRepository.updateReview(id, version, reviewType, user, status)
+  }
 
   private def getContentToUpdate(id: String, expectedStatus: String): Future[RequestOutcome[ApprovalProcess]] = repository.getById(id) map {
     case Right(process) if process.meta.status == expectedStatus => Right (process)

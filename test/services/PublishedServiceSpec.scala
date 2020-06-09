@@ -34,7 +34,7 @@ class PublishedServiceSpec extends UnitSpec {
     val validId: String = "ext90005"
     val invalidId: String = "ext9005"
     val invalidProcess: JsObject = Json.obj("idx" -> invalidId)
-    val publishedProcess: PublishedProcess = PublishedProcess(validId, 1, LocalDateTime.now(), validOnePageJson.as[JsObject])
+    val publishedProcess: PublishedProcess = PublishedProcess(validId, 1, LocalDateTime.now(), validOnePageJson.as[JsObject], "user")
 
     lazy val target: PublishedService = new PublishedService(mockPublishedRepository)
   }
@@ -100,10 +100,10 @@ class PublishedServiceSpec extends UnitSpec {
         val expected: RequestOutcome[String] = Right(validId)
 
         MockPublishedRepository
-          .save(validId, validOnePageJson.as[JsObject])
+          .save(validId, "userId", validOnePageJson.as[JsObject])
           .returns(Future.successful(expected))
 
-        whenReady(target.save(validId, validOnePageJson.as[JsObject])) {
+        whenReady(target.save(validId, "userId", validOnePageJson.as[JsObject])) {
           case Right(id) => id shouldBe validId
           case _ => fail
         }
@@ -115,16 +115,16 @@ class PublishedServiceSpec extends UnitSpec {
       "not call the repository" in new Test {
 
         MockPublishedRepository
-          .save(validId, validOnePageJson.as[JsObject])
+          .save(validId, "userId", validOnePageJson.as[JsObject])
           .never()
 
-        target.save(validId, invalidProcess)
+        target.save(validId, "userId", invalidProcess)
       }
 
       "return a bad request error" in new Test {
         val expected: RequestOutcome[String] = Left(Errors(BadRequestError))
 
-        whenReady(target.save(validId, invalidProcess)) {
+        whenReady(target.save(validId, "userId", invalidProcess)) {
           case result @ Left(_) => result shouldBe expected
           case _ => fail
         }
@@ -137,10 +137,10 @@ class PublishedServiceSpec extends UnitSpec {
         val expected: RequestOutcome[String] = Left(Errors(InternalServiceError))
 
         MockPublishedRepository
-          .save(validId, validOnePageJson.as[JsObject])
+          .save(validId, "userId", validOnePageJson.as[JsObject])
           .returns(Future.successful(repositoryResponse))
 
-        whenReady(target.save(validId, validOnePageJson.as[JsObject])) {
+        whenReady(target.save(validId, "userId", validOnePageJson.as[JsObject])) {
           case result @ Left(_) => result shouldBe expected
           case _ => fail
         }
