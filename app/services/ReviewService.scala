@@ -87,7 +87,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
               case _ => publishIfRequired(approvalProcess)
             }
           case Left(errors) =>
-            logger.error(s"Could not change status of fact check review for process $id")
+            logger.error(s"Could not change status of 2i review for process $id")
             Future.successful(Left(errors))
         }
       case Left(errors) =>
