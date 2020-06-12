@@ -16,7 +16,7 @@
 
 package repositories.formatters
 
-import java.time.LocalDateTime
+import java.time.{LocalDateTime, ZoneId}
 
 import base.UnitSpec
 import models.PublishedProcess
@@ -29,16 +29,16 @@ class PublishedProcessFormatterSpec extends UnitSpec {
   private val id: String = "ext90002"
 
   private val datePublished = LocalDateTime.of(2020, 1, 1, 12, 0, 1)
-
-  private val publishedProcess: PublishedProcess = PublishedProcess(id, 1, datePublished, process)
+  private val publishedProcess: PublishedProcess = PublishedProcess(id, 1, datePublished, process, "user")
 
   private val json = Json.parse(
     s"""
        |{
        | "_id": "$id",
        | "version": 1,
-       | "datePublished": "2020-01-01T12:00:01",
-       | "process": {}
+       | "datePublished": {"$$date": ${datePublished.atZone(ZoneId.of("UTC")).toInstant.toEpochMilli}},
+       | "process": {},
+       | "publishedBy": "user"
        |}
        |""".stripMargin
   )

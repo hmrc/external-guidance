@@ -49,10 +49,10 @@ class PublishedService @Inject() (repository: PublishedRepository) {
     }
   }
 
-  def save(id: String, jsonProcess: JsObject): Future[RequestOutcome[String]] = {
+  def save(id: String, user: String, jsonProcess: JsObject): Future[RequestOutcome[String]] = {
 
     def saveProcess: Future[RequestOutcome[String]] =
-      repository.save(id, jsonProcess) map {
+      repository.save(id, user, jsonProcess) map {
         case Left(_) =>
           logger.error(s"Request to publish $id has failed")
           Left(Errors(InternalServiceError))

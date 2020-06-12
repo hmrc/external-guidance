@@ -36,10 +36,10 @@ trait MockPublishedService extends MockFactory {
         .expects(id)
     }
 
-    def save(id: String, jsonProcess: JsObject): CallHandler[Future[RequestOutcome[String]]] = {
+    def save(id: String, user: String, jsonProcess: JsObject): CallHandler[Future[RequestOutcome[String]]] = {
       (mockPublishedService
-        .save(_: String, _: JsObject))
-        .expects(id, jsonProcess)
+        .save(_: String, _: String, _: JsObject))
+        .expects(id, user, jsonProcess)
     }
   }
 
