@@ -53,6 +53,7 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
       reviewService.twoEyeReviewComplete(id, statusChangeInfo).map {
         case Right(_) => NoContent
+        case Left(Errors(IncompleteDataError :: Nil)) => BadRequest(Json.toJson(IncompleteDataError))
         case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
         case Left(errors) => InternalServerError(Json.toJson(errors))
       }
@@ -68,6 +69,7 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
       reviewService.factCheckComplete(id, statusChangeInfo).map {
         case Right(_) => NoContent
+        case Left(Errors(IncompleteDataError :: Nil)) => BadRequest(Json.toJson(IncompleteDataError))
         case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
         case Left(errors) => InternalServerError(Json.toJson(errors))
       }

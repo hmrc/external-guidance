@@ -19,6 +19,7 @@ package endpoints
 import java.time.LocalDateTime
 
 import data.ExamplePayloads._
+import models.errors.IncompleteDataError
 import models.ocelot.Process
 import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange, ApprovalProcessSummary}
 import play.api.http.Status._
@@ -30,47 +31,60 @@ import utils.Constants._
 
 class PostProcessReviewISpec extends IntegrationSpec {
 
-  "Calling the approval2iReviewComplete POST endpoint with a valid payload" when {
+  val statusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusWithDesignerForUpdate)
+
+  val statusChangeWithDesignerJson: JsValue = Json.toJson(statusChangeInfo)
+
+  "Calling the approval2iReviewComplete POST endpoint with a valid payload and all pages reviewed" when {
+
+    val pageUrl = "/feeling-bad"
 
     def populateDatabase(processToSave: JsValue): String = {
-      lazy val request = buildRequest("/external-guidance/approval")
+      lazy val request = buildRequest("/external-guidance/approval/2i-review")
 
       val result = await(request.post(processToSave))
       val json = result.body[JsValue].as[JsObject]
-      (json \ "id").as[String]
+      val id = (json \ "id").as[String]
+      lazy val pageUpdateRequest = buildRequest(s"/external-guidance/approval/$id/2i-page-review$pageUrl")
+      val content = ApprovalProcessPageReview("1", pageUrl, Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("User1"))
+      await(pageUpdateRequest.post(Json.toJson(content)))
+
+      id
     }
-
     val processToSave: JsValue = simpleValidProcess
-    lazy val id = populateDatabase(processToSave)
-    lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-review")
 
-    "the new status is submitted for 2i Review" should {
+    "the requested status update is With DesignerForUpdate" should {
+      lazy val id = populateDatabase(processToSave)
+      lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-review")
 
-      lazy val response: WSResponse = {
-        AuditStub.audit()
-        await(request.post(statusChangeJson))
-      }
+      "set the new status to With Designer For Update" should {
 
-      "return a NO_CONTENT status code" in {
-        response.status shouldBe NO_CONTENT
-      }
-
-      "set the status to SubmittedFor2iReview" in {
-        lazy val request = buildRequest(s"/external-guidance/approval")
         lazy val response: WSResponse = {
           AuditStub.audit()
-          await(request.get())
+          await(request.post(statusChangeWithDesignerJson))
         }
-        val list: List[ApprovalProcessSummary] = response.body[JsValue].as[List[ApprovalProcessSummary]]
-        val updatedEntry = list.find(p => p.id == id)
-        updatedEntry shouldBe 'defined
-        updatedEntry.get.status shouldBe StatusSubmittedFor2iReview
+
+        "return a NO_CONTENT status code" in {
+          response.status shouldBe NO_CONTENT
+        }
+
+        "set the status to SubmittedFor2iReview" in {
+          lazy val request = buildRequest(s"/external-guidance/approval")
+          lazy val response: WSResponse = {
+            AuditStub.audit()
+            await(request.get())
+          }
+          val list: List[ApprovalProcessSummary] = response.body[JsValue].as[List[ApprovalProcessSummary]]
+          val updatedEntry = list.find(p => p.id == id)
+          updatedEntry shouldBe 'defined
+          updatedEntry.get.status shouldBe StatusWithDesignerForUpdate
+        }
+
       }
-
     }
-
-    "the new status is published" should {
-
+    "the requested status update is Published" should {
+      lazy val id = populateDatabase(processToSave)
+      lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-review")
       val statusChangePublished = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
       val statusChangePublishedJson: JsValue = Json.toJson(statusChangePublished)
 
@@ -95,7 +109,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
         updatedEntry.get.status shouldBe StatusPublished
       }
 
-      "process should be Published" in {
+      "add the process to the Published collection" in {
         lazy val request = buildRequest(s"/external-guidance/published/$id")
         lazy val response: WSResponse = {
           AuditStub.audit()
@@ -105,6 +119,40 @@ class PostProcessReviewISpec extends IntegrationSpec {
         publishedEntry.meta.id shouldBe id
       }
     }
+
+  }
+
+  "Calling the approval2iReviewComplete POST endpoint with a valid payload and some pages not reviewed" when {
+
+    def populateDatabase(processToSave: JsValue): String = {
+      lazy val request = buildRequest("/external-guidance/approval/2i-review")
+
+      val result = await(request.post(processToSave))
+      val json = result.body[JsValue].as[JsObject]
+      (json \ "id").as[String]
+    }
+    val processToSave: JsValue = simpleValidProcess
+    lazy val id = populateDatabase(processToSave)
+
+    lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-review")
+
+    "a request is made to complete the review" should {
+
+      lazy val response: WSResponse = {
+        AuditStub.audit()
+        await(request.post(statusChangeWithDesignerJson))
+      }
+
+      "return a INCOMPLETE_ERROR status code" in {
+        response.status shouldBe BAD_REQUEST
+      }
+
+      "return INCOMPLETE_DATA_ERROR in the request Body" in {
+        val json = response.body[JsValue].as[JsObject]
+        json shouldBe Json.toJson(IncompleteDataError)
+      }
+
+    }
   }
 
   "Calling the approval2iReviewComplete POST endpoint with an id that doesn't exist" should {
@@ -112,7 +160,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
     lazy val request = buildRequest(s"/external-guidance/approval/xyzinvalid/2i-review")
     lazy val response: WSResponse = {
       AuditStub.audit()
-      await(request.post(statusChangeJson))
+      await(request.post(statusChangeWithDesignerJson))
     }
 
     "return a NOT_FOUND status code" in {
@@ -173,4 +221,38 @@ class PostProcessReviewISpec extends IntegrationSpec {
     }
 
   }
+
+  "Calling the approvalFactCheckComplete POST endpoint with a valid payload and some pages not reviewed" when {
+
+    def populateDatabase(processToSave: JsValue): String = {
+      lazy val request = buildRequest("/external-guidance/approval/fact-check")
+
+      val result = await(request.post(processToSave))
+      val json = result.body[JsValue].as[JsObject]
+      (json \ "id").as[String]
+    }
+    val processToSave: JsValue = simpleValidProcess
+    lazy val id = populateDatabase(processToSave)
+
+    lazy val request = buildRequest(s"/external-guidance/approval/$id/fact-check")
+
+    "a request is made to complete the review" should {
+
+      lazy val response: WSResponse = {
+        AuditStub.audit()
+        await(request.post(statusChangeWithDesignerJson))
+      }
+
+      "return a INCOMPLETE_ERROR status code" in {
+        response.status shouldBe BAD_REQUEST
+      }
+
+      "return INCOMPLETE_DATA_ERROR in the request Body" in {
+        val json = response.body[JsValue].as[JsObject]
+        json shouldBe Json.toJson(IncompleteDataError)
+      }
+
+    }
+  }
+
 }
