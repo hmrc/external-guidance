@@ -150,7 +150,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
     }
   }
 
-  private def checkProcessInCorrectStateForCompletion(id: String, expectedStatus: String, reviewType: String): Future[RequestOutcome[ApprovalProcess]] = {
+  def checkProcessInCorrectStateForCompletion(id: String, expectedStatus: String, reviewType: String): Future[RequestOutcome[ApprovalProcess]] = {
     getContentToUpdate(id, expectedStatus) flatMap {
       case Right(approvalProcess) =>
         // Check that all pages have been reviewed

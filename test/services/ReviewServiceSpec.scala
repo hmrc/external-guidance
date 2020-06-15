@@ -925,7 +925,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
     }
   }
 
-  "Invoking private method checkProcessInCorrectStateForCompletion" when {
+  "Invoking method checkProcessInCorrectStateForCompletion" when {
     "the getContentToUpdate method returns a valid result" when {
       "the getReviewInfo method returns an error" when {
         "return a valid ProcessReview" in new ReviewCompleteTest {
@@ -940,10 +940,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
             .getByIdVersionAndType(validId, ReviewType2i)
             .returns(Future.successful(Left(Errors(NotFoundError))))
 
-          private val checkProcessInCorrectStateForCompletion =
-            PrivateMethod[Future[RequestOutcome[ApprovalProcess]]]('checkProcessInCorrectStateForCompletion)
-
-          whenReady(service invokePrivate checkProcessInCorrectStateForCompletion(validId, StatusSubmittedFor2iReview, ReviewType2i)) { result =>
+          whenReady(service.checkProcessInCorrectStateForCompletion(validId, StatusSubmittedFor2iReview, ReviewType2i)) { result =>
             result shouldBe expected
           }
         }
