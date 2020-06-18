@@ -34,10 +34,9 @@ class PostProcessReviewISpec extends IntegrationSpec {
   val statusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusWithDesignerForUpdate)
 
   val statusChangeWithDesignerJson: JsValue = Json.toJson(statusChangeInfo)
+  val pageUrl: String = "/feeling-bad"
 
   "Calling the approval2iReviewComplete POST endpoint with a valid payload and all pages reviewed" when {
-
-    val pageUrl = "/feeling-bad"
 
     def populateDatabase(processToSave: JsValue): String = {
       lazy val request = buildRequest("/external-guidance/approval/2i-review")
@@ -252,6 +251,52 @@ class PostProcessReviewISpec extends IntegrationSpec {
         json shouldBe Json.toJson(IncompleteDataError)
       }
 
+    }
+  }
+
+  "Calling the approvalFactCheckComplete POST endpoint with a valid payload and all pages reviewed" when {
+
+    def populateDatabase(processToSave: JsValue): String = {
+      lazy val request = buildRequest("/external-guidance/approval/fact-check")
+
+      val result = await(request.post(processToSave))
+      val json = result.body[JsValue].as[JsObject]
+      val id = (json \ "id").as[String]
+      lazy val pageUpdateRequest = buildRequest(s"/external-guidance/approval/$id/fact-check-page-review$pageUrl")
+      val content = ApprovalProcessPageReview("1", pageUrl, Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("User1"))
+      await(pageUpdateRequest.post(Json.toJson(content)))
+
+      id
+    }
+    val processToSave: JsValue = simpleValidProcess
+    "the requested status update is With DesignerForUpdate" should {
+      lazy val id = populateDatabase(processToSave)
+      lazy val request = buildRequest(s"/external-guidance/approval/$id/fact-check")
+
+      "set the new status to With Designer For Update" should {
+
+        lazy val response: WSResponse = {
+          AuditStub.audit()
+          await(request.post(statusChangeWithDesignerJson))
+        }
+
+        "return a NO_CONTENT status code" in {
+          response.status shouldBe NO_CONTENT
+        }
+
+        "set the status to WithDesignerForUpdate" in {
+          lazy val request = buildRequest(s"/external-guidance/approval")
+          lazy val response: WSResponse = {
+            AuditStub.audit()
+            await(request.get())
+          }
+          val list: List[ApprovalProcessSummary] = response.body[JsValue].as[List[ApprovalProcessSummary]]
+          val updatedEntry = list.find(p => p.id == id)
+          updatedEntry shouldBe 'defined
+          updatedEntry.get.status shouldBe StatusWithDesignerForUpdate
+        }
+
+      }
     }
   }
 
