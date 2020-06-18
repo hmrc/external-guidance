@@ -45,7 +45,9 @@ trait ApprovalProcessJson {
       |    "title" : "This is the title",
       |    "status" : "$StatusSubmittedFor2iReview",
       |    "dateSubmitted" : {"$$date": $submittedDateInMilliseconds},
-      |    "lastModified" : {"$$date": $submittedDateInMilliseconds}
+      |    "lastModified" : {"$$date": $submittedDateInMilliseconds},
+      |    "ocelotDateSubmitted" : 1,
+      |    "ocelotVersion" : 1
       |  },
       |  "process" : {
       |  },

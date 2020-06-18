@@ -33,7 +33,9 @@ class ApprovalProcessMetaFormatterSpec extends UnitSpec with ApprovalProcessJson
     |    "title" : "This is the title",
     |    "status" : "SubmittedFor2iReview",
     |    "dateSubmitted" : {"$date": 1583193600000},
-    |    "lastModified" : {"$date": 1583193600000}
+    |    "lastModified" : {"$date": 1583193600000},
+    |    "ocelotDateSubmitted" : 1,
+    |    "ocelotVersion" : 1
     |  }
     """.stripMargin
   private val validMetaJson = Json.parse(validString)

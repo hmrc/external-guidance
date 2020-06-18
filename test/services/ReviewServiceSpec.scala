@@ -174,7 +174,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "the status is submitted for 2i review" should {
         "indicate the process status was updated in the database" in new ReviewCompleteTest {
 
-          val expected: RequestOutcome[Unit] = Right(())
+          val expected: RequestOutcome[ApprovalProcess] = Right(approvalProcess)
 
           MockApprovalRepository
             .getById(validId)
@@ -186,11 +186,11 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
 
           MockApprovalProcessReviewRepository
             .updateReview(validId, approvalProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, statusChange2iReviewInfo.status)
-            .returns(Future.successful(expected))
+            .returns(Future.successful(Right(())))
 
           MockApprovalRepository
             .changeStatus(validId, StatusWithDesignerForUpdate, "user id")
-            .returns(Future.successful(expected))
+            .returns(Future.successful(Right(())))
 
           whenReady(service.twoEyeReviewComplete(validId, statusChange2iReviewInfo)) { result =>
             result shouldBe expected
@@ -201,7 +201,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "the status is published" should {
         "indicate the process status was updated and published in the database" in new ReviewCompleteTest {
 
-          val expected: RequestOutcome[Unit] = Right(())
+          val expected: RequestOutcome[ApprovalProcess] = Right(approvalProcess)
           val publishedStatusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
 
           MockApprovalRepository
@@ -214,11 +214,11 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
 
           MockApprovalProcessReviewRepository
             .updateReview("validId", approvalProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, StatusPublished)
-            .returns(Future.successful(expected))
+            .returns(Future.successful(Right(())))
 
           MockApprovalRepository
             .changeStatus("validId", StatusPublished, "user id")
-            .returns(Future.successful(expected))
+            .returns(Future.successful(Right(())))
 
           MockPublishedService
             .save("validId", publishedStatusChangeInfo.userId, approvalProcess.process)
@@ -233,7 +233,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "all the pages have not been reviewed" should {
         "indicate that the data was incomplete" in new ReviewCompleteTest {
 
-          val expected: RequestOutcome[Unit] = Left(Errors(IncompleteDataError))
+          val expected: RequestOutcome[ApprovalProcess] = Left(Errors(IncompleteDataError))
 
           MockApprovalRepository
             .getById("validId")
@@ -254,7 +254,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "the getById fails to find the process" should {
         "return a not found response" in new Test {
 
-          val expected: RequestOutcome[Unit] = Left(Errors(NotFoundError))
+          val expected: RequestOutcome[ApprovalProcess] = Left(Errors(NotFoundError))
 
           MockApprovalRepository
             .getById("validId")
@@ -268,7 +268,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "the getById fails to find the process with the expected status" should {
         "return a stale data response" in new Test {
 
-          val expected: RequestOutcome[Unit] = Left(Errors(StaleDataError))
+          val expected: RequestOutcome[ApprovalProcess] = Left(Errors(StaleDataError))
 
           MockApprovalRepository
             .getById("validId")
@@ -282,7 +282,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "the updateReview fails to update the details" should {
         "return a not found response" in new ReviewCompleteTest {
 
-          val expected: RequestOutcome[Unit] = Left(Errors(DatabaseError))
+          val expected: RequestOutcome[ApprovalProcess] = Left(Errors(DatabaseError))
 
           MockApprovalRepository
             .getById("validId")
@@ -294,7 +294,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
 
           MockApprovalProcessReviewRepository
             .updateReview("validId", approvalProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, statusChange2iReviewInfo.status)
-            .returns(Future.successful(expected))
+            .returns(Future.successful(Left(Errors(DatabaseError))))
 
           whenReady(service.twoEyeReviewComplete("validId", statusChange2iReviewInfo)) { result =>
             result shouldBe expected
@@ -304,7 +304,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "the changeStatus fails to find the process" should {
         "return a not found response" in new ReviewCompleteTest {
 
-          val expected: RequestOutcome[Unit] = Left(Errors(NotFoundError))
+          val expected: RequestOutcome[ApprovalProcess] = Left(Errors(NotFoundError))
 
           MockApprovalRepository
             .getById("validId")
@@ -333,7 +333,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "return an internal server error" in new ReviewCompleteTest {
 
         val repositoryError: RequestOutcome[Unit] = Left(Errors(DatabaseError))
-        val expected: RequestOutcome[Unit] = Left(Errors(InternalServiceError))
+        val expected: RequestOutcome[ApprovalProcess] = Left(Errors(InternalServiceError))
         val publishedStatusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
 
         MockApprovalRepository
@@ -361,7 +361,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "return an internal server error" in new ReviewCompleteTest {
 
         val repositoryError: RequestOutcome[Unit] = Left(Errors(InternalServiceError))
-        val expected: RequestOutcome[Unit] = Left(Errors(InternalServiceError))
+        val expected: RequestOutcome[ApprovalProcess] = Left(Errors(InternalServiceError))
         val publishedStatusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
 
         MockApprovalRepository
@@ -390,7 +390,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "indicate a database error" in new ReviewCompleteTest {
 
         val expectedChangeStatusResponse: RequestOutcome[Unit] = Right(())
-        val expected: RequestOutcome[Unit] = Left(Errors(InternalServiceError))
+        val expected: RequestOutcome[ApprovalProcess] = Left(Errors(InternalServiceError))
         val publishedStatusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
 
         MockApprovalRepository
@@ -660,7 +660,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "the status is submitted for fact check" should {
         "indicate the process status was updated in the database" in new ReviewCompleteTest {
 
-          val expected: RequestOutcome[Unit] = Right(())
+          val expected: RequestOutcome[ApprovalProcess] = Right(factCheckProcess)
 
           MockApprovalRepository
             .getById("validId")
@@ -676,7 +676,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
 
           MockApprovalRepository
             .changeStatus("validId", StatusWithDesignerForUpdate, "user id")
-            .returns(Future.successful(expected))
+            .returns(Future.successful(Right(())))
 
           whenReady(service.factCheckComplete("validId", statusChange2iReviewInfo)) { result =>
             result shouldBe expected
@@ -687,7 +687,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "all the pages have not been reviewed" should {
         "indicate that the data was incomplete" in new ReviewCompleteTest {
 
-          val expected: RequestOutcome[Unit] = Left(Errors(IncompleteDataError))
+          val expected: RequestOutcome[ApprovalProcess] = Left(Errors(IncompleteDataError))
 
           MockApprovalRepository
             .getById("validId")
@@ -708,7 +708,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "the getById fails to find the process" should {
         "return a not found response" in new Test {
 
-          val expected: RequestOutcome[Unit] = Left(Errors(NotFoundError))
+          val expected: RequestOutcome[ApprovalProcess] = Left(Errors(NotFoundError))
 
           MockApprovalRepository
             .getById("validId")
@@ -722,7 +722,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "the getById fails to find the process with the expected status" should {
         "return a stale data response" in new Test {
 
-          val expected: RequestOutcome[Unit] = Left(Errors(StaleDataError))
+          val expected: RequestOutcome[ApprovalProcess] = Left(Errors(StaleDataError))
 
           MockApprovalRepository
             .getById("validId")
@@ -736,7 +736,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "the updateReview fails to update the details" should {
         "return a not found response" in new ReviewCompleteTest {
 
-          val expected: RequestOutcome[Unit] = Left(Errors(NotFoundError))
+          val expected: RequestOutcome[ApprovalProcess] = Left(Errors(NotFoundError))
 
           MockApprovalRepository
             .getById("validId")
@@ -758,7 +758,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "the changeStatus fails to find the process" should {
         "return a not found response" in new ReviewCompleteTest {
 
-          val expected: RequestOutcome[Unit] = Left(Errors(NotFoundError))
+          val expected: RequestOutcome[ApprovalProcess] = Left(Errors(NotFoundError))
 
           MockApprovalRepository
             .getById("validId")
@@ -787,7 +787,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "return an internal server error" in new ReviewCompleteTest {
 
         val repositoryError: RequestOutcome[Unit] = Left(Errors(DatabaseError))
-        val expected: RequestOutcome[Unit] = Left(Errors(InternalServiceError))
+        val expected: RequestOutcome[ApprovalProcess] = Left(Errors(InternalServiceError))
         val publishedStatusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusWithDesignerForUpdate)
 
         MockApprovalRepository

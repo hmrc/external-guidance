@@ -18,6 +18,7 @@ package models
 
 import java.time.{LocalDate, LocalDateTime}
 
+import play.api.libs.json.{Json, OFormat}
 import utils.Constants._
 
 case class ApprovalProcessMeta(
@@ -25,5 +26,11 @@ case class ApprovalProcessMeta(
     title: String,
     status: String = StatusSubmittedFor2iReview,
     dateSubmitted: LocalDate = LocalDate.now(),
-    lastModified: LocalDateTime = LocalDateTime.now()
+    lastModified: LocalDateTime = LocalDateTime.now(),
+    ocelotDateSubmitted: Long = 1,
+    ocelotVersion: Int = 1
 )
+
+object ApprovalProcessMeta {
+  implicit val formats: OFormat[ApprovalProcessMeta] = Json.format[ApprovalProcessMeta]
+}

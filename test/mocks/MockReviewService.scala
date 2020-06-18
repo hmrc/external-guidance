@@ -34,7 +34,7 @@ trait MockReviewService extends MockFactory {
         .expects(id, reviewType)
     }
 
-    def twoEyeReviewComplete(id: String, statusInfo: ApprovalProcessStatusChange): CallHandler[Future[RequestOutcome[Unit]]] = {
+    def twoEyeReviewComplete(id: String, statusInfo: ApprovalProcessStatusChange): CallHandler[Future[RequestOutcome[ApprovalProcess]]] = {
       (mockReviewService
         .twoEyeReviewComplete(_: String, _: ApprovalProcessStatusChange))
         .expects(id, statusInfo)
@@ -46,7 +46,7 @@ trait MockReviewService extends MockFactory {
         .expects(id, pageUrl, reviewType)
     }
 
-    def factCheckComplete(id: String, statusInfo: ApprovalProcessStatusChange): CallHandler[Future[RequestOutcome[Unit]]] = {
+    def factCheckComplete(id: String, statusInfo: ApprovalProcessStatusChange): CallHandler[Future[RequestOutcome[ApprovalProcess]]] = {
       (mockReviewService
         .factCheckComplete(_: String, _: ApprovalProcessStatusChange))
         .expects(id, statusInfo)

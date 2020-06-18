@@ -18,7 +18,7 @@ package controllers
 
 import javax.inject.{Inject, Singleton}
 import models.errors._
-import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange}
+import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange, ApprovalProcessSummary}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ReviewService
@@ -62,9 +62,10 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
   def approval2iReviewComplete(id: String): Action[JsValue] = Action.async(parse.json) { request =>
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
       reviewService.twoEyeReviewComplete(id, statusChangeInfo).map {
-        case Right(_) => NoContent
+        case Right(ap) => Ok(Json.toJson(ApprovalProcessSummary(ap.id, ap.meta.title, ap.meta.dateSubmitted, statusChangeInfo.status)))
         case Left(Errors(IncompleteDataError :: Nil)) => BadRequest(Json.toJson(IncompleteDataError))
         case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
+        case Left(Errors(StaleDataError :: Nil)) => NotFound(Json.toJson(StaleDataError))
         case Left(errors) => InternalServerError(Json.toJson(errors))
       }
     }
@@ -78,9 +79,10 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
   def approvalFactCheckComplete(id: String): Action[JsValue] = Action.async(parse.json) { request =>
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
       reviewService.factCheckComplete(id, statusChangeInfo).map {
-        case Right(_) => NoContent
+        case Right(ap) => Ok(Json.toJson(ApprovalProcessSummary(ap.id, ap.meta.title, ap.meta.dateSubmitted, statusChangeInfo.status)))
         case Left(Errors(IncompleteDataError :: Nil)) => BadRequest(Json.toJson(IncompleteDataError))
         case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
+        case Left(Errors(StaleDataError :: Nil)) => NotFound(Json.toJson(StaleDataError))
         case Left(errors) => InternalServerError(Json.toJson(errors))
       }
     }
