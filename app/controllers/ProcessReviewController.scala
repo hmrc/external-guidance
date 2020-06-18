@@ -49,10 +49,21 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
     }
   }
 
+  def approval2iReviewConfirmAllPagesReviewed(id: String): Action[AnyContent] = Action.async { _ =>
+    reviewService.checkProcessInCorrectStateForCompletion(id, StatusSubmittedFor2iReview, ReviewType2i).map {
+      case Right(_) => NoContent
+      case Left(Errors(IncompleteDataError :: Nil)) => BadRequest(Json.toJson(IncompleteDataError))
+      case Left(Errors(StaleDataError :: Nil)) => NotFound(Json.toJson(StaleDataError))
+      case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
+      case Left(errors) => InternalServerError(Json.toJson(errors))
+    }
+  }
+
   def approval2iReviewComplete(id: String): Action[JsValue] = Action.async(parse.json) { request =>
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
       reviewService.twoEyeReviewComplete(id, statusChangeInfo).map {
         case Right(_) => NoContent
+        case Left(Errors(IncompleteDataError :: Nil)) => BadRequest(Json.toJson(IncompleteDataError))
         case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
         case Left(errors) => InternalServerError(Json.toJson(errors))
       }
@@ -68,6 +79,7 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
       reviewService.factCheckComplete(id, statusChangeInfo).map {
         case Right(_) => NoContent
+        case Left(Errors(IncompleteDataError :: Nil)) => BadRequest(Json.toJson(IncompleteDataError))
         case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
         case Left(errors) => InternalServerError(Json.toJson(errors))
       }

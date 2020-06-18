@@ -59,3 +59,9 @@ object ValidationError
       "VALIDATION_ERROR",
       "Input data failed validation test."
     )
+
+object IncompleteDataError
+  extends Error(
+    "INCOMPLETE_DATA_ERROR",
+    "Data is not in the required state for the requested action."
+  )

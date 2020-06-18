@@ -13,6 +13,7 @@ POST        /approval/2i-review     controllers.ApprovalController.saveFor2iRevi
 
 GET         /approval/:id/2i-review                     controllers.ProcessReviewController.approval2iReviewInfo(id)
 POST        /approval/:id/2i-review                     controllers.ProcessReviewController.approval2iReviewComplete(id)
+GET         /approval/:id/2i-review/confirm             controllers.ProcessReviewController.approval2iReviewConfirmAllPagesReviewed(id)
 
 GET         /approval/:id/2i-page-review/*page          controllers.ProcessReviewController.approval2iReviewPageInfo(id, page)
 POST        /approval/:id/2i-page-review/*page          controllers.ProcessReviewController.approval2iReviewPageComplete(id, page)
