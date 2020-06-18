@@ -68,7 +68,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
           response.status shouldBe NO_CONTENT
         }
 
-        "set the status to SubmittedFor2iReview" in {
+        "set the status to WithDesignerForUpdate" in {
           lazy val request = buildRequest(s"/external-guidance/approval")
           lazy val response: WSResponse = {
             AuditStub.audit()
