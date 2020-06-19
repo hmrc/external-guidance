@@ -38,6 +38,7 @@ class ProcessReviewControllerSpec extends WordSpec
 
   private trait Test extends MockReviewService {
     val invalidId: String = "ext95"
+    val approvalProcessCompleted: ApprovalProcess = approvalProcess.copy(process = createProcess)
     val reviewUpdate: ApprovalProcessPageReview = ApprovalProcessPageReview("id", "/pageUrl", None, "status")
     lazy val controller: ProcessReviewController = new ProcessReviewController(mockReviewService, stubControllerComponents())
   }
@@ -188,9 +189,10 @@ class ProcessReviewControllerSpec extends WordSpec
     "the request is valid" should {
 
       "return an OK response" in new Test {
+
         MockReviewService
           .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
-          .returns(Future.successful(Right(approvalProcess)))
+          .returns(Future.successful(Right(approvalProcessCompleted)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
 
@@ -206,7 +208,7 @@ class ProcessReviewControllerSpec extends WordSpec
       trait InvalidTest extends Test {
         MockReviewService
           .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
-          .returns(Future.successful(Right(approvalProcess)))
+          .returns(Future.successful(Right(approvalProcessCompleted)))
           .never()
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidStatusChangeJson)
@@ -655,9 +657,10 @@ class ProcessReviewControllerSpec extends WordSpec
     "the request is valid" should {
 
       "correctly return an OK response" in new Test {
+
         MockReviewService
           .factCheckComplete(validProcessIdForReview, statusChangeInfo)
-          .returns(Future.successful(Right(approvalProcess)))
+          .returns(Future.successful(Right(approvalProcessCompleted)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
         private val result = controller.approvalFactCheckComplete(validProcessIdForReview)(request)
@@ -665,6 +668,17 @@ class ProcessReviewControllerSpec extends WordSpec
         contentType(result) shouldBe Some("application/json")
       }
 
+      "correctly return a BAD_REQUEST if the response contains an invalid process" in new Test {
+
+        MockReviewService
+          .factCheckComplete(validProcessIdForReview, statusChangeInfo)
+          .returns(Future.successful(Right(approvalProcess)))
+
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
+        private val result = controller.approvalFactCheckComplete(validProcessIdForReview)(request)
+        status(result) shouldBe BAD_REQUEST
+        contentType(result) shouldBe Some("application/json")
+      }
     }
 
     "the request is invalid" should {
@@ -796,4 +810,56 @@ class ProcessReviewControllerSpec extends WordSpec
 
   }
 
+  def createProcess: JsObject = {
+    Json
+      .parse(
+        s"""
+           |  {
+           |    "meta": {
+           |      "id": "trn90087",
+           |      "title": "External Guidance Automated Test Process",
+           |      "ocelot": 3,
+           |      "lastAuthor": "7903088",
+           |      "lastUpdate": 1589467563758,
+           |      "filename": "trn90087.js",
+           |      "version": 6
+           |    },
+           |    "flow": {
+           |      "1": {
+           |        "type": "CalloutStanza",
+           |        "text": 0,
+           |        "noteType": "Title",
+           |        "next": [
+           |          "end"
+           |        ],
+           |        "stack": false
+           |      },
+           |      "end": {
+           |        "type": "EndStanza"
+           |      }
+           |    },
+           |    "phrases": [
+           |    [
+           |      "External Guidance Testing process",
+           |      "Welsh - External Guidance Testing process"
+           |    ]
+           |    ],
+           |    "contacts": [],
+           |    "howto": [],
+           |    "links": [
+           |    {
+           |      "dest": "13",
+           |      "title": "Ocelot roles",
+           |      "window": false,
+           |      "leftbar": false,
+           |      "always": false,
+           |      "popup": false,
+           |      "id": 0
+           |    }
+           |    ]
+           |  }
+    """.stripMargin
+      )
+      .as[JsObject]
+  }
 }
