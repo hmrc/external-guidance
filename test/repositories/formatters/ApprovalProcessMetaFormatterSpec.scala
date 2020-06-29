@@ -16,7 +16,7 @@
 
 package repositories.formatters
 
-import java.time.LocalDateTime
+import java.time.{LocalDate, LocalDateTime}
 
 import base.UnitSpec
 import models.{ApprovalProcessJson, ApprovalProcessMeta}
@@ -26,26 +26,26 @@ import repositories.formatters.ApprovalProcessMetaFormatter.mongoFormat
 class ApprovalProcessMetaFormatterSpec extends UnitSpec with ApprovalProcessJson {
 
   private val invalidJson = Json.parse("{}")
-
-  private val validString = """
+  private val dateLong = 1583193600000L
+  private val validString = s"""
     |  {
     |    "id" : "oct90001",
     |    "title" : "This is the title",
     |    "status" : "SubmittedFor2iReview",
-    |    "dateSubmitted" : {"$date": 1583193600000},
-    |    "lastModified" : {"$date": 1583193600000},
+    |    "dateSubmitted" : {"$$date": $dateLong},
+    |    "lastModified" : {"$$date": $dateLong},
     |    "ocelotDateSubmitted" : 1,
     |    "ocelotVersion" : 1
     |  }
     """.stripMargin
   private val validMetaJson = Json.parse(validString)
 
-  private val validStringWithoutLastModified = """
+  private val validStringWithoutLastModified = s"""
     |  {
     |    "id" : "oct90001",
     |    "title" : "This is the title",
     |    "status" : "SubmittedFor2iReview",
-    |    "dateSubmitted" : {"$date": 1583193600000}
+    |    "dateSubmitted" : {"$$date": $dateLong}
     |  }
     """.stripMargin
   private val validMetaJsonWithoutLastModified = Json.parse(validStringWithoutLastModified)
@@ -55,8 +55,14 @@ class ApprovalProcessMetaFormatterSpec extends UnitSpec with ApprovalProcessJson
     "Result in a successful conversion for valid JSON" in {
 
       validMetaJson.validate[ApprovalProcessMeta] match {
-        case JsSuccess(result, _) if result.id == "oct90001" => succeed
-        case JsSuccess(_, _) => fail("Deserializing valid JSON did not create correct process")
+        case JsSuccess(result, _) =>
+          val dateToCompare = LocalDate.of(2020, 3, 3)
+          result.id shouldBe "oct90001"
+          result.title shouldBe "This is the title"
+          result.status shouldBe "SubmittedFor2iReview"
+          result.ocelotDateSubmitted shouldBe 1
+          result.ocelotVersion shouldBe 1
+          result.dateSubmitted shouldBe dateToCompare
         case JsError(errors) => fail(s"Unable to parse valid Json $errors")
       }
     }

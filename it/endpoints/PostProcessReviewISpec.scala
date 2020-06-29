@@ -280,7 +280,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
           await(request.post(statusChangeWithDesignerJson))
         }
 
-        "return a NO_CONTENT status code" in {
+        "return an OK status code" in {
           response.status shouldBe OK
         }
 

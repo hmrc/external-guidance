@@ -39,6 +39,7 @@ class ProcessReviewControllerSpec extends WordSpec
   private trait Test extends MockReviewService {
     val invalidId: String = "ext95"
     val approvalProcessCompleted: ApprovalProcess = approvalProcess.copy(process = createProcess)
+    val approvalProcessContainingInvalidOcelotProcess: ApprovalProcess = approvalProcess.copy()
     val reviewUpdate: ApprovalProcessPageReview = ApprovalProcessPageReview("id", "/pageUrl", None, "status")
     lazy val controller: ProcessReviewController = new ProcessReviewController(mockReviewService, stubControllerComponents())
   }
@@ -672,7 +673,7 @@ class ProcessReviewControllerSpec extends WordSpec
 
         MockReviewService
           .factCheckComplete(validProcessIdForReview, statusChangeInfo)
-          .returns(Future.successful(Right(approvalProcess)))
+          .returns(Future.successful(Right(approvalProcessContainingInvalidOcelotProcess)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
         private val result = controller.approvalFactCheckComplete(validProcessIdForReview)(request)
