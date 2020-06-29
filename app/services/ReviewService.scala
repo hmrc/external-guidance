@@ -54,17 +54,17 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
         }
     }
 
-  def twoEyeReviewComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] = {
+  def twoEyeReviewComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[ApprovalProcess]] = {
 
-    def publishIfRequired(approvalProcess: ApprovalProcess): Future[RequestOutcome[Unit]] = info.status match {
+    def publishIfRequired(approvalProcess: ApprovalProcess): Future[RequestOutcome[ApprovalProcess]] = info.status match {
       case StatusPublished =>
         publishedService.save(id, info.userId, approvalProcess.process) map {
-          case Right(_) => Right(())
+          case Right(_) => Right(approvalProcess)
           case Left(errors) =>
             logger.error(s"Failed to publish $id - $errors")
             Left(errors)
         }
-      case _ => Future.successful(Right(()))
+      case _ => Future.successful(Right(approvalProcess))
     }
 
     checkProcessInCorrectStateForCompletion(id, StatusSubmittedFor2iReview, ReviewType2i) flatMap {
@@ -85,11 +85,14 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
     }
   }
 
-  def factCheckComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[Unit]] =
+  def factCheckComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[ApprovalProcess]] =
     checkProcessInCorrectStateForCompletion(id, StatusSubmittedForFactCheck, ReviewTypeFactCheck) flatMap {
       case Right(approvalProcess) =>
         reviewRepository.updateReview(id, approvalProcess.version, ReviewTypeFactCheck, info.userId, info.status) flatMap {
-          case Right(_) => changeStatus(id, info.status, info.userId, ReviewTypeFactCheck)
+          case Right(_) => changeStatus(id, info.status, info.userId, ReviewTypeFactCheck) map {
+            case Right(_) => Right(approvalProcess)
+            case Left(error) => Left(error)
+          }
           case Left(errors) =>
             logger.error(s"updateReviewOnCompletion: Could not update fact check review on completion for process $id")
             Future.successful(Left(errors))

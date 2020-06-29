@@ -18,8 +18,8 @@ package controllers
 
 import data.ReviewData
 import mocks.MockReviewService
+import models._
 import models.errors._
-import models.{ApprovalProcess, ApprovalProcessMeta, ApprovalProcessPageReview, ProcessReview}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
@@ -33,10 +33,13 @@ import utils.Constants._
 
 import scala.concurrent.Future
 
-class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite with MockFactory with ReviewData {
+class ProcessReviewControllerSpec extends WordSpec
+  with Matchers with ScalaFutures with GuiceOneAppPerSuite with MockFactory with ReviewData with ApprovalProcessJson {
 
   private trait Test extends MockReviewService {
     val invalidId: String = "ext95"
+    val approvalProcessCompleted: ApprovalProcess = approvalProcess.copy(process = createProcess)
+    val approvalProcessContainingInvalidOcelotProcess: ApprovalProcess = approvalProcess.copy()
     val reviewUpdate: ApprovalProcessPageReview = ApprovalProcessPageReview("id", "/pageUrl", None, "status")
     lazy val controller: ProcessReviewController = new ProcessReviewController(mockReviewService, stubControllerComponents())
   }
@@ -186,22 +189,17 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
 
     "the request is valid" should {
 
-      trait ValidTest extends Test {
+      "return an OK response" in new Test {
+
         MockReviewService
           .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
-          .returns(Future.successful(Right(())))
+          .returns(Future.successful(Right(approvalProcessCompleted)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
-      }
 
-      "return a NO_CONTENT response" in new ValidTest {
         private val result = controller.approval2iReviewComplete(validProcessIdForReview)(request)
-        status(result) shouldBe NO_CONTENT
-      }
-
-      "return no content" in new ValidTest {
-        private val result = controller.approval2iReviewComplete(validProcessIdForReview)(request)
-        contentType(result) shouldBe None
+        status(result) shouldBe OK
+        contentType(result) shouldBe Some("application/json")
       }
 
     }
@@ -211,7 +209,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       trait InvalidTest extends Test {
         MockReviewService
           .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
-          .returns(Future.successful(Right(())))
+          .returns(Future.successful(Right(approvalProcessCompleted)))
           .never()
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidStatusChangeJson)
@@ -220,10 +218,6 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       "return a bad request response" in new InvalidTest {
         private val result = controller.approval2iReviewComplete(invalidId)(request)
         status(result) shouldBe BAD_REQUEST
-      }
-
-      "return content as JSON" in new InvalidTest {
-        private val result = controller.approval2iReviewComplete(invalidId)(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
@@ -240,20 +234,32 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
       }
 
-      "return an not found response" in new NotFoundTest {
+      "return an not found error response" in new NotFoundTest {
         private val result = controller.approval2iReviewComplete(validProcessIdForReview)(request)
         status(result) shouldBe NOT_FOUND
-      }
-
-      "return content as JSON" in new NotFoundTest {
-        private val result = controller.approval2iReviewComplete(validProcessIdForReview)(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
-      }
-
-      "return a error code of NOT_FOUND_ERROR" in new NotFoundTest {
-        private val result = controller.approval2iReviewComplete(validProcessIdForReview)(request)
         private val json = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe expectedErrorCode
+      }
+    }
+
+    "a stale data error occurs" should {
+
+      trait ErrorTest extends Test {
+        val expectedErrorCode = "STALE_DATA_ERROR"
+        MockReviewService
+          .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
+          .returns(Future.successful(Left(Errors(StaleDataError))))
+
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
+      }
+
+      "return a stale data error response" in new ErrorTest {
+        private val result = controller.approval2iReviewComplete(validProcessIdForReview)(request)
+        status(result) shouldBe NOT_FOUND
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe expectedErrorCode
       }
     }
 
@@ -271,15 +277,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       "return a internal server error response" in new ErrorTest {
         private val result = controller.approval2iReviewComplete(validProcessIdForReview)(request)
         status(result) shouldBe INTERNAL_SERVER_ERROR
-      }
-
-      "return content as JSON" in new ErrorTest {
-        private val result = controller.approval2iReviewComplete(validProcessIdForReview)(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
-      }
-
-      "return an error code of INTERNAL_SERVER_ERROR" in new ErrorTest {
-        private val result = controller.approval2iReviewComplete(validProcessIdForReview)(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe expectedErrorCode
       }
@@ -431,15 +429,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       "return an OK response" in new ValidTest {
         private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         status(result) shouldBe OK
-      }
-
-      "return content as JSON" in new ValidTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
-      }
-
-      "confirm returned content is a JSON object" in new ValidTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         val dataReturned: ApprovalProcessPageReview = contentAsJson(result).as[ApprovalProcessPageReview]
         dataReturned shouldBe pageReview
       }
@@ -460,15 +450,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       "return a bad request response" in new InvalidTest {
         private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         status(result) shouldBe BAD_REQUEST
-      }
-
-      "return content as JSON" in new InvalidTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
-      }
-
-      "return a error code of BAD_REQUEST" in new InvalidTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         private val json = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe expectedErrorCode
       }
@@ -489,15 +471,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       "return an not found response" in new NotFoundTest {
         private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         status(result) shouldBe NOT_FOUND
-      }
-
-      "return content as JSON" in new NotFoundTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
-      }
-
-      "return a error code of NOT_FOUND_ERROR" in new NotFoundTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         private val json = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe expectedErrorCode
       }
@@ -518,15 +492,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       "return an not found response" in new StaleDataTest {
         private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         status(result) shouldBe NOT_FOUND
-      }
-
-      "return content as JSON" in new StaleDataTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
-      }
-
-      "return a error code of NOT_FOUND_ERROR" in new StaleDataTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         private val json = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe expectedErrorCode
       }
@@ -547,18 +513,11 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
       "return a internal server error response" in new ErrorTest {
         private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         status(result) shouldBe INTERNAL_SERVER_ERROR
-      }
-
-      "return content as JSON" in new ErrorTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
-      }
-
-      "return an error code of INTERNAL_SERVER_ERROR" in new ErrorTest {
-        private val result = controller.approval2iReviewPageInfo(validProcessIdForReview, "pageUrl")(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe expectedErrorCode
       }
+
     }
   }
 
@@ -698,44 +657,42 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
 
     "the request is valid" should {
 
-      trait ValidTest extends Test {
+      "correctly return an OK response" in new Test {
+
         MockReviewService
           .factCheckComplete(validProcessIdForReview, statusChangeInfo)
-          .returns(Future.successful(Right(())))
+          .returns(Future.successful(Right(approvalProcessCompleted)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
-      }
-
-      "return a NO_CONTENT response" in new ValidTest {
         private val result = controller.approvalFactCheckComplete(validProcessIdForReview)(request)
-        status(result) shouldBe NO_CONTENT
+        status(result) shouldBe OK
+        contentType(result) shouldBe Some("application/json")
       }
 
-      "return no content" in new ValidTest {
+      "correctly return a BAD_REQUEST if the response contains an invalid process" in new Test {
+
+        MockReviewService
+          .factCheckComplete(validProcessIdForReview, statusChangeInfo)
+          .returns(Future.successful(Right(approvalProcessContainingInvalidOcelotProcess)))
+
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
         private val result = controller.approvalFactCheckComplete(validProcessIdForReview)(request)
-        contentType(result) shouldBe None
+        status(result) shouldBe BAD_REQUEST
+        contentType(result) shouldBe Some("application/json")
       }
-
     }
 
     "the request is invalid" should {
 
-      trait InvalidTest extends Test {
+      "corectly return a bad request response" in new Test {
         MockReviewService
           .factCheckComplete(validProcessIdForReview, statusChangeInfo)
-          .returns(Future.successful(Right(())))
+          .returns(Future.successful(Right(approvalProcess)))
           .never()
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidStatusChangeJson)
-      }
-
-      "return a bad request response" in new InvalidTest {
         private val result = controller.approvalFactCheckComplete(invalidId)(request)
         status(result) shouldBe BAD_REQUEST
-      }
-
-      "return content as JSON" in new InvalidTest {
-        private val result = controller.approvalFactCheckComplete(invalidId)(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
@@ -743,55 +700,51 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
 
     "the request contains an unknown ID" should {
 
-      trait NotFoundTest extends Test {
+      "return an not found response" in new Test {
         val expectedErrorCode = "NOT_FOUND_ERROR"
         MockReviewService
           .factCheckComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(Errors(NotFoundError))))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
-      }
-
-      "return an not found response" in new NotFoundTest {
         private val result = controller.approvalFactCheckComplete(validProcessIdForReview)(request)
         status(result) shouldBe NOT_FOUND
-      }
-
-      "return content as JSON" in new NotFoundTest {
-        private val result = controller.approvalFactCheckComplete(validProcessIdForReview)(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
-      }
-
-      "return a error code of NOT_FOUND_ERROR" in new NotFoundTest {
-        private val result = controller.approvalFactCheckComplete(validProcessIdForReview)(request)
         private val json = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe expectedErrorCode
       }
     }
 
+    "a stale data error occurs" should {
+
+      "return a stale data error response" in new Test {
+        val expectedErrorCode = "STALE_DATA_ERROR"
+        MockReviewService
+          .factCheckComplete(validProcessIdForReview, statusChangeInfo)
+          .returns(Future.successful(Left(Errors(StaleDataError))))
+
+        val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
+        private val result = controller.approvalFactCheckComplete(validProcessIdForReview)(request)
+        status(result) shouldBe NOT_FOUND
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe expectedErrorCode
+      }
+    }
+
+
     "a downstream error occurs" should {
 
-      trait ErrorTest extends Test {
+      "return a internal server error response" in new Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockReviewService
           .factCheckComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(Errors(InternalServiceError))))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
-      }
-
-      "return a internal server error response" in new ErrorTest {
         private val result = controller.approvalFactCheckComplete(validProcessIdForReview)(request)
         status(result) shouldBe INTERNAL_SERVER_ERROR
-      }
-
-      "return content as JSON" in new ErrorTest {
-        private val result = controller.approvalFactCheckComplete(validProcessIdForReview)(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
-      }
-
-      "return an error code of INTERNAL_SERVER_ERROR" in new ErrorTest {
-        private val result = controller.approvalFactCheckComplete(validProcessIdForReview)(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe expectedErrorCode
       }
@@ -802,8 +755,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
 
     "the request is valid" should {
 
-      trait ValidTest extends Test {
-
+      "return an OK response" in new Test {
         val pageUrl: String = "/pageUrl"
         val pageReview: ApprovalProcessPageReview = ApprovalProcessPageReview("2", pageUrl, Some("result2"))
 
@@ -812,21 +764,9 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
           .returns(Future.successful(Right(pageReview)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
-
-      }
-
-      "return an OK response" in new ValidTest {
         private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, "pageUrl")(request)
         status(result) shouldBe OK
-      }
-
-      "return content as JSON" in new ValidTest {
-        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, "pageUrl")(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
-      }
-
-      "confirm returned content is a JSON object" in new ValidTest {
-        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, "pageUrl")(request)
         val dataReturned: ApprovalProcessPageReview = contentAsJson(result).as[ApprovalProcessPageReview]
         dataReturned shouldBe pageReview
       }
@@ -834,7 +774,7 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
 
     "the requested process is no longer SubmittedForFactCheck" should {
 
-      trait StaleDataTest extends Test {
+      "return an not found response" in new Test {
         val expectedErrorCode = "STALE_DATA_ERROR"
         val pageUrl: String = "/pageUrl"
         MockReviewService
@@ -842,20 +782,9 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
           .returns(Future.successful(Left(Errors(StaleDataError))))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
-      }
-
-      "return an not found response" in new StaleDataTest {
         private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, "pageUrl")(request)
         status(result) shouldBe NOT_FOUND
-      }
-
-      "return content as JSON" in new StaleDataTest {
-        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, "pageUrl")(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
-      }
-
-      "return a error code of NOT_FOUND_ERROR" in new StaleDataTest {
-        private val result = controller.approvalFactCheckPageInfo(validProcessIdForReview, "pageUrl")(request)
         private val json = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe expectedErrorCode
       }
@@ -867,22 +796,14 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
 
     "the request is valid" should {
 
-      trait ValidTest extends Test {
-
+      "return a NO_CONTENT response" in new Test {
         MockReviewService
           .approvalPageComplete("id", "/pageUrl", ReviewTypeFactCheck, reviewUpdate)
           .returns(Future.successful(Right(())))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(Json.toJson(reviewUpdate))
-      }
-
-      "return a NO_CONTENT response" in new ValidTest {
         private val result = controller.approvalFactCheckPageComplete(reviewUpdate.id, "pageUrl")(request)
         status(result) shouldBe NO_CONTENT
-      }
-
-      "return no content" in new ValidTest {
-        private val result = controller.approvalFactCheckPageComplete(reviewUpdate.id, "pageUrl")(request)
         contentType(result) shouldBe None
       }
 
@@ -890,4 +811,56 @@ class ProcessReviewControllerSpec extends WordSpec with Matchers with ScalaFutur
 
   }
 
+  def createProcess: JsObject = {
+    Json
+      .parse(
+        s"""
+           |  {
+           |    "meta": {
+           |      "id": "trn90087",
+           |      "title": "External Guidance Automated Test Process",
+           |      "ocelot": 3,
+           |      "lastAuthor": "7903088",
+           |      "lastUpdate": 1589467563758,
+           |      "filename": "trn90087.js",
+           |      "version": 6
+           |    },
+           |    "flow": {
+           |      "1": {
+           |        "type": "CalloutStanza",
+           |        "text": 0,
+           |        "noteType": "Title",
+           |        "next": [
+           |          "end"
+           |        ],
+           |        "stack": false
+           |      },
+           |      "end": {
+           |        "type": "EndStanza"
+           |      }
+           |    },
+           |    "phrases": [
+           |    [
+           |      "External Guidance Testing process",
+           |      "Welsh - External Guidance Testing process"
+           |    ]
+           |    ],
+           |    "contacts": [],
+           |    "howto": [],
+           |    "links": [
+           |    {
+           |      "dest": "13",
+           |      "title": "Ocelot roles",
+           |      "window": false,
+           |      "leftbar": false,
+           |      "always": false,
+           |      "popup": false,
+           |      "id": 0
+           |    }
+           |    ]
+           |  }
+    """.stripMargin
+      )
+      .as[JsObject]
+  }
 }

@@ -16,21 +16,16 @@
 
 package models
 
-import java.time.{LocalDate, LocalDateTime}
-
 import play.api.libs.json.{Json, OFormat}
-import utils.Constants._
 
-case class ApprovalProcessMeta(
-    id: String,
-    title: String,
-    status: String = StatusSubmittedFor2iReview,
-    dateSubmitted: LocalDate = LocalDate.now(),
-    lastModified: LocalDateTime = LocalDateTime.now(),
-    ocelotDateSubmitted: Long = 1,
-    ocelotVersion: Int = 1
-)
+case class AuditInfo(pid: String,
+                     processId: String,
+                     processTitle: String,
+                     processVersion: Int,
+                     ocelotAuthor: String,
+                     ocelotLastUpdate: Long,
+                     ocelotVersion: Int)
 
-object ApprovalProcessMeta {
-  implicit val formats: OFormat[ApprovalProcessMeta] = Json.format[ApprovalProcessMeta]
+object AuditInfo {
+  implicit val formats: OFormat[AuditInfo] = Json.format[AuditInfo]
 }

@@ -63,8 +63,8 @@ class PostProcessReviewISpec extends IntegrationSpec {
           await(request.post(statusChangeWithDesignerJson))
         }
 
-        "return a NO_CONTENT status code" in {
-          response.status shouldBe NO_CONTENT
+        "return an OK status code" in {
+          response.status shouldBe OK
         }
 
         "set the status to WithDesignerForUpdate" in {
@@ -92,8 +92,8 @@ class PostProcessReviewISpec extends IntegrationSpec {
         await(request.post(statusChangePublishedJson))
       }
 
-      "return a NO_CONTENT status code" in {
-        response.status shouldBe NO_CONTENT
+      "return an OK status code" in {
+        response.status shouldBe OK
       }
 
       "set status to Published" in {
@@ -280,8 +280,8 @@ class PostProcessReviewISpec extends IntegrationSpec {
           await(request.post(statusChangeWithDesignerJson))
         }
 
-        "return a NO_CONTENT status code" in {
-          response.status shouldBe NO_CONTENT
+        "return an OK status code" in {
+          response.status shouldBe OK
         }
 
         "set the status to WithDesignerForUpdate" in {
@@ -295,9 +295,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
           updatedEntry shouldBe 'defined
           updatedEntry.get.status shouldBe StatusWithDesignerForUpdate
         }
-
       }
     }
   }
-
 }
