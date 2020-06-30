@@ -30,6 +30,8 @@ case object Lede extends CalloutType
 
 case object Section extends CalloutType
 
+case object SubSection extends CalloutType
+
 object CalloutType {
 
   implicit val reads: Reads[CalloutType] = new Reads[CalloutType] {
@@ -40,6 +42,7 @@ object CalloutType {
       case JsString("Lede") => JsSuccess(Lede, __)
       case JsString("Error") => JsSuccess(Error, __)
       case JsString("Section") => JsSuccess(Section, __)
+      case JsString("SubSection") => JsSuccess(SubSection, __)
       case _ => JsError("Invalid Callout type")
     }
   }

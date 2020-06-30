@@ -21,8 +21,6 @@ import play.api.libs.json._
 
 class CalloutStanzaSpec extends UnitSpec {
 
-  def getCalloutType[T](stanzaType: T): String = stanzaType.getClass.getSimpleName.dropRight(1)
-
   def getStanzaJson(calloutType: String): JsValue = Json.parse(
     s"""|{
         |    "type": "CalloutStanza",
@@ -36,11 +34,12 @@ class CalloutStanzaSpec extends UnitSpec {
   def buildCalloutStanza(calloutType: CalloutType): CalloutStanza =
     CalloutStanza(calloutType, 0, Seq("1"), stack = false)
 
-  val title: String = getCalloutType(Title)
-  val subTitle: String = getCalloutType(SubTitle)
-  val lede: String = getCalloutType(Lede)
-  val error: String = getCalloutType(Error)
-  val section: String = getCalloutType(Section)
+  val title: String = "Title"
+  val subTitle: String = "SubTitle"
+  val lede: String = "Lede"
+  val error: String = "Error"
+  val section: String = "Section"
+  val subSection: String = "SubSection"
   val invalid: String = "invalid"
 
   val titleCalloutStanzaInputJson: JsValue = getStanzaJson(title)
@@ -48,6 +47,7 @@ class CalloutStanzaSpec extends UnitSpec {
   val ledeCalloutStanzaInputJson: JsValue = getStanzaJson(lede)
   val errorCalloutStanzaInputJson: JsValue = getStanzaJson(error)
   val sectionCalloutStanzaInputJson: JsValue = getStanzaJson(section)
+  val subSectionCalloutStanzaInputJson: JsValue = getStanzaJson(subSection)
   val invalidCalloutStanzaInputJson: JsValue = getStanzaJson(invalid)
 
   val validCalloutStanzaAsJsObject: JsObject = titleCalloutStanzaInputJson.as[JsObject]
@@ -57,13 +57,15 @@ class CalloutStanzaSpec extends UnitSpec {
   val expectedLedeCalloutStanza: CalloutStanza = buildCalloutStanza(Lede)
   val expectedErrorCalloutStanza: CalloutStanza = buildCalloutStanza(Error)
   val expectedSectionCalloutStanza: CalloutStanza = buildCalloutStanza(Section)
+  val expectedSubSectionCalloutStanza: CalloutStanza = buildCalloutStanza(SubSection)
 
   val jsonToStanzaMappings: Map[JsValue, CalloutStanza] = Map(
     titleCalloutStanzaInputJson -> expectedTitleCalloutStanza,
     subTitleCalloutStanzaInputJson -> expectedSubTitleCalloutStanza,
     ledeCalloutStanzaInputJson -> expectedLedeCalloutStanza,
     errorCalloutStanzaInputJson -> expectedErrorCalloutStanza,
-    sectionCalloutStanzaInputJson -> expectedSectionCalloutStanza
+    sectionCalloutStanzaInputJson -> expectedSectionCalloutStanza,
+    subSectionCalloutStanzaInputJson -> expectedSubSectionCalloutStanza
   )
 
   jsonToStanzaMappings foreach { mapping =>
