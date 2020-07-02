@@ -16,9 +16,9 @@
 
 package models.ocelot
 
+import models.ocelot.stanzas._
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{Reads, __}
-import models.ocelot.stanzas._
 
 case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase], links: Vector[Link]) {
 
@@ -27,6 +27,7 @@ case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase
 }
 
 object Process {
+  val StartStanzaId = "start"
 
   implicit val reads: Reads[Process] = (
     (__ \ "meta").read[Meta] and

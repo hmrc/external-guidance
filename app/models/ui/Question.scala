@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package models.ocelot
+package models.ui
 
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
+case class Answer(text: Text, hint: Option[Text], dest: String) extends UIComponent
 
-case class Link(id: Int, dest: String, title: String, window: Boolean)
+case class Question(text: Text, hint: Option[Text], body: Seq[UIComponent], answers: Seq[Answer], errorMsgs: Seq[ErrorMsg] = Nil) extends UIComponent {
 
-object Link {
-
-  def isLinkableStanzaId(dest: String): Boolean = dest.equals(Process.StartStanzaId) || dest.forall(_.isDigit)
-
-  implicit val reads: Reads[Link] = (
-    (__ \ "id").read[Int] and
-      (__ \ "dest").read[String] and
-      (__ \ "title").read[String] and
-      (__ \ "window").read[Boolean]
-  )(Link.apply _)
+  val horizontal: Boolean = answers.length == 2 &&
+    answers.forall(ans => ans.hint.isEmpty && ans.text.english.map(_.toWords.length).sum == 1)
 }

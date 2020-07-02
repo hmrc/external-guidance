@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-package models.ocelot
+package services
 
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
+import models.ocelot.stanzas.Stanza
 
-case class Link(id: Int, dest: String, title: String, window: Boolean)
+trait FlowError
 
-object Link {
-
-  def isLinkableStanzaId(dest: String): Boolean = dest.equals(Process.StartStanzaId) || dest.forall(_.isDigit)
-
-  implicit val reads: Reads[Link] = (
-    (__ \ "id").read[Int] and
-      (__ \ "dest").read[String] and
-      (__ \ "title").read[String] and
-      (__ \ "window").read[Boolean]
-  )(Link.apply _)
-}
+case class UnknownStanzaType(unknown: Stanza) extends FlowError
+case class StanzaNotFound(id: String) extends FlowError
+case class PageStanzaMissing(id: String) extends FlowError
+case class PageUrlEmptyOrInvalid(id: String) extends FlowError
+case class PhraseNotFound(index: Int) extends FlowError
+case class LinkNotFound(index: Int) extends FlowError
+case class DuplicatePageUrl(id: String, url: String) extends FlowError

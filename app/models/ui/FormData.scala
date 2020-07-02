@@ -14,21 +14,8 @@
  * limitations under the License.
  */
 
-package models.ocelot
+package models.ui
 
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
+import play.api.data.FormError
 
-case class Link(id: Int, dest: String, title: String, window: Boolean)
-
-object Link {
-
-  def isLinkableStanzaId(dest: String): Boolean = dest.equals(Process.StartStanzaId) || dest.forall(_.isDigit)
-
-  implicit val reads: Reads[Link] = (
-    (__ \ "id").read[Int] and
-      (__ \ "dest").read[String] and
-      (__ \ "title").read[String] and
-      (__ \ "window").read[Boolean]
-  )(Link.apply _)
-}
+case class FormData(url: String, data: Map[String, String], errors: Seq[FormError])

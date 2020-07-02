@@ -16,23 +16,33 @@
 
 package models.ocelot.stanzas
 
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
-import play.api.libs.json.Reads._
 import models.ocelot.Phrase
+import play.api.libs.functional.syntax._
+import play.api.libs.json.Reads._
+import play.api.libs.json._
 
 case class CalloutStanza(noteType: CalloutType, text: Int, override val next: Seq[String], stack: Boolean) extends Stanza
 
 object CalloutStanza {
 
-  implicit val calloutReads: Reads[CalloutStanza] = {
-
+  implicit val calloutReads: Reads[CalloutStanza] =
     ((JsPath \ "noteType").read[CalloutType] and
       (JsPath \ "text").read[Int] and
       (JsPath \ "next").read[Seq[String]](minLength[Seq[String]](1)) and
       (JsPath \ "stack").read[Boolean])(CalloutStanza.apply _)
 
-  }
+  implicit val owrites: OWrites[CalloutStanza] =
+    (
+      (JsPath \ "noteType").write[CalloutType] and
+        (JsPath \ "text").write[Int] and
+        (JsPath \ "next").write[Seq[String]] and
+        (JsPath \ "stack").write[Boolean]
+    )(unlift(CalloutStanza.unapply))
+
 }
 
 case class Callout(noteType: CalloutType, text: Phrase, override val next: Seq[String], stack: Boolean) extends PopulatedStanza
+
+object Callout {
+  def apply(stanza: CalloutStanza, text: Phrase): Callout = Callout(stanza.noteType, text, stanza.next, stanza.stack)
+}
