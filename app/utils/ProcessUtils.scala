@@ -20,8 +20,8 @@ import java.util.UUID
 
 import models._
 import models.errors.{BadRequestError, Errors}
-import models.ocelot.Process
-import models.ocelot.stanzas.PageStanza
+import models.ocelot.stanzas.{Callout, Question, Title}
+import models.ocelot.{Page, Process}
 import play.api.Logger
 import play.api.libs.json.{JsError, JsObject, JsSuccess}
 
@@ -29,7 +29,7 @@ object ProcessUtils {
 
   val logger = Logger(getClass)
 
-  def validateProcess(jsonProcess: JsObject): RequestOutcome[Process] = {
+  def validateProcess(jsonProcess: JsObject): RequestOutcome[Process] =
     jsonProcess.validate[Process] match {
       case JsSuccess(process, _) =>
         Right(process)
@@ -37,32 +37,34 @@ object ProcessUtils {
         logger.error(s"Parsing process failed with the following error(s): $errors")
         Left(Errors(BadRequestError))
     }
-  }
 
-  def createApprovalProcess(id: String, title: String, status: String, jsonProcess: JsObject): ApprovalProcess = {
+  def createApprovalProcess(id: String, title: String, status: String, jsonProcess: JsObject): ApprovalProcess =
     ApprovalProcess(id, ApprovalProcessMeta(id, title, status), jsonProcess)
-  }
 
-  def createApprovalProcessReview(process: Process, reviewType: String, version: Int): ApprovalProcessReview = {
+  def createApprovalProcessReview(process: Process, reviewType: String, version: Int, pages: Seq[Page]): ApprovalProcessReview =
     ApprovalProcessReview(
       UUID.randomUUID(),
       process.meta.id,
       version,
       reviewType,
       process.meta.title,
-      extractPages(process)
+      extractPages(pages)
     )
-  }
 
-  def extractPages(process: Process): List[ApprovalProcessPageReview] = {
+  def extractPages(pages: Seq[Page]): List[ApprovalProcessPageReview] =
+    pages.map { extractPageInfo }.toList
 
-    process.flow
-      .filter(p => p._2.isInstanceOf[PageStanza])
-      .map {
-        case (key, value) => ApprovalProcessPageReview(key, value.asInstanceOf[PageStanza].url)
-      }
-      .toList
-
+  def extractPageInfo(page: Page): ApprovalProcessPageReview = {
+    val title: String = page.stanzas.find {
+      case Callout(Title, _, _, _) => true
+      case _: Question => true
+      case _ => false
+    } match {
+      case Some(co: Callout) => co.text.langs(0)
+      case Some(qu: Question) => qu.text.langs(0)
+      case _ => page.url
+    }
+    ApprovalProcessPageReview(page.id, page.url, title)
   }
 
 }

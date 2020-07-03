@@ -28,7 +28,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ApprovalService @Inject() (repository: ApprovalRepository, reviewRepository: ApprovalProcessReviewRepository) {
+class ApprovalService @Inject() (repository: ApprovalRepository,
+                                 reviewRepository: ApprovalProcessReviewRepository,
+                                 pageBuilder: PageBuilder) {
 
   val logger: Logger = Logger(this.getClass)
 
@@ -53,7 +55,13 @@ class ApprovalService @Inject() (repository: ApprovalRepository, reviewRepositor
         saveProcess(createApprovalProcess(process.meta.id, process.meta.title, initialStatus, jsonProcess)) flatMap {
           case Right(savedId) =>
             repository.getById(savedId) flatMap {
-              case Right(approvalProcess) => saveReview(createApprovalProcessReview(process, reviewType, approvalProcess.version))
+              case Right(approvalProcess) =>
+                pageBuilder.pages(process) match {
+                  case Right(pages) => saveReview(createApprovalProcessReview(process, reviewType, approvalProcess.version, pages))
+                  case _ =>
+                    Logger.error("Could not parse pages")
+                    Future.successful(Left(Errors(InternalServiceError)))
+                }
               case Left(Errors(NotFoundError :: Nil)) => Future.successful(Left(Errors(NotFoundError)))
               case Left(_) => Future.successful(Left(Errors(InternalServiceError)))
             }

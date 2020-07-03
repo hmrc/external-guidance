@@ -148,6 +148,7 @@ trait ApprovalProcessJson {
        |		{
        |			"id" : "1",
        |			"pageUrl" : "/feeling-bad",
+       |			"pageTitle" : "title",
        |			"result" : "",
        |			"status" : "$InitialPageReviewStatus",
        |			"comment" : "",
@@ -183,7 +184,7 @@ trait ApprovalProcessJson {
       1,
       ReviewType2i,
       "Title",
-      List(ApprovalProcessPageReview("id", "url")),
+      List(ApprovalProcessPageReview("id", "url", "pageUrl")),
       LocalDate.now(),
       ReviewCompleteStatus,
       Some(LocalDateTime.now())

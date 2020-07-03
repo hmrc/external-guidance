@@ -45,8 +45,8 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       ReviewType2i,
       "This is the title",
       List(
-        ApprovalProcessPageReview("1", "/pageUrl", Some("Yes"), ReviewCompleteStatus),
-        ApprovalProcessPageReview("2", "/pageUrl2", Some("No"), ReviewCompleteStatus)
+        ApprovalProcessPageReview("1", "/pageUrl", "pageTitle1", Some("Yes"), ReviewCompleteStatus),
+        ApprovalProcessPageReview("2", "/pageUrl2", "pageTitle2", Some("No"), ReviewCompleteStatus)
       )
     )
     val processReviewComplete: ProcessReview = ProcessReview(
@@ -57,8 +57,8 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       approvalProcessReviewComplete.title,
       approvalProcessReviewComplete.lastUpdated,
       List(
-        PageReview("1","/pageUrl",ReviewCompleteStatus),
-        PageReview("2","/pageUrl2",ReviewCompleteStatus)
+        PageReview("1", "pageTitle1", "/pageUrl", ReviewCompleteStatus),
+        PageReview("2", "pageTitle2", "/pageUrl2", ReviewCompleteStatus)
       )
     )
     val processReviewIncomplete: ApprovalProcessReview = ApprovalProcessReview(
@@ -68,8 +68,8 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       ReviewType2i,
       "This is the title",
       List(
-        ApprovalProcessPageReview("1", "/pageUrl", Some("Yes"), InitialPageReviewStatus),
-        ApprovalProcessPageReview("2", "/pageUrl2", Some("No"), ReviewCompleteStatus)
+        ApprovalProcessPageReview("1", "/pageUrl", "/pageUrl", Some("Yes"), InitialPageReviewStatus),
+        ApprovalProcessPageReview("2", "/pageUrl2", "/pageUrl2", Some("No"), ReviewCompleteStatus)
       )
     )
 
@@ -432,8 +432,8 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
         ReviewType2i,
         "This is the title",
         List(
-          ApprovalProcessPageReview("1", "/pageUrl", Some("result1")),
-          ApprovalProcessPageReview("2", "/pageUrl2", Some("NotStarted"), updateDate = currentDateTime))
+          ApprovalProcessPageReview("1", "/pageUrl", "/pageUrl", Some("result1")),
+          ApprovalProcessPageReview("2", "/pageUrl2", "/pageUrl2", Some("NotStarted"), updateDate = currentDateTime))
       )
 
     }
@@ -442,7 +442,8 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "the pageUrl exists in the process" should {
         "return a populated PageReview" in new PageInfoTest {
 
-          val expected: RequestOutcome[ApprovalProcessPageReview] = Right(ApprovalProcessPageReview("2", "/pageUrl2", Some("NotStarted"), updateDate = currentDateTime))
+          val expected: RequestOutcome[ApprovalProcessPageReview] =
+            Right(ApprovalProcessPageReview("2", "/pageUrl2", "/pageUrl2", Some("NotStarted"), updateDate = currentDateTime))
 
           MockApprovalRepository
             .getById("validId")
@@ -555,7 +556,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       val validId = "oct90001"
 
       val pageReview: ApprovalProcessPageReview =
-        ApprovalProcessPageReview(validId, pageUrl, Some("result1"), "Failed", None, LocalDateTime.now, Some("user"))
+        ApprovalProcessPageReview(validId, pageUrl, "title", Some("result1"), "Failed", None, LocalDateTime.now, Some("user"))
     }
 
     "the ID identifies a valid process" when {

@@ -17,9 +17,12 @@
 package utils
 
 import base.UnitSpec
-import models.ocelot.{Process, ProcessJson}
+import models.ocelot.stanzas.{Callout, Instruction, Question, Title}
+import models.ocelot.{Page, Phrase, Process, ProcessJson}
 import play.api.libs.json.Json
 import utils.ProcessUtils._
+
+import scala.collection.immutable.Nil
 
 class ProcessUtilsSpec extends UnitSpec with ProcessJson {
 
@@ -70,23 +73,58 @@ class ProcessUtilsSpec extends UnitSpec with ProcessJson {
     )
     .as[Process]
 
-  "Calling the extract Pages" when {
-    "the process contains PageStanzas" should {
+  "Calling the extractPageInfo method" when {
+    "the page has a callout stanza" should {
 
-      "return a list of pages" in {
-
-        val list = extractPages(process)
-        list.size shouldBe 28
-
+      "return the correct title" in {
+        val page = Page("id", "url", Seq(Callout(Title, Phrase(Vector("title1", "title2")), Seq("string"), stack = false)), Seq("1"), Seq("2"))
+        val reviewInfo = extractPageInfo(page)
+        reviewInfo shouldNot be(Nil)
+        reviewInfo.id shouldBe "id"
+        reviewInfo.pageUrl shouldBe "url"
+        reviewInfo.pageTitle shouldBe "title1"
+      }
+    }
+    "the page has a question stanza" should {
+      "return the correct title" in {
+        val page = Page("id",
+          "url",
+          Seq(
+            Question(
+              Phrase(Vector("title1", "title2")),
+              Seq(Phrase(Vector("title1", "title2"))),
+              Seq("string"),
+              stack = false)),
+          Seq("1"),
+          Seq("2")
+        )
+        val reviewInfo = extractPageInfo(page)
+        reviewInfo shouldNot be(Nil)
+        reviewInfo.id shouldBe "id"
+        reviewInfo.pageUrl shouldBe "url"
+        reviewInfo.pageTitle shouldBe "title1"
       }
     }
 
-    "the process does not contain PageStanzas" should {
-      "return an empty list" in {
-        val list = extractPages(processWithNoPageStanzas)
-        list.size shouldBe 0
+    "the page does not have a question or callout stanza" should {
+      "return the url as the title" in {
+        val page = Page("id",
+          "url",
+          Seq(
+            Instruction(
+              Phrase(Vector("title1", "title2")),
+              Seq("string"),
+              None,
+              stack = false)),
+          Seq("1"),
+          Seq("2")
+        )
+        val reviewInfo = extractPageInfo(page)
+        reviewInfo shouldNot be(Nil)
+        reviewInfo.id shouldBe "id"
+        reviewInfo.pageUrl shouldBe "url"
+        reviewInfo.pageTitle shouldBe "url"
       }
     }
   }
-
 }

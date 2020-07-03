@@ -20,7 +20,7 @@ import base.UnitSpec
 import models.ocelot.stanzas._
 import models.ocelot.{Page, _}
 import play.api.libs.json._
-import utils.StanzaHelper
+import utils.{ProcessUtils, StanzaHelper}
 
 class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
 
@@ -67,9 +67,9 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
 
     private val phrases = Vector[Phrase](
       Phrase(Vector("Some Text", "Welsh, Some Text")),
-      Phrase(Vector(s"Some Text1 [link:Link to stanza 17:${pageId7}]", s"Welsh, Some Text1 [link:Link to stanza 17:${pageId7}]")),
-      Phrase(Vector(s"Some [link:PageId3:${pageId3}] Text2", s"Welsh, Some [link:PageId3:${pageId3}] Text2")),
-      Phrase(Vector(s"Some [link:Link to stanza 11:${pageId5}] Text3", s"Welsh, Some [link:Link to stanza 11:${pageId5}] Text3"))
+      Phrase(Vector(s"Some Text1 [link:Link to stanza 17:$pageId7]", s"Welsh, Some Text1 [link:Link to stanza 17:$pageId7]")),
+      Phrase(Vector(s"Some [link:PageId3:$pageId3] Text2", s"Welsh, Some [link:PageId3:$pageId3] Text2")),
+      Phrase(Vector(s"Some [link:Link to stanza 11:$pageId5] Text3", s"Welsh, Some [link:Link to stanza 11:$pageId5] Text3"))
     )
 
     private val links = Vector(Link(0, pageId3, "", false), Link(1, pageId6, "", false), Link(2, Process.StartStanzaId, "Back to the start", false))
@@ -386,11 +386,8 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
         val process: Process = prototypeJson.as[Process]
 
         pageBuilder.pages(process) match {
-          case Right(pages) => {
-
+          case Right(pages) =>
             testPagesInPrototypeJson(pages)
-
-          }
           case Left(err) => fail(s"Flow error $err")
         }
 
@@ -445,7 +442,6 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
             pageMap(pageId6) shouldBe Nil
 
           case Left(err) => fail(s"FlowError $err")
-          case Left(_) => fail()
         }
       }
 
@@ -495,13 +491,10 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
       val process = Process(metaSection, flow, Vector[Phrase](phrase1, phrase2), Vector[Link]())
 
       pageBuilder.pages(process) match {
-        case Right(pages) => {
-
+        case Right(pages) =>
           assert(pages.head.stanzas.size == 4)
-
           pages.head.stanzas(1) shouldBe Instruction(instructionStanza1, phrase1, None)
           pages.head.stanzas(2) shouldBe Instruction(instructionStanza2, phrase2, None)
-        }
         case Left(err) => fail(s"Flow error $err")
       }
     }
@@ -527,19 +520,16 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
       val process = Process(metaSection, flow, Vector[Phrase](phrase1, phrase2, phrase3), Vector[Link]())
 
       pageBuilder.pages(process) match {
-        case Right(pages) => {
-
+        case Right(pages) =>
           assert(pages.head.stanzas.size == 3)
-
           // Construct expected instruction group stanza
           val instruction1: Instruction = Instruction(instructionStanza1, phrase1, None)
           val instruction2: Instruction = Instruction(instructionStanza2, phrase2, None)
           val instruction3: Instruction = Instruction(instructionStanza3, phrase3, None)
 
           val expectedInstructionGroup: InstructionGroup = InstructionGroup(Seq(instruction1, instruction2, instruction3))
-
           pages.head.stanzas(1) shouldBe expectedInstructionGroup
-        }
+
         case Left(err) => fail(s"Flow error $err")
       }
     }
@@ -587,8 +577,7 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
         Process(metaSection, flow, Vector[Phrase](phrase1, phrase2, phrase3, phrase4, phrase5, phrase6, phrase7, phrase8, phrase9), Vector[Link]())
 
       pageBuilder.pages(process) match {
-        case Right(pages) => {
-
+        case Right(pages) =>
           assert(pages.head.stanzas.size == 10)
 
           // Test expected instruction group stanzas
@@ -605,7 +594,7 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
           val expectedInstructionGroup2: InstructionGroup = InstructionGroup(Seq(instruction6, instruction7))
 
           pages.head.stanzas(eight) shouldBe expectedInstructionGroup2
-        }
+
         case Left(err) => fail(s"Flow error $err")
       }
 
@@ -629,6 +618,37 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
     }
   }
 
+  "When parsing a process" should  {
+    "determine the page title" in new Test {
+
+      pageBuilder.pages(processWithCallouts) match {
+        case Right(pages) =>
+          val pageInfo = ProcessUtils.extractPages(pages)
+
+          pageInfo shouldNot be(Nil)
+          pageInfo.length shouldBe 7
+
+          pageInfo(0).id shouldBe "start"
+          pageInfo(0).pageUrl shouldBe "/example-page-1"
+          pageInfo(0).pageTitle shouldBe "External Guidance Testing process"
+
+          pageInfo(1).id shouldBe "13"
+          pageInfo(1).pageUrl shouldBe "/example-page-2"
+          pageInfo(1).pageTitle shouldBe "User role"
+
+          pageInfo(2).id shouldBe "19"
+          pageInfo(2).pageUrl shouldBe "/example-page-3"
+          pageInfo(2).pageTitle shouldBe "Who reviews and approves the g2uid1ance produced by the designer?"
+
+          pageInfo(6).id shouldBe "31"
+          pageInfo(6).pageUrl shouldBe "/example-page-7"
+          pageInfo(6).pageTitle shouldBe "Congratulations"
+
+        case _ => fail
+      }
+    }
+
+  }
   def testPagesInPrototypeJson(pages: Seq[Page]): Unit = {
 
     val expectedPageIds: List[String] = List(

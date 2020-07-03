@@ -37,7 +37,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
 
     val invalidProcess: JsObject = Json.obj("idx" -> invalidId)
 
-    lazy val service: ApprovalService = new ApprovalService(mockApprovalRepository, mockApprovalProcessReviewRepository)
+    lazy val service: ApprovalService = new ApprovalService(mockApprovalRepository, mockApprovalProcessReviewRepository, new PageBuilder())
 
     val processReview: ApprovalProcessReview =
       ApprovalProcessReview(

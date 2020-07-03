@@ -34,7 +34,7 @@ class GetApprovalProcessISpec extends IntegrationSpec {
       (json \ "id").as[String]
     }
 
-    val processToSave: JsValue = ExamplePayloads.simpleValidProcess
+    val processToSave: JsValue = ExamplePayloads.validProcessWithCallouts
     lazy val id = populateDatabase(processToSave)
     lazy val request = buildRequest(s"/external-guidance/approval/$id")
     lazy val response: WSResponse = {
@@ -52,7 +52,7 @@ class GetApprovalProcessISpec extends IntegrationSpec {
 
     "return the corresponding JSON in the response" in {
       val json = response.body[JsValue].as[JsObject]
-      json shouldBe ExamplePayloads.simpleValidProcess
+      json shouldBe ExamplePayloads.validProcessWithCallouts
     }
   }
 

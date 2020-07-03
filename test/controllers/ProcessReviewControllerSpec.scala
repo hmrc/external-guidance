@@ -40,7 +40,7 @@ class ProcessReviewControllerSpec extends WordSpec
     val invalidId: String = "ext95"
     val approvalProcessCompleted: ApprovalProcess = approvalProcess.copy(process = createProcess)
     val approvalProcessContainingInvalidOcelotProcess: ApprovalProcess = approvalProcess.copy()
-    val reviewUpdate: ApprovalProcessPageReview = ApprovalProcessPageReview("id", "/pageUrl", None, "status")
+    val reviewUpdate: ApprovalProcessPageReview = ApprovalProcessPageReview("id", "/pageUrl", "Title", None, "status")
     lazy val controller: ProcessReviewController = new ProcessReviewController(mockReviewService, stubControllerComponents())
   }
   "Calling the approval2iReviewInfo action" when {
@@ -416,7 +416,7 @@ class ProcessReviewControllerSpec extends WordSpec
       trait ValidTest extends Test {
 
         val pageUrl: String = "/pageUrl"
-        val pageReview: ApprovalProcessPageReview = ApprovalProcessPageReview("id", pageUrl, None, "status")
+        val pageReview: ApprovalProcessPageReview = ApprovalProcessPageReview("id", pageUrl, "Title", None, "status")
 
         MockReviewService
           .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewType2i)
@@ -757,7 +757,7 @@ class ProcessReviewControllerSpec extends WordSpec
 
       "return an OK response" in new Test {
         val pageUrl: String = "/pageUrl"
-        val pageReview: ApprovalProcessPageReview = ApprovalProcessPageReview("2", pageUrl, Some("result2"))
+        val pageReview: ApprovalProcessPageReview = ApprovalProcessPageReview("2", pageUrl, "title", Some("result2"))
 
         MockReviewService
           .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewTypeFactCheck)

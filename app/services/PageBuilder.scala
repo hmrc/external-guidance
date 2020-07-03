@@ -19,6 +19,7 @@ package services
 import javax.inject.Singleton
 import models.ocelot.stanzas._
 import models.ocelot.{Page, Process}
+import play.api.Logger
 
 import scala.annotation.tailrec
 
@@ -26,6 +27,7 @@ case class KeyedStanza(key: String, stanza: Stanza)
 
 @Singleton
 class PageBuilder extends ProcessPopulation {
+  val logger: Logger = Logger(this.getClass)
 
   private val pageLinkRegex = s"\\[link:.+?:(\\d+|${Process.StartStanzaId})\\]".r
 
@@ -74,7 +76,9 @@ class PageBuilder extends ProcessPopulation {
             case Right(page) if pageUrlUnique(page.url, acc) =>
               pagesByKeys(page.next ++ xs ++ page.linked, acc :+ page)
             case Right(page) => Left(DuplicatePageUrl(page.id, page.url))
-            case Left(err) => Left(err)
+            case Left(err) =>
+              logger.error(s"Could not parse process - $err")
+              Left(err)
           }
         case _ :: xs => pagesByKeys(xs, acc)
       }

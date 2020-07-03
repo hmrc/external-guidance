@@ -29,17 +29,19 @@ object ApprovalProcessPageReviewFormatter {
     for {
       id <- (json \ "id").validate[String]
       pageUrl <- (json \ "pageUrl").validate[String]
+      pageTitle <- (json \ "pageTitle").validate[String]
       result <- (json \ "result").validateOpt[String]
       status <- (json \ "status").validate[String]
       comment <- (json \ "comment").validateOpt[String]
       updateDate <- (json \ "updateDate").validate[LocalDateTime]
       updateUser <- (json \ "updateUser").validateOpt[String]
-    } yield ApprovalProcessPageReview(id, pageUrl, result, status, comment, updateDate, updateUser)
+    } yield ApprovalProcessPageReview(id, pageUrl, pageTitle, result, status, comment, updateDate, updateUser)
 
   val write: ApprovalProcessPageReview => JsObject = review =>
     Json.obj(
       "id" -> review.id,
       "pageUrl" -> review.pageUrl,
+      "pageTitle" -> review.pageTitle,
       "result" -> review.result,
       "status" -> review.status,
       "comment" -> review.comment,
