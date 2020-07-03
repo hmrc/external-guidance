@@ -82,20 +82,18 @@ class ApprovalService @Inject() (repository: ApprovalRepository,
 
   }
 
-  def getById(id: String): Future[RequestOutcome[JsObject]] = {
-    println(s"getById $id")
+  def getById(id: String): Future[RequestOutcome[JsObject]] =
     repository.getById(id) map {
       case Left(Errors(NotFoundError :: Nil)) => Left(Errors(NotFoundError))
       case Left(_) => Left(Errors(InternalServiceError))
       case Right(result) => Right(result.process)
     }
-  }
 
-  def approvalSummaryList(): Future[RequestOutcome[JsArray]] = {
+
+  def approvalSummaryList(): Future[RequestOutcome[JsArray]] =
     repository.approvalSummaryList().map {
       case Left(_) => Left(Errors(InternalServiceError))
       case Right(success) => Right(Json.toJson(success).as[JsArray])
     }
-  }
 
 }
