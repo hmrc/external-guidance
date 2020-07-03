@@ -61,14 +61,14 @@ class ApprovalService @Inject() (repository: ApprovalRepository,
                   case Right(pages) =>
                     saveReview(ApprovalProcessReview(
                                 UUID.randomUUID(),
-                                process.meta.id, 
+                                process.meta.id,
                                 approvalProcess.version,
                                 reviewType,
                                 process.meta.title,
                                 pageBuilder.fromPageDetails(pages)(ApprovalProcessPageReview(_,_,_))
                               ))
-                  case _ =>
-                    Logger.error("Could not parse pages")
+                  case Left(err) =>
+                    Logger.error(s"Could not generate pages from process with id ${process.meta.id}, error $err")
                     Future.successful(Left(Errors(InternalServiceError)))
                 }
               case Left(Errors(NotFoundError :: Nil)) => Future.successful(Left(Errors(NotFoundError)))
