@@ -58,14 +58,14 @@ class ApprovalService @Inject() (repository: ApprovalRepository,
             repository.getById(savedId) flatMap {
               case Right(approvalProcess) =>
                 pageBuilder.pages(process) match {
-                  case Right(pages) => 
+                  case Right(pages) =>
                     saveReview(ApprovalProcessReview(
                                 UUID.randomUUID(),
                                 process.meta.id, 
                                 approvalProcess.version,
                                 reviewType,
                                 process.meta.title,
-                                pageBuilder.fromPageDetails(pages)(ApprovalProcessPageReview.apply _)
+                                pageBuilder.fromPageDetails(pages)(ApprovalProcessPageReview(_,_,_))
                               ))
                   case _ =>
                     Logger.error("Could not parse pages")
