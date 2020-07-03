@@ -16,12 +16,11 @@
 
 package utils
 
-import java.util.UUID
+
 
 import models._
 import models.errors.{BadRequestError, Errors}
-import models.ocelot.stanzas.{Callout, Question, Title}
-import models.ocelot.{Page, Process}
+import models.ocelot.Process
 import play.api.Logger
 import play.api.libs.json.{JsError, JsObject, JsSuccess}
 
@@ -40,31 +39,5 @@ object ProcessUtils {
 
   def createApprovalProcess(id: String, title: String, status: String, jsonProcess: JsObject): ApprovalProcess =
     ApprovalProcess(id, ApprovalProcessMeta(id, title, status), jsonProcess)
-
-  def createApprovalProcessReview(process: Process, reviewType: String, version: Int, pages: Seq[Page]): ApprovalProcessReview =
-    ApprovalProcessReview(
-      UUID.randomUUID(),
-      process.meta.id,
-      version,
-      reviewType,
-      process.meta.title,
-      extractPages(pages)
-    )
-
-  def extractPages(pages: Seq[Page]): List[ApprovalProcessPageReview] =
-    pages.map { extractPageInfo }.toList
-
-  def extractPageInfo(page: Page): ApprovalProcessPageReview = {
-    val title: String = page.stanzas.find {
-      case Callout(Title, _, _, _) => true
-      case _: Question => true
-      case _ => false
-    } match {
-      case Some(co: Callout) => co.text.langs(0)
-      case Some(qu: Question) => qu.text.langs(0)
-      case _ => page.url
-    }
-    ApprovalProcessPageReview(page.id, page.url, title)
-  }
 
 }

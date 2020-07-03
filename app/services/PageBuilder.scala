@@ -57,7 +57,8 @@ class PageBuilder extends ProcessPopulation {
         ks.head.stanza match {
           case p: PageStanza if p.url.isEmpty || p.url.equals("/") => Left(PageUrlEmptyOrInvalid(ks.head.key))
           case p: PageStanza =>
-            val stanzas = BulletPointBuilder.groupBulletPointInstructions(ks.map(_.stanza), Nil)
+            // Removed Bullet point intruction group building, TODO move to UiBuilder
+            val stanzas = ks.map(_.stanza)
             Right(Page(ks.head.key, p.url, stanzas, next, linked))
           case _ => Left(PageStanzaMissing(ks.head.key))
         }
@@ -85,4 +86,13 @@ class PageBuilder extends ProcessPopulation {
 
     pagesByKeys(List(start), Nil)
   }
+
+  def fromPageDetails[A](pages: Seq[Page])(f: (String, String, String) => A): List[A] =
+    pages.toList.flatMap{ page =>
+      page.stanzas.collectFirst{
+        case Callout(Title, text, _, _) => f(page.id, page.url, text.langs(0))
+        case q: Question => f(page.id, page.url, q.text.langs(0))
+      }
+    }
+
 }

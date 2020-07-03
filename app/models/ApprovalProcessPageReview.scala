@@ -33,5 +33,6 @@ case class ApprovalProcessPageReview(
 )
 
 object ApprovalProcessPageReview {
+  def apply( id: String, pageUrl: String, pageTitle: String ): ApprovalProcessPageReview = ApprovalProcessPageReview(id, pageUrl, pageTitle)
   implicit val formats: OFormat[ApprovalProcessPageReview] = Json.format[ApprovalProcessPageReview]
 }

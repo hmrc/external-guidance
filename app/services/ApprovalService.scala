@@ -16,9 +16,10 @@
 
 package services
 
+import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
-import models.{ApprovalProcess, ApprovalProcessReview, RequestOutcome}
+import models.{ApprovalProcess, ApprovalProcessReview, ApprovalProcessPageReview,RequestOutcome}
 import play.api.Logger
 import play.api.libs.json._
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
@@ -57,7 +58,15 @@ class ApprovalService @Inject() (repository: ApprovalRepository,
             repository.getById(savedId) flatMap {
               case Right(approvalProcess) =>
                 pageBuilder.pages(process) match {
-                  case Right(pages) => saveReview(createApprovalProcessReview(process, reviewType, approvalProcess.version, pages))
+                  case Right(pages) => 
+                    saveReview(ApprovalProcessReview(
+                                UUID.randomUUID(),
+                                process.meta.id, 
+                                approvalProcess.version,
+                                reviewType,
+                                process.meta.title,
+                                pageBuilder.fromPageDetails(pages)(ApprovalProcessPageReview.apply _)
+                              ))
                   case _ =>
                     Logger.error("Could not parse pages")
                     Future.successful(Left(Errors(InternalServiceError)))
@@ -74,7 +83,7 @@ class ApprovalService @Inject() (repository: ApprovalRepository,
   }
 
   def getById(id: String): Future[RequestOutcome[JsObject]] = {
-
+    println(s"getById $id")
     repository.getById(id) map {
       case Left(Errors(NotFoundError :: Nil)) => Left(Errors(NotFoundError))
       case Left(_) => Left(Errors(InternalServiceError))
