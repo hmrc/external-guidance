@@ -148,7 +148,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
       case Left(Errors(NotFoundError :: Nil)) => Left(Errors(NotFoundError))
       case Left(_) => Left(Errors(InternalServiceError))
       case Right(info) =>
-        val pages: List[PageReview] = info.pages.map(p => PageReview(p.id, p.pageUrl, p.status))
+        val pages: List[PageReview] = info.pages.map(p => PageReview(p.id, p.pageTitle, p.pageUrl, p.status))
         Right(ProcessReview(info.id, info.ocelotId, info.version, info.reviewType, info.title, info.lastUpdated, pages))
     }
   }

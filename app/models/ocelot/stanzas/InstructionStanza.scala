@@ -16,25 +16,28 @@
 
 package models.ocelot.stanzas
 
+import models.ocelot.{Link, Phrase}
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{JsPath, Reads}
 import play.api.libs.json.Reads._
-import models.ocelot.Phrase
-
-import models.ocelot.Link
+import play.api.libs.json.{JsPath, OWrites, Reads}
 
 case class InstructionStanza(text: Int, override val next: Seq[String], link: Option[Int], stack: Boolean) extends Stanza
 
 object InstructionStanza {
 
-  implicit val instructionReads: Reads[InstructionStanza] = {
-
+  implicit val instructionReads: Reads[InstructionStanza] =
     ((JsPath \ "text").read[Int] and
       (JsPath \ "next").read[Seq[String]](minLength[Seq[String]](1)) and
       (JsPath \ "link").readNullable[Int] and
       (JsPath \ "stack").read[Boolean])(InstructionStanza.apply _)
 
-  }
+  implicit val instructionWrites: OWrites[InstructionStanza] =
+    (
+      (JsPath \ "text").write[Int] and
+        (JsPath \ "next").write[Seq[String]] and
+        (JsPath \ "link").writeNullable[Int] and
+        (JsPath \ "stack").write[Boolean]
+    )(unlift(InstructionStanza.unapply))
 
 }
 
@@ -42,7 +45,7 @@ case class Instruction(text: Phrase, override val next: Seq[String], link: Optio
 
   val linkIds: Seq[String] = link
     .map(lnk => Seq(lnk.dest.trim))
-    .filter(l => l.head.forall(c => c.isDigit))
+    .filter(id => Link.isLinkableStanzaId(id.head))
     .getOrElse(Nil)
 }
 

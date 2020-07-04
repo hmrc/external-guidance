@@ -16,9 +16,10 @@
 
 package services
 
+import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
-import models.{ApprovalProcess, ApprovalProcessReview, RequestOutcome}
+import models.{ApprovalProcess, ApprovalProcessReview, ApprovalProcessPageReview, ApprovalProcessMeta, RequestOutcome}
 import play.api.Logger
 import play.api.libs.json._
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
@@ -28,7 +29,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ApprovalService @Inject() (repository: ApprovalRepository, reviewRepository: ApprovalProcessReviewRepository) {
+class ApprovalService @Inject() (repository: ApprovalRepository,
+                                 reviewRepository: ApprovalProcessReviewRepository,
+                                 pageBuilder: PageBuilder) {
 
   val logger: Logger = Logger(this.getClass)
 
@@ -50,10 +53,25 @@ class ApprovalService @Inject() (repository: ApprovalRepository, reviewRepositor
 
     validateProcess(jsonProcess) match {
       case Right(process) =>
-        saveProcess(createApprovalProcess(process.meta.id, process.meta.title, initialStatus, jsonProcess)) flatMap {
+        val processMetaSection = ApprovalProcessMeta(process.meta.id, process.meta.title, initialStatus)
+        saveProcess(ApprovalProcess(process.meta.id, processMetaSection, jsonProcess)) flatMap {
           case Right(savedId) =>
             repository.getById(savedId) flatMap {
-              case Right(approvalProcess) => saveReview(createApprovalProcessReview(process, reviewType, approvalProcess.version))
+              case Right(approvalProcess) =>
+                pageBuilder.pages(process) match {
+                  case Right(pages) =>
+                    saveReview(ApprovalProcessReview(
+                                UUID.randomUUID(),
+                                process.meta.id,
+                                approvalProcess.version,
+                                reviewType,
+                                process.meta.title,
+                                pageBuilder.fromPageDetails(pages)(ApprovalProcessPageReview(_,_,_))
+                              ))
+                  case Left(err) =>
+                    Logger.error(s"Could not generate pages from process with id ${process.meta.id}, error $err")
+                    Future.successful(Left(Errors(InternalServiceError)))
+                }
               case Left(Errors(NotFoundError :: Nil)) => Future.successful(Left(Errors(NotFoundError)))
               case Left(_) => Future.successful(Left(Errors(InternalServiceError)))
             }
@@ -65,20 +83,18 @@ class ApprovalService @Inject() (repository: ApprovalRepository, reviewRepositor
 
   }
 
-  def getById(id: String): Future[RequestOutcome[JsObject]] = {
-
+  def getById(id: String): Future[RequestOutcome[JsObject]] =
     repository.getById(id) map {
       case Left(Errors(NotFoundError :: Nil)) => Left(Errors(NotFoundError))
       case Left(_) => Left(Errors(InternalServiceError))
       case Right(result) => Right(result.process)
     }
-  }
 
-  def approvalSummaryList(): Future[RequestOutcome[JsArray]] = {
+
+  def approvalSummaryList(): Future[RequestOutcome[JsArray]] =
     repository.approvalSummaryList().map {
       case Left(_) => Left(Errors(InternalServiceError))
       case Right(success) => Right(Json.toJson(success).as[JsArray])
     }
-  }
 
 }

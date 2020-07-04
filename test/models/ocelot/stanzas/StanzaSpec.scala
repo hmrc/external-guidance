@@ -33,21 +33,21 @@ class StanzaSpec extends UnitSpec {
   val validValueStanzaJson: JsObject = Json
     .parse(
       s"""{
-      |  "type": "${stanzaType}",
+      |  "type": "$stanzaType",
       |  "values": [
       |    {
-      |      "type": "${valueType}",
-      |      "label": "${pageNameLabel}",
-      |      "value": "${pageName}"
+      |      "type": "$valueType",
+      |      "label": "$pageNameLabel",
+      |      "value": "$pageName"
       |    },
       |    {
-      |      "type": "${valueType}",
-      |      "label": "${pageUrlLabel}",
-      |      "value": "${pageUrl}"
+      |      "type": "$valueType",
+      |      "label": "$pageUrlLabel",
+      |      "value": "$pageUrl"
       |    }
       |  ],
-      |  "next": ["${next}"],
-      |  "stack": ${stack}
+      |  "next": ["$next"],
+      |  "stack": $stack
       |}
     """.stripMargin
     )
@@ -60,6 +60,12 @@ class StanzaSpec extends UnitSpec {
       val stanza: Stanza = Json.parse("""{ "type": "EndStanza" }""").as[Stanza]
 
       stanza shouldBe EndStanza
+    }
+
+    "serialise EndStanza to json from a Stanza reference" in {
+      val stanza: Stanza = EndStanza
+      val expectedJson: String = """{"type":"EndStanza"}"""
+      Json.toJson(stanza).toString shouldBe expectedJson
     }
 
     "generate an error when an unknown stanza type is encountered" in {

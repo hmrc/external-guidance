@@ -32,7 +32,7 @@ class GetProcessReviewISpec extends IntegrationSpec {
     (json \ "id").as[String]
   }
 
-  val processToSave: JsValue = ExamplePayloads.simpleValidProcess
+  val processToSave: JsValue = ExamplePayloads.validProcessWithCallouts
   lazy val id: String = populateDatabase(processToSave)
 
   "Calling the approval 2i Review endpoint" should {
@@ -62,7 +62,7 @@ class GetProcessReviewISpec extends IntegrationSpec {
 
   "Calling the approval 2i Review Page Info endpoint" should {
 
-    val pageUrl: String = "/feeling-bad"
+    val pageUrl: String = "/example-page-2"
     lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-page-review$pageUrl")
     lazy val response: WSResponse = {
       AuditStub.audit()

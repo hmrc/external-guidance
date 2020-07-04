@@ -24,6 +24,7 @@ import utils.Constants
 case class ApprovalProcessPageReview(
     id: String,
     pageUrl: String,
+    pageTitle: String,
     result: Option[String] = None,
     status: String = Constants.InitialPageReviewStatus,
     comment: Option[String] = None,

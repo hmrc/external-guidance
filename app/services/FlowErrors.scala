@@ -14,23 +14,16 @@
  * limitations under the License.
  */
 
-package models.ocelot.stanzas
+package services
 
-import play.api.libs.json._
+import models.ocelot.stanzas.Stanza
 
-sealed trait ValueType
+trait FlowError
 
-case object Scalar extends ValueType
-
-object ValueType {
-
-  implicit val reads: Reads[ValueType] = (json: JsValue) => json match {
-    case JsString("scalar") => JsSuccess(Scalar, __)
-    case _ => JsError("Invalid ValueType type")
-  }
-
-  implicit val writes: Writes[ValueType] = (valueType: ValueType) => valueType match {
-    case Scalar => Json.toJson("scalar")
-  }
-
-}
+case class UnknownStanzaType(unknown: Stanza) extends FlowError
+case class StanzaNotFound(id: String) extends FlowError
+case class PageStanzaMissing(id: String) extends FlowError
+case class PageUrlEmptyOrInvalid(id: String) extends FlowError
+case class PhraseNotFound(index: Int) extends FlowError
+case class LinkNotFound(index: Int) extends FlowError
+case class DuplicatePageUrl(id: String, url: String) extends FlowError

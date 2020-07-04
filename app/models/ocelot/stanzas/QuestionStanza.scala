@@ -16,21 +16,35 @@
 
 package models.ocelot.stanzas
 
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
-import play.api.libs.json.Reads._
 import models.ocelot.Phrase
+import play.api.libs.functional.syntax._
+import play.api.libs.json.Reads._
+import play.api.libs.json._
 
 case class QuestionStanza(text: Int, answers: Seq[Int], override val next: Seq[String], stack: Boolean) extends Stanza
 
 object QuestionStanza {
 
-  implicit val questionReads: Reads[QuestionStanza] = {
+  implicit val questionReads: Reads[QuestionStanza] =
     ((JsPath \ "text").read[Int] and
       (JsPath \ "answers").read[Seq[Int]] and
       (JsPath \ "next").read[Seq[String]](minLength[Seq[String]](1)) and
       (JsPath \ "stack").read[Boolean])(QuestionStanza.apply _)
-  }
+
+  implicit val questionWrites: OWrites[QuestionStanza] =
+    (
+      (JsPath \ "text").write[Int] and
+        (JsPath \ "answers").write[Seq[Int]] and
+        (JsPath \ "next").write[Seq[String]] and
+        (JsPath \ "stack").write[Boolean]
+    )(unlift(QuestionStanza.unapply))
+
 }
 
 case class Question(text: Phrase, answers: Seq[Phrase], override val next: Seq[String], stack: Boolean) extends PopulatedStanza
+
+object Question {
+
+  def apply(stanza: QuestionStanza, text: Phrase, answers: Seq[Phrase]): Question =
+    Question(text, answers, stanza.next, stanza.stack)
+}

@@ -14,13 +14,8 @@
  * limitations under the License.
  */
 
-package models.ocelot.stanzas
+package models.ocelot
 
-/**
-  * Case class InstructionGroup is a container class for groups of Instructions
-  * with similar leading text that comprise bullet point lists
-  *
-  * @param next - Identifier for next stanza in page
-  * @param group - A group of instructions
-  */
-case class InstructionGroup(override val next: Seq[String], group: Seq[Instruction]) extends PopulatedStanza
+import models.ocelot.stanzas.Stanza
+
+case class Page(id: String, url: String, stanzas: Seq[Stanza], next: Seq[String], linked: Seq[String] = Nil)
