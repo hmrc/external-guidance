@@ -19,7 +19,7 @@ package services
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
-import models.{ApprovalProcess, ApprovalProcessReview, ApprovalProcessPageReview,RequestOutcome}
+import models.{ApprovalProcess, ApprovalProcessReview, ApprovalProcessPageReview, ApprovalProcessMeta, RequestOutcome}
 import play.api.Logger
 import play.api.libs.json._
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
@@ -53,7 +53,8 @@ class ApprovalService @Inject() (repository: ApprovalRepository,
 
     validateProcess(jsonProcess) match {
       case Right(process) =>
-        saveProcess(createApprovalProcess(process.meta.id, process.meta.title, initialStatus, jsonProcess)) flatMap {
+        val processMetaSection = ApprovalProcessMeta(process.meta.id, process.meta.title, initialStatus)
+        saveProcess(ApprovalProcess(process.meta.id, processMetaSection, jsonProcess)) flatMap {
           case Right(savedId) =>
             repository.getById(savedId) flatMap {
               case Right(approvalProcess) =>

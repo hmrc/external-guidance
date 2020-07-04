@@ -18,7 +18,7 @@ package utils
 
 
 
-import models._
+import models.RequestOutcome
 import models.errors.{BadRequestError, Errors}
 import models.ocelot.Process
 import play.api.Logger
@@ -36,8 +36,4 @@ object ProcessUtils {
         logger.error(s"Parsing process failed with the following error(s): $errors")
         Left(Errors(BadRequestError))
     }
-
-  def createApprovalProcess(id: String, title: String, status: String, jsonProcess: JsObject): ApprovalProcess =
-    ApprovalProcess(id, ApprovalProcessMeta(id, title, status), jsonProcess)
-
 }
