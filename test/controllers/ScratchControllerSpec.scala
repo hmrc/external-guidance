@@ -25,9 +25,9 @@ import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.ContentTypes
 import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.api.mvc.AnyContentAsEmpty
 
 import scala.concurrent.Future
 
@@ -52,6 +52,7 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
       "return a created response" in new ValidSaveTest {
         private val result = target.save()(request)
         status(result) shouldBe CREATED
+        1 shouldBe 1
       }
 
       "return content as JSON" in new ValidSaveTest {
