@@ -52,7 +52,6 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
       "return a created response" in new ValidSaveTest {
         private val result = target.save()(request)
         status(result) shouldBe CREATED
-        1 shouldBe 1
       }
 
       "return content as JSON" in new ValidSaveTest {
