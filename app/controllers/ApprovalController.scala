@@ -17,6 +17,7 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
+import controllers.actions.IdentifierAction
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
@@ -28,7 +29,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ApprovalController @Inject() (approvalService: ApprovalService, cc: ControllerComponents) extends BackendController(cc) {
+class ApprovalController @Inject() (
+                                     identify: IdentifierAction,
+                                     approvalService: ApprovalService,
+                                     cc: ControllerComponents) extends BackendController(cc) {
 
   def saveFor2iReview: Action[JsValue] = Action.async(parse.json) { implicit request =>
     saveProcess(request.body.as[JsObject], ReviewType2i, StatusSubmittedFor2iReview)
@@ -55,7 +59,7 @@ class ApprovalController @Inject() (approvalService: ApprovalService, cc: Contro
     }
   }
 
-  def approvalSummaryList: Action[AnyContent] = Action.async { _ =>
+  def approvalSummaryList: Action[AnyContent] = identify.async { _ =>
     approvalService.approvalSummaryList().map {
       case Right(list) => Ok(list)
       case _ => InternalServerError(Json.toJson(InternalServiceError))

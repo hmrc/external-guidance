@@ -17,10 +17,9 @@
 package controllers
 
 import mocks.MockApprovalService
+import controllers.actions.FakeIdentifierAction
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
 import models.{ApprovalProcess, ApprovalProcessJson}
-import org.scalamock.scalatest.MockFactory
-import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.ContentTypes
@@ -33,13 +32,13 @@ import utils.Constants._
 
 import scala.concurrent.Future
 
-class ApprovalControllerSpec extends WordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite with MockFactory with ApprovalProcessJson {
+class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerSuite with MockApprovalService with ApprovalProcessJson {
 
   private trait Test extends MockApprovalService {
     val invalidId: String = "ext95"
     val invalidProcess: JsObject = Json.obj("id" -> "ext0093")
 
-    lazy val controller: ApprovalController = new ApprovalController(mockApprovalService, stubControllerComponents())
+    lazy val controller: ApprovalController = new ApprovalController(FakeIdentifierAction, mockApprovalService, stubControllerComponents())
   }
 
   "Calling the saveFor2iReview action" when {

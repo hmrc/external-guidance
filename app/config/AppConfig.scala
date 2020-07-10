@@ -20,9 +20,27 @@ import javax.inject.{Inject, Singleton}
 import play.api.Configuration
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
+trait AppConfig {
+
+  val scratchExpiryHour: Int
+  val scratchExpiryMinutes: Int
+  val scratchExpiryTZ: String
+
+  val designerRole: String
+  val factCheckerRole: String
+  val twoEyeReviewerRole: String
+  val publisherRole: String
+}
+
 @Singleton
-class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig) {
+class AppConfigImpl @Inject() (config: Configuration, servicesConfig: ServicesConfig)  extends AppConfig {
+
   lazy val scratchExpiryHour = servicesConfig.getInt("mongodb.scratchExpiryHour")
   lazy val scratchExpiryMinutes = servicesConfig.getInt("mongodb.scratchExpiryMinutes")
   lazy val scratchExpiryTZ = servicesConfig.getString("mongodb.scratchExpiryTZ")
+
+  lazy val designerRole = servicesConfig.getString("strideAuth.roles.designer")
+  lazy val factCheckerRole = servicesConfig.getString("strideAuth.roles.factChecker")
+  lazy val twoEyeReviewerRole = servicesConfig.getString("strideAuth.roles.twoEyeReviewer")
+  lazy val publisherRole = servicesConfig.getString( "strideAuth.roles.publisher")
 }

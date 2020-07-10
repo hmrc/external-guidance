@@ -25,7 +25,7 @@ import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange, ApprovalP
 import play.api.http.Status._
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.libs.ws.WSResponse
-import stubs.AuditStub
+import stubs.{AuditStub, AuthStub}
 import support.IntegrationSpec
 import utils.Constants._
 
@@ -73,6 +73,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
           lazy val request = buildRequest(s"/external-guidance/approval")
           lazy val response: WSResponse = {
             AuditStub.audit()
+            AuthStub.authorise()
             await(request.get())
           }
           val list: List[ApprovalProcessSummary] = response.body[JsValue].as[List[ApprovalProcessSummary]]
@@ -102,6 +103,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
         lazy val request = buildRequest(s"/external-guidance/approval")
         lazy val response: WSResponse = {
           AuditStub.audit()
+          AuthStub.authorise()
           await(request.get())
         }
         val list: List[ApprovalProcessSummary] = response.body[JsValue].as[List[ApprovalProcessSummary]]
@@ -293,6 +295,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
           lazy val request = buildRequest(s"/external-guidance/approval")
           lazy val response: WSResponse = {
             AuditStub.audit()
+            AuthStub.authorise()
             await(request.get())
           }
           val list: List[ApprovalProcessSummary] = response.body[JsValue].as[List[ApprovalProcessSummary]]
