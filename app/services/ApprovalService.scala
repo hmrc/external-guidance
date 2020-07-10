@@ -17,9 +17,10 @@
 package services
 
 import java.util.UUID
+
 import javax.inject.{Inject, Singleton}
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
-import models.{ApprovalProcess, ApprovalProcessReview, ApprovalProcessPageReview, ApprovalProcessMeta, RequestOutcome}
+import models._
 import play.api.Logger
 import play.api.libs.json._
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
@@ -69,7 +70,7 @@ class ApprovalService @Inject() (repository: ApprovalRepository,
                                 pageBuilder.fromPageDetails(pages)(ApprovalProcessPageReview(_,_,_))
                               ))
                   case Left(err) =>
-                    Logger.error(s"Could not generate pages from process with id ${process.meta.id}, error $err")
+                    logger.error(s"Could not generate pages from process with id ${process.meta.id}, error $err")
                     Future.successful(Left(Errors(InternalServiceError)))
                 }
               case Left(Errors(NotFoundError :: Nil)) => Future.successful(Left(Errors(NotFoundError)))

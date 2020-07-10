@@ -25,9 +25,9 @@ import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.ContentTypes
 import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.api.mvc.AnyContentAsEmpty
 
 import scala.concurrent.Future
 
