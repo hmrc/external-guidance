@@ -29,5 +29,6 @@ class Module extends AbstractModule {
     bind(classOf[ApprovalRepository]).to(classOf[ApprovalRepositoryImpl])
     bind(classOf[ApprovalProcessReviewRepository]).to(classOf[ApprovalProcessReviewRepositoryImpl])
     bind(classOf[IdentifierAction]).to(classOf[AuthenticatedIdentifierAction])
+    bind(classOf[FactCheckerIdentifierAction]).to(classOf[FactCheckerAuthenticatedIdentifierAction])
   }
 }

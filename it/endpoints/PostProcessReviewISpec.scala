@@ -245,6 +245,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
 
       lazy val response: WSResponse = {
         AuditStub.audit()
+        AuthStub.authorise()
         await(request.post(statusChangeWithDesignerJson))
       }
 
@@ -271,6 +272,8 @@ class PostProcessReviewISpec extends IntegrationSpec {
       lazy val pageUpdateRequest = buildRequest(s"/external-guidance/approval/$id/fact-check-page-review$pageUrl")
       val content =
         ApprovalProcessPageReview("1", pageUrl, pageUrl, Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("User1"))
+      AuditStub.audit()
+      AuthStub.authorise()
       await(pageUpdateRequest.post(Json.toJson(content)))
 
       id
@@ -284,6 +287,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
 
         lazy val response: WSResponse = {
           AuditStub.audit()
+          AuthStub.authorise()
           await(request.post(statusChangeWithDesignerJson))
         }
 
@@ -304,6 +308,63 @@ class PostProcessReviewISpec extends IntegrationSpec {
           updatedEntry.get.status shouldBe StatusWithDesignerForUpdate
         }
       }
+    }
+  }
+
+  "Calling the approvalFactCheckInfo GET endpoint without authorization" should {
+
+      lazy val request = buildRequest("/external-guidance/approval/oct90001/fact-check")
+      lazy val response: WSResponse = {
+        AuditStub.audit()
+        AuthStub.unauthorised()
+        await(request.get())
+      }
+
+    "return unauthorized" in {
+      response.status shouldBe UNAUTHORIZED
+    }
+  }
+
+  "Calling the approvalFactCheckComplete POST endpoint without authorization" should {
+
+    lazy val request = buildRequest("/external-guidance/approval/oct90001/fact-check")
+    lazy val response: WSResponse = {
+      AuditStub.audit()
+      AuthStub.unauthorised()
+      await(request.post(statusChangeWithDesignerJson))
+    }
+
+    "return unauthorized" in {
+      response.status shouldBe UNAUTHORIZED
+    }
+  }
+
+  "Calling the approvalFactCheckPageInfo GET endpoint without authorization" should {
+
+    lazy val request = buildRequest( "/external-guidance/approval/oct90001/fact-check-page-review/page-1")
+    lazy val response: WSResponse = {
+      AuditStub.audit()
+      AuthStub.unauthorised()
+      await(request.get())
+    }
+
+    "return unauthorized" in {
+      response.status shouldBe UNAUTHORIZED
+    }
+  }
+
+  "Calling the approvalFactCheckPageComplete POST endpoint without authorization" should {
+    lazy val request = buildRequest( "/external-guidance/approval/oct90001/fact-check-page-review/page-1")
+    lazy val response: WSResponse = {
+      AuditStub.audit()
+      AuthStub.unauthorised()
+      val content =
+        ApprovalProcessPageReview("1", pageUrl, pageUrl, Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("User1"))
+      await(request.post(Json.toJson(content)))
+    }
+
+    "return unauthorized" in {
+      response.status shouldBe UNAUTHORIZED
     }
   }
 }
