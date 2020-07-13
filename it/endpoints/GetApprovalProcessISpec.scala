@@ -19,7 +19,7 @@ import data.ExamplePayloads
 import play.api.http.{ContentTypes, Status}
 import play.api.libs.json.{JsArray, JsObject, JsValue}
 import play.api.libs.ws.WSResponse
-import stubs.AuditStub
+import stubs.{AuditStub, AuthStub}
 import support.IntegrationSpec
 
 class GetApprovalProcessISpec extends IntegrationSpec {
@@ -84,6 +84,8 @@ class GetApprovalProcessISpec extends IntegrationSpec {
     lazy val request = buildRequest(s"/external-guidance/approval")
     lazy val response: WSResponse = {
       AuditStub.audit()
+      AuthStub.authorise()
+
       await(request.get())
     }
 
@@ -103,4 +105,21 @@ class GetApprovalProcessISpec extends IntegrationSpec {
       }
     }
   }
+
+  "An unauthorized call to the approval summaries endpoint" should {
+
+    lazy val request = buildRequest( "/external-guidance/approval")
+    lazy val response : WSResponse = {
+
+      AuditStub.audit()
+      AuthStub.unauthorised()
+
+      await(request.get())
+    }
+
+    "return the unauthorized status" in {
+      response.status shouldBe Status.UNAUTHORIZED
+    }
+  }
+
 }
