@@ -17,7 +17,7 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-import controllers.actions.FactCheckerIdentifierAction
+import controllers.actions.{FactCheckerIdentifierAction, TwoEyeReviewerIdentifierAction}
 import models.errors._
 import models.{ApprovalProcess, ApprovalProcessPageReview, ApprovalProcessStatusChange, AuditInfo}
 import play.api.libs.json._
@@ -33,9 +33,10 @@ import scala.concurrent.Future
 @Singleton
 class ProcessReviewController @Inject() (
                                           factCheckerIdentifierAction: FactCheckerIdentifierAction,
+                                          twoEyeReviewerIdentifierAction: TwoEyeReviewerIdentifierAction,
                                           reviewService: ReviewService, cc: ControllerComponents) extends BackendController(cc) {
 
-  def approval2iReviewInfo(id: String): Action[AnyContent] = Action.async { _ =>
+  def approval2iReviewInfo(id: String): Action[AnyContent] = twoEyeReviewerIdentifierAction.async { _ =>
     getReviewInfo(id, ReviewType2i)
   }
 
@@ -53,7 +54,7 @@ class ProcessReviewController @Inject() (
     }
   }
 
-  def approval2iReviewConfirmAllPagesReviewed(id: String): Action[AnyContent] = Action.async { _ =>
+  def approval2iReviewConfirmAllPagesReviewed(id: String): Action[AnyContent] = twoEyeReviewerIdentifierAction.async { _ =>
     reviewService.checkProcessInCorrectStateForCompletion(id, StatusSubmittedFor2iReview, ReviewType2i).map {
       case Right(_) => NoContent
       case Left(Errors(IncompleteDataError :: Nil)) => BadRequest(Json.toJson(IncompleteDataError))
@@ -63,7 +64,7 @@ class ProcessReviewController @Inject() (
     }
   }
 
-  def approval2iReviewComplete(id: String): Action[JsValue] = Action.async(parse.json) { request =>
+  def approval2iReviewComplete(id: String): Action[JsValue] = twoEyeReviewerIdentifierAction.async(parse.json) { request =>
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
       reviewService.twoEyeReviewComplete(id, statusChangeInfo).map {
         case Right(ap) => getAuditInfo(statusChangeInfo.userId, ap)
@@ -96,7 +97,7 @@ class ProcessReviewController @Inject() (
     }
   }
 
-  def approval2iReviewPageInfo(id: String, pageUrl: String): Action[AnyContent] = Action.async { _ =>
+  def approval2iReviewPageInfo(id: String, pageUrl: String): Action[AnyContent] = twoEyeReviewerIdentifierAction.async { _ =>
     pageReviewInfo(id, pageUrl, ReviewType2i)
   }
 
@@ -114,7 +115,7 @@ class ProcessReviewController @Inject() (
     }
   }
 
-  def approval2iReviewPageComplete(id: String, pageUrl: String): Action[JsValue] = Action.async(parse.json) { request =>
+  def approval2iReviewPageComplete(id: String, pageUrl: String): Action[JsValue] = twoEyeReviewerIdentifierAction.async(parse.json) { request =>
     pageReviewComplete(id, pageUrl, ReviewType2i, request.body)
   }
 

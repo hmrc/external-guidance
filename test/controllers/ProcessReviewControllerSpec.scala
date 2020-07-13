@@ -16,7 +16,7 @@
 
 package controllers
 
-import controllers.actions.FakeFactCheckerIdentifierAction
+import controllers.actions.{FakeFactCheckerIdentifierAction, FakeTwoEyeReviewerIdentifierAction}
 import data.ReviewData
 import mocks.MockReviewService
 import models._
@@ -42,7 +42,12 @@ class ProcessReviewControllerSpec extends WordSpec
     val approvalProcessCompleted: ApprovalProcess = approvalProcess.copy(process = createProcess)
     val approvalProcessContainingInvalidOcelotProcess: ApprovalProcess = approvalProcess.copy()
     val reviewUpdate: ApprovalProcessPageReview = ApprovalProcessPageReview("id", "/pageUrl", "Title", None, "status")
-    lazy val controller: ProcessReviewController = new ProcessReviewController(FakeFactCheckerIdentifierAction, mockReviewService, stubControllerComponents())
+
+    lazy val controller: ProcessReviewController = new ProcessReviewController(
+      FakeFactCheckerIdentifierAction,
+      FakeTwoEyeReviewerIdentifierAction,
+      mockReviewService,
+      stubControllerComponents())
   }
   "Calling the approval2iReviewInfo action" when {
 

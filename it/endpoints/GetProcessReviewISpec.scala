@@ -19,7 +19,7 @@ import data.ExamplePayloads
 import play.api.http.{ContentTypes, Status}
 import play.api.libs.json.{JsObject, JsValue}
 import play.api.libs.ws.WSResponse
-import stubs.AuditStub
+import stubs.{AuditStub, AuthStub}
 import support.IntegrationSpec
 
 class GetProcessReviewISpec extends IntegrationSpec {
@@ -40,6 +40,7 @@ class GetProcessReviewISpec extends IntegrationSpec {
     lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-review")
     lazy val response: WSResponse = {
       AuditStub.audit()
+      AuthStub.authorise()
       await(request.get())
     }
 
@@ -66,6 +67,7 @@ class GetProcessReviewISpec extends IntegrationSpec {
     lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-page-review$pageUrl")
     lazy val response: WSResponse = {
       AuditStub.audit()
+      AuthStub.authorise()
       await(request.get())
     }
 
@@ -83,6 +85,63 @@ class GetProcessReviewISpec extends IntegrationSpec {
         case JsObject(_) => succeed
         case _ => fail()
       }
+    }
+  }
+
+  "Calling the approval 2i all pages completed endpoint when all pages are not completed" should {
+
+    lazy val request = buildRequest( s"/external-guidance/approval/$id/2i-review/confirm")
+    lazy val response: WSResponse = {
+      AuditStub.audit()
+      AuthStub.authorise()
+      await(request.get())
+    }
+
+    "return bad request" in {
+      response.status shouldBe Status.BAD_REQUEST
+    }
+
+  }
+
+  "Calling the approval 2i review endpoint without authorization" should {
+
+    lazy val request = buildRequest("/external-guidance/approval/oct90001/2i-review")
+    lazy val response: WSResponse = {
+      AuditStub.audit()
+      AuthStub.unauthorised()
+      await(request.get())
+    }
+
+    "return unauthorized" in {
+      response.status shouldBe Status.UNAUTHORIZED
+    }
+  }
+
+  "Calling the approval 2i review page information endpoint without authorization" should {
+
+    lazy val request = buildRequest(s"/external-guidance/approval/oct90001/2i-page-review/page-1")
+    lazy val response: WSResponse = {
+      AuditStub.audit()
+      AuthStub.unauthorised()
+      await(request.get())
+    }
+
+    "return unauthorized" in {
+      response.status shouldBe Status.UNAUTHORIZED
+    }
+  }
+
+  "Calling the approval 2i review all pages completed endpoint without authorization" should {
+
+    lazy val request = buildRequest("/external-guidance/approval/oct90001/2i-review/confirm")
+    lazy val response: WSResponse = {
+      AuditStub.audit()
+      AuthStub.unauthorised()
+      await(request.get())
+    }
+
+    "return unauthorized" in {
+      response.status shouldBe Status.UNAUTHORIZED
     }
   }
 }

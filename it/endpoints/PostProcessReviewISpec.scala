@@ -48,6 +48,8 @@ class PostProcessReviewISpec extends IntegrationSpec {
       val content =
         ApprovalProcessPageReview("1", pageUrl, "Ask the customer if they have a tea bag",
           Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("User1"))
+      AuditStub.audit()
+      AuthStub.authorise()
       await(pageUpdateRequest.post(Json.toJson(content)))
 
       id
@@ -62,6 +64,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
 
         lazy val response: WSResponse = {
           AuditStub.audit()
+          AuthStub.authorise()
           await(request.post(statusChangeWithDesignerJson))
         }
 
@@ -92,6 +95,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
 
       lazy val response: WSResponse = {
         AuditStub.audit()
+        AuthStub.authorise()
         await(request.post(statusChangePublishedJson))
       }
 
@@ -143,6 +147,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
 
       lazy val response: WSResponse = {
         AuditStub.audit()
+        AuthStub.authorise()
         await(request.post(statusChangeWithDesignerJson))
       }
 
@@ -163,6 +168,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
     lazy val request = buildRequest(s"/external-guidance/approval/xyzinvalid/2i-review")
     lazy val response: WSResponse = {
       AuditStub.audit()
+      AuthStub.authorise()
       await(request.post(statusChangeWithDesignerJson))
     }
 
@@ -170,6 +176,20 @@ class PostProcessReviewISpec extends IntegrationSpec {
       response.status shouldBe NOT_FOUND
     }
 
+  }
+
+  "Calling the approval2iReviewComplete POST endpoint without authorization" should {
+
+    lazy val request = buildRequest( "/external-guidance/approval/oct90001/2i-review")
+    lazy val response: WSResponse = {
+      AuditStub.audit()
+      AuthStub.unauthorised()
+      await(request.post(statusChangeWithDesignerJson))
+    }
+
+    "return unauthorized" in {
+      response.status shouldBe UNAUTHORIZED
+    }
   }
 
   "Calling the approval2iReviewPageComplete POST endpoint with a valid payload" should {
@@ -191,6 +211,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
 
     lazy val response: WSResponse = {
       AuditStub.audit()
+      AuthStub.authorise()
       await(request.post(Json.toJson(content)))
     }
 
@@ -202,6 +223,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
       lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-page-review$pageUrl")
       lazy val response: WSResponse = {
         AuditStub.audit()
+        AuthStub.authorise()
         await(request.get())
       }
       val updatedEntry: ApprovalProcessPageReview = response.body[JsValue].as[ApprovalProcessPageReview]
@@ -218,6 +240,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
 
     lazy val response: WSResponse = {
       AuditStub.audit()
+      AuthStub.authorise()
       await(request.post(Json.toJson(content)))
     }
 
@@ -225,6 +248,31 @@ class PostProcessReviewISpec extends IntegrationSpec {
       response.status shouldBe NOT_FOUND
     }
 
+  }
+
+  "Calling the approval2iReviewPageComplete POST endpoint without authorization" should {
+
+    lazy val request = buildRequest("/external-guidance/approval/oct90001/2i-page-review/page-1")
+
+    val content = ApprovalProcessPageReview(
+      "1",
+      pageUrl,
+      pageUrl,
+      Some("Yes"),
+      ReviewCompleteStatus,
+      Some("A basic comment"),
+      LocalDateTime.now(),
+      Some("User1"))
+
+    lazy val response: WSResponse = {
+      AuditStub.audit()
+      AuthStub.unauthorised()
+      await(request.post(Json.toJson(content)))
+    }
+
+    "return unauthorized" in {
+      response.status shouldBe UNAUTHORIZED
+    }
   }
 
   "Calling the approvalFactCheckComplete POST endpoint with a valid payload and some pages not reviewed" when {

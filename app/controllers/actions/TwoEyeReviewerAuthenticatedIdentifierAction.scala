@@ -32,17 +32,17 @@ import uk.gov.hmrc.play.bootstrap.config.AuthRedirects
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait FactCheckerIdentifierAction extends ActionBuilder[IdentifierRequest, AnyContent] with ActionFunction[Request, IdentifierRequest]
+trait TwoEyeReviewerIdentifierAction extends ActionBuilder[IdentifierRequest, AnyContent] with ActionFunction[Request, IdentifierRequest]
 
-class FactCheckerAuthenticatedIdentifierAction @Inject() (
-                                                           override val authConnector: AuthConnector,
-                                                           appConfig: AppConfig,
-                                                           val parser: BodyParsers.Default,
-                                                           val config: Configuration,
-                                                           val env: Environment
-                                                         )(
-                                                           implicit val executionContext: ExecutionContext
-                                                         ) extends FactCheckerIdentifierAction
+class TwoEyeReviewerAuthenticatedIdentifierAction @Inject() (
+                                                              override val authConnector: AuthConnector,
+                                                              appConfig: AppConfig,
+                                                              val parser: BodyParsers.Default,
+                                                              val config: Configuration,
+                                                              val env: Environment
+                                                            )(
+                                                              implicit val executionContext: ExecutionContext
+                                                            ) extends TwoEyeReviewerIdentifierAction
   with AuthorisedFunctions
   with AuthRedirects {
 
@@ -52,17 +52,16 @@ class FactCheckerAuthenticatedIdentifierAction @Inject() (
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
 
-    // Restrict access to users with fact checker role
-    authorised(Enrolment(appConfig.factCheckerRole) and AuthProviders(PrivilegedApplication))
+    // Restrict access to users with 2i reviewer role
+    authorised(Enrolment(appConfig.twoEyeReviewerRole) and AuthProviders(PrivilegedApplication))
       .retrieve(Retrievals.credentials and Retrievals.name and Retrievals.email) {
         case Some(Credentials(providerId, _)) ~ Some(Name(Some(name), _)) ~ Some(email) =>
           block(IdentifierRequest(request, providerId, name, email))
         case _ =>
-          logger.warn("Fact Checker Identifier action could not retrieve required user details in method invokeBlock")
+          logger.warn("Identifier action could not retrieve required user details in method invokeBlock")
           Future.successful(Unauthorized)
       } recover {
       case _ => Unauthorized
     }
   }
 }
-
