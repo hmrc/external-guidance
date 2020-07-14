@@ -17,6 +17,7 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
+import controllers.actions.FactCheckerIdentifierAction
 import models.errors._
 import models.{ApprovalProcess, ApprovalProcessPageReview, ApprovalProcessStatusChange, AuditInfo}
 import play.api.libs.json._
@@ -30,13 +31,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ProcessReviewController @Inject() (reviewService: ReviewService, cc: ControllerComponents) extends BackendController(cc) {
+class ProcessReviewController @Inject() (
+                                          factCheckerIdentifierAction: FactCheckerIdentifierAction,
+                                          reviewService: ReviewService, cc: ControllerComponents) extends BackendController(cc) {
 
   def approval2iReviewInfo(id: String): Action[AnyContent] = Action.async { _ =>
     getReviewInfo(id, ReviewType2i)
   }
 
-  def approvalFactCheckInfo(id: String): Action[AnyContent] = Action.async { _ =>
+  def approvalFactCheckInfo(id: String): Action[AnyContent] = factCheckerIdentifierAction.async { _ =>
     getReviewInfo(id, ReviewTypeFactCheck)
   }
 
@@ -76,7 +79,7 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
     }
   }
 
-  def approvalFactCheckComplete(id: String): Action[JsValue] = Action.async(parse.json) { request =>
+  def approvalFactCheckComplete(id: String): Action[JsValue] = factCheckerIdentifierAction.async(parse.json) { request =>
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
       reviewService.factCheckComplete(id, statusChangeInfo).map {
         case Right(ap) => getAuditInfo(statusChangeInfo.userId, ap)
@@ -97,7 +100,7 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
     pageReviewInfo(id, pageUrl, ReviewType2i)
   }
 
-  def approvalFactCheckPageInfo(id: String, pageUrl: String): Action[AnyContent] = Action.async { _ =>
+  def approvalFactCheckPageInfo(id: String, pageUrl: String): Action[AnyContent] = factCheckerIdentifierAction.async { _ =>
     pageReviewInfo(id, pageUrl, ReviewTypeFactCheck)
   }
 
@@ -115,7 +118,7 @@ class ProcessReviewController @Inject() (reviewService: ReviewService, cc: Contr
     pageReviewComplete(id, pageUrl, ReviewType2i, request.body)
   }
 
-  def approvalFactCheckPageComplete(id: String, pageUrl: String): Action[JsValue] = Action.async(parse.json) { request =>
+  def approvalFactCheckPageComplete(id: String, pageUrl: String): Action[JsValue] = factCheckerIdentifierAction.async(parse.json) { request =>
     pageReviewComplete(id, pageUrl, ReviewTypeFactCheck, request.body)
   }
 
