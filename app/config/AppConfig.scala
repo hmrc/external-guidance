@@ -29,7 +29,6 @@ trait AppConfig {
   val designerRole: String
   val factCheckerRole: String
   val twoEyeReviewerRole: String
-  val publisherRole: String
 }
 
 @Singleton
@@ -42,5 +41,4 @@ class AppConfigImpl @Inject() (config: Configuration, servicesConfig: ServicesCo
   lazy val designerRole = servicesConfig.getString("strideAuth.roles.designer")
   lazy val factCheckerRole = servicesConfig.getString("strideAuth.roles.factChecker")
   lazy val twoEyeReviewerRole = servicesConfig.getString("strideAuth.roles.twoEyeReviewer")
-  lazy val publisherRole = servicesConfig.getString( "strideAuth.roles.publisher")
 }
