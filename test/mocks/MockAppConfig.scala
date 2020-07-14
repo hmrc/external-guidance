@@ -27,6 +27,5 @@ object MockAppConfig extends AppConfig {
   val designerRole: String = "Designer"
   val factCheckerRole: String = "FactChecker"
   val twoEyeReviewerRole: String = "2iReviewer"
-  val publisherRole: String = "Publisher"
 
 }
