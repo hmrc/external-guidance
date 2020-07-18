@@ -100,7 +100,7 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
       .collect(maxDocs = -1, FailOnError[List[ApprovalProcess]]())
       .map {
         _.map { doc =>
-          ApprovalProcessSummary(doc.meta.id, doc.meta.title, doc.meta.dateSubmitted, doc.meta.status)
+          ApprovalProcessSummary(doc.meta.id, doc.meta.title, doc.meta.dateSubmitted, doc.meta.status, doc.meta.reviewType)
         }
       }
       .map(list => Right(list))

@@ -16,8 +16,8 @@
 
 package controllers
 
-import javax.inject.{Inject, Singleton}
 import controllers.actions.IdentifierAction
+import javax.inject.{Inject, Singleton}
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
@@ -35,15 +35,15 @@ class ApprovalController @Inject() (
                                      cc: ControllerComponents) extends BackendController(cc) {
 
   def saveFor2iReview: Action[JsValue] = Action.async(parse.json) { implicit request =>
-    saveProcess(request.body.as[JsObject], ReviewType2i, StatusSubmittedFor2iReview)
+    saveProcess(request.body.as[JsObject], ReviewType2i)
   }
 
   def saveForFactCheck: Action[JsValue] = Action.async(parse.json) { implicit request =>
-    saveProcess(request.body.as[JsObject], ReviewTypeFactCheck, StatusSubmittedForFactCheck)
+    saveProcess(request.body.as[JsObject], ReviewTypeFactCheck)
   }
 
-  def saveProcess(process: JsObject, reviewType: String, initialStatus: String): Future[Result] = {
-    approvalService.save(process, reviewType, initialStatus).map {
+  def saveProcess(process: JsObject, reviewType: String): Future[Result] = {
+    approvalService.save(process, reviewType, StatusSubmitted).map {
       case Right(id) => Created(Json.obj("id" -> id))
       case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))

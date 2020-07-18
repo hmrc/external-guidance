@@ -247,6 +247,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
             entry.id shouldBe approvalProcessSummary.id
             entry.title shouldBe approvalProcessSummary.title
             entry.status shouldBe approvalProcessSummary.status
+            entry.reviewType shouldBe approvalProcessSummary.reviewType
           case _ => fail
         }
       }

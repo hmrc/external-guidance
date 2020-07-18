@@ -22,6 +22,7 @@ import base.UnitSpec
 import models.{ApprovalProcessJson, ApprovalProcessMeta}
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import repositories.formatters.ApprovalProcessMetaFormatter.mongoFormat
+import utils.Constants._
 
 class ApprovalProcessMetaFormatterSpec extends UnitSpec with ApprovalProcessJson {
 
@@ -31,11 +32,12 @@ class ApprovalProcessMetaFormatterSpec extends UnitSpec with ApprovalProcessJson
     |  {
     |    "id" : "oct90001",
     |    "title" : "This is the title",
-    |    "status" : "SubmittedFor2iReview",
+    |    "status" : "$StatusSubmitted",
     |    "dateSubmitted" : {"$$date": $dateLong},
     |    "lastModified" : {"$$date": $dateLong},
     |    "ocelotDateSubmitted" : 1,
-    |    "ocelotVersion" : 1
+    |    "ocelotVersion" : 1,
+    |    "reviewType" : "$ReviewType2i"
     |  }
     """.stripMargin
   private val validMetaJson = Json.parse(validString)
@@ -44,8 +46,9 @@ class ApprovalProcessMetaFormatterSpec extends UnitSpec with ApprovalProcessJson
     |  {
     |    "id" : "oct90001",
     |    "title" : "This is the title",
-    |    "status" : "SubmittedFor2iReview",
-    |    "dateSubmitted" : {"$$date": $dateLong}
+    |    "status" : "$StatusSubmitted",
+    |    "dateSubmitted" : {"$$date": $dateLong},
+    |    "reviewType" : "$ReviewType2i"
     |  }
     """.stripMargin
   private val validMetaJsonWithoutLastModified = Json.parse(validStringWithoutLastModified)
@@ -59,7 +62,8 @@ class ApprovalProcessMetaFormatterSpec extends UnitSpec with ApprovalProcessJson
           val dateToCompare = LocalDate.of(2020, 3, 3)
           result.id shouldBe "oct90001"
           result.title shouldBe "This is the title"
-          result.status shouldBe "SubmittedFor2iReview"
+          result.status shouldBe StatusSubmitted
+          result.reviewType shouldBe ReviewType2i
           result.ocelotDateSubmitted shouldBe 1
           result.ocelotVersion shouldBe 1
           result.dateSubmitted shouldBe dateToCompare

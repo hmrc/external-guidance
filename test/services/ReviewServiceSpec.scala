@@ -573,6 +573,10 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
             .updatePageReview(validId, 1, pageUrl, ReviewType2i, pageReview)
             .returns(Future.successful(expected))
 
+          MockApprovalRepository
+            .changeStatus(validId, StatusInProgress, pageReview.updateUser.get)
+            .returns(Future.successful(Right(())))
+
           whenReady(service.approvalPageComplete(validId, pageUrl, ReviewType2i, pageReview)) { result =>
             result shouldBe expected
           }
@@ -655,7 +659,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
 
   "Calling the factCheckComplete method" when {
 
-    val factCheckProcess = approvalProcess.copy(meta = approvalProcess.meta.copy(status = StatusSubmittedForFactCheck))
+    val factCheckProcess = approvalProcess.copy(meta = approvalProcess.meta.copy(status = StatusSubmitted, reviewType = ReviewTypeFactCheck))
 
     "the ID identifies a valid process" when {
       "the status is submitted for fact check" should {
@@ -727,7 +731,11 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
 
           MockApprovalRepository
             .getById("validId")
-            .returns(Future.successful(Right(approvalProcess)))
+            .returns(Future.successful(Right(factCheckProcess.copy(meta = factCheckProcess.meta.copy(status = StatusPublished)))))
+
+          MockApprovalProcessReviewRepository
+            .getByIdVersionAndType("validId", ReviewTypeFactCheck)
+            .returns(Future.successful(Right(approvalProcessReview.copy(reviewType = ReviewTypeFactCheck))))
 
           whenReady(service.factCheckComplete("validId", statusChange2iReviewInfo)) { result =>
             result shouldBe expected
@@ -881,7 +889,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
             .getByIdVersionAndType(validId, ReviewType2i)
             .returns(Future.successful(Left(Errors(NotFoundError))))
 
-          whenReady(service.checkProcessInCorrectStateForCompletion(validId, StatusSubmittedFor2iReview, ReviewType2i)) { result =>
+          whenReady(service.checkProcessInCorrectStateForCompletion(validId, ReviewType2i)) { result =>
             result shouldBe expected
           }
         }

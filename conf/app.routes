@@ -7,7 +7,7 @@ GET         /published/:id          controllers.PublishedController.get(id)
 
 GET         /approval               controllers.ApprovalController.approvalSummaryList
 GET         /approval/:id           controllers.ApprovalController.get(id)
-POST        /approval               controllers.ApprovalController.saveFor2iReview
+
 POST        /approval/fact-check    controllers.ApprovalController.saveForFactCheck
 POST        /approval/2i-review     controllers.ApprovalController.saveFor2iReview
 

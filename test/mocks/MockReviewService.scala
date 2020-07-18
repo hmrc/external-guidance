@@ -63,12 +63,11 @@ trait MockReviewService extends MockFactory {
     }
 
     def checkProcessInCorrectStateForCompletion(id: String,
-                                                expectedStatus: String,
                                                 reviewType: String
                                                ): CallHandler[Future[RequestOutcome[ApprovalProcess]]] = {
       (mockReviewService
-        .checkProcessInCorrectStateForCompletion(_: String, _: String, _: String))
-        .expects(id, expectedStatus, reviewType)
+        .checkProcessInCorrectStateForCompletion(_: String, _: String))
+        .expects(id, reviewType)
     }
 
   }

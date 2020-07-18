@@ -67,7 +67,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
       case _ => Future.successful(Right(approvalProcess))
     }
 
-    checkProcessInCorrectStateForCompletion(id, StatusSubmittedFor2iReview, ReviewType2i) flatMap {
+    checkProcessInCorrectStateForCompletion(id, ReviewType2i) flatMap {
       case Right(approvalProcess) =>
         reviewRepository.updateReview(id, approvalProcess.version, ReviewType2i, info.userId, info.status) flatMap {
           case Right(()) =>
@@ -86,7 +86,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
   }
 
   def factCheckComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[ApprovalProcess]] =
-    checkProcessInCorrectStateForCompletion(id, StatusSubmittedForFactCheck, ReviewTypeFactCheck) flatMap {
+    checkProcessInCorrectStateForCompletion(id, ReviewTypeFactCheck) flatMap {
       case Right(approvalProcess) =>
         reviewRepository.updateReview(id, approvalProcess.version, ReviewTypeFactCheck, info.userId, info.status) flatMap {
           case Right(_) => changeStatus(id, info.status, info.userId, ReviewTypeFactCheck) map {
@@ -114,7 +114,9 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
             logger.warn(s"updatePageReview failed for process $id, version ${process.version}, reviewType $reviewType and pageUrl $pageUrl not found.")
             Left(Errors(NotFoundError))
           case Left(_) => Left(Errors(InternalServiceError))
-          case Right(_) => Right(())
+          case Right(_) =>
+            changeStatus(id, "InProgress", reviewInfo.updateUser.getOrElse("System"), reviewType)
+            Right(())
         }
     }
 
@@ -132,11 +134,11 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
       case Right(_) => Right(())
     }
 
-  private def getApprovalProcessToUpdate(id: String, expectedStatus: String): Future[RequestOutcome[ApprovalProcess]] = repository.getById(id) map {
-    case Right(process) if process.meta.status == expectedStatus => Right (process)
+  private def getApprovalProcessToUpdate(id: String): Future[RequestOutcome[ApprovalProcess]] = repository.getById(id) map {
+    case Right(process) if StatusAllowedForReviewCompletion.contains(process.meta.status) => Right (process)
     case Right(process) =>
       logger.warn(s"Invalid Process Status Change requested for process $id: " +
-        s"Expected Status: '$expectedStatus' Status Found: '${process.meta.status}'")
+        s"Expected Status One Of: '${StatusAllowedForReviewCompletion.mkString}' Status Found: '${process.meta.status}'")
       Left(Errors(StaleDataError))
     case Left(errors) =>
       logger.warn(s"getApprovalProcessToUpdate - error retrieving process $id - error returned $errors.")
@@ -153,8 +155,8 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
     }
   }
 
-  def checkProcessInCorrectStateForCompletion(id: String, expectedStatus: String, reviewType: String): Future[RequestOutcome[ApprovalProcess]] = {
-    getApprovalProcessToUpdate(id, expectedStatus) flatMap {
+  def checkProcessInCorrectStateForCompletion(id: String, reviewType: String): Future[RequestOutcome[ApprovalProcess]] = {
+    getApprovalProcessToUpdate(id) flatMap {
       case Right(approvalProcess) =>
         // Check that all pages have been reviewed
         getReviewInfo(id, reviewType, approvalProcess.version) map {

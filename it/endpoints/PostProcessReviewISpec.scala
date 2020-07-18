@@ -47,7 +47,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
       lazy val pageUpdateRequest = buildRequest(s"/external-guidance/approval/$id/2i-page-review$pageUrl")
       val content =
         ApprovalProcessPageReview("1", pageUrl, "Ask the customer if they have a tea bag",
-          Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("User1"))
+          Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("user id"))
       AuditStub.audit()
       AuthStub.authorise()
       await(pageUpdateRequest.post(Json.toJson(content)))
@@ -195,7 +195,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
   "Calling the approval2iReviewPageComplete POST endpoint with a valid payload" should {
 
     def populateDatabase(processToSave: JsValue): String = {
-      lazy val request = buildRequest("/external-guidance/approval")
+      lazy val request = buildRequest("/external-guidance/approval/2i-review")
 
       val result = await(request.post(processToSave))
       val json = result.body[JsValue].as[JsObject]
@@ -207,7 +207,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
     val pageUrl = "/feeling-bad"
     lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-page-review$pageUrl")
     val content =
-      ApprovalProcessPageReview("1", pageUrl, pageUrl, Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("User1"))
+      ApprovalProcessPageReview("1", pageUrl, pageUrl, Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("user id"))
 
     lazy val response: WSResponse = {
       AuditStub.audit()
@@ -236,7 +236,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
 
     lazy val request = buildRequest(s"/external-guidance/approval/unknownId/2i-page-review/pageUrl")
     val content =
-      ApprovalProcessPageReview("1", "pageUrl", "pageUrl", Some("Success"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("User1"))
+      ApprovalProcessPageReview("1", "pageUrl", "pageUrl", Some("Success"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("user id"))
 
     lazy val response: WSResponse = {
       AuditStub.audit()
@@ -262,7 +262,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
       ReviewCompleteStatus,
       Some("A basic comment"),
       LocalDateTime.now(),
-      Some("User1"))
+      Some("user id"))
 
     lazy val response: WSResponse = {
       AuditStub.audit()
@@ -319,7 +319,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
       val id = (json \ "id").as[String]
       lazy val pageUpdateRequest = buildRequest(s"/external-guidance/approval/$id/fact-check-page-review$pageUrl")
       val content =
-        ApprovalProcessPageReview("1", pageUrl, pageUrl, Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("User1"))
+        ApprovalProcessPageReview("1", pageUrl, pageUrl, Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("user id"))
       AuditStub.audit()
       AuthStub.authorise()
       await(pageUpdateRequest.post(Json.toJson(content)))
@@ -407,7 +407,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
       AuditStub.audit()
       AuthStub.unauthorised()
       val content =
-        ApprovalProcessPageReview("1", pageUrl, pageUrl, Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("User1"))
+        ApprovalProcessPageReview("1", pageUrl, pageUrl, Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), LocalDateTime.now(), Some("user id"))
       await(request.post(Json.toJson(content)))
     }
 

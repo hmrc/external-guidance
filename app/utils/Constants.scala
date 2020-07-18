@@ -26,4 +26,10 @@ object Constants {
   val StatusSubmittedForFactCheck: String = "SubmittedForFactCheck"
   val StatusWithDesignerForUpdate: String = "WithDesignerForUpdate"
 
+  val StatusSubmitted: String = "Submitted"
+  val StatusInProgress: String = "InProgress"
+  val StatusComplete: String = "Complete"
+
+  val StatusAllowedForReviewCompletion: List[String] = List(StatusInProgress, StatusSubmitted)
+
 }

@@ -16,8 +16,8 @@
 
 package controllers
 
-import javax.inject.{Inject, Singleton}
 import controllers.actions.{FactCheckerIdentifierAction, TwoEyeReviewerIdentifierAction}
+import javax.inject.{Inject, Singleton}
 import models.errors._
 import models.{ApprovalProcess, ApprovalProcessPageReview, ApprovalProcessStatusChange, AuditInfo}
 import play.api.libs.json._
@@ -55,7 +55,7 @@ class ProcessReviewController @Inject() (
   }
 
   def approval2iReviewConfirmAllPagesReviewed(id: String): Action[AnyContent] = twoEyeReviewerIdentifierAction.async { _ =>
-    reviewService.checkProcessInCorrectStateForCompletion(id, StatusSubmittedFor2iReview, ReviewType2i).map {
+    reviewService.checkProcessInCorrectStateForCompletion(id, ReviewType2i).map {
       case Right(_) => NoContent
       case Left(Errors(IncompleteDataError :: Nil)) => BadRequest(Json.toJson(IncompleteDataError))
       case Left(Errors(StaleDataError :: Nil)) => NotFound(Json.toJson(StaleDataError))
