@@ -143,8 +143,9 @@ object ExamplePayloads {
       |  "meta" : {
       |    "id" : "oct90001",
       |    "title" : "This is the title",
-      |    "status" : "$StatusSubmittedFor2iReview",
-      |    "dateSubmitted" : {"$$date": $submittedDateInMilliseconds}
+      |    "status" : "$StatusSubmitted",
+      |    "dateSubmitted" : {"$$date": $submittedDateInMilliseconds},
+      |    "reviewType" : "$ReviewType2i"
       |  },
       |  "process" : $simpleValidProcessString
       |}
@@ -172,7 +173,7 @@ object ExamplePayloads {
       )
     )
 
-  val statusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusSubmittedFor2iReview)
+  val statusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusSubmitted)
 
   val statusChangeJson: JsValue = Json.toJson(statusChangeInfo)
 

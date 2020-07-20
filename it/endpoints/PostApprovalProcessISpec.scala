@@ -30,7 +30,7 @@ class PostApprovalProcessISpec extends IntegrationSpec {
     val processToSave: JsValue = ExamplePayloads.validProcessWithCallouts
     val idToSave = (processToSave \ "meta" \ "id").as[String]
 
-    lazy val request = buildRequest("/external-guidance/approval")
+    lazy val request = buildRequest("/external-guidance/approval/2i-review")
     lazy val response: WSResponse = {
       AuditStub.audit()
       await(request.post(processToSave))

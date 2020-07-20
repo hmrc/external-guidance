@@ -24,11 +24,12 @@ import utils.Constants._
 case class ApprovalProcessMeta(
     id: String,
     title: String,
-    status: String = StatusSubmittedFor2iReview,
+    status: String = StatusSubmitted,
     dateSubmitted: LocalDate = LocalDate.now(),
     lastModified: LocalDateTime = LocalDateTime.now(),
     ocelotDateSubmitted: Long = 1,
-    ocelotVersion: Int = 1
+    ocelotVersion: Int = 1,
+    reviewType: String = ReviewType2i
 )
 
 object ApprovalProcessMeta {

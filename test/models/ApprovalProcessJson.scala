@@ -29,11 +29,11 @@ trait ApprovalProcessJson {
   val submittedDateInMilliseconds: Long = dateSubmitted.atStartOfDay(ZoneOffset.UTC).toInstant.toEpochMilli
 
   val approvalProcessMeta: ApprovalProcessMeta =
-    ApprovalProcessMeta(validId, "This is the title", StatusSubmittedFor2iReview, dateSubmitted, dateSubmitted.atStartOfDay())
+    ApprovalProcessMeta(validId, "This is the title", StatusSubmitted, dateSubmitted, dateSubmitted.atStartOfDay())
   val approvalProcess: ApprovalProcess = ApprovalProcess(validId, approvalProcessMeta, Json.obj())
 
   val approvalProcessSummary: ApprovalProcessSummary =
-    ApprovalProcessSummary(validId, "This is the title", dateSubmitted, StatusSubmittedFor2iReview)
+    ApprovalProcessSummary(validId, "This is the title", dateSubmitted, StatusSubmittedFor2iReview, ReviewType2i)
 
   val validApprovalProcessJson: JsObject = Json
     .parse(
@@ -43,11 +43,12 @@ trait ApprovalProcessJson {
       |  "meta" : {
       |    "id" : "$validId",
       |    "title" : "This is the title",
-      |    "status" : "$StatusSubmittedFor2iReview",
+      |    "status" : "$StatusSubmitted",
       |    "dateSubmitted" : {"$$date": $submittedDateInMilliseconds},
       |    "lastModified" : {"$$date": $submittedDateInMilliseconds},
       |    "ocelotDateSubmitted" : 1,
-      |    "ocelotVersion" : 1
+      |    "ocelotVersion" : 1,
+      |    "reviewType" : "$ReviewType2i"
       |  },
       |  "process" : {
       |  },
@@ -64,9 +65,10 @@ trait ApprovalProcessJson {
         |  "meta" : {
         |    "id" : "$validId",
         |    "title" : "This is the title",
-        |    "status" : "$StatusSubmittedFor2iReview",
+        |    "status" : "$StatusSubmitted",
         |    "dateSubmitted" : {"$$date": $submittedDateInMilliseconds},
-        |    "lastModified" : {"$$date": $submittedDateInMilliseconds}
+        |    "lastModified" : {"$$date": $submittedDateInMilliseconds},
+        |    "reviewType" : "$ReviewType2i"
         |  },
         |  "process" : {
         |  },
@@ -82,7 +84,7 @@ trait ApprovalProcessJson {
       |    "id": "$validId",
       |    "title": "Telling HMRC about extra income",
       |    "lastUpdated": "2020-05-10",
-      |    "status" : "$StatusSubmittedFor2iReview",
+      |    "status" : "$StatusSubmitted",
       |    "pages": [
       |        {
       |            "id": "id1",

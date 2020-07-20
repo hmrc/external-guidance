@@ -16,8 +16,8 @@
 
 package controllers
 
-import mocks.MockApprovalService
 import controllers.actions.FakeIdentifierAction
+import mocks.MockApprovalService
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
 import models.{ApprovalProcess, ApprovalProcessJson}
 import org.scalatest.{Matchers, WordSpec}
@@ -135,7 +135,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
       trait ValidFactCheckSaveTest extends Test {
         val expectedId: String = validId
         MockApprovalService
-          .save(validApprovalProcessJson, ReviewTypeFactCheck, StatusSubmittedForFactCheck)
+          .save(validApprovalProcessJson, ReviewTypeFactCheck)
           .returns(Future.successful(Right(expectedId)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(validApprovalProcessJson)
@@ -163,7 +163,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
       trait InvalidSaveTest extends Test {
         val expectedErrorCode = "BAD_REQUEST_ERROR"
         MockApprovalService
-          .save(invalidProcess, ReviewTypeFactCheck, StatusSubmittedForFactCheck)
+          .save(invalidProcess, ReviewTypeFactCheck)
           .returns(Future.successful(Left(Errors(BadRequestError))))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidProcess)
@@ -191,7 +191,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
       trait ErrorSaveTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockApprovalService
-          .save(invalidProcess, ReviewTypeFactCheck, StatusSubmittedForFactCheck)
+          .save(invalidProcess, ReviewTypeFactCheck)
           .returns(Future.successful(Left(Errors(InternalServiceError))))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidProcess)

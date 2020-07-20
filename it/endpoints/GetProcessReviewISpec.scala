@@ -25,7 +25,7 @@ import support.IntegrationSpec
 class GetProcessReviewISpec extends IntegrationSpec {
 
   def populateDatabase(processToSave: JsValue): String = {
-    lazy val request = buildRequest("/external-guidance/approval")
+    lazy val request = buildRequest("/external-guidance/approval/2i-review")
 
     val result = await(request.post(processToSave))
     val json = result.body[JsValue].as[JsObject]

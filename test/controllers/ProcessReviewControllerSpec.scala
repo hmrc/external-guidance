@@ -299,7 +299,7 @@ class ProcessReviewControllerSpec extends WordSpec
           ApprovalProcess(validProcessIdForReview, ApprovalProcessMeta(validProcessIdForReview, "title"), Json.obj())
 
         MockReviewService
-          .checkProcessInCorrectStateForCompletion(validProcessIdForReview, StatusSubmittedFor2iReview, ReviewType2i)
+          .checkProcessInCorrectStateForCompletion(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Right(approvalProcess)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -322,7 +322,7 @@ class ProcessReviewControllerSpec extends WordSpec
       trait NotFoundTest extends Test {
 
         MockReviewService
-          .checkProcessInCorrectStateForCompletion(validProcessIdForReview, StatusSubmittedFor2iReview, ReviewType2i)
+          .checkProcessInCorrectStateForCompletion(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Left(Errors(IncompleteDataError))))
 
         val expectedErrorCode = "INCOMPLETE_DATA_ERROR"
@@ -345,7 +345,7 @@ class ProcessReviewControllerSpec extends WordSpec
       trait NotFoundTest extends Test {
 
         MockReviewService
-          .checkProcessInCorrectStateForCompletion(validProcessIdForReview, StatusSubmittedFor2iReview, ReviewType2i)
+          .checkProcessInCorrectStateForCompletion(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Left(Errors(NotFoundError))))
 
         val expectedErrorCode = "NOT_FOUND_ERROR"
@@ -368,7 +368,7 @@ class ProcessReviewControllerSpec extends WordSpec
       trait NotFoundTest extends Test {
 
         MockReviewService
-          .checkProcessInCorrectStateForCompletion(validProcessIdForReview, StatusSubmittedFor2iReview, ReviewType2i)
+          .checkProcessInCorrectStateForCompletion(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Left(Errors(StaleDataError))))
 
         val expectedErrorCode = "STALE_DATA_ERROR"
@@ -391,7 +391,7 @@ class ProcessReviewControllerSpec extends WordSpec
       trait ErrorTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockReviewService
-          .checkProcessInCorrectStateForCompletion(validProcessIdForReview, StatusSubmittedFor2iReview, ReviewType2i)
+          .checkProcessInCorrectStateForCompletion(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Left(Errors(InternalServiceError))))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")

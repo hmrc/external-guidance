@@ -27,7 +27,7 @@ class GetApprovalProcessISpec extends IntegrationSpec {
   "Calling the approval GET endpoint with a valid ID" should {
 
     def populateDatabase(processToSave: JsValue): String = {
-      lazy val request = buildRequest("/external-guidance/approval")
+      lazy val request = buildRequest("/external-guidance/approval/2i-review")
 
       val result = await(request.post(processToSave))
       val json = result.body[JsValue].as[JsObject]
@@ -38,6 +38,7 @@ class GetApprovalProcessISpec extends IntegrationSpec {
     lazy val id = populateDatabase(processToSave)
     lazy val request = buildRequest(s"/external-guidance/approval/$id")
     lazy val response: WSResponse = {
+      AuthStub.authorise()
       AuditStub.audit()
       await(request.get())
     }
@@ -59,8 +60,9 @@ class GetApprovalProcessISpec extends IntegrationSpec {
   "Calling the approval GET endpoint with a unknown ID" should {
 
     lazy val id = "oeh12345"
-    lazy val request = buildRequest(s"/external-guidance/approval/$id")
+    lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-review")
     lazy val response: WSResponse = {
+      AuthStub.authorise()
       AuditStub.audit()
       await(request.get())
     }
