@@ -335,7 +335,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
 
       trait ValidListTest extends Test {
         MockApprovalService
-          .approvalSummaryList()
+          .approvalSummaryList(List("FactChecker", "2iReviewer"))
           .returns(Future.successful(Right(Json.toJson(List(approvalProcessSummary)).as[JsArray])))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -357,7 +357,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
       trait ErrorGetTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockApprovalService
-          .approvalSummaryList()
+          .approvalSummaryList(List("FactChecker", "2iReviewer"))
           .returns(Future.successful(Left(Errors(InternalServiceError))))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "")

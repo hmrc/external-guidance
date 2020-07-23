@@ -18,6 +18,7 @@ package services
 
 import java.util.UUID
 
+import config.AppConfig
 import javax.inject.{Inject, Singleton}
 import models._
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
@@ -32,7 +33,8 @@ import scala.concurrent.Future
 @Singleton
 class ApprovalService @Inject() (repository: ApprovalRepository,
                                  reviewRepository: ApprovalProcessReviewRepository,
-                                 pageBuilder: PageBuilder) {
+                                 pageBuilder: PageBuilder,
+                                 appConfig: AppConfig) {
 
   val logger: Logger = Logger(this.getClass)
 
@@ -92,10 +94,16 @@ class ApprovalService @Inject() (repository: ApprovalRepository,
     }
 
 
-  def approvalSummaryList(): Future[RequestOutcome[JsArray]] =
-    repository.approvalSummaryList().map {
+  def approvalSummaryList(roles: List[String]): Future[RequestOutcome[JsArray]] = {
+    val hasTwoEyeRole: Boolean = roles.contains(appConfig.twoEyeReviewerRole)
+    val hasFactCheckRole: Boolean = roles.contains(appConfig.factCheckerRole)
+    val hasDesignerRole: Boolean = roles.contains(appConfig.designerRole)
+    val criteria = SummaryListCriteria(hasTwoEyeRole || hasDesignerRole, hasFactCheckRole || hasDesignerRole)
+
+    repository.approvalSummaryList(criteria).map {
       case Left(_) => Left(Errors(InternalServiceError))
       case Right(success) => Right(Json.toJson(success).as[JsArray])
     }
+  }
 
 }

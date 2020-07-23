@@ -24,8 +24,8 @@ import play.api.mvc._
 import play.api.{Configuration, Environment, Logger}
 import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
 import uk.gov.hmrc.auth.core._
-import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name, ~}
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
+import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name, ~}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.bootstrap.config.AuthRedirects
@@ -54,9 +54,9 @@ class FactCheckerAuthenticatedIdentifierAction @Inject() (
 
     // Restrict access to users with fact checker role
     authorised(Enrolment(appConfig.factCheckerRole) and AuthProviders(PrivilegedApplication))
-      .retrieve(Retrievals.credentials and Retrievals.name and Retrievals.email) {
-        case Some(Credentials(providerId, _)) ~ Some(Name(Some(name), _)) ~ Some(email) =>
-          block(IdentifierRequest(request, providerId, name, email))
+      .retrieve(Retrievals.credentials and Retrievals.name and Retrievals.email and Retrievals.authorisedEnrolments) {
+        case Some(Credentials(providerId, _)) ~ Some(Name(Some(name), _)) ~ Some(email) ~ authEnrolments =>
+          block(IdentifierRequest(request, providerId, name, email, authEnrolments.enrolments.map(_.key).toList))
         case _ =>
           logger.warn("Fact Checker Identifier action could not retrieve required user details in method invokeBlock")
           Future.successful(Unauthorized)
