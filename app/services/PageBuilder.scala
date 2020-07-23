@@ -20,7 +20,6 @@ import javax.inject.Singleton
 import models.ocelot.stanzas._
 import models.ocelot.{Page, Process}
 import play.api.Logger
-
 import scala.annotation.tailrec
 
 case class KeyedStanza(key: String, stanza: Stanza)
@@ -30,7 +29,7 @@ class PageBuilder extends ProcessPopulation {
   val logger: Logger = Logger(this.getClass)
 
   private val pageLinkRegex = s"\\[link:.+?:(\\d+|${Process.StartStanzaId})\\]".r
-
+  private val hintRegex = "\\[hint:([^\\]])+\\]".r
   private def pageUrlUnique(url: String, existingPages: Seq[Page]): Boolean = !existingPages.exists(_.url == url)
 
   private def pageLinkIds(str: String): Seq[String] = pageLinkRegex.findAllMatchIn(str).map(_.group(1)).toList
@@ -90,9 +89,10 @@ class PageBuilder extends ProcessPopulation {
   def fromPageDetails[A](pages: Seq[Page])(f: (String, String, String) => A): List[A] =
     pages.toList.flatMap{ page =>
       page.stanzas.collectFirst{
-        case Callout(Title, text, _, _) => f(page.id, page.url, text.langs(0))
-        case q: Question => f(page.id, page.url, q.text.langs(0))
+        case Callout(Title, text, _, _) => 
+          f(page.id, page.url, text.langs(0))
+        case q: Question =>
+          f(page.id, page.url, hintRegex.replaceSomeIn(q.text.langs(0), _ => Some("")))
       }
     }
-
 }

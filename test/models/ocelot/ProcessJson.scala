@@ -2145,8 +2145,8 @@ trait ProcessJson {
       |      "Welsh, Correct answer leads forward to next question"
       |    ],
       |    [
-      |      "Who reviews and approves the g2uid1ance produced by the designer?",
-      |      "Welsh, Who reviews and approves the g2uid1ance produced by the designer?"
+      |      "Who reviews and approves the g2uid1ance produced by the designer?[hint:This is a question]",
+      |      "Welsh, Who reviews and approves the g2uid1ance produced by the designer?[hint:Welsh, This is a question]"
       |    ],
       |    [
       |      "Users with the designer role",
