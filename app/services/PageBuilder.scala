@@ -92,7 +92,7 @@ class PageBuilder extends ProcessPopulation {
         case Callout(Title, text, _, _) => 
           f(page.id, page.url, text.langs(0))
         case q: Question =>
-          f(page.id, page.url, hintRegex.replaceSomeIn(q.text.langs(0), _ => Some("")))
+          f(page.id, page.url, hintRegex.replaceAllIn(q.text.langs(0), ""))
       }
     }
 }
