@@ -42,7 +42,6 @@ class PageBuilder extends ProcessPopulation {
         case Right(q: Question) => Right((acc :+ KeyedStanza(key, q), q.next, linkedAcc))
         case Right(EndStanza) => Right((acc :+ KeyedStanza(key, EndStanza), Nil, linkedAcc))
         case Right(p: PageStanza) if acc.nonEmpty => Right((acc, acc.last.stanza.next, linkedAcc))
-
         case Right(p: PageStanza) => collectStanzas(p.next.head, acc :+ KeyedStanza(key, p), linkedAcc)
         case Right(i: Instruction) => collectStanzas(i.next.head, acc :+ KeyedStanza(key, i), linkedAcc ++ pageLinkIds(i.text.langs.head) ++ i.linkIds)
         case Right(c: Callout) => collectStanzas(c.next.head, acc :+ KeyedStanza(key, c), linkedAcc)
@@ -55,10 +54,7 @@ class PageBuilder extends ProcessPopulation {
       case Right((ks, next, linked)) =>
         ks.head.stanza match {
           case p: PageStanza if p.url.isEmpty || p.url.equals("/") => Left(PageUrlEmptyOrInvalid(ks.head.key))
-          case p: PageStanza =>
-            // Removed Bullet point intruction group building, TODO move to UiBuilder
-            val stanzas = ks.map(_.stanza)
-            Right(Page(ks.head.key, p.url, stanzas, next, linked))
+          case p: PageStanza => Right(Page(ks.head.key, p.url, ks.map(_.stanza), next, linked))
           case _ => Left(PageStanzaMissing(ks.head.key))
         }
       case Left(err) => Left(err)
