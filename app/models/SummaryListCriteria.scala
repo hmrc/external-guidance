@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-package models.requests
+package models
 
-import play.api.mvc.{Request, WrappedRequest}
+import play.api.libs.json.{Json, OFormat}
 
-case class IdentifierRequest[A](request: Request[A], credId: String, name: String, email: String, roles: List[String]) extends WrappedRequest[A](request)
+case class SummaryListCriteria(twoEyeAllowed: Boolean, factCheckAllowed: Boolean)
+
+object SummaryListCriteria {
+  implicit val formats: OFormat[SummaryListCriteria] = Json.format[SummaryListCriteria]
+}

@@ -18,10 +18,11 @@ package repositories
 
 import java.time.LocalDateTime
 
+import config.AppConfig
 import javax.inject.{Inject, Singleton}
 import models.errors.{DatabaseError, Errors, NotFoundError}
 import models.{ApprovalProcess, ApprovalProcessSummary, RequestOutcome}
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{Format, JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.Cursor.FailOnError
 import reactivemongo.api.ReadPreference
@@ -29,6 +30,7 @@ import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.formatters.ApprovalProcessFormatter
 import repositories.formatters.ApprovalProcessMetaFormatter._
 import uk.gov.hmrc.mongo.ReactiveRepository
+import utils.Constants
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -36,12 +38,15 @@ import scala.concurrent.Future
 trait ApprovalRepository {
   def update(process: ApprovalProcess): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[ApprovalProcess]]
-  def approvalSummaryList(): Future[RequestOutcome[List[ApprovalProcessSummary]]]
+  def approvalSummaryList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]]
   def changeStatus(id: String, status: String, user: String): Future[RequestOutcome[Unit]]
+
+  val TwoEyeRestriction: JsObject = Json.obj("meta.reviewType" -> Constants.ReviewType2i)
+  val FactCheckRestriction: JsObject = Json.obj("meta.reviewType" -> Constants.ReviewTypeFactCheck)
 }
 
 @Singleton
-class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoComponent)
+class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoComponent, appConfig: AppConfig)
     extends ReactiveRepository[ApprovalProcess, String](
       collectionName = "approvalProcesses",
       mongo = mongoComponent.mongoConnector.db,
@@ -87,8 +92,16 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
     //$COVERAGE-ON$
   }
 
-  def approvalSummaryList(): Future[RequestOutcome[List[ApprovalProcessSummary]]] = {
-    val selector = Json.obj("meta" -> Json.obj("$exists" -> true))
+  def approvalSummaryList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]] = {
+
+    val restrictions: List[JsObject] = roles.flatMap{
+      case appConfig.twoEyeReviewerRole => List(TwoEyeRestriction)
+      case appConfig.factCheckerRole => List(FactCheckRestriction)
+      case appConfig.designerRole => List(FactCheckRestriction, TwoEyeRestriction)
+      case _ => Nil
+    }.distinct
+
+    val selector = Json.obj("$or" -> restrictions)
     val projection = Some(Json.obj("meta" -> 1, "process.meta.id" -> 1))
 
     collection

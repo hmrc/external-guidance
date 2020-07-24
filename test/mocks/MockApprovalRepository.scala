@@ -41,9 +41,9 @@ trait MockApprovalRepository extends MockFactory {
         .expects(*)
     }
 
-    def approvalSummaryList(): CallHandler[Future[RequestOutcome[List[ApprovalProcessSummary]]]] = {
-      (mockApprovalRepository.approvalSummaryList: () => Future[RequestOutcome[List[ApprovalProcessSummary]]])
-        .expects()
+    def approvalSummaryList(roles: List[String]): CallHandler[Future[RequestOutcome[List[ApprovalProcessSummary]]]] = {
+      (mockApprovalRepository.approvalSummaryList (_: List[String]))
+        .expects(roles)
     }
 
     def changeStatus(id: String, status: String, user: String): CallHandler[Future[RequestOutcome[Unit]]] = {

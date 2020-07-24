@@ -31,9 +31,9 @@ import utils.Constants._
 
 class PostProcessReviewISpec extends IntegrationSpec {
 
-  val statusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusWithDesignerForUpdate)
+  val statusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusComplete)
 
-  val statusChangeWithDesignerJson: JsValue = Json.toJson(statusChangeInfo)
+  val statusChangeCompleteJson: JsValue = Json.toJson(statusChangeInfo)
   val pageUrl: String = "/feeling-bad"
 
   "Calling the approval2iReviewComplete POST endpoint with a valid payload and all pages reviewed" when {
@@ -56,23 +56,23 @@ class PostProcessReviewISpec extends IntegrationSpec {
     }
     val processToSave: JsValue = simpleValidProcess
 
-    "the requested status update is With DesignerForUpdate" should {
+    "the requested status update is Complete" should {
       lazy val id = populateDatabase(processToSave)
       lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-review")
 
-      "set the new status to With Designer For Update" should {
+      "set the new status to Complete" should {
 
         lazy val response: WSResponse = {
           AuditStub.audit()
           AuthStub.authorise()
-          await(request.post(statusChangeWithDesignerJson))
+          await(request.post(statusChangeCompleteJson))
         }
 
         "return an OK status code" in {
           response.status shouldBe OK
         }
 
-        "set the status to WithDesignerForUpdate" in {
+        "set the status to Complete" in {
           lazy val request = buildRequest(s"/external-guidance/approval")
           lazy val response: WSResponse = {
             AuditStub.audit()
@@ -82,7 +82,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
           val list: List[ApprovalProcessSummary] = response.body[JsValue].as[List[ApprovalProcessSummary]]
           val updatedEntry = list.find(p => p.id == id)
           updatedEntry shouldBe 'defined
-          updatedEntry.get.status shouldBe StatusWithDesignerForUpdate
+          updatedEntry.get.status shouldBe StatusComplete
         }
 
       }
@@ -148,7 +148,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
       lazy val response: WSResponse = {
         AuditStub.audit()
         AuthStub.authorise()
-        await(request.post(statusChangeWithDesignerJson))
+        await(request.post(statusChangeCompleteJson))
       }
 
       "return a INCOMPLETE_ERROR status code" in {
@@ -169,7 +169,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
     lazy val response: WSResponse = {
       AuditStub.audit()
       AuthStub.authorise()
-      await(request.post(statusChangeWithDesignerJson))
+      await(request.post(statusChangeCompleteJson))
     }
 
     "return a NOT_FOUND status code" in {
@@ -184,7 +184,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
     lazy val response: WSResponse = {
       AuditStub.audit()
       AuthStub.unauthorised()
-      await(request.post(statusChangeWithDesignerJson))
+      await(request.post(statusChangeCompleteJson))
     }
 
     "return unauthorized" in {
@@ -294,7 +294,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
       lazy val response: WSResponse = {
         AuditStub.audit()
         AuthStub.authorise()
-        await(request.post(statusChangeWithDesignerJson))
+        await(request.post(statusChangeCompleteJson))
       }
 
       "return a INCOMPLETE_ERROR status code" in {
@@ -327,23 +327,23 @@ class PostProcessReviewISpec extends IntegrationSpec {
       id
     }
     val processToSave: JsValue = simpleValidProcess
-    "the requested status update is With DesignerForUpdate" should {
+    "the requested status update is Complete" should {
       lazy val id = populateDatabase(processToSave)
       lazy val request = buildRequest(s"/external-guidance/approval/$id/fact-check")
 
-      "set the new status to With Designer For Update" should {
+      "set the new status to Complete" should {
 
         lazy val response: WSResponse = {
           AuditStub.audit()
           AuthStub.authorise()
-          await(request.post(statusChangeWithDesignerJson))
+          await(request.post(statusChangeCompleteJson))
         }
 
         "return an OK status code" in {
           response.status shouldBe OK
         }
 
-        "set the status to WithDesignerForUpdate" in {
+        "set the status to Complete" in {
           lazy val request = buildRequest(s"/external-guidance/approval")
           lazy val response: WSResponse = {
             AuditStub.audit()
@@ -353,7 +353,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
           val list: List[ApprovalProcessSummary] = response.body[JsValue].as[List[ApprovalProcessSummary]]
           val updatedEntry = list.find(p => p.id == id)
           updatedEntry shouldBe 'defined
-          updatedEntry.get.status shouldBe StatusWithDesignerForUpdate
+          updatedEntry.get.status shouldBe StatusComplete
         }
       }
     }
@@ -379,7 +379,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
     lazy val response: WSResponse = {
       AuditStub.audit()
       AuthStub.unauthorised()
-      await(request.post(statusChangeWithDesignerJson))
+      await(request.post(statusChangeCompleteJson))
     }
 
     "return unauthorized" in {

@@ -59,8 +59,8 @@ class ApprovalController @Inject() (
     }
   }
 
-  def approvalSummaryList: Action[AnyContent] = identify.async { _ =>
-    approvalService.approvalSummaryList().map {
+  def approvalSummaryList: Action[AnyContent] = identify.async { implicit request =>
+    approvalService.approvalSummaryList(request.roles).map {
       case Right(list) => Ok(list)
       case _ => InternalServerError(Json.toJson(InternalServiceError))
     }

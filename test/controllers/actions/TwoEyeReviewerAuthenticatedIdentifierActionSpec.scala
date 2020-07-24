@@ -22,8 +22,8 @@ import play.api.http.Status
 import play.api.mvc._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.auth.core.AuthorisationException
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name, ~}
+import uk.gov.hmrc.auth.core.{AuthorisationException, Enrolment, Enrolments}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -43,6 +43,8 @@ class TwoEyeReviewerAuthenticatedIdentifierActionSpec extends ControllerBaseSpec
     val path: String = "/path"
     val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", path)
 
+    val enrolments: Enrolments = Enrolments(Set(Enrolment(key = "2iReviewer")))
+
     implicit val hc: HeaderCarrier = HeaderCarrier()
     implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
@@ -61,7 +63,7 @@ class TwoEyeReviewerAuthenticatedIdentifierActionSpec extends ControllerBaseSpec
 
     "grant access if authorisation is successful" in new AuthTestData {
 
-      val authResult = new ~(new ~(Some(Credentials("id", "type")), Some(Name(Some("name"), None))), Some("email"))
+      val authResult = new ~(new ~(new ~(Some(Credentials("id", "type")), Some(Name(Some("name"), None))), Some("email")), enrolments)
 
       MockAuthConnector.authorize().returns(Future.successful(authResult))
 
@@ -72,7 +74,7 @@ class TwoEyeReviewerAuthenticatedIdentifierActionSpec extends ControllerBaseSpec
 
     "deny access to user if no credentials returned" in new AuthTestData {
 
-      val authResult = new ~(new ~(None, Some(Name(Some("name"), None))), Some("email"))
+      val authResult = new ~(new ~(new ~(None, Some(Name(Some("name"), None))), Some("email")), enrolments)
 
       MockAuthConnector.authorize().returns(Future.successful(authResult))
 
@@ -83,7 +85,7 @@ class TwoEyeReviewerAuthenticatedIdentifierActionSpec extends ControllerBaseSpec
 
     "deny access to user if no name instance returned" in new AuthTestData {
 
-      val authResult = new ~(new ~(Some(Credentials("id", "type")), None), Some("email"))
+      val authResult = new ~(new ~(new ~(Some(Credentials("id", "type")), None), Some("email")), enrolments)
 
       MockAuthConnector.authorize().returns(Future.successful(authResult))
 
@@ -94,7 +96,7 @@ class TwoEyeReviewerAuthenticatedIdentifierActionSpec extends ControllerBaseSpec
 
     "deny access to user if no name detail returned" in new AuthTestData {
 
-      val authResult = new ~(new ~(Some(Credentials("id", "type")), Some(Name(None, None))), Some("email"))
+      val authResult = new ~(new ~(new ~(Some(Credentials("id", "type")), Some(Name(None, None))), Some("email")), enrolments)
 
       MockAuthConnector.authorize().returns(Future.successful(authResult))
 
@@ -105,7 +107,7 @@ class TwoEyeReviewerAuthenticatedIdentifierActionSpec extends ControllerBaseSpec
 
     "deny access to user if no email address returned" in new AuthTestData {
 
-      val authResult = new ~(new ~(Some(Credentials("id", "type")), Some(Name(Some("name"), None))), None)
+      val authResult = new ~(new ~(new ~(Some(Credentials("id", "type")), Some(Name(Some("name"), None))), None), enrolments)
 
       MockAuthConnector.authorize().returns(Future.successful(authResult))
 
@@ -116,7 +118,7 @@ class TwoEyeReviewerAuthenticatedIdentifierActionSpec extends ControllerBaseSpec
 
     "deny access to user if no defined details returned" in new AuthTestData {
 
-      val authResult = new ~(new ~(None, None), None)
+      val authResult = new ~(new ~(new ~(None, None), None), enrolments)
 
       MockAuthConnector.authorize().returns(Future.successful(authResult))
 

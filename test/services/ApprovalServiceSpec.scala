@@ -19,7 +19,7 @@ package services
 import java.util.UUID
 
 import base.UnitSpec
-import mocks.{MockApprovalProcessReviewRepository, MockApprovalRepository}
+import mocks.{MockAppConfig, MockApprovalProcessReviewRepository, MockApprovalRepository}
 import models._
 import models.errors._
 import models.ocelot.ProcessJson
@@ -37,7 +37,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
 
     val invalidProcess: JsObject = Json.obj("idx" -> invalidId)
 
-    lazy val service: ApprovalService = new ApprovalService(mockApprovalRepository, mockApprovalProcessReviewRepository, new PageBuilder())
+    lazy val service: ApprovalService = new ApprovalService(mockApprovalRepository, mockApprovalProcessReviewRepository, new PageBuilder(), MockAppConfig)
 
     val processReview: ApprovalProcessReview =
       ApprovalProcessReview(
@@ -236,10 +236,10 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
         val expected: RequestOutcome[List[ApprovalProcessSummary]] = Right(List(approvalProcessSummary))
 
         MockApprovalRepository
-          .approvalSummaryList()
+          .approvalSummaryList(List("FactChecker"))
           .returns(Future.successful(expected))
 
-        whenReady(service.approvalSummaryList()) {
+        whenReady(service.approvalSummaryList(List("FactChecker"))) {
           case Right(jsonList) =>
             val list: List[ApprovalProcessSummary] = jsonList.as[List[ApprovalProcessSummary]]
             list.size shouldBe 1
@@ -260,10 +260,10 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
         val returnedList: RequestOutcome[List[ApprovalProcessSummary]] = Right(List())
 
         MockApprovalRepository
-          .approvalSummaryList()
+          .approvalSummaryList(List("FactChecker"))
           .returns(Future.successful(returnedList))
 
-        whenReady(service.approvalSummaryList()) { result =>
+        whenReady(service.approvalSummaryList(List("FactChecker"))) { result =>
           result shouldBe expected
         }
       }
@@ -276,10 +276,10 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
         val expected: RequestOutcome[List[ApprovalProcessSummary]] = Left(Errors(InternalServiceError))
 
         MockApprovalRepository
-          .approvalSummaryList()
+          .approvalSummaryList(List("FactChecker"))
           .returns(Future.successful(repositoryError))
 
-        whenReady(service.approvalSummaryList()) { result =>
+        whenReady(service.approvalSummaryList(List("FactChecker"))) { result =>
           result shouldBe expected
         }
       }
