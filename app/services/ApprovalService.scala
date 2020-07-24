@@ -95,12 +95,7 @@ class ApprovalService @Inject() (repository: ApprovalRepository,
 
 
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[JsArray]] = {
-    val hasTwoEyeRole: Boolean = roles.contains(appConfig.twoEyeReviewerRole)
-    val hasFactCheckRole: Boolean = roles.contains(appConfig.factCheckerRole)
-    val hasDesignerRole: Boolean = roles.contains(appConfig.designerRole)
-    val criteria = SummaryListCriteria(hasTwoEyeRole || hasDesignerRole, hasFactCheckRole || hasDesignerRole)
-
-    repository.approvalSummaryList(criteria).map {
+    repository.approvalSummaryList(roles).map {
       case Left(_) => Left(Errors(InternalServiceError))
       case Right(success) => Right(Json.toJson(success).as[JsArray])
     }

@@ -236,7 +236,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
         val expected: RequestOutcome[List[ApprovalProcessSummary]] = Right(List(approvalProcessSummary))
 
         MockApprovalRepository
-          .approvalSummaryList(SummaryListCriteria(twoEyeAllowed = false, factCheckAllowed = true))
+          .approvalSummaryList(List("FactChecker"))
           .returns(Future.successful(expected))
 
         whenReady(service.approvalSummaryList(List("FactChecker"))) {
@@ -260,7 +260,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
         val returnedList: RequestOutcome[List[ApprovalProcessSummary]] = Right(List())
 
         MockApprovalRepository
-          .approvalSummaryList(SummaryListCriteria(twoEyeAllowed = false, factCheckAllowed = true))
+          .approvalSummaryList(List("FactChecker"))
           .returns(Future.successful(returnedList))
 
         whenReady(service.approvalSummaryList(List("FactChecker"))) { result =>
@@ -276,7 +276,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
         val expected: RequestOutcome[List[ApprovalProcessSummary]] = Left(Errors(InternalServiceError))
 
         MockApprovalRepository
-          .approvalSummaryList(SummaryListCriteria(twoEyeAllowed = false, factCheckAllowed = true))
+          .approvalSummaryList(List("FactChecker"))
           .returns(Future.successful(repositoryError))
 
         whenReady(service.approvalSummaryList(List("FactChecker"))) { result =>
