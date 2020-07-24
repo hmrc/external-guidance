@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package utils
-
+import models.RequestOutcome
+import models.errors.{Errors, BadRequestError, ValidationError}
+import models.ocelot.Process
+import play.api.Logger
+import play.api.libs.json.{JsError, JsObject, JsSuccess}
 import java.util.UUID
 
-import models.errors.{Errors, ValidationError}
+package object services {
 
-object Validators {
+  val logger = Logger(getClass)
 
   def validateUUID(id: String): Option[UUID] = {
     val format = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
@@ -31,4 +34,12 @@ object Validators {
     val format = "^[a-z]{3}[0-9]{5}$"
     if (id.matches(format)) Right(id) else Left(Errors(ValidationError))
   }
+
+  def validateProcess(jsonProcess: JsObject): RequestOutcome[Process] =
+    jsonProcess.validate[Process] match {
+      case JsSuccess(process, _) => Right(process)
+      case JsError(err) =>
+        logger.error(s"Parsing process failed with the following error(s): $err")
+        Left(Errors(BadRequestError))
+    }
 }

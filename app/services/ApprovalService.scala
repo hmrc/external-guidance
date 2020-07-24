@@ -25,7 +25,6 @@ import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundErr
 import play.api.Logger
 import play.api.libs.json._
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
-import utils.ProcessUtils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

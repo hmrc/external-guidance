@@ -22,8 +22,6 @@ import models.{PublishedProcess, RequestOutcome}
 import play.api.Logger
 import play.api.libs.json.JsObject
 import repositories.PublishedRepository
-import utils.ProcessUtils.validateProcess
-import utils.Validators._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

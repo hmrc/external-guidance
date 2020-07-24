@@ -49,6 +49,8 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
         ApprovalProcessPageReview("2", "/pageUrl2", "pageTitle2", Some("No"), ReviewCompleteStatus)
       )
     )
+
+    val auditInfo: AuditInfo = AuditInfo("user id","oct90001","This is the title",1,"7903088",1589467563758L,6)
     val processReviewComplete: ProcessReview = ProcessReview(
       approvalProcessReviewComplete.id,
       approvalProcessReviewComplete.ocelotId,
@@ -174,18 +176,18 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "the status is submitted for 2i review" should {
         "indicate the process status was updated in the database" in new ReviewCompleteTest {
 
-          val expected: RequestOutcome[ApprovalProcess] = Right(approvalProcess)
+          val expected: RequestOutcome[AuditInfo] = Right(auditInfo)
 
           MockApprovalRepository
             .getById(validId)
-            .returns(Future.successful(Right(approvalProcess)))
+            .returns(Future.successful(Right(approvalProcessWithValidProcess)))
 
           MockApprovalProcessReviewRepository
-            .getByIdVersionAndType(validId, ReviewType2i, approvalProcess.version)
+            .getByIdVersionAndType(validId, ReviewType2i, approvalProcessWithValidProcess.version)
             .returns(Future.successful(Right(approvalProcessReviewComplete)))
 
           MockApprovalProcessReviewRepository
-            .updateReview(validId, approvalProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, statusChange2iReviewInfo.status)
+            .updateReview(validId, approvalProcessWithValidProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, statusChange2iReviewInfo.status)
             .returns(Future.successful(Right(())))
 
           MockApprovalRepository
@@ -201,19 +203,19 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "the status is published" should {
         "indicate the process status was updated and published in the database" in new ReviewCompleteTest {
 
-          val expected: RequestOutcome[ApprovalProcess] = Right(approvalProcess)
+          val expected: RequestOutcome[AuditInfo] = Right(auditInfo)
           val publishedStatusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
 
           MockApprovalRepository
             .getById("validId")
-            .returns(Future.successful(Right(approvalProcess)))
+            .returns(Future.successful(Right(approvalProcessWithValidProcess)))
 
           MockApprovalProcessReviewRepository
-            .getByIdVersionAndType("validId", ReviewType2i, approvalProcess.version)
+            .getByIdVersionAndType("validId", ReviewType2i, approvalProcessWithValidProcess.version)
             .returns(Future.successful(Right(approvalProcessReviewComplete)))
 
           MockApprovalProcessReviewRepository
-            .updateReview("validId", approvalProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, StatusPublished)
+            .updateReview("validId", approvalProcessWithValidProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, StatusPublished)
             .returns(Future.successful(Right(())))
 
           MockApprovalRepository
@@ -221,7 +223,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
             .returns(Future.successful(Right(())))
 
           MockPublishedService
-            .save("validId", publishedStatusChangeInfo.userId, approvalProcess.process)
+            .save("validId", publishedStatusChangeInfo.userId, approvalProcessWithValidProcess.process)
             .returns(Future.successful(Right("validId")))
 
           whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
@@ -659,24 +661,29 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
 
   "Calling the factCheckComplete method" when {
 
-    val factCheckProcess = approvalProcess.copy(meta = approvalProcess.meta.copy(status = StatusSubmitted, reviewType = ReviewTypeFactCheck))
+    val factCheckMeta = approvalProcessWithValidProcess.meta.copy(status = StatusSubmitted, reviewType = ReviewTypeFactCheck)
+    val factCheckProcess = approvalProcessWithValidProcess.copy(meta = factCheckMeta)
 
     "the ID identifies a valid process" when {
       "the status is submitted for fact check" should {
         "indicate the process status was updated in the database" in new ReviewCompleteTest {
 
-          val expected: RequestOutcome[ApprovalProcess] = Right(factCheckProcess)
+          val expected: RequestOutcome[AuditInfo] = Right(auditInfo)
 
           MockApprovalRepository
             .getById("validId")
             .returns(Future.successful(Right(factCheckProcess)))
 
           MockApprovalProcessReviewRepository
-            .getByIdVersionAndType("validId", ReviewTypeFactCheck, approvalProcess.version)
+            .getByIdVersionAndType("validId", ReviewTypeFactCheck, approvalProcessWithValidProcess.version)
             .returns(Future.successful(Right(approvalProcessReviewComplete)))
 
           MockApprovalProcessReviewRepository
-            .updateReview("validId", approvalProcess.version, ReviewTypeFactCheck, statusChange2iReviewInfo.userId, statusChange2iReviewInfo.status)
+            .updateReview("validId", 
+                          approvalProcessWithValidProcess.version, 
+                          ReviewTypeFactCheck, 
+                          statusChange2iReviewInfo.userId, 
+                          statusChange2iReviewInfo.status)
             .returns(Future.successful(Right(())))
 
           MockApprovalRepository
