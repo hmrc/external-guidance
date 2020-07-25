@@ -73,13 +73,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
           case Right(()) =>
             changeStatus(id, info.status, info.userId, ReviewType2i) flatMap {
               case Right(_) => publishIfRequired(ap).map{
-                case Right(_) =>
-                  validateProcess(ap.process) match {
-                    case Right(process) =>
-                      Right(AuditInfo(info.userId, ap.id, ap.meta.title, ap.version, process.meta.lastAuthor, process.meta.lastUpdate, process.meta.version))
-                    case _ =>
-                      Left(Errors(BadRequestError))
-                  }
+                case Right(_) => validateProcess(ap.process).fold(Left(_), process => Right(AuditInfo(info.userId, ap, process)))
                 case Left(err) => Left(err)
               }
               case Left(errors) => Future.successful(Left(errors))
@@ -94,18 +88,13 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
     }
   }
 
+
   def factCheckComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[AuditInfo]] =
     checkProcessInCorrectStateForCompletion(id, ReviewTypeFactCheck) flatMap {
       case Right(ap) =>
         reviewRepository.updateReview(id, ap.version, ReviewTypeFactCheck, info.userId, info.status) flatMap {
           case Right(_) => changeStatus(id, info.status, info.userId, ReviewTypeFactCheck) map {
-            case Right(_) => 
-              validateProcess(ap.process) match {
-                case Right(process) =>
-                  Right(AuditInfo(info.userId, ap.id, ap.meta.title, ap.version, process.meta.lastAuthor, process.meta.lastUpdate, process.meta.version))
-                case _ =>
-                  Left(Errors(BadRequestError))
-              }
+            case Right(_) => validateProcess(ap.process).fold(Left(_), process => Right(AuditInfo(info.userId, ap, process)))
             case Left(error) => Left(error)
           }
           case Left(errors) =>
