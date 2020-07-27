@@ -30,7 +30,6 @@ import scala.concurrent.Future
 class ReviewService @Inject() (publishedService: PublishedService, repository: ApprovalRepository, reviewRepository: ApprovalProcessReviewRepository) {
 
   val logger: Logger = Logger(this.getClass)
-  val br: RequestOutcome[AuditInfo] = Left(Errors(BadRequestError))
 
   def approvalReviewInfo(id: String, reviewType: String): Future[RequestOutcome[ProcessReview]] =
     repository.getById(id) flatMap {
@@ -75,7 +74,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
             changeStatus(id, info.status, info.userId, ReviewType2i) flatMap {
               case Right(_) => publishIfRequired(ap).map{
                 case Right(_) => ap.process.validate[Process].fold(
-                  _ => Left(Errors(BadRequestError)): RequestOutcome[AuditInfo], 
+                  _ => Left(Errors(BadRequestError)): RequestOutcome[AuditInfo],
                   process => Right(AuditInfo(info.userId, ap, process))
                 )
                 case Left(err) => Left(err)
@@ -99,7 +98,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
         reviewRepository.updateReview(id, ap.version, ReviewTypeFactCheck, info.userId, info.status) flatMap {
           case Right(_) => changeStatus(id, info.status, info.userId, ReviewTypeFactCheck) map {
             case Right(_) => ap.process.validate[Process].fold(
-                  _ => Left(Errors(BadRequestError)): RequestOutcome[AuditInfo], 
+                  _ => Left(Errors(BadRequestError)): RequestOutcome[AuditInfo],
                   process => Right(AuditInfo(info.userId, ap, process))
                 )
             case Left(error) => Left(error)
