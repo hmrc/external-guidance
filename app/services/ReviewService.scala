@@ -22,7 +22,7 @@ import models.errors._
 import play.api.Logger
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
 import utils.Constants._
-
+import models.ocelot.Process
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -30,6 +30,7 @@ import scala.concurrent.Future
 class ReviewService @Inject() (publishedService: PublishedService, repository: ApprovalRepository, reviewRepository: ApprovalProcessReviewRepository) {
 
   val logger: Logger = Logger(this.getClass)
+  val br: RequestOutcome[AuditInfo] = Left(Errors(BadRequestError))
 
   def approvalReviewInfo(id: String, reviewType: String): Future[RequestOutcome[ProcessReview]] =
     repository.getById(id) flatMap {
@@ -73,7 +74,10 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
           case Right(()) =>
             changeStatus(id, info.status, info.userId, ReviewType2i) flatMap {
               case Right(_) => publishIfRequired(ap).map{
-                case Right(_) => validateProcess(ap.process).fold(Left(_), process => Right(AuditInfo(info.userId, ap, process)))
+                case Right(_) => ap.process.validate[Process].fold(
+                  _ => Left(Errors(BadRequestError)): RequestOutcome[AuditInfo], 
+                  process => Right(AuditInfo(info.userId, ap, process))
+                )
                 case Left(err) => Left(err)
               }
               case Left(errors) => Future.successful(Left(errors))
@@ -94,7 +98,10 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
       case Right(ap) =>
         reviewRepository.updateReview(id, ap.version, ReviewTypeFactCheck, info.userId, info.status) flatMap {
           case Right(_) => changeStatus(id, info.status, info.userId, ReviewTypeFactCheck) map {
-            case Right(_) => validateProcess(ap.process).fold(Left(_), process => Right(AuditInfo(info.userId, ap, process)))
+            case Right(_) => ap.process.validate[Process].fold(
+                  _ => Left(Errors(BadRequestError)): RequestOutcome[AuditInfo], 
+                  process => Right(AuditInfo(info.userId, ap, process))
+                )
             case Left(error) => Left(error)
           }
           case Left(errors) =>

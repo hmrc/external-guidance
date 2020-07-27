@@ -19,6 +19,7 @@ package services
 import javax.inject.{Inject, Singleton}
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
 import models.{PublishedProcess, RequestOutcome}
+import models.ocelot.Process
 import play.api.Logger
 import play.api.libs.json.JsObject
 import repositories.PublishedRepository
@@ -57,12 +58,10 @@ class PublishedService @Inject() (repository: PublishedRepository) {
         case result => result
       }
 
-    validateProcess(jsonProcess) match {
-      case Right(_) => saveProcess
-      case Left(_) =>
-        logger.error(s"Publish process $id has failed - invalid process passed in")
-        Future.successful(Left(Errors(BadRequestError)))
-    }
+    jsonProcess.validate[Process].fold(_ => {
+      logger.error(s"Publish process $id has failed - invalid process passed in")
+      Future.successful(Left(Errors(BadRequestError)))
+    },_ => saveProcess)
 
   }
 

@@ -18,7 +18,7 @@ import models.RequestOutcome
 import models.errors.{Errors, BadRequestError, ValidationError}
 import models.ocelot.Process
 import play.api.Logger
-import play.api.libs.json.{JsError, JsObject, JsSuccess}
+import play.api.libs.json.JsObject
 import java.util.UUID
 
 package object services {
@@ -36,10 +36,8 @@ package object services {
   }
 
   def validateProcess(jsonProcess: JsObject): RequestOutcome[Process] =
-    jsonProcess.validate[Process] match {
-      case JsSuccess(process, _) => Right(process)
-      case JsError(err) =>
-        logger.error(s"Parsing process failed with the following error(s): $err")
-        Left(Errors(BadRequestError))
-    }
+    jsonProcess.validate[Process].fold(err => {
+      logger.error(s"Parsing process failed with the following error(s): $err")
+      Left(Errors(BadRequestError))
+      }, Right(_))
 }
