@@ -21,6 +21,7 @@ import java.util.UUID
 
 import play.api.libs.json.{JsObject, Json}
 import utils.Constants._
+import data.ProcessData._
 
 trait ApprovalProcessJson {
 
@@ -31,6 +32,7 @@ trait ApprovalProcessJson {
   val approvalProcessMeta: ApprovalProcessMeta =
     ApprovalProcessMeta(validId, "This is the title", StatusSubmitted, dateSubmitted, dateSubmitted.atStartOfDay())
   val approvalProcess: ApprovalProcess = ApprovalProcess(validId, approvalProcessMeta, Json.obj())
+  val approvalProcessWithValidProcess = approvalProcess.copy(process = process90087Json) 
 
   val approvalProcessSummary: ApprovalProcessSummary =
     ApprovalProcessSummary(validId, "This is the title", dateSubmitted, StatusSubmittedFor2iReview, ReviewType2i)

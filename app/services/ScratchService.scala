@@ -25,7 +25,6 @@ import models.ocelot.Process
 import play.api.Logger
 import play.api.libs.json.{JsError, JsObject, JsSuccess}
 import repositories.ScratchRepository
-import utils.Validators._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
