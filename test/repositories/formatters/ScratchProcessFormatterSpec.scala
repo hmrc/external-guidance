@@ -21,12 +21,14 @@ import java.util.UUID
 import base.UnitSpec
 import models.ScratchProcess
 import play.api.libs.json.{JsSuccess, Json}
-import org.joda.time.{DateTime, DateTimeZone}
+import java.time.{LocalDateTime, Instant, ZoneId}
 
 class ScratchProcessFormatterSpec extends UnitSpec {
 
   private val id = "3475e5c5-343d-4214-9efc-58270867214c"
-  private val process = ScratchProcess(UUID.fromString(id), Json.obj(), new DateTime(1586450476247L, DateTimeZone.UTC))
+  val milliseconds: Long = 1586450476247L
+  val when: LocalDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(milliseconds), ZoneId.of("UTC"))
+  private val process = ScratchProcess(UUID.fromString(id), Json.obj(), when)
 
   private val json = Json.parse("""{"_id":"3475e5c5-343d-4214-9efc-58270867214c","process":{},"expireAt":{"$date":1586450476247}}""")
 

@@ -39,7 +39,7 @@ trait MongoDateTimeFormats {
 
   implicit val localDateTimeWrite: Writes[LocalDateTime] = (localDateTime: LocalDateTime) =>
     Json.obj(
-      "$date" -> localDateTime.toEpochSecond(ZoneOffset.UTC) * 1000
+      "$date" -> localDateTime.atZone(ZoneOffset.UTC).toInstant.toEpochMilli
     )
 
   implicit val localDateFormats: Format[LocalDate] = Format(localDateRead, localDateWrite)

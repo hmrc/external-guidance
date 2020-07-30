@@ -17,7 +17,7 @@
 package models
 
 import java.util.UUID
-import org.joda.time.DateTime
+import java.time.LocalDateTime
 import play.api.libs.json.JsObject
 
-case class ScratchProcess(id: UUID, process: JsObject, expireAt: DateTime)
+case class ScratchProcess(id: UUID, process: JsObject, expireAt: LocalDateTime)

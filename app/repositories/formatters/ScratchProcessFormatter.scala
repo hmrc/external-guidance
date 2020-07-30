@@ -17,20 +17,19 @@
 package repositories.formatters
 
 import java.util.UUID
-import org.joda.time.DateTime
-import models.ScratchProcess
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import java.time.LocalDateTime
+import models.{MongoDateTimeFormats, ScratchProcess}
 import play.api.libs.json.{JsObject, JsResult, JsValue, Json, OFormat, Format}
 
 object ScratchProcessFormatter {
 
-  implicit val dateFormat: Format[DateTime] = ReactiveMongoFormats.dateTimeFormats
+  implicit val dateFormat: Format[LocalDateTime] = MongoDateTimeFormats.localDateTimeFormats
 
   val read: JsValue => JsResult[ScratchProcess] = json =>
     for {
       id <- (json \ "_id").validate[UUID]
       process <- (json \ "process").validate[JsObject]
-      expireAt <- (json \ "expireAt").validate[DateTime]
+      expireAt <- (json \ "expireAt").validate[LocalDateTime]
     } yield ScratchProcess(id, process, expireAt)
 
   val write: ScratchProcess => JsObject = scratchProcess =>

@@ -17,7 +17,7 @@
 package repositories
 
 import java.util.UUID
-import org.joda.time.{DateTime, DateTimeZone}
+import java.time.{LocalDateTime, ZoneId}
 import javax.inject.{Inject, Singleton}
 import models.errors.{DatabaseError, Errors, NotFoundError}
 import models.{RequestOutcome, ScratchProcess}
@@ -46,14 +46,16 @@ class ScratchRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent, a
       idFormat = implicitly[Format[UUID]]
     )
     with ScratchRepository {
-  val timezone = DateTimeZone.forID(appConfig.scratchExpiryTZ)
+  val timezone = ZoneId.of(appConfig.scratchExpiryTZ)
 
   override def indexes: Seq[Index] = Seq(
     Index(Seq("expireAt" -> IndexType.Ascending), name = Some("expiryIndex"), options = BSONDocument("expireAfterSeconds" -> 0))
   )
 
   def save(process: JsObject): Future[RequestOutcome[UUID]] = {
-    val expiryTime = DateTime.now(timezone).withTime(appConfig.scratchExpiryHour, appConfig.scratchExpiryMinutes, 0, 0)
+    val expiryTime = LocalDateTime.now(timezone).withHour(appConfig.scratchExpiryHour)
+                                                .withMinute(appConfig.scratchExpiryMinutes)
+                                                .withSecond(0)
     val document = ScratchProcess(UUID.randomUUID(), process, expiryTime)
 
     insert(document)
