@@ -16,7 +16,7 @@
 
 package repositories
 
-import java.time.{LocalDateTime, ZoneId}
+import java.time.ZonedDateTime
 
 import javax.inject.{Inject, Singleton}
 import models.errors.{DatabaseError, Errors, NotFoundError}
@@ -55,7 +55,7 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
       "$set" -> Json.obj(
         "process" -> process,
         "publishedBy" -> user,
-        "datePublished" -> Json.obj("$date" -> LocalDateTime.now.atZone(ZoneId.of("UTC")).toInstant.toEpochMilli)
+        "datePublished" -> Json.obj("$date" -> ZonedDateTime.now.toInstant.toEpochMilli)
       )
     )
 

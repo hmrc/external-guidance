@@ -16,7 +16,7 @@
 
 package repositories.formatters
 
-import java.time.{LocalDateTime, ZoneId}
+import java.time.{ZoneId, LocalDateTime}
 
 import base.UnitSpec
 import models.PublishedProcess
@@ -36,7 +36,7 @@ class PublishedProcessFormatterSpec extends UnitSpec {
        |{
        | "_id": "$id",
        | "version": 1,
-       | "datePublished": {"$$date": ${datePublished.atZone(ZoneId.of("UTC")).toInstant.toEpochMilli}},
+       | "datePublished": {"$$date": ${datePublished.atZone(ZoneId.of("Europe/London")).toInstant.toEpochMilli}},
        | "process": {},
        | "publishedBy": "user"
        |}
