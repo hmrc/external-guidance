@@ -17,19 +17,19 @@
 package repositories.formatters
 
 import java.util.UUID
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import models.{MongoDateTimeFormats, ScratchProcess}
 import play.api.libs.json.{JsObject, JsResult, JsValue, Json, OFormat, Format}
 
 object ScratchProcessFormatter {
 
-  implicit val dateFormat: Format[LocalDateTime] = MongoDateTimeFormats.localDateTimeFormats
+  implicit val dateFormat: Format[ZonedDateTime] = MongoDateTimeFormats.zonedDateTimeFormats
 
   val read: JsValue => JsResult[ScratchProcess] = json =>
     for {
       id <- (json \ "_id").validate[UUID]
       process <- (json \ "process").validate[JsObject]
-      expireAt <- (json \ "expireAt").validate[LocalDateTime]
+      expireAt <- (json \ "expireAt").validate[ZonedDateTime]
     } yield ScratchProcess(id, process, expireAt)
 
   val write: ScratchProcess => JsObject = scratchProcess =>
