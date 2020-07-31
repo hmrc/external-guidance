@@ -163,13 +163,13 @@ object ExamplePayloads {
       "Telling HMRC about extra income",
       LocalDate.of(2020, 5, 10),
       List(
-        PageReview("id1", "how did you earn extra income", "how-did-you-earn-extra-income", InitialPageReviewStatus),
-        PageReview("id2", "did you only sell personal possessions", "sold-goods-or-services/did-you-only-sell-personal-possessions", InitialPageReviewStatus),
-        PageReview("id3", "have you made a profit of 6000 ormore", "sold-goods-or-services/have-you-made-a-profit-of-6000-or-more", InitialPageReviewStatus),
-        PageReview("id4", "have you made 1000 or more", "sold-goods-or-services/have-you-made-1000-or-more", InitialPageReviewStatus),
-        PageReview("id5", "have you made 1000 or more", "sold-goods-or-services/you-do-not-need-to-tell-hmrc", InitialPageReviewStatus),
-        PageReview("id6", "do you receive any income", "rent-a-property/do-you-receive-any-income", InitialPageReviewStatus),
-        PageReview("id7", "have you rented out a room", "rent-a-property/have-you-rented-out-a-room", InitialPageReviewStatus)
+        PageReview("id1", "how did you earn extra income", "how-did-you-earn-extra-income", InitialPageReviewStatus, None),
+        PageReview("id2", "did you only sell personal possessions", "sold-goods-or-services/did-you-only-sell-personal-possessions", InitialPageReviewStatus, None),
+        PageReview("id3", "have you made a profit of 6000 ormore", "sold-goods-or-services/have-you-made-a-profit-of-6000-or-more", InitialPageReviewStatus, None),
+        PageReview("id4", "have you made 1000 or more", "sold-goods-or-services/have-you-made-1000-or-more", InitialPageReviewStatus, None),
+        PageReview("id5", "have you made 1000 or more", "sold-goods-or-services/you-do-not-need-to-tell-hmrc", InitialPageReviewStatus, None),
+        PageReview("id6", "do you receive any income", "rent-a-property/do-you-receive-any-income", InitialPageReviewStatus, None),
+        PageReview("id7", "have you rented out a room", "rent-a-property/have-you-rented-out-a-room", InitialPageReviewStatus, None)
       )
     )
 

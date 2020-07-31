@@ -59,8 +59,8 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       approvalProcessReviewComplete.title,
       approvalProcessReviewComplete.lastUpdated,
       List(
-        PageReview("1", "pageTitle1", "/pageUrl", ReviewCompleteStatus),
-        PageReview("2", "pageTitle2", "/pageUrl2", ReviewCompleteStatus)
+        PageReview("1", "pageTitle1", "/pageUrl", ReviewCompleteStatus, Some("Yes")),
+        PageReview("2", "pageTitle2", "/pageUrl2", ReviewCompleteStatus, Some("No"))
       )
     )
     val processReviewIncomplete: ApprovalProcessReview = ApprovalProcessReview(

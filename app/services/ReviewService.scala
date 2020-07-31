@@ -19,10 +19,11 @@ package services
 import javax.inject.{Inject, Singleton}
 import models._
 import models.errors._
+import models.ocelot.Process
 import play.api.Logger
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
 import utils.Constants._
-import models.ocelot.Process
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -160,7 +161,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
       case Left(Errors(NotFoundError :: Nil)) => Left(Errors(NotFoundError))
       case Left(_) => Left(Errors(InternalServiceError))
       case Right(info) =>
-        val pages: List[PageReview] = info.pages.map(p => PageReview(p.id, p.pageTitle, p.pageUrl, p.status))
+        val pages: List[PageReview] = info.pages.map(p => PageReview(p.id, p.pageTitle, p.pageUrl, p.status, p.result))
         Right(ProcessReview(info.id, info.ocelotId, info.version, info.reviewType, info.title, info.lastUpdated, pages))
     }
   }
