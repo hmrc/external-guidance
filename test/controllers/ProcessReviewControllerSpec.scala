@@ -293,6 +293,25 @@ class ProcessReviewControllerSpec extends WordSpec
         (data \ "code").as[String] shouldBe expectedErrorCode
       }
     }
+    "a bad request error occurs" should {
+
+      trait ErrorTest extends Test {
+        val expectedErrorCode = "BAD_REQUEST_ERROR"
+        MockReviewService
+          .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
+          .returns(Future.successful(Left(Errors(BadRequestError))))
+
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
+      }
+
+      "return a bad request error response" in new ErrorTest {
+        private val result = controller.approval2iReviewComplete(validProcessIdForReview)(request)
+        status(result) shouldBe BAD_REQUEST
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe expectedErrorCode
+      }
+    }
   }
 
   "Calling the approval2iReviewConfirmAllPagesReviewed action" when {

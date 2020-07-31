@@ -36,13 +36,13 @@ trait ReviewData {
       "Telling HMRC about extra income",
       LocalDate.of(2020, 5, 10),
       List(
-        PageReview("id1", "title1", "/how-did-you-earn-extra-income", InitialPageReviewStatus),
-        PageReview("id2", "title2", "sold-goods-or-services/did-you-only-sell-personal-possessions", InitialPageReviewStatus),
-        PageReview("id3", "title3", "sold-goods-or-services/have-you-made-a-profit-of-6000-or-more", InitialPageReviewStatus),
-        PageReview("id4", "title4", "sold-goods-or-services/have-you-made-1000-or-more", InitialPageReviewStatus),
-        PageReview("id5", "title5", "sold-goods-or-services/you-do-not-need-to-tell-hmrc", InitialPageReviewStatus),
-        PageReview("id6", "title6", "rent-a-property/do-you-receive-any-income", InitialPageReviewStatus),
-        PageReview("id7", "title7", "rent-a-property/have-you-rented-out-a-room", InitialPageReviewStatus)
+        PageReview("id1", "title1", "/how-did-you-earn-extra-income", InitialPageReviewStatus, None),
+        PageReview("id2", "title2", "sold-goods-or-services/did-you-only-sell-personal-possessions", InitialPageReviewStatus, None),
+        PageReview("id3", "title3", "sold-goods-or-services/have-you-made-a-profit-of-6000-or-more", InitialPageReviewStatus, None),
+        PageReview("id4", "title4", "sold-goods-or-services/have-you-made-1000-or-more", InitialPageReviewStatus, None),
+        PageReview("id5", "title5", "sold-goods-or-services/you-do-not-need-to-tell-hmrc", InitialPageReviewStatus, None),
+        PageReview("id6", "title6", "rent-a-property/do-you-receive-any-income", InitialPageReviewStatus, None),
+        PageReview("id7", "title7", "rent-a-property/have-you-rented-out-a-room", InitialPageReviewStatus, None)
       )
     )
   val reviewInfoJson: JsObject = Json.toJson(processReviewInfo).as[JsObject]
