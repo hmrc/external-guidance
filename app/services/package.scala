@@ -16,6 +16,12 @@
 
 import models.errors.{Errors, ValidationError}
 import java.util.UUID
+import models.RequestOutcome
+import models.ocelot.errors._
+import models.ocelot.{Page, Process}
+import models.errors.{ValidationError, Error => ExternalGuidanceError, _}
+import play.api.libs.json._
+import play.api.Logger
 
 package object services {
 
@@ -28,5 +34,24 @@ package object services {
     val format = "^[a-z]{3}[0-9]{5}$"
     if (id.matches(format)) Right(id) else Left(Errors(ValidationError))
   }
+  
+  def toProcessError(flowError: FlowError): ProcessError = flowError match {
+    case UnknownStanzaType(unknown) => ProcessError(s"Unsupported stanza $unknown found at id = ??", "")
+    case StanzaNotFound(id) => ProcessError(s"Missing stanza at id = $id", id)
+    case PageStanzaMissing(id) => ProcessError(s"PageSanza expected but missing at id = $id", id)
+    case PageUrlEmptyOrInvalid(id) => ProcessError(s"PageStanza URL empty or invalid at id = $id", id)
+    case PhraseNotFound(index) => ProcessError(s"Referenced phrase at index $index on stanza id = ?? is missing", "")
+    case LinkNotFound(index) => ProcessError(s"Referenced link at index $index on stanza id = ?? is missing" , "")
+    case DuplicatePageUrl(id, url) => ProcessError(s"Duplicate page url $url found on stanza id = $id", id)
+    case MissingWelshText(index, english) => ProcessError(s"Welsh text at index $index on stanza id = ?? is empty", "")
+  }
+
+  def toError(flowErrors: List[FlowError]): ExternalGuidanceError = ExternalGuidanceError(flowErrors.map(toProcessError).toList)
+
+  def toGuidancePages(pageBuilder: PageBuilder, jsValue: JsValue): RequestOutcome[(Process, Seq[Page])] =
+    jsValue.validate[Process].fold(err => {
+      Logger(getClass).error(s"Process validation has failed with error $err")
+      Left(Errors(ValidationError))
+      }, process => pageBuilder.pages(process).fold(err => Left(Errors(toError(List(err)))), p => Right((process,p))))
 
 }

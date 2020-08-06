@@ -17,23 +17,32 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
+import models.errors.{BadRequestError, ValidationError, Errors, InternalServiceError, NotFoundError, Error}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.ScratchService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
-
+import play.api.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton()
 class ScratchController @Inject() (scratchService: ScratchService, cc: ControllerComponents) extends BackendController(cc) {
+
+  val logger = Logger(getClass)
 
   def save(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     val process = request.body.as[JsObject]
 
     scratchService.save(process).map {
       case Right(id) => Created(Json.obj("id" -> id.toString))
-      case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
+      case Left(Errors(Error("UNSUPPORTABLE_ENTITY", _, Some(errors)) :: Nil)) => 
+        logger.error(s"Save on scratch service returned UNSUPPORTABLE_ENTITY error with $errors")
+        UnprocessableEntity(Json.toJson(Error(errors)))
+      case Left(Errors(ValidationError :: Nil)) => 
+        logger.error(s"Save on scratch service returned ValidationError")
+        BadRequest(Json.toJson(BadRequestError))
+      case Left(Errors(BadRequestError :: Nil)) => 
+        BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
     }
   }

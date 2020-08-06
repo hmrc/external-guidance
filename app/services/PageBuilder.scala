@@ -18,6 +18,7 @@ package services
 
 import javax.inject.Singleton
 import models.ocelot.stanzas._
+import models.ocelot.errors._
 import models.ocelot.{Page, Process}
 import play.api.Logger
 import scala.annotation.tailrec

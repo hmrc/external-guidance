@@ -18,7 +18,7 @@ package services
 
 import models.ocelot.stanzas._
 import models.ocelot.{Link, Phrase, Process}
-
+import models.ocelot.errors._
 import scala.annotation.tailrec
 
 trait ProcessPopulation {

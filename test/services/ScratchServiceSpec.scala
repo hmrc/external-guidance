@@ -21,6 +21,7 @@ import java.util.UUID
 import base.UnitSpec
 import mocks.MockScratchRepository
 import models.RequestOutcome
+import models.ocelot.errors._
 import models.errors._
 import models.ocelot.ProcessJson
 import play.api.libs.json.{JsObject, Json}
@@ -30,7 +31,7 @@ import scala.concurrent.Future
 class ScratchServiceSpec extends UnitSpec {
 
   private trait Test extends MockScratchRepository {
-    lazy val target: ScratchService = new ScratchService(mockScratchRepository)
+    lazy val target: ScratchService = new ScratchService(mockScratchRepository, new PageBuilder)
   }
 
   "Calling save method" when {
@@ -52,6 +53,21 @@ class ScratchServiceSpec extends UnitSpec {
       }
     }
 
+    "the JSON is valid but the process is not" should {
+      "return Unsupportable entity error" in new Test with ProcessJson {
+        val processError = toProcessError(DuplicatePageUrl("4","/feeling-bad"))
+        val expectedError = Error("UNSUPPORTABLE_ENTITY", None, Some(List(processError)))
+        val expected: RequestOutcome[Errors] = Left(Errors(expectedError))
+        val process: JsObject = data.ProcessData.invalidOnePageJson.as[JsObject]
+
+        whenReady(target.save(process)) {
+          case Right(_) => fail
+          case err if err == expected => succeed
+          case err => fail
+        }
+      }
+    }
+
     "the JSON is invalid" should {
       "not call the scratch repository" in new Test {
         val process: JsObject = Json.obj()
@@ -59,8 +75,8 @@ class ScratchServiceSpec extends UnitSpec {
         target.save(process)
       }
 
-      "return a bad request error" in new Test {
-        val expected: RequestOutcome[UUID] = Left(Errors(BadRequestError))
+      "return a validation error" in new Test {
+        val expected: RequestOutcome[UUID] = Left(Errors(ValidationError))
         val process: JsObject = Json.obj()
         MockScratchRepository
           .save(process)

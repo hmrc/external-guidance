@@ -19,7 +19,7 @@ package controllers
 import java.util.UUID
 
 import mocks.MockScratchService
-import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
+import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError, ProcessError, Error}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -90,6 +90,35 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe expectedErrorCode
       }
+    }
+
+    "the request is valid but the process is invalid" should {
+
+      trait InvalidSaveTest extends Test {
+        val processError = ProcessError("Duplicate url /feeling-bad at stand id = 4", "4")
+        val expectedError = Error("UNSUPPORTABLE_ENTITY", None, Some(List(processError)))
+        val process: JsObject = data.ProcessData.invalidOnePageJson.as[JsObject]
+        MockScratchService.save(process).returns(Future.successful(Left(Errors(expectedError))))
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(process)
+      }
+
+      "return a unsupportable entity response" in new InvalidSaveTest {
+        private val result = target.save()(request)
+        status(result) shouldBe UNPROCESSABLE_ENTITY
+      }
+
+      "return content as JSON" in new InvalidSaveTest {
+        private val result = target.save()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return an error code of UNPROCESSABLE_ENTITY" in new InvalidSaveTest {
+        private val result = target.save()(request)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe "UNSUPPORTABLE_ENTITY"
+        println(contentAsString(result))
+      }
+
     }
 
     "a downstream error occurs" should {

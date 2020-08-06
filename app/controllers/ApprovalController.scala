@@ -18,15 +18,15 @@ package controllers
 
 import controllers.actions.IdentifierAction
 import javax.inject.{Inject, Singleton}
-import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
+import models.errors.{BadRequestError, ValidationError, Errors, InternalServiceError, NotFoundError, Error}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ApprovalService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils.Constants._
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import models.errors._
 
 @Singleton
 class ApprovalController @Inject() (
@@ -45,6 +45,8 @@ class ApprovalController @Inject() (
   def saveProcess(process: JsObject, reviewType: String): Future[Result] = {
     approvalService.save(process, reviewType, StatusSubmitted).map {
       case Right(id) => Created(Json.obj("id" -> id))
+      case Left(Errors(Error("UNSUPPORTABLE_ENTITY", _, Some(errors)) :: Nil)) => UnprocessableEntity(Json.toJson(Error(errors)))
+      case Left(Errors(ValidationError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
       case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
     }

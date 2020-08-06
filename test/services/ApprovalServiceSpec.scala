@@ -202,8 +202,8 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
         service.save(invalidProcess, ReviewType2i, StatusSubmittedFor2iReview)
       }
 
-      "return a bad request error" in new Test {
-        val expected: RequestOutcome[String] = Left(Errors(BadRequestError))
+      "return a validation error" in new Test {
+        val expected: RequestOutcome[String] = Left(Errors(ValidationError))
 
         whenReady(service.save(invalidProcess, ReviewType2i, StatusSubmittedFor2iReview)) {
           case result @ Left(_) => result shouldBe expected

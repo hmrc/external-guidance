@@ -16,52 +16,32 @@
 
 package models.errors
 
-import play.api.libs.json._
+import play.api.libs.json.{Json, OFormat}
 
-case class Error(code: String, message: String)
+case class ProcessError(message: String, stanzaId: String)
 
-object Error {
-  implicit val writes: Writes[Error] = Json.writes[Error]
+object ProcessError {
+  implicit val formats: OFormat[ProcessError] = Json.format[ProcessError]
 }
 
-object InternalServiceError
-    extends Error(
-      "INTERNAL_SERVER_ERROR",
-      "An error occurred whilst processing your request."
-    )
+case class Error(code: String, message: Option[String], messages: Option[List[ProcessError]])
 
-object DatabaseError
-    extends Error(
-      "DATABASE_ERROR",
-      "An error occurred whilst accessing the database."
-    )
+object Error {
+  def apply(code: String, message: String): Error = Error(code, Some(message), None)
+  def apply(messages: List[ProcessError] ): Error = Error("UNSUPPORTABLE_ENTITY", None, Some(messages))
 
-object NotFoundError
-    extends Error(
-      "NOT_FOUND_ERROR",
-      "The resource requested could not be found."
-    )
+  implicit val formats: OFormat[Error] = Json.format[Error]
 
-object StaleDataError
-    extends Error(
-      "STALE_DATA_ERROR",
-      "The resource requested has been changed."
-    )
+}
 
-object BadRequestError
-    extends Error(
-      "BAD_REQUEST_ERROR",
-      "The request is invalid."
-    )
+object InternalServiceError extends Error("INTERNAL_SERVER_ERROR", Some("An error occurred whilst processing your request."), None)
+object DatabaseError extends Error("DATABASE_ERROR", Some("An error occurred whilst accessing the database."), None)
+object ValidationError extends Error("VALIDATION_ERROR", Some("Input data failed validation test."), None)
+object InvalidProcessError extends Error("BAD_REQUEST", Some("The input process is invalid"), None)
+object InternalServerError extends Error("INTERNAL_SERVER_ERROR", Some("An unexpected error has occurred"), None)
+object NotFoundError extends Error("NOT_FOUND_ERROR", Some("The resource requested could not be found."), None)
+object StaleDataError extends Error("STALE_DATA_ERROR", Some("The resource requested has been changed elsewhere."), None)
+object MalformedResponseError extends Error("BAD_REQUEST", Some("The response received could not be parsed"), None)
+object BadRequestError extends Error("BAD_REQUEST_ERROR", Some("The request is invalid."), None)
+object IncompleteDataError extends Error("INCOMPLETE_DATA_ERROR",Some("Data is not in the required state for the requested action."), None)
 
-object ValidationError
-    extends Error(
-      "VALIDATION_ERROR",
-      "Input data failed validation test."
-    )
-
-object IncompleteDataError
-  extends Error(
-    "INCOMPLETE_DATA_ERROR",
-    "Data is not in the required state for the requested action."
-  )

@@ -17,6 +17,7 @@
 package services
 
 import base.UnitSpec
+import models.ocelot.errors._
 import models.ocelot.stanzas._
 import models.ocelot.{Page, _}
 import play.api.libs.json._

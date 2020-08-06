@@ -21,33 +21,24 @@ import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import models.RequestOutcome
 import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
-import models.ocelot.Process
-import play.api.Logger
-import play.api.libs.json.{JsError, JsObject, JsSuccess}
+import play.api.libs.json.JsObject
 import repositories.ScratchRepository
-
+import play.api.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ScratchService @Inject() (repository: ScratchRepository) {
+class ScratchService @Inject() (repository: ScratchRepository, pageBuilder: PageBuilder) {
+  val logger = Logger(getClass)
 
-  private val logger: Logger = Logger(this.getClass)
-
-  def save(process: JsObject): Future[RequestOutcome[UUID]] = {
-
-    def saveProcess(process: JsObject): Future[RequestOutcome[UUID]] = repository.save(process) map {
-      case Left(_) => Left(Errors(InternalServiceError))
-      case result => result
-    }
-
-    process.validate[Process] match {
-      case JsSuccess(_, _) => saveProcess(process)
-      case JsError(errors) =>
-        logger.warn(s"Parsing process failed with the following error(s): $errors")
-        Future { Left(Errors(BadRequestError)) }
-    }
-  }
+  def save(process: JsObject): Future[RequestOutcome[UUID]] =
+    toGuidancePages(pageBuilder, process).fold(
+      err => Future.successful(Left(err)),
+       _ => repository.save(process).map{
+        case Left(_) => Left(Errors(InternalServiceError))
+        case result => result
+      }
+    )
 
   def getById(id: String): Future[RequestOutcome[JsObject]] = {
 
