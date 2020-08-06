@@ -18,20 +18,18 @@ package models.errors
 
 import play.api.libs.json.{Json, OFormat}
 
-case class ProcessError(message: String, stanzaId: String)
+case class ErrorDetails(message: String, stanzaId: String)
+case class Error(code: String, message: Option[String], messages: Option[List[ErrorDetails]])
 
-object ProcessError {
-  implicit val formats: OFormat[ProcessError] = Json.format[ProcessError]
+object ErrorDetails {
+  implicit val formats: OFormat[ErrorDetails] = Json.format[ErrorDetails]
 }
-
-case class Error(code: String, message: Option[String], messages: Option[List[ProcessError]])
 
 object Error {
   def apply(code: String, message: String): Error = Error(code, Some(message), None)
-  def apply(messages: List[ProcessError] ): Error = Error("UNSUPPORTABLE_ENTITY", None, Some(messages))
+  def apply(messages: List[ErrorDetails] ): Error = Error("UNSUPPORTABLE_ENTITY", None, Some(messages))
 
   implicit val formats: OFormat[Error] = Json.format[Error]
-
 }
 
 object InternalServiceError extends Error("INTERNAL_SERVER_ERROR", Some("An error occurred whilst processing your request."), None)

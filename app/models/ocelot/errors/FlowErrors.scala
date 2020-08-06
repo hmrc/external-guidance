@@ -16,17 +16,43 @@
 
 package models.ocelot.errors
 
+import models.errors.ErrorDetails
 import models.ocelot.stanzas.Stanza
 
 trait FlowError {
-  val msgKey: String
+  //val msgKey: String
+  val details: ErrorDetails
 }
 
-case class UnknownStanzaType(unknown: Stanza) extends FlowError {val msgKey: String = "error.unsupportedStanza"}
-case class StanzaNotFound(id: String) extends FlowError {val msgKey: String = "error.stanzaMissing"}
-case class PageStanzaMissing(id: String) extends FlowError {val msgKey: String = "error.pageStanzaMissing"}
-case class PageUrlEmptyOrInvalid(id: String) extends FlowError {val msgKey: String = "error.invalidUrl"}
-case class PhraseNotFound(index: Int) extends FlowError {val msgKey: String = "error.phraseNotFound"}
-case class LinkNotFound(index: Int) extends FlowError {val msgKey: String = "error.linkNotFound"}
-case class DuplicatePageUrl(id: String, url: String) extends FlowError {val msgKey: String = "error.duplicateUrl"}
-case class MissingWelshText(index: String, english: String) extends FlowError {val msgKey: String = "error.welshMissing"}
+case class UnknownStanzaType(unknown: Stanza) extends FlowError {
+  val msgKey: String = "error.unsupportedStanza"
+  val details: ErrorDetails = ErrorDetails(s"Unsupported stanza $unknown found at id = ??", "")
+}
+case class StanzaNotFound(id: String) extends FlowError {
+  val msgKey: String = "error.stanzaMissing"
+  val details: ErrorDetails = ErrorDetails(s"Missing stanza at id = $id", id)
+}
+case class PageStanzaMissing(id: String) extends FlowError {
+  val msgKey: String = "error.pageStanzaMissing"
+  val details: ErrorDetails = ErrorDetails(s"PageSanza expected but missing at id = $id", id)
+}
+case class PageUrlEmptyOrInvalid(id: String) extends FlowError {
+  val msgKey: String = "error.invalidUrl"
+  val details: ErrorDetails = ErrorDetails(s"PageStanza URL empty or invalid at id = $id", id)
+}
+case class PhraseNotFound(index: Int) extends FlowError {
+  val msgKey: String = "error.phraseNotFound"
+  val details: ErrorDetails = ErrorDetails(s"Referenced phrase at index $index on stanza id = ?? is missing", "")
+}
+case class LinkNotFound(index: Int) extends FlowError {
+  val msgKey: String = "error.linkNotFound"
+  val details: ErrorDetails = ErrorDetails(s"Referenced link at index $index on stanza id = ?? is missing" , "")
+}
+case class DuplicatePageUrl(id: String, url: String) extends FlowError {
+  val msgKey: String = "error.duplicateUrl"
+  val details: ErrorDetails = ErrorDetails(s"Duplicate page url $url found on stanza id = $id", id)
+}
+case class MissingWelshText(index: String, english: String) extends FlowError {
+  val msgKey: String = "error.welshMissing"
+  val details: ErrorDetails = ErrorDetails(s"Welsh text at index $index on stanza id = ?? is empty", "")
+}
