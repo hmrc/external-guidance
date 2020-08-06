@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-import models.errors.{Errors, ValidationError}
+import models.errors.{Error, Errors, ValidationError}
 import java.util.UUID
 import models.RequestOutcome
-import models.ocelot.errors._
 import models.ocelot.{Page, Process}
 import play.api.libs.json._
 import play.api.Logger
@@ -38,6 +37,6 @@ package object services {
     jsValue.validate[Process].fold(err => {
       Logger(getClass).error(s"Process validation has failed with error $err")
       Left(Errors(ValidationError))
-      }, process => pageBuilder.pages(process).fold(err => Left(Errors(toError(List(err)))), p => Right((process,p))))
+      }, process => pageBuilder.pages(process).fold(err => Left(Errors(Error(List(err)))), p => Right((process,p))))
 
 }
