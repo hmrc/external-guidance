@@ -19,7 +19,7 @@ package models.errors
 import play.api.libs.json.{Json, OFormat}
 import models.ocelot.errors._
 
-case class ErrorDetail(message: String, stanzaId: String)
+case class ErrorDetail(message: String, stanza: String)
 
 object ErrorDetail {
   implicit val formats: OFormat[ErrorDetail] = Json.format[ErrorDetail]

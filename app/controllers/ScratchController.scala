@@ -35,15 +35,14 @@ class ScratchController @Inject() (scratchService: ScratchService, cc: Controlle
 
     scratchService.save(process).map {
       case Right(id) => Created(Json.obj("id" -> id.toString))
-      case Left(err) if err.code == Error.UnprocessableEntity => 
+      case Left(err @ Error(Error.UnprocessableEntity, _, details)) => 
         logger.error(s"Save on scratch service returned UNSUPPORTABLE_ENTITY")
-        err.messages.foreach(det => logger.error(s"ErrorDetail: ${det}"))
+        details.map(_.foreach(det => logger.error(s"ErrorDetail: ${det}")))
         UnprocessableEntity(Json.toJson(err))
       case Left(ValidationError) => 
         logger.error(s"Save on scratch service returned ValidationError")
         BadRequest(Json.toJson(BadRequestError))
-      case Left(BadRequestError) => 
-        BadRequest(Json.toJson(BadRequestError))
+      case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
     }
   }

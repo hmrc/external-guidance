@@ -45,7 +45,7 @@ class ApprovalController @Inject() (
   def saveProcess(process: JsObject, reviewType: String): Future[Result] = {
     approvalService.save(process, reviewType, StatusSubmitted).map {
       case Right(id) => Created(Json.obj("id" -> id))
-      case Left(err) if err.code == Error.UnprocessableEntity => UnprocessableEntity(Json.toJson(err))
+      case Left(err @ Error(Error.UnprocessableEntity, _, _)) => UnprocessableEntity(Json.toJson(err))
       case Left(ValidationError) => BadRequest(Json.toJson(BadRequestError))
       case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
