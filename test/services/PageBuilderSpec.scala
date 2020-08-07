@@ -496,11 +496,11 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
   "When parsing a process" should  {
     "determine the page title" in new Test {
 
-      import models.ApprovalProcessPageReview
+      case class Dummy(id: String, pageUrl: String, pageTitle: String)
 
       pageBuilder.pages(processWithCallouts) match {
         case Right(pages) =>
-          val pageInfo = pageBuilder.fromPageDetails(pages)(ApprovalProcessPageReview(_,_,_))
+          val pageInfo = pageBuilder.fromPageDetails(pages)(Dummy(_,_,_))
 
           pageInfo shouldNot be(Nil)
           pageInfo.length shouldBe 7

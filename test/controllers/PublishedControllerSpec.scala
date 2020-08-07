@@ -21,7 +21,7 @@ import java.time.LocalDateTime
 import base.UnitSpec
 import mocks.MockPublishedService
 import models.PublishedProcess
-import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
+import models.errors.{BadRequestError, InternalServiceError, NotFoundError}
 import models.ocelot.ProcessJson
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.ContentTypes
@@ -86,7 +86,7 @@ class PublishedControllerSpec extends UnitSpec with GuiceOneAppPerSuite with Pro
 
         MockPublishedService
           .getById(invalidId)
-          .returns(Future.successful(Left(Errors(BadRequestError))))
+          .returns(Future.successful(Left(BadRequestError)))
 
       }
 
@@ -119,7 +119,7 @@ class PublishedControllerSpec extends UnitSpec with GuiceOneAppPerSuite with Pro
 
         MockPublishedService
           .getById(validId)
-          .returns(Future.successful(Left(Errors(NotFoundError))))
+          .returns(Future.successful(Left(NotFoundError)))
       }
 
       "return a resource not found response" in new NotFoundTest {
@@ -151,7 +151,7 @@ class PublishedControllerSpec extends UnitSpec with GuiceOneAppPerSuite with Pro
 
         MockPublishedService
           .getById(validId)
-          .returns(Future.successful(Left(Errors(InternalServiceError))))
+          .returns(Future.successful(Left(InternalServiceError)))
       }
 
       "return an internal server error response" in new InternalServiceErrorTest {

@@ -17,7 +17,7 @@
 package services
 
 import javax.inject.{Inject, Singleton}
-import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
+import models.errors.{BadRequestError, InternalServiceError, NotFoundError}
 import models.{PublishedProcess, RequestOutcome}
 import models.ocelot.Process
 import play.api.Logger
@@ -35,8 +35,8 @@ class PublishedService @Inject() (repository: PublishedRepository) {
   def getById(id: String): Future[RequestOutcome[PublishedProcess]] = {
 
     def getProcess(id: String): Future[RequestOutcome[PublishedProcess]] = repository.getById(id) map {
-      case error @ Left(Errors(Seq(NotFoundError))) => error
-      case Left(_) => Left(Errors(InternalServiceError))
+      case error @ Left(NotFoundError) => error
+      case Left(_) => Left(InternalServiceError)
       case result => result
     }
 
@@ -44,7 +44,7 @@ class PublishedService @Inject() (repository: PublishedRepository) {
       case Right(id) => getProcess(id)
       case Left(_) =>
         logger.error(s"Invalid process id submitted to method getById. The requested id was $id")
-        Future.successful(Left(Errors(BadRequestError)))
+        Future.successful(Left(BadRequestError))
     }
   }
 
@@ -54,13 +54,13 @@ class PublishedService @Inject() (repository: PublishedRepository) {
       repository.save(id, user, jsonProcess) map {
         case Left(_) =>
           logger.error(s"Request to publish $id has failed")
-          Left(Errors(InternalServiceError))
+          Left(InternalServiceError)
         case result => result
       }
 
     jsonProcess.validate[Process].fold(_ => {
       logger.error(s"Publish process $id has failed - invalid process passed in")
-      Future.successful(Left(Errors(BadRequestError)))
+      Future.successful(Left(BadRequestError))
     },_ => saveProcess)
 
   }

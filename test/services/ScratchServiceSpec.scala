@@ -55,9 +55,9 @@ class ScratchServiceSpec extends UnitSpec {
 
     "the JSON is valid but the process is not" should {
       "return Unsupportable entity error" in new Test with ProcessJson {
-        val errorDetails: ErrorDetails = DuplicatePageUrl("4","/feeling-bad")
-        val expectedError = Error("UNSUPPORTABLE_ENTITY", None, Some(List(errorDetails)))
-        val expected: RequestOutcome[Errors] = Left(Errors(expectedError))
+        val errorDetails: ErrorDetail = DuplicatePageUrl("4","/feeling-bad")
+        val expectedError = Error(List(errorDetails))
+        val expected: RequestOutcome[Error] = Left(expectedError)
         val process: JsObject = data.ProcessData.invalidOnePageJson.as[JsObject]
 
         whenReady(target.save(process)) {
@@ -76,7 +76,7 @@ class ScratchServiceSpec extends UnitSpec {
       }
 
       "return a validation error" in new Test {
-        val expected: RequestOutcome[UUID] = Left(Errors(ValidationError))
+        val expected: RequestOutcome[UUID] = Left(ValidationError)
         val process: JsObject = Json.obj()
         MockScratchRepository
           .save(process)
@@ -91,8 +91,8 @@ class ScratchServiceSpec extends UnitSpec {
 
     "a database error occurs" should {
       "return a internal error" in new Test with ProcessJson {
-        val repositoryResponse: RequestOutcome[UUID] = Left(Errors(DatabaseError))
-        val expected: RequestOutcome[UUID] = Left(Errors(InternalServiceError))
+        val repositoryResponse: RequestOutcome[UUID] = Left(DatabaseError)
+        val expected: RequestOutcome[UUID] = Left(InternalServiceError)
         val process: JsObject = validOnePageJson.as[JsObject]
         MockScratchRepository
           .save(process)
@@ -124,7 +124,7 @@ class ScratchServiceSpec extends UnitSpec {
 
     "the ID is valid but unknown" should {
       "return a not found error" in new Test {
-        val expected: RequestOutcome[JsObject] = Left(Errors(NotFoundError))
+        val expected: RequestOutcome[JsObject] = Left(NotFoundError)
         val id: UUID = UUID.randomUUID()
         MockScratchRepository
           .getById(id)
@@ -138,7 +138,7 @@ class ScratchServiceSpec extends UnitSpec {
 
     "the ID is invalid" should {
       "return a bad request error" in new Test {
-        val expected: RequestOutcome[JsObject] = Left(Errors(BadRequestError))
+        val expected: RequestOutcome[JsObject] = Left(BadRequestError)
         val id: String = "Some invalid ID"
 
         whenReady(target.getById(id)) { result =>
@@ -149,8 +149,8 @@ class ScratchServiceSpec extends UnitSpec {
 
     "a database error occurs" should {
       "return a internal error" in new Test {
-        val repositoryResponse: RequestOutcome[JsObject] = Left(Errors(DatabaseError))
-        val expected: RequestOutcome[JsObject] = Left(Errors(InternalServiceError))
+        val repositoryResponse: RequestOutcome[JsObject] = Left(DatabaseError)
+        val expected: RequestOutcome[JsObject] = Left(InternalServiceError)
         val id: UUID = UUID.randomUUID()
         MockScratchRepository
           .getById(id)

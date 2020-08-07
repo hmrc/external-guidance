@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import models.errors.Errors
+import models.errors.Error
 
 package object models {
-  type RequestOutcome[T] = Either[Errors, T]
+  type RequestOutcome[T] = Either[Error, T]
 }

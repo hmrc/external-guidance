@@ -19,7 +19,7 @@ package repositories
 import java.time.{LocalDateTime, ZoneId}
 
 import javax.inject.{Inject, Singleton}
-import models.errors.{DatabaseError, Errors, NotFoundError}
+import models.errors.{DatabaseError, NotFoundError}
 import models.{PublishedProcess, RequestOutcome}
 import play.api.libs.json.{Format, JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
@@ -68,7 +68,7 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
       .recover {
         case error =>
           logger.error(s"Attempt to persist process $id to collection published failed with error : ${error.getMessage}")
-          Left(Errors(DatabaseError))
+          Left(DatabaseError)
       }
     //$COVERAGE-ON$
   }
@@ -78,13 +78,13 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
     findById(id)
       .map {
         case Some(publishedProcess) => Right(publishedProcess)
-        case None => Left(Errors(NotFoundError))
+        case None => Left(NotFoundError)
       }
       //$COVERAGE-OFF$
       .recover {
         case error =>
           logger.error(s"Attempt to retrieve process $id from collection published failed with error : ${error.getMessage}")
-          Left(Errors(DatabaseError))
+          Left(DatabaseError)
       }
     //$COVERAGE-ON$
   }

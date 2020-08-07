@@ -17,7 +17,7 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-import models.errors.{BadRequestError, ValidationError, Errors, InternalServiceError, NotFoundError, Error}
+import models.errors.{BadRequestError, ValidationError, Error, InternalServiceError, NotFoundError}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.ScratchService
@@ -35,13 +35,14 @@ class ScratchController @Inject() (scratchService: ScratchService, cc: Controlle
 
     scratchService.save(process).map {
       case Right(id) => Created(Json.obj("id" -> id.toString))
-      case Left(Errors(Error("UNSUPPORTABLE_ENTITY", _, Some(errors)) :: Nil)) => 
-        logger.error(s"Save on scratch service returned UNSUPPORTABLE_ENTITY error with $errors")
-        UnprocessableEntity(Json.toJson(Error(errors)))
-      case Left(Errors(ValidationError :: Nil)) => 
+      case Left(err) if err.code == Error.UnprocessableEntity => 
+        logger.error(s"Save on scratch service returned UNSUPPORTABLE_ENTITY")
+        err.messages.foreach(det => logger.error(s"ErrorDetail: ${det}"))
+        UnprocessableEntity(Json.toJson(err))
+      case Left(ValidationError) => 
         logger.error(s"Save on scratch service returned ValidationError")
         BadRequest(Json.toJson(BadRequestError))
-      case Left(Errors(BadRequestError :: Nil)) => 
+      case Left(BadRequestError) => 
         BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
     }
@@ -50,8 +51,8 @@ class ScratchController @Inject() (scratchService: ScratchService, cc: Controlle
   def get(id: String): Action[AnyContent] = Action.async { _ =>
     scratchService.getById(id).map {
       case Right(process) => Ok(process)
-      case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
-      case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
+      case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
+      case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
     }
   }

@@ -18,7 +18,7 @@ package controllers
 
 import controllers.actions.FakeIdentifierAction
 import mocks.MockApprovalService
-import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
+import models.errors.{BadRequestError, InternalServiceError, NotFoundError}
 import models.{ApprovalProcess, ApprovalProcessJson}
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -77,7 +77,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
         val expectedErrorCode = "BAD_REQUEST_ERROR"
         MockApprovalService
           .save(invalidProcess)
-          .returns(Future.successful(Left(Errors(BadRequestError))))
+          .returns(Future.successful(Left(BadRequestError)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidProcess)
       }
@@ -105,7 +105,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockApprovalService
           .save(invalidProcess)
-          .returns(Future.successful(Left(Errors(InternalServiceError))))
+          .returns(Future.successful(Left(InternalServiceError)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidProcess)
       }
@@ -164,7 +164,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
         val expectedErrorCode = "BAD_REQUEST_ERROR"
         MockApprovalService
           .save(invalidProcess, ReviewTypeFactCheck)
-          .returns(Future.successful(Left(Errors(BadRequestError))))
+          .returns(Future.successful(Left(BadRequestError)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidProcess)
       }
@@ -192,7 +192,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockApprovalService
           .save(invalidProcess, ReviewTypeFactCheck)
-          .returns(Future.successful(Left(Errors(InternalServiceError))))
+          .returns(Future.successful(Left(InternalServiceError)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidProcess)
       }
@@ -250,7 +250,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
         val expectedErrorCode = "BAD_REQUEST_ERROR"
         MockApprovalService
           .getById(invalidId)
-          .returns(Future.successful(Left(Errors(BadRequestError))))
+          .returns(Future.successful(Left(BadRequestError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
@@ -278,7 +278,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
         val expectedErrorCode = "NOT_FOUND_ERROR"
         MockApprovalService
           .getById(validId)
-          .returns(Future.successful(Left(Errors(NotFoundError))))
+          .returns(Future.successful(Left(NotFoundError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
@@ -306,7 +306,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockApprovalService
           .getById(validId)
-          .returns(Future.successful(Left(Errors(InternalServiceError))))
+          .returns(Future.successful(Left(InternalServiceError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
@@ -358,7 +358,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockApprovalService
           .approvalSummaryList(List("FactChecker", "2iReviewer"))
-          .returns(Future.successful(Left(Errors(InternalServiceError))))
+          .returns(Future.successful(Left(InternalServiceError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "")
       }

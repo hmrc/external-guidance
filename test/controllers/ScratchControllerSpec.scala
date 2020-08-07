@@ -19,7 +19,7 @@ package controllers
 import java.util.UUID
 
 import mocks.MockScratchService
-import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError, Error, ErrorDetails}
+import models.errors.{BadRequestError, Error, InternalServiceError, NotFoundError, ErrorDetail}
 import models.ocelot.errors._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
@@ -72,7 +72,7 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
       trait InvalidSaveTest extends Test {
         val expectedErrorCode = "BAD_REQUEST_ERROR"
         val process: JsObject = Json.obj()
-        MockScratchService.save(process).returns(Future.successful(Left(Errors(BadRequestError))))
+        MockScratchService.save(process).returns(Future.successful(Left(BadRequestError)))
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(process)
       }
 
@@ -96,10 +96,10 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
     "the request is valid but the process is invalid" should {
 
       trait InvalidSaveTest extends Test {
-        val processError: ErrorDetails = DuplicatePageUrl("4", "/feeling-bad")
-        val expectedError = Error("UNSUPPORTABLE_ENTITY", None, Some(List(processError)))
+        val processError: ErrorDetail = DuplicatePageUrl("4", "/feeling-bad")
+        val expectedError = Error(List(processError))
         val process: JsObject = data.ProcessData.invalidOnePageJson.as[JsObject]
-        MockScratchService.save(process).returns(Future.successful(Left(Errors(expectedError))))
+        MockScratchService.save(process).returns(Future.successful(Left(expectedError)))
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(process)
       }
 
@@ -116,7 +116,7 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
       "return an error code of UNPROCESSABLE_ENTITY" in new InvalidSaveTest {
         private val result = target.save()(request)
         private val data = contentAsJson(result).as[JsObject]
-        (data \ "code").as[String] shouldBe "UNSUPPORTABLE_ENTITY"
+        (data \ "code").as[String] shouldBe Error.UnprocessableEntity
         println(contentAsString(result))
       }
 
@@ -127,7 +127,7 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
       trait ErrorSaveTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         val process: JsObject = Json.obj()
-        MockScratchService.save(process).returns(Future.successful(Left(Errors(InternalServiceError))))
+        MockScratchService.save(process).returns(Future.successful(Left(InternalServiceError)))
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(process)
       }
 
@@ -180,7 +180,7 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
 
       trait InvalidGetTest extends Test {
         val expectedErrorCode = "BAD_REQUEST_ERROR"
-        MockScratchService.getById(id).returns(Future.successful(Left(Errors(BadRequestError))))
+        MockScratchService.getById(id).returns(Future.successful(Left(BadRequestError)))
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
 
@@ -205,7 +205,7 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
 
       trait NotFoundGetTest extends Test {
         val expectedErrorCode = "NOT_FOUND_ERROR"
-        MockScratchService.getById(id).returns(Future.successful(Left(Errors(NotFoundError))))
+        MockScratchService.getById(id).returns(Future.successful(Left(NotFoundError)))
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
 
@@ -230,7 +230,7 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
 
       trait ErrorGetTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
-        MockScratchService.getById(id).returns(Future.successful(Left(Errors(InternalServiceError))))
+        MockScratchService.getById(id).returns(Future.successful(Left(InternalServiceError)))
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
 

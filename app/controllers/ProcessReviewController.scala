@@ -46,9 +46,9 @@ class ProcessReviewController @Inject() (
   private def getReviewInfo(id: String, reviewType: String): Future[Result] = {
     reviewService.approvalReviewInfo(id, reviewType).map {
       case Right(data) => Ok(Json.toJson(data).as[JsObject])
-      case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
-      case Left(Errors(StaleDataError :: Nil)) => NotFound(Json.toJson(StaleDataError))
-      case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
+      case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
+      case Left(StaleDataError) => NotFound(Json.toJson(StaleDataError))
+      case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
     }
   }
@@ -56,9 +56,9 @@ class ProcessReviewController @Inject() (
   def approval2iReviewConfirmAllPagesReviewed(id: String): Action[AnyContent] = twoEyeReviewerIdentifierAction.async { _ =>
     reviewService.checkProcessInCorrectStateForCompletion(id, ReviewType2i).map {
       case Right(_) => NoContent
-      case Left(Errors(IncompleteDataError :: Nil)) => BadRequest(Json.toJson(IncompleteDataError))
-      case Left(Errors(StaleDataError :: Nil)) => NotFound(Json.toJson(StaleDataError))
-      case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
+      case Left(IncompleteDataError) => BadRequest(Json.toJson(IncompleteDataError))
+      case Left(StaleDataError) => NotFound(Json.toJson(StaleDataError))
+      case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
       case Left(errors) => InternalServerError(Json.toJson(errors))
     }
   }
@@ -67,10 +67,10 @@ class ProcessReviewController @Inject() (
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
       reviewService.twoEyeReviewComplete(id, statusChangeInfo).map {
         case Right(auditInfo) => Ok(Json.toJson(auditInfo))
-        case Left(Errors(IncompleteDataError :: Nil)) => BadRequest(Json.toJson(IncompleteDataError))
-        case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
-        case Left(Errors(StaleDataError :: Nil)) => NotFound(Json.toJson(StaleDataError))
-        case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
+        case Left(IncompleteDataError) => BadRequest(Json.toJson(IncompleteDataError))
+        case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
+        case Left(StaleDataError) => NotFound(Json.toJson(StaleDataError))
+        case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
         case Left(errors) => InternalServerError(Json.toJson(errors))
       }
     }
@@ -84,10 +84,10 @@ class ProcessReviewController @Inject() (
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
       reviewService.factCheckComplete(id, statusChangeInfo).map {
         case Right(auditInfo) => Ok(Json.toJson(auditInfo))
-        case Left(Errors(IncompleteDataError :: Nil)) => BadRequest(Json.toJson(IncompleteDataError))
-        case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
-        case Left(Errors(StaleDataError :: Nil)) => NotFound(Json.toJson(StaleDataError))
-        case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
+        case Left(IncompleteDataError) => BadRequest(Json.toJson(IncompleteDataError))
+        case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
+        case Left(StaleDataError) => NotFound(Json.toJson(StaleDataError))
+        case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
         case Left(errors) => InternalServerError(Json.toJson(errors))
       }
     }
@@ -109,9 +109,9 @@ class ProcessReviewController @Inject() (
   private def pageReviewInfo(id: String, pageUrl: String, reviewType: String): Future[Result] = {
     reviewService.approvalPageInfo(id, s"/$pageUrl", reviewType).map {
       case Right(data) => Ok(Json.toJson(data).as[JsObject])
-      case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
-      case Left(Errors(StaleDataError :: Nil)) => NotFound(Json.toJson(StaleDataError))
-      case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
+      case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
+      case Left(StaleDataError) => NotFound(Json.toJson(StaleDataError))
+      case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
     }
   }
@@ -128,7 +128,7 @@ class ProcessReviewController @Inject() (
     def save(reviewInfo: ApprovalProcessPageReview): Future[Result] =
       reviewService.approvalPageComplete(id, s"/$pageUrl", reviewType, reviewInfo).map {
         case Right(_) => NoContent
-        case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
+        case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
         case Left(errors) => InternalServerError(Json.toJson(errors))
       }
 

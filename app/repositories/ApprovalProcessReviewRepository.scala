@@ -20,7 +20,7 @@ import java.time.{LocalDateTime, ZoneId}
 import java.util.UUID
 
 import javax.inject.{Inject, Singleton}
-import models.errors.{DatabaseError, Errors, NotFoundError}
+import models.errors.{DatabaseError, NotFoundError}
 import models.{ApprovalProcessPageReview, ApprovalProcessReview, RequestOutcome}
 import play.api.libs.json.{Format, JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
@@ -67,7 +67,7 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
       .recover {
         case error =>
           logger.error(s"Attempt to persist process ${review.id} to collection published failed with error : ${error.getMessage}")
-          Left(Errors(DatabaseError))
+          Left(DatabaseError)
       }
     //$COVERAGE-ON$
   }
@@ -81,13 +81,13 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
       .one[ApprovalProcessReview]
       .map {
         case Some(review) => Right(review)
-        case None => Left(Errors(NotFoundError))
+        case None => Left(NotFoundError)
       }
       //$COVERAGE-OFF$
       .recover {
         case error =>
           logger.error(s"Attempt to retrieve review $id and version $version from collection $collectionName failed with error : ${error.getMessage}")
-          Left(Errors(DatabaseError))
+          Left(DatabaseError)
       }
     //$COVERAGE-ON$
   }
@@ -114,7 +114,7 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
       .recover {
         case error =>
           logger.error(s"Attempt to update page review $id and pageUrl $pageUrl from collection $collectionName failed with error : ${error.getMessage}")
-          Left(Errors(DatabaseError))
+          Left(DatabaseError)
       }
     //$COVERAGE-ON$
   }
@@ -139,7 +139,7 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
       .recover {
         case error =>
           logger.error(s"Attempt to update review $id from collection $collectionName failed with error : ${error.getMessage}")
-          Left(Errors(DatabaseError))
+          Left(DatabaseError)
       }
     //$COVERAGE-ON$
   }

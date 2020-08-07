@@ -18,16 +18,14 @@ package models.errors
 
 import play.api.libs.json.{Json, OFormat}
 
-case class ErrorDetails(message: String, stanzaId: String)
-case class Error(code: String, message: Option[String], messages: Option[List[ErrorDetails]])
-
-object ErrorDetails {
-  implicit val formats: OFormat[ErrorDetails] = Json.format[ErrorDetails]
-}
+case class Error(code: String, message: Option[String], messages: Option[List[ErrorDetail]])
 
 object Error {
-  def apply(code: String, message: String): Error = Error(code, Some(message), None)
-  def apply(messages: List[ErrorDetails] ): Error = Error("UNSUPPORTABLE_ENTITY", None, Some(messages))
+  val UnprocessableEntity = "UNPROCESSABLE_ENTITY"
+  def apply(messages: List[ErrorDetail]): Error = Error(UnprocessableEntity, None, Some(messages))
+  def apply(code: String, message: String ): Error = Error(code, Some(message), None)
+  def apply(code: String, messages: List[ErrorDetail] ): Error = Error(code, None, Some(messages))
+
 
   implicit val formats: OFormat[Error] = Json.format[Error]
 }
@@ -42,4 +40,3 @@ object StaleDataError extends Error("STALE_DATA_ERROR", Some("The resource reque
 object MalformedResponseError extends Error("BAD_REQUEST", Some("The response received could not be parsed"), None)
 object BadRequestError extends Error("BAD_REQUEST_ERROR", Some("The request is invalid."), None)
 object IncompleteDataError extends Error("INCOMPLETE_DATA_ERROR",Some("Data is not in the required state for the requested action."), None)
-

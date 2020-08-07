@@ -18,7 +18,7 @@ package controllers
 
 import controllers.actions.IdentifierAction
 import javax.inject.{Inject, Singleton}
-import models.errors.{BadRequestError, ValidationError, Errors, InternalServiceError, NotFoundError, Error}
+import models.errors.{BadRequestError, ValidationError, InternalServiceError, NotFoundError, Error}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ApprovalService
@@ -45,9 +45,9 @@ class ApprovalController @Inject() (
   def saveProcess(process: JsObject, reviewType: String): Future[Result] = {
     approvalService.save(process, reviewType, StatusSubmitted).map {
       case Right(id) => Created(Json.obj("id" -> id))
-      case Left(Errors(Error("UNSUPPORTABLE_ENTITY", _, Some(errors)) :: Nil)) => UnprocessableEntity(Json.toJson(Error(errors)))
-      case Left(Errors(ValidationError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
-      case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
+      case Left(err) if err.code == Error.UnprocessableEntity => UnprocessableEntity(Json.toJson(err))
+      case Left(ValidationError) => BadRequest(Json.toJson(BadRequestError))
+      case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
     }
   }
@@ -55,8 +55,8 @@ class ApprovalController @Inject() (
   def get(id: String): Action[AnyContent] = Action.async { _ =>
     approvalService.getById(id).map {
       case Right(approvalProcess) => Ok(approvalProcess)
-      case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
-      case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
+      case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
+      case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
     }
   }

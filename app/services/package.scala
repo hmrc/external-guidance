@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import models.errors.{Error, Errors, ValidationError}
+import models.errors.{Error, ValidationError}
 import java.util.UUID
 import models.RequestOutcome
 import models.ocelot.{Page, Process}
@@ -28,15 +28,15 @@ package object services {
     if (id.matches(format)) Some(UUID.fromString(id)) else None
   }
 
-  def validateProcessId(id: String): Either[Errors, String] = {
+  def validateProcessId(id: String): Either[Error, String] = {
     val format = "^[a-z]{3}[0-9]{5}$"
-    if (id.matches(format)) Right(id) else Left(Errors(ValidationError))
+    if (id.matches(format)) Right(id) else Left(ValidationError)
   }
 
-  def toGuidancePages(pageBuilder: PageBuilder, jsValue: JsValue): RequestOutcome[(Process, Seq[Page])] =
+  def guidancePages(pageBuilder: PageBuilder, jsValue: JsValue): RequestOutcome[(Process, Seq[Page])] =
     jsValue.validate[Process].fold(err => {
       Logger(getClass).error(s"Process validation has failed with error $err")
-      Left(Errors(ValidationError))
-      }, process => pageBuilder.pages(process).fold(err => Left(Errors(Error(List(err)))), p => Right((process,p))))
+      Left(ValidationError)
+      }, process => pageBuilder.pages(process).fold(err => Left(Error(List(err))), p => Right((process,p))))
 
 }

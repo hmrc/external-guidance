@@ -21,7 +21,7 @@ import java.util.UUID
 import config.AppConfig
 import javax.inject.{Inject, Singleton}
 import models._
-import models.errors.{Errors, InternalServiceError, NotFoundError}
+import models.errors.{InternalServiceError, NotFoundError}
 import play.api.Logger
 import play.api.libs.json._
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
@@ -41,11 +41,11 @@ class ApprovalService @Inject() (repository: ApprovalRepository,
     def saveReview(approvalProcessReview: ApprovalProcessReview): Future[RequestOutcome[String]] = {
       reviewRepository.save(approvalProcessReview) map {
         case Right(_) => Right(approvalProcessReview.ocelotId)
-        case _ => Left(Errors(InternalServiceError))
+        case _ => Left(InternalServiceError)
       }
     }
 
-    toGuidancePages(pageBuilder, jsonProcess).fold(
+    guidancePages(pageBuilder, jsonProcess).fold(
       err => Future.successful(Left(err)),
       t => {
         val (process, pages) = t
@@ -62,10 +62,10 @@ class ApprovalService @Inject() (repository: ApprovalRepository,
                               process.meta.title,
                               pageBuilder.fromPageDetails(pages)(ApprovalProcessPageReview(_,_,_))
                             ))
-                case Left(Errors(NotFoundError :: Nil)) => Future.successful(Left(Errors(NotFoundError)))
-                case Left(_) => Future.successful(Left(Errors(InternalServiceError)))
+                case Left(NotFoundError) => Future.successful(Left(NotFoundError))
+                case Left(_) => Future.successful(Left(InternalServiceError))
               }
-            case _ => Future.successful(Left(Errors(InternalServiceError)))
+            case _ => Future.successful(Left(InternalServiceError))
           }
        }
     )
@@ -74,15 +74,15 @@ class ApprovalService @Inject() (repository: ApprovalRepository,
 
   def getById(id: String): Future[RequestOutcome[JsObject]] =
     repository.getById(id) map {
-      case Left(Errors(NotFoundError :: Nil)) => Left(Errors(NotFoundError))
-      case Left(_) => Left(Errors(InternalServiceError))
+      case Left(NotFoundError) => Left(NotFoundError)
+      case Left(_) => Left(InternalServiceError)
       case Right(result) => Right(result.process)
     }
 
 
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[JsArray]] = {
     repository.approvalSummaryList(roles).map {
-      case Left(_) => Left(Errors(InternalServiceError))
+      case Left(_) => Left(InternalServiceError)
       case Right(success) => Right(Json.toJson(success).as[JsArray])
     }
   }

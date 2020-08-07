@@ -19,7 +19,7 @@ package repositories
 import java.util.UUID
 import org.joda.time.{DateTime, DateTimeZone}
 import javax.inject.{Inject, Singleton}
-import models.errors.{DatabaseError, Errors, NotFoundError}
+import models.errors.{DatabaseError, NotFoundError}
 import models.{RequestOutcome, ScratchProcess}
 import play.api.libs.json.{Format, JsObject}
 import play.modules.reactivemongo.ReactiveMongoComponent
@@ -64,7 +64,7 @@ class ScratchRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent, a
       .recover {
         case e =>
           logger.warn(e.getMessage)
-          Left(Errors(DatabaseError))
+          Left(DatabaseError)
       }
     //$COVERAGE-ON$
   }
@@ -73,13 +73,13 @@ class ScratchRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent, a
     findById(id)
       .map {
         case Some(data) => Right(data.process)
-        case None => Left(Errors(NotFoundError))
+        case None => Left(NotFoundError)
       }
       //$COVERAGE-OFF$
       .recover {
         case e =>
           logger.warn(e.getMessage)
-          Left(Errors(DatabaseError))
+          Left(DatabaseError)
       }
     //$COVERAGE-ON$
   }

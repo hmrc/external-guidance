@@ -20,13 +20,13 @@ import java.util.UUID
 
 import base.UnitSpec
 
-import models.errors.{Errors, ValidationError}
+import models.errors.{Error, ValidationError}
 
 class ValidatorsSpec extends UnitSpec {
 
   val validUUID: String = UUID.randomUUID().toString
   val invalidUUID: String = ""
-
+  val expectedError: Error = ValidationError
   val validProcessId: String = "ext90001"
   val invalidProcessId: String = ""
 
@@ -54,7 +54,7 @@ class ValidatorsSpec extends UnitSpec {
 
     "Return a bad request error when the process id is invalid" in {
 
-      validateProcessId(invalidProcessId) shouldBe Left(Errors(ValidationError))
+      validateProcessId(invalidProcessId) shouldBe Left(expectedError)
     }
   }
 
