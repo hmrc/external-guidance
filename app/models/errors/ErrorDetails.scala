@@ -17,22 +17,9 @@
 package models.errors
 
 import play.api.libs.json.{Json, OFormat}
-import models.ocelot.errors._
 
 case class ErrorDetail(message: String, stanza: String)
 
 object ErrorDetail {
-  implicit val formats: OFormat[ErrorDetail] = Json.format[ErrorDetail]
-  implicit val toErrorDetails: FlowError => ErrorDetail = {
-    case e: UnknownStanzaType => ErrorDetail(s"Unsupported stanza ${e.unknown} found at id = ??", "")
-    case e: StanzaNotFound => ErrorDetail(s"Missing stanza at id = ${e.id}", e.id)
-    case e: PageStanzaMissing => ErrorDetail(s"PageSanza expected but missing at id = ${e.id}", e.id)
-    case e: PageUrlEmptyOrInvalid => ErrorDetail(s"PageStanza URL empty or invalid at id = ${e.id}", e.id)
-    case e: PhraseNotFound => ErrorDetail(s"Referenced phrase at index ${e.index} on stanza id = ?? is missing", "")
-    case e: LinkNotFound => ErrorDetail(s"Referenced link at index ${e.index} on stanza id = ?? is missing" , "")
-    case e: DuplicatePageUrl => ErrorDetail(s"Duplicate page url ${e.url} found on stanza id = ${e.id}", e.id)
-    case e: MissingWelshText => ErrorDetail(s"Welsh text at index ${e.index} on stanza id = ?? is empty", "")
-  }
-
-  implicit def f(l: List[FlowError]): List[ErrorDetail] = l.map(f => f)
+  implicit val formats: OFormat[ErrorDetail] = Json.format[ErrorDetail]  
 }
