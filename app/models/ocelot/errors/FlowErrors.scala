@@ -21,8 +21,16 @@ import models.ocelot.stanzas.Stanza
 
 trait FlowError
 
+case class UnknownStanzaType(unknown: Stanza) extends FlowError
+case class StanzaNotFound(id: String) extends FlowError
+case class PageStanzaMissing(id: String) extends FlowError
+case class PageUrlEmptyOrInvalid(id: String) extends FlowError
+case class PhraseNotFound(index: Int) extends FlowError
+case class LinkNotFound(index: Int) extends FlowError
+case class DuplicatePageUrl(id: String, url: String) extends FlowError
+case class MissingWelshText(index: String, english: String) extends FlowError
+
 object FlowError {
-  
   implicit val toErrorDetails: FlowError => ErrorDetail = {
     case e: UnknownStanzaType => ErrorDetail(s"Unsupported stanza ${e.unknown} found at id = ??", "")
     case e: StanzaNotFound => ErrorDetail(s"Missing stanza at id = ${e.id}", e.id)
@@ -36,12 +44,3 @@ object FlowError {
 
   implicit def f(l: List[FlowError]): List[ErrorDetail] = l.map(f => f)
 }
-
-case class UnknownStanzaType(unknown: Stanza) extends FlowError
-case class StanzaNotFound(id: String) extends FlowError
-case class PageStanzaMissing(id: String) extends FlowError
-case class PageUrlEmptyOrInvalid(id: String) extends FlowError
-case class PhraseNotFound(index: Int) extends FlowError
-case class LinkNotFound(index: Int) extends FlowError
-case class DuplicatePageUrl(id: String, url: String) extends FlowError
-case class MissingWelshText(index: String, english: String) extends FlowError
