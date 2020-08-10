@@ -117,7 +117,6 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
         private val result = target.save()(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe Error.UnprocessableEntity
-        println(contentAsString(result))
       }
 
     }
