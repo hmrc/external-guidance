@@ -19,7 +19,7 @@ package models.ocelot.errors
 import models.errors._
 import models.ocelot.stanzas.Stanza
 
-trait FlowError
+sealed trait FlowError
 
 case class UnknownStanzaType(unknown: Stanza) extends FlowError
 case class StanzaNotFound(id: String) extends FlowError
