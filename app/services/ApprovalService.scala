@@ -25,8 +25,7 @@ import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundErr
 import play.api.Logger
 import play.api.libs.json._
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
-import utils.ProcessUtils._
-
+import models.ocelot.Process
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -54,35 +53,32 @@ class ApprovalService @Inject() (repository: ApprovalRepository,
       }
     }
 
-    validateProcess(jsonProcess) match {
-      case Right(process) =>
-        val processMetaSection = ApprovalProcessMeta(process.meta.id, process.meta.title, initialStatus, reviewType = reviewType)
-        saveProcess(ApprovalProcess(process.meta.id, processMetaSection, jsonProcess)) flatMap {
-          case Right(savedId) =>
-            repository.getById(savedId) flatMap {
-              case Right(approvalProcess) =>
-                pageBuilder.pages(process) match {
-                  case Right(pages) =>
-                    saveReview(ApprovalProcessReview(
-                                UUID.randomUUID(),
-                                process.meta.id,
-                                approvalProcess.version,
-                                reviewType,
-                                process.meta.title,
-                                pageBuilder.fromPageDetails(pages)(ApprovalProcessPageReview(_,_,_))
-                              ))
-                  case Left(err) =>
-                    logger.error(s"Could not generate pages from process with id ${process.meta.id}, error $err")
-                    Future.successful(Left(Errors(InternalServiceError)))
-                }
-              case Left(Errors(NotFoundError :: Nil)) => Future.successful(Left(Errors(NotFoundError)))
-              case Left(_) => Future.successful(Left(Errors(InternalServiceError)))
-            }
-          case errors => Future.successful(errors)
-        }
-      case Left(_) =>
-        Future.successful(Left(Errors(BadRequestError)))
-    }
+    jsonProcess.validate[Process].fold(_ => Future.successful(Left(Errors(BadRequestError))), process => {
+      val processMetaSection = ApprovalProcessMeta(process.meta.id, process.meta.title, initialStatus, reviewType = reviewType)
+      saveProcess(ApprovalProcess(process.meta.id, processMetaSection, jsonProcess)) flatMap {
+        case Right(savedId) =>
+          repository.getById(savedId) flatMap {
+            case Right(approvalProcess) =>
+              pageBuilder.pages(process) match {
+                case Right(pages) =>
+                  saveReview(ApprovalProcessReview(
+                              UUID.randomUUID(),
+                              process.meta.id,
+                              approvalProcess.version,
+                              reviewType,
+                              process.meta.title,
+                              pageBuilder.fromPageDetails(pages)(ApprovalProcessPageReview(_,_,_))
+                            ))
+                case Left(err) =>
+                  logger.error(s"Could not generate pages from process with id ${process.meta.id}, error $err")
+                  Future.successful(Left(Errors(InternalServiceError)))
+              }
+            case Left(Errors(NotFoundError :: Nil)) => Future.successful(Left(Errors(NotFoundError)))
+            case Left(_) => Future.successful(Left(Errors(InternalServiceError)))
+          }
+        case errors => Future.successful(errors)
+      }
+    })
 
   }
 
@@ -95,12 +91,7 @@ class ApprovalService @Inject() (repository: ApprovalRepository,
 
 
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[JsArray]] = {
-    val hasTwoEyeRole: Boolean = roles.contains(appConfig.twoEyeReviewerRole)
-    val hasFactCheckRole: Boolean = roles.contains(appConfig.factCheckerRole)
-    val hasDesignerRole: Boolean = roles.contains(appConfig.designerRole)
-    val criteria = SummaryListCriteria(hasTwoEyeRole || hasDesignerRole, hasFactCheckRole || hasDesignerRole)
-
-    repository.approvalSummaryList(criteria).map {
+    repository.approvalSummaryList(roles).map {
       case Left(_) => Left(Errors(InternalServiceError))
       case Right(success) => Right(Json.toJson(success).as[JsArray])
     }

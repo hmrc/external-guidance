@@ -19,13 +19,12 @@ package controllers
 import controllers.actions.{FactCheckerIdentifierAction, TwoEyeReviewerIdentifierAction}
 import javax.inject.{Inject, Singleton}
 import models.errors._
-import models.{ApprovalProcess, ApprovalProcessPageReview, ApprovalProcessStatusChange, AuditInfo}
+import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ReviewService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils.Constants._
-import utils.ProcessUtils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -67,10 +66,11 @@ class ProcessReviewController @Inject() (
   def approval2iReviewComplete(id: String): Action[JsValue] = twoEyeReviewerIdentifierAction.async(parse.json) { request =>
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
       reviewService.twoEyeReviewComplete(id, statusChangeInfo).map {
-        case Right(ap) => getAuditInfo(statusChangeInfo.userId, ap)
+        case Right(auditInfo) => Ok(Json.toJson(auditInfo))
         case Left(Errors(IncompleteDataError :: Nil)) => BadRequest(Json.toJson(IncompleteDataError))
         case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
         case Left(Errors(StaleDataError :: Nil)) => NotFound(Json.toJson(StaleDataError))
+        case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
         case Left(errors) => InternalServerError(Json.toJson(errors))
       }
     }
@@ -83,10 +83,11 @@ class ProcessReviewController @Inject() (
   def approvalFactCheckComplete(id: String): Action[JsValue] = factCheckerIdentifierAction.async(parse.json) { request =>
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
       reviewService.factCheckComplete(id, statusChangeInfo).map {
-        case Right(ap) => getAuditInfo(statusChangeInfo.userId, ap)
+        case Right(auditInfo) => Ok(Json.toJson(auditInfo))
         case Left(Errors(IncompleteDataError :: Nil)) => BadRequest(Json.toJson(IncompleteDataError))
         case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
         case Left(Errors(StaleDataError :: Nil)) => NotFound(Json.toJson(StaleDataError))
+        case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
         case Left(errors) => InternalServerError(Json.toJson(errors))
       }
     }
@@ -134,15 +135,6 @@ class ProcessReviewController @Inject() (
     reviewJson.validate[ApprovalProcessPageReview] match {
       case JsSuccess(pageInfo, _) => save(pageInfo)
       case errors: JsError => Future.successful(BadRequest(JsError.toJson(errors)))
-    }
-  }
-
-  private def getAuditInfo(userPid: String, ap: ApprovalProcess): Result = {
-    validateProcess(ap.process) match {
-      case Right(process) =>
-        Ok(Json.toJson(AuditInfo(userPid, ap.id, ap.meta.title, ap.version, process.meta.lastAuthor, process.meta.lastUpdate, process.meta.version)))
-      case _ =>
-        BadRequest(Json.toJson(BadRequestError))
     }
   }
 }

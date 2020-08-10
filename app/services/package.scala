@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package utils
-
+import models.errors.{Errors, ValidationError}
 import java.util.UUID
 
-import models.errors.{Errors, ValidationError}
-
-object Validators {
+package object services {
 
   def validateUUID(id: String): Option[UUID] = {
     val format = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
@@ -31,4 +28,5 @@ object Validators {
     val format = "^[a-z]{3}[0-9]{5}$"
     if (id.matches(format)) Right(id) else Left(Errors(ValidationError))
   }
+
 }

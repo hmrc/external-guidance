@@ -16,6 +16,7 @@
 
 package models
 
+import models.ocelot.Process
 import play.api.libs.json.{Json, OFormat}
 
 case class AuditInfo(pid: String,
@@ -27,5 +28,7 @@ case class AuditInfo(pid: String,
                      ocelotVersion: Int)
 
 object AuditInfo {
+  def apply( pid: String, ap: ApprovalProcess, p: Process): AuditInfo =
+    AuditInfo(pid, ap.id, ap.meta.title, ap.version, p.meta.lastAuthor, p.meta.lastUpdate, p.meta.version)
   implicit val formats: OFormat[AuditInfo] = Json.format[AuditInfo]
 }

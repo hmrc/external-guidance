@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package utils
+package services
 
 import java.util.UUID
 
 import base.UnitSpec
-
-import utils.Validators._
 
 import models.errors.{Errors, ValidationError}
 
