@@ -17,7 +17,7 @@
 package testOnly.repositories
 
 import javax.inject.{Inject, Singleton}
-import models.errors.{DatabaseError, Errors}
+import models.errors.DatabaseError
 import models.{ApprovalProcess, RequestOutcome}
 import play.api.libs.json.Format
 import play.modules.reactivemongo.ReactiveMongoComponent
@@ -47,7 +47,7 @@ class ApprovalRepository @Inject() (mongoComponent: ReactiveMongoComponent)
       .recover {
         case error =>
           logger.error(s"[test-only] Failed to delete approval process with the ID $id", error)
-          Left(Errors(DatabaseError))
+          Left(DatabaseError)
       }
   }
 

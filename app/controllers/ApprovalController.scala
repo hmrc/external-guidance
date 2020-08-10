@@ -18,21 +18,21 @@ package controllers
 
 import controllers.actions.IdentifierAction
 import javax.inject.{Inject, Singleton}
-import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
+import models.errors.{BadRequestError, ValidationError, InternalServiceError, NotFoundError, Error}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ApprovalService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils.Constants._
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import models.errors._
+import play.api.Logger
 
 @Singleton
-class ApprovalController @Inject() (
-                                     identify: IdentifierAction,
-                                     approvalService: ApprovalService,
-                                     cc: ControllerComponents) extends BackendController(cc) {
+class ApprovalController @Inject() (identify: IdentifierAction, approvalService: ApprovalService, cc: ControllerComponents) extends BackendController(cc) {
+
+  val logger = Logger(getClass)
 
   def saveFor2iReview: Action[JsValue] = Action.async(parse.json) { implicit request =>
     saveProcess(request.body.as[JsObject], ReviewType2i)
@@ -45,7 +45,13 @@ class ApprovalController @Inject() (
   def saveProcess(process: JsObject, reviewType: String): Future[Result] = {
     approvalService.save(process, reviewType, StatusSubmitted).map {
       case Right(id) => Created(Json.obj("id" -> id))
-      case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
+      case Left(err @ Error(Error.UnprocessableEntity, _, Some(details))) =>
+        logger.error(s"Failed to save process for approval due to process errors $details")
+        UnprocessableEntity(Json.toJson(err))
+      case Left(ValidationError) =>
+        logger.error(s"Failed to save process for approval due to validation errors")
+        BadRequest(Json.toJson(BadRequestError))
+      case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
     }
   }
@@ -53,8 +59,8 @@ class ApprovalController @Inject() (
   def get(id: String): Action[AnyContent] = Action.async { _ =>
     approvalService.getById(id).map {
       case Right(approvalProcess) => Ok(approvalProcess)
-      case Left(Errors(NotFoundError :: Nil)) => NotFound(Json.toJson(NotFoundError))
-      case Left(Errors(BadRequestError :: Nil)) => BadRequest(Json.toJson(BadRequestError))
+      case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
+      case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
     }
   }

@@ -20,7 +20,7 @@ import java.time.LocalDateTime
 
 import config.AppConfig
 import javax.inject.{Inject, Singleton}
-import models.errors.{DatabaseError, Errors, NotFoundError}
+import models.errors.{DatabaseError, NotFoundError}
 import models.{ApprovalProcess, ApprovalProcessSummary, RequestOutcome}
 import play.api.libs.json.{Format, JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
@@ -71,7 +71,7 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
       .recover {
         case error =>
           logger.error(s"Attempt to persist process ${approvalProcess.id} to collection $collectionName failed with error : ${error.getMessage}")
-          Left(Errors(DatabaseError))
+          Left(DatabaseError)
       }
     //$COVERAGE-ON$
   }
@@ -81,20 +81,20 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
     findById(id)
       .map {
         case Some(approvalProcess) => Right(approvalProcess)
-        case None => Left(Errors(NotFoundError))
+        case None => Left(NotFoundError)
       }
       //$COVERAGE-OFF$
       .recover {
         case error =>
           logger.error(s"Attempt to retrieve process $id from collection $collectionName failed with error : ${error.getMessage}")
-          Left(Errors(DatabaseError))
+          Left(DatabaseError)
       }
     //$COVERAGE-ON$
   }
 
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]] = {
 
-    val restrictions: List[JsObject] = roles.flatMap{
+    val restrictions: List[JsObject] = roles.flatMap {
       case appConfig.twoEyeReviewerRole => List(TwoEyeRestriction)
       case appConfig.factCheckerRole => List(FactCheckRestriction)
       case appConfig.designerRole => List(FactCheckRestriction, TwoEyeRestriction)
@@ -121,7 +121,7 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
       .recover {
         case error =>
           logger.error(s"Attempt to retrieve list of processes from collection $collectionName failed with error : ${error.getMessage}")
-          Left(Errors(DatabaseError))
+          Left(DatabaseError)
       }
     //$COVERAGE-ON$
   }
@@ -130,11 +130,7 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
 
     logger.info(s"updating status of process $id to $status to collection $collectionName")
     val selector = Json.obj("_id" -> id)
-    val modifier = Json.obj(
-      "$set" -> Json.obj(
-        "meta.status" -> status,
-        "meta.updateUser" -> user,
-        "meta.lastModified" -> LocalDateTime.now))
+    val modifier = Json.obj("$set" -> Json.obj("meta.status" -> status, "meta.updateUser" -> user, "meta.lastModified" -> LocalDateTime.now))
 
     this
       .findAndUpdate(selector, modifier)
@@ -143,14 +139,14 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
           Right(())
         } else {
           logger.error(s"Invalid Request - could not find process $id")
-          Left(Errors(NotFoundError))
+          Left(NotFoundError)
         }
       }
       //$COVERAGE-OFF$
       .recover {
         case error =>
           logger.error(s"Attempt to change status of process $id to collection $collectionName failed with error : ${error.getMessage}")
-          Left(Errors(DatabaseError))
+          Left(DatabaseError)
       }
     //$COVERAGE-ON$
   }

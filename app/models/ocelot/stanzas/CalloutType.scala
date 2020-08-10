@@ -34,23 +34,25 @@ case object SubSection extends CalloutType
 
 object CalloutType {
 
-  implicit val reads: Reads[CalloutType] = (json: JsValue) => json match {
-    case JsString("Title") => JsSuccess(Title, __)
-    case JsString("SubTitle") => JsSuccess(SubTitle, __)
-    case JsString("Lede") => JsSuccess(Lede, __)
-    case JsString("Error") => JsSuccess(Error, __)
-    case JsString("Section") => JsSuccess(Section, __)
-    case JsString("SubSection") => JsSuccess(SubSection, __)
-    case _ => JsError("Invalid Callout type")
-  }
+  implicit val reads: Reads[CalloutType] = (json: JsValue) =>
+    json match {
+      case JsString("Title") => JsSuccess(Title, __)
+      case JsString("SubTitle") => JsSuccess(SubTitle, __)
+      case JsString("Lede") => JsSuccess(Lede, __)
+      case JsString("Error") => JsSuccess(Error, __)
+      case JsString("Section") => JsSuccess(Section, __)
+      case JsString("SubSection") => JsSuccess(SubSection, __)
+      case _ => JsError("Invalid Callout type")
+    }
 
-  implicit val writes: Writes[CalloutType] = (calloutType: CalloutType) => calloutType match {
-    case Title => Json.toJson("Title")
-    case SubTitle => Json.toJson("SubTitle")
-    case Error => Json.toJson("Error")
-    case Lede => Json.toJson("Lede")
-    case Section => Json.toJson("Section")
-    case SubSection => Json.toJson("SubSection")
-  }
+  implicit val writes: Writes[CalloutType] = (calloutType: CalloutType) =>
+    calloutType match {
+      case Title => Json.toJson("Title")
+      case SubTitle => Json.toJson("SubTitle")
+      case Error => Json.toJson("Error")
+      case Lede => Json.toJson("Lede")
+      case Section => Json.toJson("Section")
+      case SubSection => Json.toJson("SubSection")
+    }
 
 }

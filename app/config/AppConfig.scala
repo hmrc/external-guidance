@@ -32,7 +32,7 @@ trait AppConfig {
 }
 
 @Singleton
-class AppConfigImpl @Inject() (config: Configuration, servicesConfig: ServicesConfig)  extends AppConfig {
+class AppConfigImpl @Inject() (config: Configuration, servicesConfig: ServicesConfig) extends AppConfig {
 
   lazy val scratchExpiryHour = servicesConfig.getInt("mongodb.scratchExpiryHour")
   lazy val scratchExpiryMinutes = servicesConfig.getInt("mongodb.scratchExpiryMinutes")

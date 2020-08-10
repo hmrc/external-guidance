@@ -56,7 +56,7 @@ class PublishedServiceSpec extends UnitSpec {
 
     "Return a bad request response when the input identifier is invalid" in new Test {
 
-      val expected: RequestOutcome[PublishedProcess] = Left(Errors(BadRequestError))
+      val expected: RequestOutcome[PublishedProcess] = Left(BadRequestError)
 
       whenReady(target.getById(invalidId)) { result =>
         result shouldBe expected
@@ -65,7 +65,7 @@ class PublishedServiceSpec extends UnitSpec {
 
     "Return a not found response when no process has the identifier input to the method" in new Test {
 
-      val expected: RequestOutcome[PublishedProcess] = Left(Errors(NotFoundError))
+      val expected: RequestOutcome[PublishedProcess] = Left(NotFoundError)
 
       MockPublishedRepository
         .getById(validId)
@@ -78,9 +78,9 @@ class PublishedServiceSpec extends UnitSpec {
 
     "Return an internal server error when the repository reports a database error" in new Test {
 
-      val repositoryError: RequestOutcome[PublishedProcess] = Left(Errors(DatabaseError))
+      val repositoryError: RequestOutcome[PublishedProcess] = Left(DatabaseError)
 
-      val expected: RequestOutcome[JsObject] = Left(Errors(InternalServiceError))
+      val expected: RequestOutcome[JsObject] = Left(InternalServiceError)
 
       MockPublishedRepository
         .getById(validId)
@@ -122,7 +122,7 @@ class PublishedServiceSpec extends UnitSpec {
       }
 
       "return a bad request error" in new Test {
-        val expected: RequestOutcome[String] = Left(Errors(BadRequestError))
+        val expected: RequestOutcome[String] = Left(BadRequestError)
 
         whenReady(target.save(validId, "userId", invalidProcess)) {
           case result @ Left(_) => result shouldBe expected
@@ -133,8 +133,8 @@ class PublishedServiceSpec extends UnitSpec {
 
     "a database error occurs" should {
       "return an internal error" in new Test {
-        val repositoryResponse: RequestOutcome[String] = Left(Errors(DatabaseError))
-        val expected: RequestOutcome[String] = Left(Errors(InternalServiceError))
+        val repositoryResponse: RequestOutcome[String] = Left(DatabaseError)
+        val expected: RequestOutcome[String] = Left(InternalServiceError)
 
         MockPublishedRepository
           .save(validId, "userId", validOnePageJson.as[JsObject])

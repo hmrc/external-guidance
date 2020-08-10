@@ -32,7 +32,7 @@ class ErrorsSpec extends UnitSpec {
         """.stripMargin
       )
 
-      val error = Errors(Error("SOME_CODE", "some message"))
+      val error = Error("SOME_CODE", "some message")
 
       val result = Json.toJson(error)
 
@@ -45,24 +45,25 @@ class ErrorsSpec extends UnitSpec {
       val expected = Json.parse(
         """
           |{
-          |  "errors": [
-          |    {
-          |      "code": "SOME_CODE_1",
-          |      "message": "some message 1"
-          |    },
-          |    {
-          |      "code": "SOME_CODE_2",
-          |      "message": "some message 2"
-          |    }
+          |  "code": "SOME_CODE_1",
+          |  "messages": [ 
+          |     {
+          |       "message": "message 1",
+          |       "stanza": "stanza1"
+          |     },
+          |     {            
+          |       "message": "message 2",
+          |       "stanza": "stanza2"
+          |     } 
           |  ]
           |}
         """.stripMargin
       )
 
-      val errors = Errors(
-        Seq(
-          Error("SOME_CODE_1", "some message 1"),
-          Error("SOME_CODE_2", "some message 2")
+      val errors = Error("SOME_CODE_1",
+        List(
+          ProcessError("message 1", "stanza1"),
+          ProcessError("message 2", "stanza2")
         )
       )
 

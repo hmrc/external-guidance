@@ -36,7 +36,16 @@ object ApprovalProcessMetaFormatter {
       ocelotDateSubmitted <- (json \ "ocelotDateSubmitted").validateOpt[Long]
       ocelotVersion <- (json \ "ocelotVersion").validateOpt[Int]
       reviewType <- (json \ "reviewType").validate[String]
-    } yield ApprovalProcessMeta(id, title, status, dateSubmitted, lastModified.getOrElse(LocalDateTime.now()), ocelotDateSubmitted.getOrElse(1), ocelotVersion.getOrElse(1), reviewType)
+    } yield ApprovalProcessMeta(
+      id,
+      title,
+      status,
+      dateSubmitted,
+      lastModified.getOrElse(LocalDateTime.now()),
+      ocelotDateSubmitted.getOrElse(1),
+      ocelotVersion.getOrElse(1),
+      reviewType
+    )
 
   val write: ApprovalProcessMeta => JsObject = meta =>
     Json.obj(

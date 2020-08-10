@@ -36,16 +36,16 @@ import scala.concurrent.{ExecutionContext, Future}
 trait IdentifierAction extends ActionBuilder[IdentifierRequest, AnyContent] with ActionFunction[Request, IdentifierRequest]
 
 class AuthenticatedIdentifierAction @Inject() (
-                                                override val authConnector: AuthConnector,
-                                                appConfig: AppConfig,
-                                                val parser: BodyParsers.Default,
-                                                val config: Configuration,
-                                                val env: Environment
-                                              )(
-                                                implicit val executionContext: ExecutionContext
-                                              ) extends IdentifierAction
-  with AuthorisedFunctions
-  with AuthRedirects {
+    override val authConnector: AuthConnector,
+    appConfig: AppConfig,
+    val parser: BodyParsers.Default,
+    val config: Configuration,
+    val env: Environment
+)(
+    implicit val executionContext: ExecutionContext
+) extends IdentifierAction
+    with AuthorisedFunctions
+    with AuthRedirects {
 
   val logger: Logger = Logger(getClass)
 
@@ -58,7 +58,7 @@ class AuthenticatedIdentifierAction @Inject() (
         Enrolment(appConfig.designerRole) or
           Enrolment(appConfig.twoEyeReviewerRole) or
           Enrolment(appConfig.factCheckerRole)
-        )
+      )
 
     // Allow access for all roles
     authorised(allUsersPredicate).retrieve(Retrievals.credentials and Retrievals.name and Retrievals.email and Retrievals.authorisedEnrolments) {
@@ -72,4 +72,3 @@ class AuthenticatedIdentifierAction @Inject() (
     }
   }
 }
-

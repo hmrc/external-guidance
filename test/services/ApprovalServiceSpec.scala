@@ -70,7 +70,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
     "the ID cannot be matched to a submitted process" should {
       "return a not found response" in new Test {
 
-        val expected: RequestOutcome[ApprovalProcess] = Left(Errors(NotFoundError))
+        val expected: RequestOutcome[ApprovalProcess] = Left(NotFoundError)
 
         MockApprovalRepository
           .getById(validId)
@@ -85,8 +85,8 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
     "the repository reports a database error" should {
       "return an internal server error" in new Test {
 
-        val repositoryError: RequestOutcome[ApprovalProcess] = Left(Errors(DatabaseError))
-        val expected: RequestOutcome[JsObject] = Left(Errors(InternalServiceError))
+        val repositoryError: RequestOutcome[ApprovalProcess] = Left(DatabaseError)
+        val expected: RequestOutcome[JsObject] = Left(InternalServiceError)
 
         MockApprovalRepository
           .getById(validId)
@@ -129,7 +129,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
       "the save of review data fails" should {
         "return an internal error" in new Test {
 
-          val expected: RequestOutcome[String] = Left(Errors(InternalServiceError))
+          val expected: RequestOutcome[String] = Left(InternalServiceError)
 
           MockApprovalRepository
             .update(approvalProcess)
@@ -141,7 +141,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
 
           MockApprovalProcessReviewRepository
             .save(processReview)
-            .returns(Future.successful(Left(Errors(DatabaseError))))
+            .returns(Future.successful(Left(DatabaseError)))
 
           whenReady(service.save(validOnePageJson.as[JsObject], ReviewType2i, StatusSubmittedFor2iReview)) {
             case result @ Left(_) => result shouldBe expected
@@ -155,7 +155,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
       "the subsequent get of the process fails with a NotFoundError" should {
         "return an internal error" in new Test {
 
-          val expected: RequestOutcome[String] = Left(Errors(NotFoundError))
+          val expected: RequestOutcome[String] = Left(NotFoundError)
 
           MockApprovalRepository
             .update(approvalProcess)
@@ -163,7 +163,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
 
           MockApprovalRepository
             .getById("oct90001")
-            .returns(Future.successful(Left(Errors(NotFoundError))))
+            .returns(Future.successful(Left(NotFoundError)))
 
           whenReady(service.save(validOnePageJson.as[JsObject], ReviewType2i, StatusSubmittedFor2iReview)) {
             case result @ Left(_) => result shouldBe expected
@@ -175,7 +175,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
       "the subsequent get of the process fails with a DatabaseError" should {
         "return an internal error" in new Test {
 
-          val expected: RequestOutcome[String] = Left(Errors(InternalServiceError))
+          val expected: RequestOutcome[String] = Left(InternalServiceError)
 
           MockApprovalRepository
             .update(approvalProcess)
@@ -183,7 +183,7 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
 
           MockApprovalRepository
             .getById("oct90001")
-            .returns(Future.successful(Left(Errors(DatabaseError))))
+            .returns(Future.successful(Left(DatabaseError)))
 
           whenReady(service.save(validOnePageJson.as[JsObject], ReviewType2i, StatusSubmittedFor2iReview)) {
             case result @ Left(_) => result shouldBe expected
@@ -202,8 +202,8 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
         service.save(invalidProcess, ReviewType2i, StatusSubmittedFor2iReview)
       }
 
-      "return a bad request error" in new Test {
-        val expected: RequestOutcome[String] = Left(Errors(BadRequestError))
+      "return a validation error" in new Test {
+        val expected: RequestOutcome[String] = Left(ValidationError)
 
         whenReady(service.save(invalidProcess, ReviewType2i, StatusSubmittedFor2iReview)) {
           case result @ Left(_) => result shouldBe expected
@@ -214,8 +214,8 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
 
     "a database error occurs" should {
       "return an internal error" in new Test {
-        val repositoryResponse: RequestOutcome[String] = Left(Errors(DatabaseError))
-        val expected: RequestOutcome[String] = Left(Errors(InternalServiceError))
+        val repositoryResponse: RequestOutcome[String] = Left(DatabaseError)
+        val expected: RequestOutcome[String] = Left(InternalServiceError)
 
         MockApprovalRepository
           .update(approvalProcess)
@@ -272,8 +272,8 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
     "the repository reports a database error" should {
       "return an internal server error" in new Test {
 
-        val repositoryError: RequestOutcome[List[ApprovalProcessSummary]] = Left(Errors(DatabaseError))
-        val expected: RequestOutcome[List[ApprovalProcessSummary]] = Left(Errors(InternalServiceError))
+        val repositoryError: RequestOutcome[List[ApprovalProcessSummary]] = Left(DatabaseError)
+        val expected: RequestOutcome[List[ApprovalProcessSummary]] = Left(InternalServiceError)
 
         MockApprovalRepository
           .approvalSummaryList(List("FactChecker"))
