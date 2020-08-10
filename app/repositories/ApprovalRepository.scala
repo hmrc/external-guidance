@@ -94,7 +94,7 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
 
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]] = {
 
-    val restrictions: List[JsObject] = roles.flatMap{
+    val restrictions: List[JsObject] = roles.flatMap {
       case appConfig.twoEyeReviewerRole => List(TwoEyeRestriction)
       case appConfig.factCheckerRole => List(FactCheckRestriction)
       case appConfig.designerRole => List(FactCheckRestriction, TwoEyeRestriction)
@@ -130,11 +130,7 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
 
     logger.info(s"updating status of process $id to $status to collection $collectionName")
     val selector = Json.obj("_id" -> id)
-    val modifier = Json.obj(
-      "$set" -> Json.obj(
-        "meta.status" -> status,
-        "meta.updateUser" -> user,
-        "meta.lastModified" -> LocalDateTime.now))
+    val modifier = Json.obj("$set" -> Json.obj("meta.status" -> status, "meta.updateUser" -> user, "meta.lastModified" -> LocalDateTime.now))
 
     this
       .findAndUpdate(selector, modifier)

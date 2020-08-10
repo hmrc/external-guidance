@@ -84,9 +84,9 @@ class PageBuilder extends ProcessPopulation {
   }
 
   def fromPageDetails[A](pages: Seq[Page])(f: (String, String, String) => A): List[A] =
-    pages.toList.flatMap{ page =>
-      page.stanzas.collectFirst{
-        case Callout(Title, text, _, _) => 
+    pages.toList.flatMap { page =>
+      page.stanzas.collectFirst {
+        case Callout(Title, text, _, _) =>
           f(page.id, page.url, text.langs(0))
         case q: Question =>
           f(page.id, page.url, hintRegex.replaceAllIn(q.text.langs(0), ""))

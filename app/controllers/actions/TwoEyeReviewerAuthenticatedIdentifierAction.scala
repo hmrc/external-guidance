@@ -35,16 +35,16 @@ import scala.concurrent.{ExecutionContext, Future}
 trait TwoEyeReviewerIdentifierAction extends ActionBuilder[IdentifierRequest, AnyContent] with ActionFunction[Request, IdentifierRequest]
 
 class TwoEyeReviewerAuthenticatedIdentifierAction @Inject() (
-                                                              override val authConnector: AuthConnector,
-                                                              appConfig: AppConfig,
-                                                              val parser: BodyParsers.Default,
-                                                              val config: Configuration,
-                                                              val env: Environment
-                                                            )(
-                                                              implicit val executionContext: ExecutionContext
-                                                            ) extends TwoEyeReviewerIdentifierAction
-  with AuthorisedFunctions
-  with AuthRedirects {
+    override val authConnector: AuthConnector,
+    appConfig: AppConfig,
+    val parser: BodyParsers.Default,
+    val config: Configuration,
+    val env: Environment
+)(
+    implicit val executionContext: ExecutionContext
+) extends TwoEyeReviewerIdentifierAction
+    with AuthorisedFunctions
+    with AuthRedirects {
 
   val logger: Logger = Logger(getClass)
 

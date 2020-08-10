@@ -58,10 +58,12 @@ class PublishedService @Inject() (repository: PublishedRepository) {
         case result => result
       }
 
-    jsonProcess.validate[Process].fold(_ => {
-      logger.error(s"Publish process $id has failed - invalid process passed in")
-      Future.successful(Left(BadRequestError))
-    },_ => saveProcess)
+    jsonProcess
+      .validate[Process]
+      .fold(_ => {
+        logger.error(s"Publish process $id has failed - invalid process passed in")
+        Future.successful(Left(BadRequestError))
+      }, _ => saveProcess)
 
   }
 

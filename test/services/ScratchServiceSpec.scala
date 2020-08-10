@@ -55,7 +55,7 @@ class ScratchServiceSpec extends UnitSpec {
 
     "the JSON is valid but the process is not" should {
       "return Unsupportable entity error" in new Test with ProcessJson {
-        val errorDetails: ErrorDetail = DuplicatePageUrl("4","/feeling-bad")
+        val errorDetails: ProcessError = DuplicatePageUrl("4","/feeling-bad")
         val expectedError = Error(List(errorDetails))
         val expected: RequestOutcome[Error] = Left(expectedError)
         val process: JsObject = data.ProcessData.invalidOnePageJson.as[JsObject]

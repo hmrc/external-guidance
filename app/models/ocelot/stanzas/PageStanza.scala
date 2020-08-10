@@ -22,6 +22,7 @@ import play.api.libs.json.{OWrites, Reads, _}
 case class PageStanza(url: String, override val next: Seq[String], stack: Boolean) extends Stanza
 
 object PageStanza {
+
   def buildPageStanza(url: String, next: Seq[String], stack: Boolean): PageStanza =
     PageStanza(s"/${url.trim.dropWhile(_.equals('/'))}", next, stack)
 

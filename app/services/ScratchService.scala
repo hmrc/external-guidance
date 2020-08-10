@@ -34,10 +34,11 @@ class ScratchService @Inject() (repository: ScratchRepository, pageBuilder: Page
   def save(process: JsObject): Future[RequestOutcome[UUID]] =
     guidancePages(pageBuilder, process).fold(
       err => Future.successful(Left(err)),
-       _ => repository.save(process).map{
-        case Left(_) => Left(InternalServiceError)
-        case result => result
-      }
+      _ =>
+        repository.save(process).map {
+          case Left(_) => Left(InternalServiceError)
+          case result => result
+        }
     )
 
   def getById(id: String): Future[RequestOutcome[JsObject]] = {

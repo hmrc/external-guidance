@@ -40,13 +40,14 @@ object Stanza {
     }
   }
 
-  implicit val writes: Writes[Stanza] = (stanza: Stanza) => stanza match {
-    case q: QuestionStanza => Json.obj("type" -> "QuestionStanza") ++ Json.toJsObject[QuestionStanza](q)
-    case i: InstructionStanza => Json.obj("type" -> "InstructionStanza") ++ Json.toJsObject[InstructionStanza](i)
-    case c: CalloutStanza => Json.obj("type" -> "CalloutStanza") ++ Json.toJsObject[CalloutStanza](c)
-    case p: PageStanza => Json.obj("type" -> "PageStanza") ++ Json.toJsObject[PageStanza](p)
-    case v: ValueStanza => Json.obj("type" -> "ValueStanza") ++ Json.toJsObject[ValueStanza](v)
-    case EndStanza => Json.obj("type" -> "EndStanza")
-    case s => Json.toJson("")
-  }
+  implicit val writes: Writes[Stanza] = (stanza: Stanza) =>
+    stanza match {
+      case q: QuestionStanza => Json.obj("type" -> "QuestionStanza") ++ Json.toJsObject[QuestionStanza](q)
+      case i: InstructionStanza => Json.obj("type" -> "InstructionStanza") ++ Json.toJsObject[InstructionStanza](i)
+      case c: CalloutStanza => Json.obj("type" -> "CalloutStanza") ++ Json.toJsObject[CalloutStanza](c)
+      case p: PageStanza => Json.obj("type" -> "PageStanza") ++ Json.toJsObject[PageStanza](p)
+      case v: ValueStanza => Json.obj("type" -> "ValueStanza") ++ Json.toJsObject[ValueStanza](v)
+      case EndStanza => Json.obj("type" -> "EndStanza")
+      case s => Json.toJson("")
+    }
 }

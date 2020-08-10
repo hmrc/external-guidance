@@ -29,10 +29,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ApprovalService @Inject() (repository: ApprovalRepository,
-                                 reviewRepository: ApprovalProcessReviewRepository,
-                                 pageBuilder: PageBuilder,
-                                 appConfig: AppConfig) {
+class ApprovalService @Inject() (
+    repository: ApprovalRepository,
+    reviewRepository: ApprovalProcessReviewRepository,
+    pageBuilder: PageBuilder,
+    appConfig: AppConfig
+) {
 
   val logger: Logger = Logger(this.getClass)
 
@@ -49,25 +51,27 @@ class ApprovalService @Inject() (repository: ApprovalRepository,
       err => Future.successful(Left(err)),
       t => {
         val (process, pages) = t
-        val processMetaSection = ApprovalProcessMeta(process.meta.id, process.meta.title, initialStatus, reviewType = reviewType)       
-          repository.update(ApprovalProcess(process.meta.id, processMetaSection, jsonProcess)) flatMap {
-            case Right(savedId) =>
-              repository.getById(savedId) flatMap {
-                case Right(approvalProcess) =>
-                  saveReview(ApprovalProcessReview(
-                              UUID.randomUUID(),
-                              process.meta.id,
-                              approvalProcess.version,
-                              reviewType,
-                              process.meta.title,
-                              pageBuilder.fromPageDetails(pages)(ApprovalProcessPageReview(_,_,_))
-                            ))
-                case Left(NotFoundError) => Future.successful(Left(NotFoundError))
-                case Left(_) => Future.successful(Left(InternalServiceError))
-              }
-            case _ => Future.successful(Left(InternalServiceError))
-          }
-       }
+        val processMetaSection = ApprovalProcessMeta(process.meta.id, process.meta.title, initialStatus, reviewType = reviewType)
+        repository.update(ApprovalProcess(process.meta.id, processMetaSection, jsonProcess)) flatMap {
+          case Right(savedId) =>
+            repository.getById(savedId) flatMap {
+              case Right(approvalProcess) =>
+                saveReview(
+                  ApprovalProcessReview(
+                    UUID.randomUUID(),
+                    process.meta.id,
+                    approvalProcess.version,
+                    reviewType,
+                    process.meta.title,
+                    pageBuilder.fromPageDetails(pages)(ApprovalProcessPageReview(_, _, _))
+                  )
+                )
+              case Left(NotFoundError) => Future.successful(Left(NotFoundError))
+              case Left(_) => Future.successful(Left(InternalServiceError))
+            }
+          case _ => Future.successful(Left(InternalServiceError))
+        }
+      }
     )
 
   }
@@ -78,7 +82,6 @@ class ApprovalService @Inject() (repository: ApprovalRepository,
       case Left(_) => Left(InternalServiceError)
       case Right(result) => Right(result.process)
     }
-
 
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[JsArray]] = {
     repository.approvalSummaryList(roles).map {

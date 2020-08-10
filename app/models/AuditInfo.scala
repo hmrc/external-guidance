@@ -19,16 +19,19 @@ package models
 import models.ocelot.Process
 import play.api.libs.json.{Json, OFormat}
 
-case class AuditInfo(pid: String,
-                     processId: String,
-                     processTitle: String,
-                     processVersion: Int,
-                     ocelotAuthor: String,
-                     ocelotLastUpdate: Long,
-                     ocelotVersion: Int)
+case class AuditInfo(
+    pid: String,
+    processId: String,
+    processTitle: String,
+    processVersion: Int,
+    ocelotAuthor: String,
+    ocelotLastUpdate: Long,
+    ocelotVersion: Int
+)
 
 object AuditInfo {
-  def apply( pid: String, ap: ApprovalProcess, p: Process): AuditInfo =
+
+  def apply(pid: String, ap: ApprovalProcess, p: Process): AuditInfo =
     AuditInfo(pid, ap.id, ap.meta.title, ap.version, p.meta.lastAuthor, p.meta.lastUpdate, p.meta.version)
   implicit val formats: OFormat[AuditInfo] = Json.format[AuditInfo]
 }

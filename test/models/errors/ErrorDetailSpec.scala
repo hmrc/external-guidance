@@ -20,49 +20,49 @@ import base.UnitSpec
 import models.ocelot.errors._
 import models.ocelot.stanzas.Stanza
 
-class ErrorDetailSpec extends UnitSpec {
+class ProcessErrorSpec extends UnitSpec {
 
   case object UnknownStanza extends Stanza
 
-  "Contructing ErrorDetails" should {
+  "Contructing ProcessErrors" should {
     "from UnknownStanzaType" in {
-      val details: ErrorDetail = UnknownStanzaType(UnknownStanza)
-      details shouldBe ErrorDetail(s"Unsupported stanza ${UnknownStanza} found at id = ??", "")
+      val details: ProcessError = UnknownStanzaType(UnknownStanza)
+      details shouldBe ProcessError(s"Unsupported stanza ${UnknownStanza} found at id = ??", "")
     }
 
     "from StanzaNotFound" in {
-      val details: ErrorDetail = StanzaNotFound("id")
-      details shouldBe ErrorDetail("Missing stanza at id = id", "id")
+      val details: ProcessError = StanzaNotFound("id")
+      details shouldBe ProcessError("Missing stanza at id = id", "id")
     }
 
     "from PageStanzaMissing" in {
-      val details: ErrorDetail = PageStanzaMissing("id")
-      details shouldBe ErrorDetail("PageSanza expected but missing at id = id", "id")
+      val details: ProcessError = PageStanzaMissing("id")
+      details shouldBe ProcessError("PageSanza expected but missing at id = id", "id")
     }
 
     "from PageUrlEmptyOrInvalid" in {
-      val details: ErrorDetail = PageUrlEmptyOrInvalid("id")
-      details shouldBe ErrorDetail("PageStanza URL empty or invalid at id = id", "id")
+      val details: ProcessError = PageUrlEmptyOrInvalid("id")
+      details shouldBe ProcessError("PageStanza URL empty or invalid at id = id", "id")
     }
 
     "from PhraseNotFound" in {
-      val details: ErrorDetail = PhraseNotFound(3)
-      details shouldBe ErrorDetail("Referenced phrase at index 3 on stanza id = ?? is missing", "")
+      val details: ProcessError = PhraseNotFound(3)
+      details shouldBe ProcessError("Referenced phrase at index 3 on stanza id = ?? is missing", "")
     }
 
     "from LinkNotFound" in {
-      val details: ErrorDetail = LinkNotFound(4)
-      details shouldBe ErrorDetail("Referenced link at index 4 on stanza id = ?? is missing", "")
+      val details: ProcessError = LinkNotFound(4)
+      details shouldBe ProcessError("Referenced link at index 4 on stanza id = ?? is missing", "")
     }
 
     "from DuplicatePageUrl" in {
-      val details: ErrorDetail = DuplicatePageUrl("id", "/url")
-      details shouldBe ErrorDetail("Duplicate page url /url found on stanza id = id", "id")
+      val details: ProcessError = DuplicatePageUrl("id", "/url")
+      details shouldBe ProcessError("Duplicate page url /url found on stanza id = id", "id")
     }
 
     "from MissingWelshText" in {
-      val details: ErrorDetail = MissingWelshText("index", "english")
-      details shouldBe ErrorDetail("Welsh text at index index on stanza id = ?? is empty", "")
+      val details: ProcessError = MissingWelshText("index", "english")
+      details shouldBe ProcessError("Welsh text at index index on stanza id = ?? is empty", "")
     }
 
   }

@@ -34,9 +34,14 @@ package object services {
   }
 
   def guidancePages(pageBuilder: PageBuilder, jsValue: JsValue): RequestOutcome[(Process, Seq[Page])] =
-    jsValue.validate[Process].fold(err => {
-      Logger(getClass).error(s"Process validation has failed with error $err")
-      Left(ValidationError)
-      }, process => pageBuilder.pages(process).fold(err => Left(Error(List(err))), p => Right((process,p))))
+    jsValue
+      .validate[Process]
+      .fold(
+        err => {
+          Logger(getClass).error(s"Process validation has failed with error $err")
+          Left(ValidationError)
+        },
+        process => pageBuilder.pages(process).fold(err => Left(Error(List(err))), p => Right((process, p)))
+      )
 
 }

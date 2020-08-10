@@ -62,8 +62,8 @@ class ErrorsSpec extends UnitSpec {
 
       val errors = Error("SOME_CODE_1",
         List(
-          ErrorDetail("message 1", "stanza1"),
-          ErrorDetail("message 2", "stanza2")
+          ProcessError("message 1", "stanza1"),
+          ProcessError("message 2", "stanza2")
         )
       )
 

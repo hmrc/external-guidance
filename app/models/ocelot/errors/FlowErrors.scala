@@ -31,16 +31,17 @@ case class DuplicatePageUrl(id: String, url: String) extends FlowError
 case class MissingWelshText(index: String, english: String) extends FlowError
 
 object FlowError {
-  implicit val toErrorDetails: FlowError => ErrorDetail = {
-    case e: UnknownStanzaType => ErrorDetail(s"Unsupported stanza ${e.unknown} found at id = ??", "")
-    case e: StanzaNotFound => ErrorDetail(s"Missing stanza at id = ${e.id}", e.id)
-    case e: PageStanzaMissing => ErrorDetail(s"PageSanza expected but missing at id = ${e.id}", e.id)
-    case e: PageUrlEmptyOrInvalid => ErrorDetail(s"PageStanza URL empty or invalid at id = ${e.id}", e.id)
-    case e: PhraseNotFound => ErrorDetail(s"Referenced phrase at index ${e.index} on stanza id = ?? is missing", "")
-    case e: LinkNotFound => ErrorDetail(s"Referenced link at index ${e.index} on stanza id = ?? is missing" , "")
-    case e: DuplicatePageUrl => ErrorDetail(s"Duplicate page url ${e.url} found on stanza id = ${e.id}", e.id)
-    case e: MissingWelshText => ErrorDetail(s"Welsh text at index ${e.index} on stanza id = ?? is empty", "")
+
+  implicit val toProcessErrors: FlowError => ProcessError = {
+    case e: UnknownStanzaType => ProcessError(s"Unsupported stanza ${e.unknown} found at id = ??", "")
+    case e: StanzaNotFound => ProcessError(s"Missing stanza at id = ${e.id}", e.id)
+    case e: PageStanzaMissing => ProcessError(s"PageSanza expected but missing at id = ${e.id}", e.id)
+    case e: PageUrlEmptyOrInvalid => ProcessError(s"PageStanza URL empty or invalid at id = ${e.id}", e.id)
+    case e: PhraseNotFound => ProcessError(s"Referenced phrase at index ${e.index} on stanza id = ?? is missing", "")
+    case e: LinkNotFound => ProcessError(s"Referenced link at index ${e.index} on stanza id = ?? is missing", "")
+    case e: DuplicatePageUrl => ProcessError(s"Duplicate page url ${e.url} found on stanza id = ${e.id}", e.id)
+    case e: MissingWelshText => ProcessError(s"Welsh text at index ${e.index} on stanza id = ?? is empty", "")
   }
 
-  implicit def f(l: List[FlowError]): List[ErrorDetail] = l.map(f => f)
+  implicit def f(l: List[FlowError]): List[ProcessError] = l.map(f => f)
 }

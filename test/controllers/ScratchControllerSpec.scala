@@ -19,7 +19,7 @@ package controllers
 import java.util.UUID
 
 import mocks.MockScratchService
-import models.errors.{BadRequestError, Error, InternalServiceError, NotFoundError, ErrorDetail}
+import models.errors.{BadRequestError, Error, InternalServiceError, NotFoundError, ProcessError}
 import models.ocelot.errors._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
@@ -96,7 +96,7 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
     "the request is valid but the process is invalid" should {
 
       trait InvalidSaveTest extends Test {
-        val processError: ErrorDetail = DuplicatePageUrl("4", "/feeling-bad")
+        val processError: ProcessError = DuplicatePageUrl("4", "/feeling-bad")
         val expectedError = Error(List(processError))
         val process: JsObject = data.ProcessData.invalidOnePageJson.as[JsObject]
         MockScratchService.save(process).returns(Future.successful(Left(expectedError)))

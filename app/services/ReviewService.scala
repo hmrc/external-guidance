@@ -73,13 +73,17 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
         reviewRepository.updateReview(id, ap.version, ReviewType2i, info.userId, info.status) flatMap {
           case Right(()) =>
             changeStatus(id, info.status, info.userId, ReviewType2i) flatMap {
-              case Right(_) => publishIfRequired(ap).map{
-                case Right(_) => ap.process.validate[Process].fold(
-                  _ => Left(BadRequestError): RequestOutcome[AuditInfo],
-                  process => Right(AuditInfo(info.userId, ap, process))
-                )
-                case Left(err) => Left(err)
-              }
+              case Right(_) =>
+                publishIfRequired(ap).map {
+                  case Right(_) =>
+                    ap.process
+                      .validate[Process]
+                      .fold(
+                        _ => Left(BadRequestError): RequestOutcome[AuditInfo],
+                        process => Right(AuditInfo(info.userId, ap, process))
+                      )
+                  case Left(err) => Left(err)
+                }
               case Left(errors) => Future.successful(Left(errors))
             }
           case Left(errors) =>
@@ -92,18 +96,21 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
     }
   }
 
-
   def factCheckComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[AuditInfo]] =
     checkProcessInCorrectStateForCompletion(id, ReviewTypeFactCheck) flatMap {
       case Right(ap) =>
         reviewRepository.updateReview(id, ap.version, ReviewTypeFactCheck, info.userId, info.status) flatMap {
-          case Right(_) => changeStatus(id, info.status, info.userId, ReviewTypeFactCheck) map {
-            case Right(_) => ap.process.validate[Process].fold(
-                  _ => Left(BadRequestError): RequestOutcome[AuditInfo],
-                  process => Right(AuditInfo(info.userId, ap, process))
-                )
-            case Left(error) => Left(error)
-          }
+          case Right(_) =>
+            changeStatus(id, info.status, info.userId, ReviewTypeFactCheck) map {
+              case Right(_) =>
+                ap.process
+                  .validate[Process]
+                  .fold(
+                    _ => Left(BadRequestError): RequestOutcome[AuditInfo],
+                    process => Right(AuditInfo(info.userId, ap, process))
+                  )
+              case Left(error) => Left(error)
+            }
           case Left(errors) =>
             logger.error(s"updateReviewOnCompletion: Could not update fact check review on completion for process $id")
             Future.successful(Left(errors))
@@ -136,7 +143,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
       case Left(DatabaseError) =>
         logger.error(s"$reviewType - database error changing status")
         Left(InternalServiceError)
-      case error@Left(NotFoundError) =>
+      case error @ Left(NotFoundError) =>
         logger.warn(s"$reviewType: Change Status: process $id was not found")
         error
       case Left(errors) =>
@@ -146,10 +153,12 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
     }
 
   private def getApprovalProcessToUpdate(id: String): Future[RequestOutcome[ApprovalProcess]] = repository.getById(id) map {
-    case Right(process) if StatusAllowedForReviewCompletion.contains(process.meta.status) => Right (process)
+    case Right(process) if StatusAllowedForReviewCompletion.contains(process.meta.status) => Right(process)
     case Right(process) =>
-      logger.warn(s"Invalid Process Status Change requested for process $id: " +
-        s"Expected Status One Of: '${StatusAllowedForReviewCompletion.mkString}' Status Found: '${process.meta.status}'")
+      logger.warn(
+        s"Invalid Process Status Change requested for process $id: " +
+          s"Expected Status One Of: '${StatusAllowedForReviewCompletion.mkString}' Status Found: '${process.meta.status}'"
+      )
       Left(StaleDataError)
     case Left(errors) =>
       logger.warn(s"getApprovalProcessToUpdate - error retrieving process $id - error returned $errors.")

@@ -31,9 +31,11 @@ import scala.concurrent.Future
 
 @Singleton
 class ProcessReviewController @Inject() (
-                                          factCheckerIdentifierAction: FactCheckerIdentifierAction,
-                                          twoEyeReviewerIdentifierAction: TwoEyeReviewerIdentifierAction,
-                                          reviewService: ReviewService, cc: ControllerComponents) extends BackendController(cc) {
+    factCheckerIdentifierAction: FactCheckerIdentifierAction,
+    twoEyeReviewerIdentifierAction: TwoEyeReviewerIdentifierAction,
+    reviewService: ReviewService,
+    cc: ControllerComponents
+) extends BackendController(cc) {
 
   def approval2iReviewInfo(id: String): Action[AnyContent] = twoEyeReviewerIdentifierAction.async { _ =>
     getReviewInfo(id, ReviewType2i)

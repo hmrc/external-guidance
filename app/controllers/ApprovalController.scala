@@ -30,9 +30,7 @@ import models.errors._
 import play.api.Logger
 
 @Singleton
-class ApprovalController @Inject() (identify: IdentifierAction,
-                                    approvalService: ApprovalService,
-                                    cc: ControllerComponents) extends BackendController(cc) {
+class ApprovalController @Inject() (identify: IdentifierAction, approvalService: ApprovalService, cc: ControllerComponents) extends BackendController(cc) {
 
   val logger = Logger(getClass)
 
@@ -50,7 +48,7 @@ class ApprovalController @Inject() (identify: IdentifierAction,
       case Left(err @ Error(Error.UnprocessableEntity, _, Some(details))) =>
         logger.error(s"Failed to save process for approval due to process errors $details")
         UnprocessableEntity(Json.toJson(err))
-      case Left(ValidationError) => 
+      case Left(ValidationError) =>
         logger.error(s"Failed to save process for approval due to validation errors")
         BadRequest(Json.toJson(BadRequestError))
       case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
