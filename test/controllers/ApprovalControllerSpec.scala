@@ -74,7 +74,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
     "the request is invalid" should {
 
       trait InvalidSaveTest extends Test {
-        val expectedErrorCode = "BAD_REQUEST_ERROR"
+        val expectedErrorCode = "BAD_REQUEST"
         MockApprovalService
           .save(invalidProcess)
           .returns(Future.successful(Left(BadRequestError)))
@@ -161,7 +161,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
     "the request is invalid" should {
 
       trait InvalidSaveTest extends Test {
-        val expectedErrorCode = "BAD_REQUEST_ERROR"
+        val expectedErrorCode = "BAD_REQUEST"
         MockApprovalService
           .save(invalidProcess, ReviewTypeFactCheck)
           .returns(Future.successful(Left(BadRequestError)))
@@ -247,7 +247,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
     "the request is invalid" should {
 
       trait InvalidGetTest extends Test {
-        val expectedErrorCode = "BAD_REQUEST_ERROR"
+        val expectedErrorCode = "BAD_REQUEST"
         MockApprovalService
           .getById(invalidId)
           .returns(Future.successful(Left(BadRequestError)))
@@ -275,7 +275,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
     "the request contains an unknown ID" should {
 
       trait NotFoundGetTest extends Test {
-        val expectedErrorCode = "NOT_FOUND_ERROR"
+        val expectedErrorCode = "NOT_FOUND"
         MockApprovalService
           .getById(validId)
           .returns(Future.successful(Left(NotFoundError)))
@@ -293,7 +293,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
-      "return a error code of NOT_FOUND_ERROR" in new NotFoundGetTest {
+      "return a error code of NOT_FOUND" in new NotFoundGetTest {
         private val result = controller.get(validId)(request)
         private val json = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe expectedErrorCode

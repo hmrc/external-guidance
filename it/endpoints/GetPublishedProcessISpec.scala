@@ -86,7 +86,7 @@ class GetPublishedProcessISpec extends IntegrationSpec {
 
     }
 
-    "return the error code BAD_REQUEST_ERROR" in {
+    "return the error code BAD_REQUEST" in {
 
       val json: JsObject = response.body[JsValue].as[JsObject]
 
@@ -117,7 +117,7 @@ class GetPublishedProcessISpec extends IntegrationSpec {
 
     }
 
-    "return the error code NOT_FOUND_ERROR" in {
+    "return the error code NOT_FOUND" in {
 
       val json: JsObject = response.body[JsValue].as[JsObject]
 

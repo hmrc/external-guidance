@@ -70,7 +70,7 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
     "the request is invalid" should {
 
       trait InvalidSaveTest extends Test {
-        val expectedErrorCode = "BAD_REQUEST_ERROR"
+        val expectedErrorCode = "BAD_REQUEST"
         val process: JsObject = Json.obj()
         MockScratchService.save(process).returns(Future.successful(Left(BadRequestError)))
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(process)
@@ -179,7 +179,7 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
     "the request is invalid" should {
 
       trait InvalidGetTest extends Test {
-        val expectedErrorCode = "BAD_REQUEST_ERROR"
+        val expectedErrorCode = "BAD_REQUEST"
         MockScratchService.getById(id).returns(Future.successful(Left(BadRequestError)))
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
@@ -204,7 +204,7 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
     "the request contains an unknown ID" should {
 
       trait NotFoundGetTest extends Test {
-        val expectedErrorCode = "NOT_FOUND_ERROR"
+        val expectedErrorCode = "NOT_FOUND"
         MockScratchService.getById(id).returns(Future.successful(Left(NotFoundError)))
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
@@ -219,7 +219,7 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
-      "return a error code of NOT_FOUND_ERROR" in new NotFoundGetTest {
+      "return a error code of NOT_FOUND" in new NotFoundGetTest {
         private val result = target.get(id)(request)
         private val json = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe expectedErrorCode

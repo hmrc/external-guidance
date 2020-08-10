@@ -86,7 +86,7 @@ class ProcessReviewControllerSpec extends WordSpec
     "the request is invalid" should {
 
       trait InvalidTest extends Test {
-        val expectedErrorCode = "BAD_REQUEST_ERROR"
+        val expectedErrorCode = "BAD_REQUEST"
         MockReviewService
           .approvalReviewInfo(invalidId, ReviewType2i)
           .returns(Future.successful(Left(BadRequestError)))
@@ -114,7 +114,7 @@ class ProcessReviewControllerSpec extends WordSpec
     "the request contains an unknown ID" should {
 
       trait NotFoundTest extends Test {
-        val expectedErrorCode = "NOT_FOUND_ERROR"
+        val expectedErrorCode = "NOT_FOUND"
         MockReviewService
           .approvalReviewInfo(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Left(NotFoundError)))
@@ -132,7 +132,7 @@ class ProcessReviewControllerSpec extends WordSpec
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
-      "return a error code of NOT_FOUND_ERROR" in new NotFoundTest {
+      "return a error code of NOT_FOUND" in new NotFoundTest {
         private val result = controller.approval2iReviewInfo(validProcessIdForReview)(request)
         private val json = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe expectedErrorCode
@@ -160,7 +160,7 @@ class ProcessReviewControllerSpec extends WordSpec
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
-      "return a error code of NOT_FOUND_ERROR" in new StaleDataTest {
+      "return a error code of NOT_FOUND" in new StaleDataTest {
         private val result = controller.approval2iReviewInfo(validProcessIdForReview)(request)
         private val json = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe expectedErrorCode
@@ -237,7 +237,7 @@ class ProcessReviewControllerSpec extends WordSpec
     "the request contains an unknown ID" should {
 
       trait NotFoundTest extends Test {
-        val expectedErrorCode = "NOT_FOUND_ERROR"
+        val expectedErrorCode = "NOT_FOUND"
         MockReviewService
           .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(NotFoundError)))
@@ -296,7 +296,7 @@ class ProcessReviewControllerSpec extends WordSpec
     "a bad request error occurs" should {
 
       trait ErrorTest extends Test {
-        val expectedErrorCode = "BAD_REQUEST_ERROR"
+        val expectedErrorCode = "BAD_REQUEST"
         MockReviewService
           .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(BadRequestError)))
@@ -372,7 +372,7 @@ class ProcessReviewControllerSpec extends WordSpec
           .checkProcessInCorrectStateForCompletion(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Left(NotFoundError)))
 
-        val expectedErrorCode = "NOT_FOUND_ERROR"
+        val expectedErrorCode = "NOT_FOUND"
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
@@ -468,7 +468,7 @@ class ProcessReviewControllerSpec extends WordSpec
     "the request is invalid" should {
 
       trait InvalidTest extends Test {
-        val expectedErrorCode = "BAD_REQUEST_ERROR"
+        val expectedErrorCode = "BAD_REQUEST"
         val pageUrl: String = "/pageUrl"
         MockReviewService
           .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewType2i)
@@ -489,7 +489,7 @@ class ProcessReviewControllerSpec extends WordSpec
     "the request contains an unknown ID" should {
 
       trait NotFoundTest extends Test {
-        val expectedErrorCode = "NOT_FOUND_ERROR"
+        val expectedErrorCode = "NOT_FOUND"
         val pageUrl: String = "/pageUrl"
         MockReviewService
           .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewType2i)
@@ -601,7 +601,7 @@ class ProcessReviewControllerSpec extends WordSpec
     "the request contains an unknown ID" should {
 
       trait NotFoundTest extends Test {
-        val expectedErrorCode = "NOT_FOUND_ERROR"
+        val expectedErrorCode = "NOT_FOUND"
         MockReviewService
           .approvalPageComplete("id", "/pageUrl", ReviewType2i, reviewUpdate)
           .returns(Future.successful(Left(NotFoundError)))
@@ -618,7 +618,7 @@ class ProcessReviewControllerSpec extends WordSpec
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
-      "return a error code of NOT_FOUND_ERROR" in new NotFoundTest {
+      "return a error code of NOT_FOUND" in new NotFoundTest {
         val json: JsObject = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe expectedErrorCode
       }
@@ -731,7 +731,7 @@ class ProcessReviewControllerSpec extends WordSpec
     "the request contains an unknown ID" should {
 
       "return an not found response" in new Test {
-        val expectedErrorCode = "NOT_FOUND_ERROR"
+        val expectedErrorCode = "NOT_FOUND"
         MockReviewService
           .factCheckComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(NotFoundError)))

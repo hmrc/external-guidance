@@ -77,7 +77,7 @@ class GetApprovalProcessISpec extends IntegrationSpec {
 
     "return the not found error response" in {
       val json = response.body[JsValue].as[JsObject]
-      (json \ "code").as[String] shouldBe "NOT_FOUND_ERROR"
+      (json \ "code").as[String] shouldBe "NOT_FOUND"
     }
   }
 

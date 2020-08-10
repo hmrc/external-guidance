@@ -136,7 +136,7 @@ class PublishedControllerSpec extends UnitSpec with GuiceOneAppPerSuite with Pro
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
-      "return the error code NOT_FOUND_ERROR" in new NotFoundTest {
+      "return the error code NOT_FOUND" in new NotFoundTest {
 
         private val result = target.get(validId)(getRequest)
 

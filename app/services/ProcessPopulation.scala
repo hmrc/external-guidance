@@ -25,14 +25,17 @@ trait ProcessPopulation {
 
   def stanza(id: String, process: Process): Either[FlowError, Stanza] =
     process.flow.get(id) match {
-      case Some(stanza) => populateStanza(stanza, process)
+      case Some(stanza) => populateStanza(id, stanza, process)
       case None => Left(StanzaNotFound(id))
     }
 
-  private def populateStanza(stanza: Stanza, process: Process): Either[FlowError, Stanza] = {
+  private def populateStanza(id: String, stanza: Stanza, process: Process): Either[FlowError, Stanza] = {
 
     def phrase(phraseIndex: Int): Either[FlowError, Phrase] =
-      process.phraseOption(phraseIndex).map(Right(_)).getOrElse(Left(PhraseNotFound(phraseIndex)))
+      process.phraseOption(phraseIndex).fold(Left(PhraseNotFound(phraseIndex)): Either[FlowError, Phrase]){
+        case Phrase(Vector(english, welsh)) if welsh.isEmpty && !english.isEmpty => Left(MissingWelshText(id, english))
+        case p: Phrase => Right(p)
+      }
 
     @tailrec
     def phrases(indexes: Seq[Int], acc: Seq[Phrase]): Either[FlowError, Seq[Phrase]] =
@@ -41,7 +44,7 @@ trait ProcessPopulation {
         case index :: xs =>
           phrase(index) match {
             case Right(phrase) => phrases(xs, acc :+ phrase)
-            case Left(_) => Left(PhraseNotFound(index))
+            case Left(err) => Left(err)
           }
       }
 

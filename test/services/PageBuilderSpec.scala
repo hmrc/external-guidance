@@ -299,6 +299,32 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
       }
     }
 
+    "detect MissingWelshText" in {
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/this", Seq("1"), false),
+        "1" -> InstructionStanza(0, Seq("2"), None, false),
+        "2" -> QuestionStanza(1, Seq(2, 3), Seq("4", "5"), false),
+        "4" -> PageStanza("/that", Seq("5"), false),
+        "5" -> InstructionStanza(0, Seq("end"), None, false),
+        "end" -> EndStanza
+      )
+      val process = Process(
+        metaSection,
+        flow,
+        Vector[Phrase](
+          Phrase(Vector("Some Text", "Welsh, Some Text")),
+          Phrase(Vector("Some Text1", "")),
+          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
+        ),
+        Vector[Link]()
+      )
+      pageBuilder.pages(process) match {
+        case Left(MissingWelshText("2", "Some Text1")) => succeed
+        case Left(err) => fail(s"MissingWelshText error not detected, failed with $err")
+        case _ => fail(s"MissingWelshText not detected")
+      }
+    }
   }
 
   "PageBuilder" must {
