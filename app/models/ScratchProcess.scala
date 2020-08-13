@@ -21,3 +21,4 @@ import org.joda.time.DateTime
 import play.api.libs.json.JsObject
 
 case class ScratchProcess(id: UUID, process: JsObject, expireAt: DateTime)
+

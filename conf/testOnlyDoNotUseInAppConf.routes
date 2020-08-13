@@ -15,3 +15,4 @@ POST        /test-only/processes/published        testOnly.controllers.Published
 DELETE      /test-only/processes/published/:id    testOnly.controllers.PublishedController.delete(id)
 
 DELETE      /test-only/processes/approval/:id    testOnly.controllers.ApprovalController.delete(id)
+DELETE      /test-only/scratch/:id               testOnly.controllers.ScratchController.delete(id)
