@@ -27,7 +27,7 @@ object ValueType {
   implicit val reads: Reads[ValueType] = (json: JsValue) =>
     json match {
       case JsString("scalar") => JsSuccess(Scalar, __)
-      case _ => JsError("Invalid ValueType type")
+      case _ => JsError("ValueType")
     }
 
   implicit val writes: Writes[ValueType] = (valueType: ValueType) =>

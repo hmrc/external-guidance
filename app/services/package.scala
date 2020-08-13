@@ -15,11 +15,11 @@
  */
 
 import models.errors.{Error, ValidationError}
+import models.ocelot.errors._
 import java.util.UUID
 import models.RequestOutcome
 import models.ocelot.{Page, Process}
 import play.api.libs.json._
-import play.api.Logger
 
 package object services {
 
@@ -37,9 +37,10 @@ package object services {
     jsValue
       .validate[Process]
       .fold(
-        err => {
-          Logger(getClass).error(s"Process validation has failed with error $err")
-          Left(ValidationError)
+        errs => {
+          val guidanceErrors: List[GuidanceError] = errs.map(err => GuidanceError.toGuidanceError(err)).toList
+          println(s"GUIDANCE-ERRORS: ${guidanceErrors}")
+          Left(Error(guidanceErrors.toList))
         },
         process => pageBuilder.pages(process).fold(err => Left(Error(List(err))), p => Right((process, p)))
       )

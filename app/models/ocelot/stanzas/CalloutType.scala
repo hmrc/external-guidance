@@ -42,7 +42,7 @@ object CalloutType {
       case JsString("Error") => JsSuccess(Error, __)
       case JsString("Section") => JsSuccess(Section, __)
       case JsString("SubSection") => JsSuccess(SubSection, __)
-      case _ => JsError("Invalid Callout type")
+      case _ => JsError("CalloutType")
     }
 
   implicit val writes: Writes[CalloutType] = (calloutType: CalloutType) =>

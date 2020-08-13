@@ -35,10 +35,10 @@ class PageBuilder extends ProcessPopulation {
 
   private def pageLinkIds(str: String): Seq[String] = pageLinkRegex.findAllMatchIn(str).map(_.group(1)).toList
 
-  def buildPage(key: String, process: Process): Either[FlowError, Page] = {
+  def buildPage(key: String, process: Process): Either[GuidanceError, Page] = {
 
     @tailrec
-    def collectStanzas(key: String, acc: Seq[KeyedStanza], linkedAcc: Seq[String]): Either[FlowError, (Seq[KeyedStanza], Seq[String], Seq[String])] =
+    def collectStanzas(key: String, acc: Seq[KeyedStanza], linkedAcc: Seq[String]): Either[GuidanceError, (Seq[KeyedStanza], Seq[String], Seq[String])] =
       stanza(key, process) match {
         case Right(q: Question) => Right((acc :+ KeyedStanza(key, q), q.next, linkedAcc))
         case Right(EndStanza) => Right((acc :+ KeyedStanza(key, EndStanza), Nil, linkedAcc))
@@ -62,10 +62,10 @@ class PageBuilder extends ProcessPopulation {
     }
   }
 
-  def pages(process: Process, start: String = Process.StartStanzaId): Either[FlowError, Seq[Page]] = {
+  def pages(process: Process, start: String = Process.StartStanzaId): Either[GuidanceError, Seq[Page]] = {
 
     @tailrec
-    def pagesByKeys(keys: Seq[String], acc: Seq[Page]): Either[FlowError, Seq[Page]] =
+    def pagesByKeys(keys: Seq[String], acc: Seq[Page]): Either[GuidanceError, Seq[Page]] =
       keys match {
         case Nil => Right(acc)
         case key :: xs if !acc.exists(_.id == key) =>

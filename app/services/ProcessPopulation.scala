@@ -23,22 +23,22 @@ import scala.annotation.tailrec
 
 trait ProcessPopulation {
 
-  def stanza(id: String, process: Process): Either[FlowError, Stanza] =
+  def stanza(id: String, process: Process): Either[GuidanceError, Stanza] =
     process.flow.get(id) match {
       case Some(stanza) => populateStanza(id, stanza, process)
       case None => Left(StanzaNotFound(id))
     }
 
-  private def populateStanza(id: String, stanza: Stanza, process: Process): Either[FlowError, Stanza] = {
+  private def populateStanza(id: String, stanza: Stanza, process: Process): Either[GuidanceError, Stanza] = {
 
-    def phrase(phraseIndex: Int): Either[FlowError, Phrase] =
-      process.phraseOption(phraseIndex).fold(Left(PhraseNotFound(phraseIndex)): Either[FlowError, Phrase]){
+    def phrase(phraseIndex: Int): Either[GuidanceError, Phrase] =
+      process.phraseOption(phraseIndex).fold(Left(PhraseNotFound(phraseIndex)): Either[GuidanceError, Phrase]){
         case Phrase(Vector(english, welsh)) if welsh.isEmpty && !english.isEmpty => Left(MissingWelshText(id, english))
         case p: Phrase => Right(p)
       }
 
     @tailrec
-    def phrases(indexes: Seq[Int], acc: Seq[Phrase]): Either[FlowError, Seq[Phrase]] =
+    def phrases(indexes: Seq[Int], acc: Seq[Phrase]): Either[GuidanceError, Seq[Phrase]] =
       indexes match {
         case Nil => Right(acc)
         case index :: xs =>
@@ -51,7 +51,7 @@ trait ProcessPopulation {
     def link(linkIndex: Int): Either[LinkNotFound, Link] =
       process.linkOption(linkIndex).map(Right(_)).getOrElse(Left(LinkNotFound(linkIndex)))
 
-    def populateInstruction(i: InstructionStanza): Either[FlowError, Instruction] = {
+    def populateInstruction(i: InstructionStanza): Either[GuidanceError, Instruction] = {
       phrase(i.text).fold(
         Left(_),
         text => {
