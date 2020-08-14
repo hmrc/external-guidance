@@ -29,7 +29,7 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-
+import services._
 import scala.concurrent.Future
 
 class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite {
@@ -96,7 +96,7 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
     "the request is valid but the process is invalid" should {
 
       trait InvalidSaveTest extends Test {
-        val processError: ProcessError = DuplicatePageUrl("4", "/feeling-bad")
+        val processError: ProcessError = toProcessErr(DuplicatePageUrl("4", "/feeling-bad"))
         val expectedError = Error(List(processError))
         val process: JsObject = data.ProcessData.invalidOnePageJson.as[JsObject]
         MockScratchService.save(process).returns(Future.successful(Left(expectedError)))

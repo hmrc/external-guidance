@@ -33,7 +33,7 @@ package object services {
     if (id.matches(format)) Right(id) else Left(ValidationError)
   }
 
-  def toProcessErr(err: GuidanceError): ProcessError = err match {
+  implicit def toProcessErr(err: GuidanceError): ProcessError = err match {
     case e: StanzaNotFound => ProcessError(s"Missing stanza at id = ${e.id}", e.id)
     case e: PageStanzaMissing => ProcessError(s"PageSanza expected but missing at id = ${e.id}", e.id)
     case e: PageUrlEmptyOrInvalid => ProcessError(s"PageStanza URL empty or invalid at id = ${e.id}", e.id)
@@ -58,7 +58,7 @@ package object services {
       .validate[Process]
       .fold(
         errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
-        process => pageBuilder.pages(process).fold(err => Left(Error(List(toProcessErr(err)))), p => Right((process, p)))
+        process => pageBuilder.pages(process).fold(errs => Left(Error(errs)), p => Right((process, p)))
       )
 
 

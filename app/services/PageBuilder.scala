@@ -62,7 +62,7 @@ class PageBuilder extends ProcessPopulation {
     }
   }
 
-  def pages(process: Process, start: String = Process.StartStanzaId): Either[GuidanceError, Seq[Page]] = {
+  def pages(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] = {
 
     @tailrec
     def pagesByKeys(keys: Seq[String], acc: Seq[Page]): Either[GuidanceError, Seq[Page]] =
@@ -70,17 +70,35 @@ class PageBuilder extends ProcessPopulation {
         case Nil => Right(acc)
         case key :: xs if !acc.exists(_.id == key) =>
           buildPage(key, process) match {
-            case Right(page) if pageUrlUnique(page.url, acc) =>
-              pagesByKeys(page.next ++ xs ++ page.linked, acc :+ page)
-            case Right(page) => Left(DuplicatePageUrl(page.id, page.url))
+            case Right(page) =>
+              pagesByKeys(page.next ++ xs ++ page.linked, acc :+ page)            
             case Left(err) =>
-              logger.error(s"Could not parse process - $err")
+              logger.error(s"Page building failed with error - $err")
               Left(err)
           }
         case _ :: xs => pagesByKeys(xs, acc)
       }
 
-    pagesByKeys(List(start), Nil)
+    @tailrec
+    def duplicateUrls(urls: Seq[Page], acc: List[Page], dups: List[Page]): List[Page] = 
+      urls match {
+        case Nil => dups
+        case x :: xs if pageUrlUnique(x.url, acc) => 
+          duplicateUrls(xs, x :: acc, dups)
+        case x :: xs => 
+          duplicateUrls(xs, x :: acc, x :: dups)
+      }
+
+    pagesByKeys(List(start), Nil).fold(
+      err => Left(List(err)),
+      pages => {
+        duplicateUrls(pages, Nil, Nil) match {
+          case Nil => Right(pages)
+          case duplicates => Left(duplicates.map(p => DuplicatePageUrl(p.id, p.url)))
+        }
+      }
+    )
+    
   }
 
   def fromPageDetails[A](pages: Seq[Page])(f: (String, String, String) => A): List[A] =

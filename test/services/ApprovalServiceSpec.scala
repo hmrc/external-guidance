@@ -202,11 +202,9 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
         service.save(invalidProcess, ReviewType2i, StatusSubmittedFor2iReview)
       }
 
-      "return a validation error" in new Test {
-        val expected: RequestOutcome[String] = Left(ValidationError)
-
+      "return a HTTP 422 error" in new Test {
         whenReady(service.save(invalidProcess, ReviewType2i, StatusSubmittedFor2iReview)) {
-          case result @ Left(_) => result shouldBe expected
+          case result @ Left(err) if err.code == Error.UnprocessableEntity => succeed
           case _ => fail
         }
       }

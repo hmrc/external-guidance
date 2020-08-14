@@ -42,6 +42,10 @@ case class LinksParseError(msg: String) extends LinksError
 
 object GuidanceError {
 
+  // Handle errors occuring at second level of JsPath which include an indentifying message
+  // added during the parse to indicate unsupported stanzas, callout or value types. All 
+  // other validation errors are converted to a general parse error containing the JsPath
+  // and seq of JsonValidationError errors
   def fromJsonValidationError(err: (JsPath, Seq[JsonValidationError])): GuidanceError = {
     val (jsPath, errs) = err
     jsPath.path.lift(1).fold(ParseError(jsPath, errs): GuidanceError)(pth => {

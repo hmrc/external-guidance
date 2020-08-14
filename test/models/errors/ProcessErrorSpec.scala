@@ -18,16 +18,14 @@ package models.errors
 
 import base.UnitSpec
 import models.ocelot.errors._
-import models.ocelot.stanzas.Stanza
+import services._
 
 class ProcessErrorSpec extends UnitSpec {
-
-  case object UnknownStanza extends Stanza
 
   "Contructing ProcessErrors" should {
     "from UnknownStanza" in {
       val details: ProcessError = UnknownStanza("33", UnknownStanza.toString)
-      details shouldBe ProcessError(s"Unsupported stanza ${UnknownStanza.toString} found at id = 33", "33")
+      details shouldBe ProcessError(s"Unsupported stanza type ${UnknownStanza.toString} found at stanza id 33", "33")
     }
 
     "from StanzaNotFound" in {
@@ -46,13 +44,13 @@ class ProcessErrorSpec extends UnitSpec {
     }
 
     "from PhraseNotFound" in {
-      val details: ProcessError = PhraseNotFound(3)
-      details shouldBe ProcessError("Referenced phrase at index 3 on stanza id = ?? is missing", "")
+      val details: ProcessError = PhraseNotFound("stanzaId", 3)
+      details shouldBe ProcessError("Referenced phrase at index 3 on stanza id = stanzaId is missing", "stanzaId")
     }
 
     "from LinkNotFound" in {
-      val details: ProcessError = LinkNotFound(4)
-      details shouldBe ProcessError("Referenced link at index 4 on stanza id = ?? is missing", "")
+      val details: ProcessError = LinkNotFound("stanzaId", 4)
+      details shouldBe ProcessError("Referenced link at index 4 on stanza id = stanzaId is missing", "stanzaId")
     }
 
     "from DuplicatePageUrl" in {
@@ -61,8 +59,8 @@ class ProcessErrorSpec extends UnitSpec {
     }
 
     "from MissingWelshText" in {
-      val details: ProcessError = MissingWelshText("index", "english")
-      details shouldBe ProcessError("Welsh text at index index on stanza id = ?? is empty", "")
+      val details: ProcessError = MissingWelshText("stanzaId", "index", "english")
+      details shouldBe ProcessError("Welsh text at index index on stanza id = stanzaId is empty", "stanzaId")
     }
 
   }

@@ -117,7 +117,7 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
       )
 
       pageBuilder.pages(process) match {
-        case Left(PageStanzaMissing("4")) => succeed
+        case Left(List(PageStanzaMissing("4"))) => succeed
         case Left(err) => fail(s"Missing ValueStanza containing PageUrl value not detected, failed with $err")
         case _ => fail(s"Missing ValueStanza containing PageUrl value not detected")
       }
@@ -145,7 +145,7 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
       )
 
       pageBuilder.pages(process) match {
-        case Left(PageUrlEmptyOrInvalid(Process.StartStanzaId)) => succeed
+        case Left(List(PageUrlEmptyOrInvalid(Process.StartStanzaId))) => succeed
         case Left(err) => fail(s"Missing ValueStanza containing PageUrl value not detected, failed with $err")
         case _ => fail(s"Missing ValueStanza containing PageUrl value not detected")
       }
@@ -155,7 +155,7 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
       val invalidProcess = invalidOnePageJson.as[Process]
 
       pageBuilder.pages(invalidProcess) match {
-        case Left(PageUrlEmptyOrInvalid("4")) => succeed
+        case Left(List(PageUrlEmptyOrInvalid("4"))) => succeed
         case Left(err) => fail(s"PageStanza url equal to / not detected, failed with $err")
         case _ => fail(s"PageStanza url equal to / not detected")
       }
@@ -183,7 +183,7 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
       )
 
       pageBuilder.pages(process) match {
-        case Left(PhraseNotFound(four)) => succeed
+        case Left(List(PhraseNotFound(id, four))) => succeed
         case Left(err) => fail(s"Missing PhraseNotFound(4) with error $err")
         case Right(_) => fail(s"Missing PhraseNotFound(4)")
       }
@@ -211,7 +211,7 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
       )
 
       pageBuilder.pages(process) match {
-        case Left(PhraseNotFound(four)) => succeed
+        case Left(List(PhraseNotFound(id, four))) => succeed
         case Left(err) => fail(s"Missing PhraseNotFound(4) with error $err")
         case Right(_) => fail(s"Missing PhraseNotFound(4)")
       }
@@ -226,7 +226,7 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
       val process = Process(metaSection, flow, Vector[Phrase](Phrase(Vector("Some Text", "Welsh, Some Text"))), Vector[Link]())
 
       pageBuilder.pages(process) match {
-        case Left(PhraseNotFound(2)) => succeed
+        case Left(List(PhraseNotFound(id, 2))) => succeed
         case Left(err) => fail(s"Missing PhraseNotFound(2) with error $err")
         case Right(_) => fail(s"Missing PhraseNotFound(2)")
       }
@@ -241,7 +241,7 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
       val process = Process(metaSection, flow, Vector[Phrase](Phrase(Vector("Some Text", "Welsh, Some Text"))), Vector[Link]())
 
       pageBuilder.pages(process) match {
-        case Left(PhraseNotFound(2)) => succeed
+        case Left(List(PhraseNotFound(id, 2))) => succeed
         case Left(err) => fail(s"Missing PhraseNotFound(2) with error $err")
         case Right(_) => fail(s"Missing PhraseNotFound(2)")
       }
@@ -265,7 +265,7 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
       )
 
       pageBuilder.pages(process) match {
-        case Left(LinkNotFound(1)) => succeed
+        case Left(List(LinkNotFound(id, 1))) => succeed
         case Left(err) => fail(s"Missing LinkNotFound error. Actual error raised is $err")
         case Right(_) => fail("Page building terminated successfully when LinkNotFound error expected")
       }
@@ -277,7 +277,7 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
         "1" -> InstructionStanza(0, Seq("2"), None, false),
         "2" -> QuestionStanza(1, Seq(2, 3), Seq("4", "5"), false),
         "4" -> PageStanza("/this", Seq("5"), false),
-        "5" -> InstructionStanza(0, Seq("end"), None, false),
+        "5" -> PageStanza("/that", Seq("end"), false),
         "end" -> EndStanza
       )
       val process = Process(
@@ -293,9 +293,9 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
       )
 
       pageBuilder.pages(process) match {
-        case Left(DuplicatePageUrl("4", "/this")) => succeed
+        case Left(List(DuplicatePageUrl("4", "/this"))) => succeed
         case Left(err) => fail(s"DuplicatePageUrl error not detected, failed with $err")
-        case _ => fail(s"DuplicatePageUrl not detected")
+        case res => fail(s"DuplicatePageUrl not detected $res")
       }
     }
 
@@ -320,7 +320,7 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
         Vector[Link]()
       )
       pageBuilder.pages(process) match {
-        case Left(MissingWelshText("2", "Some Text1")) => succeed
+        case Left(List(MissingWelshText("2", _, "Some Text1"))) => succeed
         case Left(err) => fail(s"MissingWelshText error not detected, failed with $err")
         case _ => fail(s"MissingWelshText not detected")
       }
@@ -358,8 +358,8 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
 
         pageBuilder.pages(process, "unknown") match {
           case Right(_) => fail("""Should fail with StanzaNotFound("unknown")""")
-          case Left(err) if err == StanzaNotFound("unknown") => succeed
-          case Left(wrongErr) => fail("""Should fail with StanzaNotFound("unknown")""")
+          case Left(List(err)) if err == StanzaNotFound("unknown") => succeed
+          case Left(wrongErr) => fail(s"""Should fail with StanzaNotFound("unknown") $wrongErr""")
         }
       }
 
