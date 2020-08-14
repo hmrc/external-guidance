@@ -42,7 +42,8 @@ object CalloutType {
       case JsString("Error") => JsSuccess(Error, __)
       case JsString("Section") => JsSuccess(Section, __)
       case JsString("SubSection") => JsSuccess(SubSection, __)
-      case _ => JsError("CalloutType")
+      case typeName: JsString => JsError(JsonValidationError(Seq("CalloutType"), typeName.value))
+      case unknown => JsError(JsonValidationError(Seq("CalloutType"), unknown.toString))
     }
 
   implicit val writes: Writes[CalloutType] = (calloutType: CalloutType) =>

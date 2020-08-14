@@ -25,9 +25,9 @@ class ProcessErrorSpec extends UnitSpec {
   case object UnknownStanza extends Stanza
 
   "Contructing ProcessErrors" should {
-    "from UnknownStanzaType" in {
-      val details: ProcessError = UnknownStanzaType(UnknownStanza)
-      details shouldBe ProcessError(s"Unsupported stanza ${UnknownStanza} found at id = ??", "")
+    "from UnknownStanza" in {
+      val details: ProcessError = UnknownStanza("33", UnknownStanza.toString)
+      details shouldBe ProcessError(s"Unsupported stanza ${UnknownStanza.toString} found at id = 33", "33")
     }
 
     "from StanzaNotFound" in {

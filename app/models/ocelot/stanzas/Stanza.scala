@@ -36,7 +36,7 @@ object Stanza {
       case "PageStanza" => js.validate[PageStanza]
       case "ValueStanza" => js.validate[ValueStanza]
       case "EndStanza" => JsSuccess(EndStanza)
-      case _ => JsError("Stanza")
+      case typeName => JsError(JsonValidationError(Seq("Stanza"), typeName))
     }
   }
 
