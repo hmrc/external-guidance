@@ -23,6 +23,7 @@ case class ProcessError(message: String, stanza: String)
 object ProcessError {
   implicit val formats: OFormat[ProcessError] = Json.format[ProcessError]  
 }
+
 case class Error(code: String, message: Option[String], messages: Option[List[ProcessError]])
 
 object Error {

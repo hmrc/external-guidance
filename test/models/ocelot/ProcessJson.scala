@@ -1720,7 +1720,7 @@ trait ProcessJson {
     )
     .as[JsObject]
 
-  val processWithCallouts: Process = Json.parse(
+  val processWithCallouts: String =
     """
       |{
       |    "meta": {
@@ -2236,5 +2236,5 @@ trait ProcessJson {
       |    }
       |  ]
       |}
-      |""".stripMargin).as[Process]
+      |""".stripMargin
 }

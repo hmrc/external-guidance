@@ -373,7 +373,7 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
 
             pages.length shouldBe 28
 
-          case Left(err) => fail(s"FlowError $err")
+          case Left(err) => fail(s"GuidanceError $err")
         }
 
       }
@@ -403,7 +403,7 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
 
             pages.head.id shouldBe "120"
 
-          case Left(err) => fail(s"FlowError $err")
+          case Left(err) => fail(s"GuidanceError $err")
         }
 
       }
@@ -414,8 +414,10 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
 
         pageBuilder.pages(process) match {
           case Right(pages) =>
+
             testPagesInPrototypeJson(pages)
-          case Left(err) => fail(s"Flow error $err")
+
+          case Left(err) => fail(s"GuidanceError error $err")
         }
 
       }
@@ -428,7 +430,7 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
 
             pages.length shouldBe 1
 
-          case Left(err) => fail(s"FlowError $err")
+          case Left(err) => fail(s"GuidanceError $err")
         }
 
       }
@@ -448,7 +450,7 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
 
             pages.length shouldBe 1
 
-          case Left(err) => fail(s"FlowError $err")
+          case Left(err) => fail(s"GuidanceError $err")
         }
       }
 
@@ -457,6 +459,7 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
         pageBuilder.pages(processWithLinks) match {
           case Right(pages) =>
             pages.length shouldBe 7
+
             val pageMap = pages.map(p => (p.id, p.linked)).toMap
 
             pageIds.forall(pageMap.contains) shouldBe true
@@ -468,7 +471,7 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
             pageMap(pageId5) shouldBe Nil
             pageMap(pageId6) shouldBe Nil
 
-          case Left(err) => fail(s"FlowError $err")
+          case Left(err) => fail(s"GuidanceError $err")
         }
       }
 
@@ -524,7 +527,7 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
 
       case class Dummy(id: String, pageUrl: String, pageTitle: String)
 
-      pageBuilder.pages(processWithCallouts) match {
+      pageBuilder.pages(Json.parse(processWithCallouts).as[Process]) match {
         case Right(pages) =>
           val pageInfo = pageBuilder.fromPageDetails(pages)(Dummy(_,_,_))
 

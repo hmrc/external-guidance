@@ -17,5 +17,7 @@
 import models.errors.Error
 
 package object models {
+
   type RequestOutcome[T] = Either[Error, T]
+
 }
