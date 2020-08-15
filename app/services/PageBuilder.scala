@@ -31,7 +31,6 @@ class PageBuilder extends ProcessPopulation {
 
   private val pageLinkRegex = s"\\[link:.+?:(\\d+|${Process.StartStanzaId})\\]".r
   private val hintRegex = "\\[hint:([^\\]])+\\]".r
-  private def pageUrlUnique(url: String, existingPages: Seq[Page]): Boolean = !existingPages.exists(_.url == url)
 
   private def pageLinkIds(str: String): Seq[String] = pageLinkRegex.findAllMatchIn(str).map(_.group(1)).toList
 
@@ -79,22 +78,22 @@ class PageBuilder extends ProcessPopulation {
         case _ :: xs => pagesByKeys(xs, acc)
       }
 
+    def pageUrlInUse(page: Page, others: Seq[Page]): Boolean = others.exists(_.url == page.url)
+
     @tailrec
-    def duplicateUrls(urls: Seq[Page], acc: List[Page], dups: List[Page]): List[Page] = 
-      urls match {
-        case Nil => dups
-        case x :: xs if pageUrlUnique(x.url, acc) => 
-          duplicateUrls(xs, x :: acc, dups)
-        case x :: xs => 
-          duplicateUrls(xs, x :: acc, x :: dups)
+    def duplicateUrlErrors(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = 
+      pages match {
+        case Nil => errors
+        case x :: xs if pageUrlInUse(x, xs) => duplicateUrlErrors(xs, DuplicatePageUrl(x.id, x.url) :: errors)
+        case x :: xs => duplicateUrlErrors(xs, errors)
       }
 
     pagesByKeys(List(start), Nil).fold(
       err => Left(List(err)),
       pages => {
-        duplicateUrls(pages, Nil, Nil) match {
+        duplicateUrlErrors(pages.reverse, Nil) match {
           case Nil => Right(pages)
-          case duplicates => Left(duplicates.map(p => DuplicatePageUrl(p.id, p.url)))
+          case duplicates => Left(duplicates)
         }
       }
     )
