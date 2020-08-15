@@ -54,12 +54,8 @@ package object services {
   implicit def processErrs(errs: List[GuidanceError]): List[ProcessError] = errs.map(toProcessErr)
 
   def guidancePages(pageBuilder: PageBuilder, jsValue: JsValue): RequestOutcome[(Process, Seq[Page])] =
-    jsValue
-      .validate[Process]
-      .fold(
-        errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
-        process => pageBuilder.pages(process).fold(errs => Left(Error(errs)), p => Right((process, p)))
-      )
-
-
+    jsValue.validate[Process].fold(
+      errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
+      process => pageBuilder.pages(process).fold(errs => Left(Error(errs)), p => Right((process, p)))
+    )
 }

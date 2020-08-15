@@ -78,13 +78,11 @@ class PageBuilder extends ProcessPopulation {
         case _ :: xs => pagesByKeys(xs, acc)
       }
 
-    def pageUrlInUse(page: Page, others: Seq[Page]): Boolean = others.exists(_.url == page.url)
-
     @tailrec
     def duplicateUrlErrors(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = 
       pages match {
         case Nil => errors
-        case x :: xs if pageUrlInUse(x, xs) => duplicateUrlErrors(xs, DuplicatePageUrl(x.id, x.url) :: errors)
+        case x :: xs if xs.exists(_.url == x.url) => duplicateUrlErrors(xs, DuplicatePageUrl(x.id, x.url) :: errors)
         case x :: xs => duplicateUrlErrors(xs, errors)
       }
 
@@ -97,7 +95,6 @@ class PageBuilder extends ProcessPopulation {
         }
       }
     )
-    
   }
 
   def fromPageDetails[A](pages: Seq[Page])(f: (String, String, String) => A): List[A] =
