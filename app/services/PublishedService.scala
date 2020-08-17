@@ -19,7 +19,7 @@ package services
 import javax.inject.{Inject, Singleton}
 import models.errors.{BadRequestError, InternalServiceError, NotFoundError}
 import models.{PublishedProcess, RequestOutcome}
-import models.ocelot.Process
+import models.ocelot._
 import play.api.Logger
 import play.api.libs.json.JsObject
 import repositories.PublishedRepository

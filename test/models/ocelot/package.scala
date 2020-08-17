@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-import models.errors.Error
+package models
 
-package object models {
+package object ocelot {
 
-  type RequestOutcome[T] = Either[Error, T]
-
+  def addTitlePhrase(process: Process): Process = 
+    process.copy(
+      meta = process.meta.copy(titlePhrase = Some(process.phrases.length)),
+      phrases = process.phrases :+ Phrase(process.meta.title, s"Welsh, ${process.meta.title}")
+    )
 }

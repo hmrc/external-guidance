@@ -19,7 +19,7 @@ package controllers
 import java.util.UUID
 
 import mocks.MockScratchService
-import models.errors.{BadRequestError, Error, InternalServiceError, NotFoundError, ProcessError}
+import models.errors.{BadRequestError, Error, InternalServiceError, NotFoundError, ProcessError, ValidationError}
 import models.ocelot.errors._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
@@ -29,6 +29,7 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import services._
 
 import scala.concurrent.Future
 
@@ -96,7 +97,7 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
     "the request is valid but the process is invalid" should {
 
       trait InvalidSaveTest extends Test {
-        val processError: ProcessError = DuplicatePageUrl("4", "/feeling-bad")
+        val processError: ProcessError = toProcessErr(DuplicatePageUrl("4", "/feeling-bad"))
         val expectedError = Error(List(processError))
         val process: JsObject = data.ProcessData.invalidOnePageJson.as[JsObject]
         MockScratchService.save(process).returns(Future.successful(Left(expectedError)))
@@ -117,6 +118,34 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
         private val result = target.save()(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe Error.UnprocessableEntity
+      }
+
+    }
+
+    "the request is valid but the process returns ValidationError" should {
+
+      trait InvalidSaveTest extends Test {
+        val processError: ProcessError = toProcessErr(DuplicatePageUrl("4", "/feeling-bad"))
+        val expectedError = BadRequestError
+        val process: JsObject = data.ProcessData.invalidOnePageJson.as[JsObject]
+        MockScratchService.save(process).returns(Future.successful(Left(ValidationError)))
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(process)
+      }
+
+      "return a unsupportable entity response" in new InvalidSaveTest {
+        private val result = target.save()(request)
+        status(result) shouldBe BAD_REQUEST
+      }
+
+      "return content as JSON" in new InvalidSaveTest {
+        private val result = target.save()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return an error code of UNPROCESSABLE_ENTITY" in new InvalidSaveTest {
+        private val result = target.save()(request)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe "BAD_REQUEST"
       }
 
     }

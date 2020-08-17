@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import models.errors.{Error, ValidationError}
+import models.errors.{Error, ProcessError, ValidationError}
+import models.ocelot.errors._
 import java.util.UUID
 import models.RequestOutcome
 import models.ocelot.{Page, Process}
 import play.api.libs.json._
-import play.api.Logger
 
 package object services {
 
@@ -33,15 +33,29 @@ package object services {
     if (id.matches(format)) Right(id) else Left(ValidationError)
   }
 
-  def guidancePages(pageBuilder: PageBuilder, jsValue: JsValue): RequestOutcome[(Process, Seq[Page])] =
-    jsValue
-      .validate[Process]
-      .fold(
-        err => {
-          Logger(getClass).error(s"Process validation has failed with error $err")
-          Left(ValidationError)
-        },
-        process => pageBuilder.pages(process).fold(err => Left(Error(List(err))), p => Right((process, p)))
-      )
+  implicit def toProcessErr(err: GuidanceError): ProcessError = err match {
+    case e: StanzaNotFound => ProcessError(s"Missing stanza at id = ${e.id}", e.id)
+    case e: PageStanzaMissing => ProcessError(s"PageSanza expected but missing at id = ${e.id}", e.id)
+    case e: PageUrlEmptyOrInvalid => ProcessError(s"PageStanza URL empty or invalid at id = ${e.id}", e.id)
+    case e: PhraseNotFound => ProcessError(s"Referenced phrase at index ${e.index} on stanza id = ${e.id} is missing", e.id)
+    case e: LinkNotFound => ProcessError(s"Referenced link at index ${e.index} on stanza id = ${e.id} is missing", e.id)
+    case e: DuplicatePageUrl => ProcessError(s"Duplicate page url ${e.url} found on stanza id = ${e.id}", e.id)
+    case e: MissingWelshText => ProcessError(s"Welsh text at index ${e.index} on stanza id = ${e.id} is empty", e.id)
+    case e: UnknownStanza => ProcessError(s"Unsupported stanza type ${e.typeName} found at stanza id ${e.id}", e.id)
+    case e: UnknownCalloutType => ProcessError(s"Unsupported CalloutStanza type ${e.typeName} found at stanza id ${e.id}", e.id)
+    case e: UnknownValueType => ProcessError( s"Unsupported ValueStanza type ${e.typeName} found at stanza id ${e.id}", e.id)
+    case e: ParseError => ProcessError(s"Unknown parse error ${e.errs.map(_.messages.mkString(",")).mkString(",")} at location ${e.jsPath.toString}", "")
+    case e: FlowParseError => ProcessError(e.msg, "")
+    case e: MetaParseError => ProcessError(e.msg, "")
+    case e: PhrasesParseError => ProcessError(e.msg, "")
+    case e: LinksParseError => ProcessError(e.msg, "")
+  }
 
+  implicit def processErrs(errs: List[GuidanceError]): List[ProcessError] = errs.map(toProcessErr)
+
+  def guidancePages(pageBuilder: PageBuilder, jsValue: JsValue): RequestOutcome[(Process, Seq[Page])] =
+    jsValue.validate[Process].fold(
+      errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
+      process => pageBuilder.pages(process).fold(errs => Left(Error(errs)), p => Right((process, p)))
+    )
 }

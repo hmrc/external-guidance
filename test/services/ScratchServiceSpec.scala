@@ -75,15 +75,14 @@ class ScratchServiceSpec extends UnitSpec {
         target.save(process)
       }
 
-      "return a validation error" in new Test {
-        val expected: RequestOutcome[UUID] = Left(ValidationError)
+      "return an HTTP 422 error" in new Test {
         val process: JsObject = Json.obj()
         MockScratchRepository
           .save(process)
-          .returns(Future.successful(expected))
+          .never()
 
         whenReady(target.save(process)) {
-          case result @ Left(_) => result shouldBe expected
+          case result @ Left(err) if err.code == Error.UnprocessableEntity => succeed
           case _ => fail
         }
       }

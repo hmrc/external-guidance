@@ -30,13 +30,13 @@ object Stanza {
 
   implicit val reads: Reads[Stanza] = (js: JsValue) => {
     (js \ "type").as[String] match {
-      case "QuestionStanza" => JsSuccess(js.as[QuestionStanza], __)
-      case "InstructionStanza" => JsSuccess(js.as[InstructionStanza], __)
-      case "CalloutStanza" => JsSuccess(js.as[CalloutStanza], __)
-      case "PageStanza" => JsSuccess(js.as[PageStanza], __)
-      case "ValueStanza" => JsSuccess(js.as[ValueStanza], __)
-      case "EndStanza" => JsSuccess(EndStanza, __)
-      case _ => JsError("Invalid Stanza type")
+      case "QuestionStanza" => js.validate[QuestionStanza]
+      case "InstructionStanza" => js.validate[InstructionStanza]
+      case "CalloutStanza" => js.validate[CalloutStanza]
+      case "PageStanza" => js.validate[PageStanza]
+      case "ValueStanza" => js.validate[ValueStanza]
+      case "EndStanza" => JsSuccess(EndStanza)
+      case typeName => JsError(JsonValidationError(Seq("Stanza"), typeName))
     }
   }
 
