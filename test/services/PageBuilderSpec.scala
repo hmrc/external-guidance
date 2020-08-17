@@ -17,6 +17,7 @@
 package services
 
 import base.UnitSpec
+import models.errors.{Error => MainError, ProcessError}
 import models.ocelot.errors._
 import models.ocelot.stanzas._
 import models.ocelot.{Page, _}
@@ -299,6 +300,20 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
       }
     }
 
+    "detect multiple DuplicatePageUrl" in {
+      duplicateUrlsJson.validate[Process] match {
+        case JsSuccess(process, _) =>
+          pageBuilder.pages(process) match {
+            case Left(List(DuplicatePageUrl("6","/feeling-bad"), DuplicatePageUrl("8","/feeling-good"))) => succeed
+            case Left(err) => fail(s"DuplicatePageUrl error not detected, failed with $err")
+            case res => fail(s"DuplicatePageUrl not detected $res")
+          }
+
+        case JsError(errs) => fail(s"Errors reported $errs")
+      }
+
+    }
+
     "detect MissingWelshText" in {
       val flow = Map(
         Process.StartStanzaId -> PageStanza("/this", Seq("1"), false),
@@ -325,6 +340,21 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
         case _ => fail(s"MissingWelshText not detected")
       }
     }
+
+    "detect UnknownCalloutType" in {
+      val processErrors: List[ProcessError] = List(ProcessError("Unsupported stanza type UnknownStanza found at stanza id 2","2"), 
+                                                   ProcessError("Unsupported CalloutStanza type UnknownType found at stanza id 3","3"), 
+                                                   ProcessError("Unknown parse error error.minLength at location /phrases(0)",""))
+      guidancePages(new PageBuilder(), assortedParseErrorsJson).fold(
+        errs => errs match {
+        case MainError(MainError.UnprocessableEntity, None,Some(errors)) if errors == processErrors => succeed
+        case _ => fail(s"Failed with errors")
+        }, 
+        _ => fail)
+      
+      
+    }
+
   }
 
   "PageBuilder" must {

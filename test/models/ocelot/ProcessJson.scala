@@ -33,7 +33,8 @@ trait ProcessJson {
       |    "lastAuthor": "000000",
       |    "lastUpdate": 1500298931016,
       |    "version": 4,
-      |    "filename": "oct90001.js"
+      |    "filename": "oct90001.js",
+      |    "titlePhrase": 8
       |  },
       |  "howto": [],
       |  "contacts": [],
@@ -73,7 +74,8 @@ trait ProcessJson {
       |    ["Ask the customer if they have a cup", "Welsh, Ask the customer if they have a cup"],
       |    ["Do you have a cup?", "Welsh, Do you have a cup?"],
       |    ["yes - they do have a cup ", "Welsh, yes - they do have a cup "],
-      |    ["no - they don’t have a cup", "Welsh, no - they don’t have a cup"]
+      |    ["no - they don’t have a cup", "Welsh, no - they don’t have a cup"],
+      |    ["Customer wants to make a cup of tea", "Welsh, Customer wants to make a cup of tea"]
       |  ]
       |}
     """.stripMargin
@@ -153,6 +155,180 @@ trait ProcessJson {
       |    ["Do you have a cup?", "Welsh, Do you have a cup?"],
       |    ["yes - they do have a cup ", "Welsh, yes - they do have a cup "],
       |    ["no - they don’t have a cup", "Welsh, no - they don’t have a cup"]
+      |  ]
+      |}
+    """.stripMargin
+  )
+
+  val assortedParseErrorsJson: JsValue = Json.parse(
+    """
+      |{
+      |  "meta": {
+      |    "title": "Customer wants to make a cup of tea",
+      |    "id": "oct90001",
+      |    "ocelot": 1,
+      |    "lastAuthor": "000000",
+      |    "lastUpdate": 1500298931016,
+      |    "version": 4,
+      |    "filename": "oct90001.js",
+      |    "titlePhrase": 8
+      |  },
+      |  "howto": [],
+      |  "contacts": [],
+      |  "links": [],
+      |  "flow": {
+      |    "start": {
+      |      "type": "PageStanza",
+      |      "url": "/feeling-bad",
+      |      "next": ["3"],
+      |      "stack": true
+      |    },
+      |    "3": {
+      |      "type": "InstructionStanza",
+      |      "text": 1,
+      |      "next": [
+      |        "2"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "2": {
+      |      "type": "UnknownStanza",
+      |      "text": 0,
+      |      "next": [
+      |        "3"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "3": {
+      |      "next": [
+      |        "end"
+      |      ],
+      |      "noteType": "UnknownType",
+      |      "stack": false,
+      |      "text": 59,
+      |      "type": "CalloutStanza"
+      |    },
+      |      
+      |    "end": {
+      |      "type": "EndStanza"
+      |    }
+      |  },
+      |  "phrases": [
+      |    ["Ask the customer if they have a tea bag"],
+      |    ["Do you have a tea bag?", "Welsh, Do you have a tea bag?"],
+      |    ["Yes - they do have a tea bag", "Welsh, Yes - they do have a tea bag"],
+      |    ["No - they do not have a tea bag", "Welsh, No - they do not have a tea bag"],
+      |    ["Ask the customer if they have a cup", "Welsh, Ask the customer if they have a cup"],
+      |    ["Do you have a cup?", "Welsh, Do you have a cup?"],
+      |    ["yes - they do have a cup ", "Welsh, yes - they do have a cup "],
+      |    ["no - they don’t have a cup", "Welsh, no - they don’t have a cup"],
+      |    ["Customer wants to make a cup of tea", "Welsh, Customer wants to make a cup of tea"]
+      |  ]
+      |}
+    """.stripMargin
+  )
+
+  val duplicateUrlsJson: JsValue = Json.parse(
+    """
+      |{
+      |  "meta": {
+      |    "title": "Customer wants to make a cup of tea",
+      |    "id": "oct90001",
+      |    "ocelot": 1,
+      |    "lastAuthor": "000000",
+      |    "lastUpdate": 1500298931016,
+      |    "version": 4,
+      |    "filename": "oct90001.js",
+      |    "titlePhrase": 8
+      |  },
+      |  "howto": [],
+      |  "contacts": [],
+      |  "links": [],
+      |  "flow": {
+      |    "start": {
+      |      "type": "PageStanza",
+      |      "url": "/start",
+      |      "next": ["1"],
+      |      "stack": true
+      |    },
+      |    "1": {
+      |      "type": "InstructionStanza",
+      |      "text": 1,
+      |      "next": [
+      |        "2"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "2": {
+      |      "type": "PageStanza",
+      |      "url": "/feeling-bad",
+      |      "next": ["3"],
+      |      "stack": true
+      |    },
+      |    "3": {
+      |      "type": "InstructionStanza",
+      |      "text": 0,
+      |      "next": [
+      |        "4"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "4": {
+      |      "type": "PageStanza",
+      |      "url": "/feeling-good",
+      |      "next": ["5"],
+      |      "stack": true
+      |    },
+      |    "5": {
+      |      "type": "InstructionStanza",
+      |      "text": 0,
+      |      "next": [
+      |        "6"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "6": {
+      |      "type": "PageStanza",
+      |      "url": "/feeling-bad",
+      |      "next": ["7"],
+      |      "stack": true
+      |    },
+      |    "7": {
+      |      "type": "InstructionStanza",
+      |      "text": 0,
+      |      "next": [
+      |        "8"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "8": {
+      |      "type": "PageStanza",
+      |      "url": "/feeling-good",
+      |      "next": ["9"],
+      |      "stack": true
+      |    },
+      |    "9": {
+      |      "type": "InstructionStanza",
+      |      "text": 0,
+      |      "next": [
+      |        "end"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "end": {
+      |      "type": "EndStanza"
+      |    }
+      |  },
+      |  "phrases": [
+      |    ["Ask the customer if they have a tea bag", "Welsh, Ask the customer if they have a tea bag"],
+      |    ["Do you have a tea bag?", "Welsh, Do you have a tea bag?"],
+      |    ["Yes - they do have a tea bag", "Welsh, Yes - they do have a tea bag"],
+      |    ["No - they do not have a tea bag", "Welsh, No - they do not have a tea bag"],
+      |    ["Ask the customer if they have a cup", "Welsh, Ask the customer if they have a cup"],
+      |    ["Do you have a cup?", "Welsh, Do you have a cup?"],
+      |    ["yes - they do have a cup ", "Welsh, yes - they do have a cup "],
+      |    ["no - they don’t have a cup", "Welsh, no - they don’t have a cup"],
+      |    ["Customer wants to make a cup of tea", "Welsh, Customer wants to make a cup of tea"]
       |  ]
       |}
     """.stripMargin
@@ -2237,4 +2413,100 @@ trait ProcessJson {
       |  ]
       |}
       |""".stripMargin
+
+  // Do you need to tell HMRC about extra income V6 bullet point list bug example
+  val prototypeExtraIncomeV6MetaSection: String =
+    """
+      |  {
+      |     "id": "oct90002",
+      |     "title": "Telling HMRC about extra income",
+      |     "ocelot": 1,
+      |     "lastAuthor": "7903088",
+      |     "lastUpdate": 1579177321336,
+      |     "version": 1,
+      |     "filename": "oct90002.js"
+      |  }
+   """.stripMargin
+
+  val prototypeExtraIncomeV6FlowSection: String =
+  """
+     {
+      "start" : {
+        "type" : "PageStanza",
+        "url" : "/sales/do-you-receive-any-income-no-SA",
+        "next" : [
+          "1"
+        ],
+        "stack" : false
+      },
+      "1" : {
+        "type" : "InstructionStanza",
+        "text" : 0,
+        "next" : [
+          "2"
+        ],
+        "stack" : false
+      },
+      "2" : {
+        "type" : "InstructionStanza",
+        "text" : 1,
+        "next" : [
+          "3"
+        ],
+        "stack" : true
+      },
+      "3" : {
+        "type" : "InstructionStanza",
+        "text" : 2,
+        "next" : [
+          "4"
+        ],
+        "stack" : true
+      },
+      "4" : {
+        "type" : "InstructionStanza",
+        "text" : 3,
+        "next" : [
+          "end"
+        ],
+        "stack" : true
+      },
+      "end": {
+      "type": "EndStanza"
+      }
+    }
+      """
+
+    val prototypeExtraIncomeV6PhrasesSection: String =
+    """
+        |[
+        |      [
+        |        "You've received income that you have not yet paid tax on from: a business you own or control (such as a partnership or limited company)",
+        |        "Welsh: You've received income that you have not yet paid tax on from: a business you own or control (such as a partnership or limited company)"
+        |      ],
+        |      [
+        |        "You've received income that you have not yet paid tax on from: a business a relative owns or controls",
+        |        "Welsh: You've received income that you have not yet paid tax on from: a business a relative owns or controls"
+        |      ],
+        |      [
+        |        "You've received income that you have not yet paid tax on from: your employer (for example for freelance services outside your normal contract hours)",
+        |        "Welsh: You've received income that you have not yet paid tax on from: your employer (for example for freelance services outside your normal contract hours)"
+        |      ],
+        |      [
+        |        "You've received income that you have not yet paid tax on from: the employer of your spouse or civil partner",
+        |        "Welsh: You've received income that you have not yet paid tax on from: the employer of your spouse or civil partner"
+        |      ]
+        |    ]
+        |""".stripMargin
+
+  val prototypeExtraIncomeV6Json: JsObject = Json
+    .parse(
+      s"""{ "meta" : ${prototypeExtraIncomeV6MetaSection},
+         | "flow": ${prototypeExtraIncomeV6FlowSection},
+         | "phrases": ${prototypeExtraIncomeV6PhrasesSection},
+         | "links": [],
+         | "contacts": [],
+         | "howto": []}""".stripMargin
+    )
+    .as[JsObject]
 }
