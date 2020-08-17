@@ -18,16 +18,19 @@ package controllers
 
 import controllers.actions.FakeIdentifierAction
 import mocks.MockApprovalService
-import models.errors.{BadRequestError, InternalServiceError, NotFoundError}
+import models.errors.{BadRequestError, Error, InternalServiceError, NotFoundError, ProcessError, ValidationError}
+import models.ocelot.errors.DuplicatePageUrl
 import models.{ApprovalProcess, ApprovalProcessJson}
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.ContentTypes
+import play.api.http.Status.UNPROCESSABLE_ENTITY
 import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.formatters.ApprovalProcessFormatter
+import services.toProcessErr
 import utils.Constants._
 
 import scala.concurrent.Future
@@ -96,6 +99,63 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
         private val result = controller.saveFor2iReview()(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe expectedErrorCode
+      }
+    }
+
+    "the request is invalid with a ValidationError" should {
+
+      trait InvalidSaveTest extends Test {
+        val expectedErrorCode = "BAD_REQUEST"
+        MockApprovalService
+          .save(validApprovalProcessJson)
+          .returns(Future.successful(Left(ValidationError)))
+
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(validApprovalProcessJson)
+      }
+
+      "return a bad request response" in new InvalidSaveTest {
+        private val result = controller.saveFor2iReview()(request)
+        status(result) shouldBe BAD_REQUEST
+      }
+
+      "return content as JSON" in new InvalidSaveTest {
+        private val result = controller.saveFor2iReview()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return an error code of BAD_REQUEST" in new InvalidSaveTest {
+        private val result = controller.saveFor2iReview()(request)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe expectedErrorCode
+      }
+    }
+
+    "the request is invalid with a UnprocessableEntity" should {
+
+      trait InvalidSaveTest extends Test {
+        val processError: ProcessError = toProcessErr(DuplicatePageUrl("4", "/feeling-bad"))
+        val expectedError = Error(List(processError))
+        MockApprovalService
+          .save(validApprovalProcessJson)
+          .returns(Future.successful(Left(expectedError)))
+
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(validApprovalProcessJson)
+      }
+
+      "return a bad request response" in new InvalidSaveTest {
+        private val result = controller.saveFor2iReview()(request)
+        status(result) shouldBe UNPROCESSABLE_ENTITY
+      }
+
+      "return content as JSON" in new InvalidSaveTest {
+        private val result = controller.saveFor2iReview()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return an error code of BAD_REQUEST" in new InvalidSaveTest {
+        private val result = controller.saveFor2iReview()(request)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe Error.UnprocessableEntity
       }
     }
 
