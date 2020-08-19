@@ -18,27 +18,28 @@ package testOnly.repositories
 
 import javax.inject.{Inject, Singleton}
 import models.errors.DatabaseError
-import models.{PublishedProcess, RequestOutcome}
+import models.{RequestOutcome, ScratchProcess}
 import play.api.libs.json.Format
 import play.modules.reactivemongo.ReactiveMongoComponent
-import repositories.formatters.PublishedProcessFormatter
+import repositories.formatters.ScratchProcessFormatter
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+
 @Singleton
-class PublishedRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-    extends ReactiveRepository[PublishedProcess, String](
-      collectionName = "publishedProcesses",
-      mongo = mongoComponent.mongoConnector.db,
-      domainFormat = PublishedProcessFormatter.mongoFormat,
-      idFormat = implicitly[Format[String]]
+class ScratchRepository  @Inject() (mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[ScratchProcess, String](
+    collectionName = "scratchProcesses",
+    mongo = mongoComponent.mongoConnector.db,
+    domainFormat = ScratchProcessFormatter.mongoFormat,
+    idFormat = implicitly[Format[String]]
     ) {
 
   def delete(id: String): Future[RequestOutcome[String]] = {
 
-    logger.info(s"[test-only] Deleting published process with the ID $id")
+    logger.info(s"[test-only] Deleting scratch process with the ID $id")
 
     removeById(id)
       .map { _ =>
@@ -46,9 +47,8 @@ class PublishedRepository @Inject() (mongoComponent: ReactiveMongoComponent)
       }
       .recover {
         case error =>
-          logger.error(s"[test-only] Failed to delete published process with the ID $id", error)
+          logger.error(s"[test-only] Failed to delete scratch process with the ID $id", error)
           Left(DatabaseError)
       }
   }
-
 }

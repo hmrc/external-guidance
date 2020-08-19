@@ -34,7 +34,7 @@ object Value {
       (__ \ "type").write[ValueType] and
         (__ \ "label").write[String] and
         (__ \ "value").write[String]
-      )(unlift(Value.unapply))
+    )(unlift(Value.unapply))
 
 }
 
@@ -52,6 +52,6 @@ object ValueStanza {
       (__ \ "values").write[List[Value]] and
         (__ \ "next").write[Seq[String]] and
         (__ \ "stack").write[Boolean]
-      )(unlift(ValueStanza.unapply))
+    )(unlift(ValueStanza.unapply))
 
 }

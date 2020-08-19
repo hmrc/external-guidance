@@ -16,10 +16,11 @@
 
 package models
 
-import play.api.libs.json.{Json, OFormat}
+package object ocelot {
 
-case class SummaryListCriteria(twoEyeAllowed: Boolean, factCheckAllowed: Boolean)
-
-object SummaryListCriteria {
-  implicit val formats: OFormat[SummaryListCriteria] = Json.format[SummaryListCriteria]
+  def addTitlePhrase(process: Process): Process = 
+    process.copy(
+      meta = process.meta.copy(titlePhrase = Some(process.phrases.length)),
+      phrases = process.phrases :+ Phrase(process.meta.title, s"Welsh, ${process.meta.title}")
+    )
 }

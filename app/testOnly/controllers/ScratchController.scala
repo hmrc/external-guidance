@@ -14,28 +14,24 @@
  * limitations under the License.
  */
 
-package controllers
+package testOnly.controllers
 
 import javax.inject.{Inject, Singleton}
-import models.errors.{BadRequestError, InternalServiceError, NotFoundError}
-import play.api.libs.json.Json
+import models.errors.InternalServiceError
+import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import services.PublishedService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import testOnly.repositories.ScratchRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class PublishedController @Inject() (publishedService: PublishedService, cc: ControllerComponents) extends BackendController(cc) {
+class ScratchController @Inject() (testRepo: ScratchRepository, cc: ControllerComponents) extends BackendController(cc) {
 
-  def get(id: String): Action[AnyContent] = Action.async {
-
-    publishedService.getById(id).map {
-      case Right(process) => Ok(process.process)
-      case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
-      case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
-      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
-    }
+  def delete(id: String): Action[AnyContent] = Action.async {
+    testRepo.delete(id).map {
+          case Right(_) => NoContent
+          case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+        }
   }
-
 }

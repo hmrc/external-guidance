@@ -18,16 +18,19 @@ package controllers
 
 import controllers.actions.FakeIdentifierAction
 import mocks.MockApprovalService
-import models.errors.{BadRequestError, Errors, InternalServiceError, NotFoundError}
+import models.errors.{BadRequestError, Error, InternalServiceError, NotFoundError, ProcessError, ValidationError}
+import models.ocelot.errors.DuplicatePageUrl
 import models.{ApprovalProcess, ApprovalProcessJson}
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.ContentTypes
+import play.api.http.Status.UNPROCESSABLE_ENTITY
 import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.formatters.ApprovalProcessFormatter
+import services.toProcessErr
 import utils.Constants._
 
 import scala.concurrent.Future
@@ -74,10 +77,10 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
     "the request is invalid" should {
 
       trait InvalidSaveTest extends Test {
-        val expectedErrorCode = "BAD_REQUEST_ERROR"
+        val expectedErrorCode = "BAD_REQUEST"
         MockApprovalService
           .save(invalidProcess)
-          .returns(Future.successful(Left(Errors(BadRequestError))))
+          .returns(Future.successful(Left(BadRequestError)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidProcess)
       }
@@ -99,13 +102,70 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
       }
     }
 
+    "the request is invalid with a ValidationError" should {
+
+      trait InvalidSaveTest extends Test {
+        val expectedErrorCode = "BAD_REQUEST"
+        MockApprovalService
+          .save(validApprovalProcessJson)
+          .returns(Future.successful(Left(ValidationError)))
+
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(validApprovalProcessJson)
+      }
+
+      "return a bad request response" in new InvalidSaveTest {
+        private val result = controller.saveFor2iReview()(request)
+        status(result) shouldBe BAD_REQUEST
+      }
+
+      "return content as JSON" in new InvalidSaveTest {
+        private val result = controller.saveFor2iReview()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return an error code of BAD_REQUEST" in new InvalidSaveTest {
+        private val result = controller.saveFor2iReview()(request)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe expectedErrorCode
+      }
+    }
+
+    "the request is invalid with a UnprocessableEntity" should {
+
+      trait InvalidSaveTest extends Test {
+        val processError: ProcessError = toProcessErr(DuplicatePageUrl("4", "/feeling-bad"))
+        val expectedError = Error(List(processError))
+        MockApprovalService
+          .save(validApprovalProcessJson)
+          .returns(Future.successful(Left(expectedError)))
+
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(validApprovalProcessJson)
+      }
+
+      "return a bad request response" in new InvalidSaveTest {
+        private val result = controller.saveFor2iReview()(request)
+        status(result) shouldBe UNPROCESSABLE_ENTITY
+      }
+
+      "return content as JSON" in new InvalidSaveTest {
+        private val result = controller.saveFor2iReview()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return an error code of BAD_REQUEST" in new InvalidSaveTest {
+        private val result = controller.saveFor2iReview()(request)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe Error.UnprocessableEntity
+      }
+    }
+
     "a downstream error occurs" should {
 
       trait ErrorSaveTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockApprovalService
           .save(invalidProcess)
-          .returns(Future.successful(Left(Errors(InternalServiceError))))
+          .returns(Future.successful(Left(InternalServiceError)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidProcess)
       }
@@ -161,10 +221,10 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
     "the request is invalid" should {
 
       trait InvalidSaveTest extends Test {
-        val expectedErrorCode = "BAD_REQUEST_ERROR"
+        val expectedErrorCode = "BAD_REQUEST"
         MockApprovalService
           .save(invalidProcess, ReviewTypeFactCheck)
-          .returns(Future.successful(Left(Errors(BadRequestError))))
+          .returns(Future.successful(Left(BadRequestError)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidProcess)
       }
@@ -192,7 +252,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockApprovalService
           .save(invalidProcess, ReviewTypeFactCheck)
-          .returns(Future.successful(Left(Errors(InternalServiceError))))
+          .returns(Future.successful(Left(InternalServiceError)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidProcess)
       }
@@ -247,10 +307,10 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
     "the request is invalid" should {
 
       trait InvalidGetTest extends Test {
-        val expectedErrorCode = "BAD_REQUEST_ERROR"
+        val expectedErrorCode = "BAD_REQUEST"
         MockApprovalService
           .getById(invalidId)
-          .returns(Future.successful(Left(Errors(BadRequestError))))
+          .returns(Future.successful(Left(BadRequestError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
@@ -275,10 +335,10 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
     "the request contains an unknown ID" should {
 
       trait NotFoundGetTest extends Test {
-        val expectedErrorCode = "NOT_FOUND_ERROR"
+        val expectedErrorCode = "NOT_FOUND"
         MockApprovalService
           .getById(validId)
-          .returns(Future.successful(Left(Errors(NotFoundError))))
+          .returns(Future.successful(Left(NotFoundError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
@@ -293,7 +353,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
-      "return a error code of NOT_FOUND_ERROR" in new NotFoundGetTest {
+      "return a error code of NOT_FOUND" in new NotFoundGetTest {
         private val result = controller.get(validId)(request)
         private val json = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe expectedErrorCode
@@ -306,7 +366,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockApprovalService
           .getById(validId)
-          .returns(Future.successful(Left(Errors(InternalServiceError))))
+          .returns(Future.successful(Left(InternalServiceError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
@@ -358,7 +418,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockApprovalService
           .approvalSummaryList(List("FactChecker", "2iReviewer"))
-          .returns(Future.successful(Left(Errors(InternalServiceError))))
+          .returns(Future.successful(Left(InternalServiceError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "")
       }

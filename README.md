@@ -31,6 +31,17 @@ This code is open source software licensed under the [Apache 2.0 License]("http:
    "message": "Human readable error message"
 }
 ```
+or
+```
+{
+   "code": "UNPROCESSABLE_ENTITY",
+   "messages": [
+    { "message": "Human readable error message 1", "stanza": "Stanza Id 1"},
+    { "message": "Human readable error message 2", "stanza": "Stanza Id 2"},
+    ...
+   ]
+}
+```
 
 <table>
     <thead>
@@ -43,6 +54,10 @@ This code is open source software licensed under the [Apache 2.0 License]("http:
         <tr>
             <td><pre>400</pre></td>
             <td><pre>BAD_REQUEST</pre></td>
+        </tr>
+        <tr>
+            <td><pre>422</pre></td>
+            <td><pre>UNPROCESSABLE_ENTITY</pre></td>
         </tr>
         <tr>
             <td><pre>500</pre></td>
@@ -98,7 +113,7 @@ Represents a valid guidance flow in JSON format.
     </tbody>
 </table>
 
-### `POST: /external-guidance/approval`
+### `POST: /external-guidance/approval/fact-check`
 
 #### Success Response
 
@@ -120,7 +135,17 @@ Represents a valid guidance flow in JSON format.
    "message": "Human readable error message"
 }
 ```
-
+or
+```
+{
+   "code": "UNPROCESSABLE_ENTITY",
+   "messages": [
+    { "message": "Human readable error message 1", "stanza": "Stanza Id 1"},
+    { "message": "Human readable error message 2", "stanza": "Stanza Id 2"},
+    ...
+   ]
+}
+```
 <table>
     <thead>
         <tr>
@@ -132,6 +157,66 @@ Represents a valid guidance flow in JSON format.
         <tr>
             <td><pre>400</pre></td>
             <td><pre>BAD_REQUEST</pre></td>
+        </tr>
+        <tr>
+            <td><pre>422</pre></td>
+            <td><pre>UNPROCESSABLE_ENTITY</pre></td>
+        </tr>
+        <tr>
+            <td><pre>500</pre></td>
+            <td><pre>INTERNAL_SERVER_ERROR</pre></td>
+        </tr>
+    </tbody>
+</table>
+
+### `POST: /external-guidance/approval/2i-review`
+
+#### Success Response
+
+**HTTP Status**: `201`
+
+**Example Response Body**:
+```
+{
+   "id": "oct90005"
+}
+```
+
+#### Error Responses
+
+**Error response format**
+```
+{
+   "code": "ERROR_CODE",
+   "message": "Human readable error message"
+}
+```
+or
+```
+{
+   "code": "UNPROCESSABLE_ENTITY",
+   "messages": [
+    { "message": "Human readable error message 1", "stanza": "Stanza Id 1"},
+    { "message": "Human readable error message 2", "stanza": "Stanza Id 2"},
+    ...
+   ]
+}
+```
+<table>
+    <thead>
+        <tr>
+            <th>HTTP Status</th>
+            <th>Error Code</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><pre>400</pre></td>
+            <td><pre>BAD_REQUEST</pre></td>
+        </tr>
+        <tr>
+            <td><pre>422</pre></td>
+            <td><pre>UNPROCESSABLE_ENTITY</pre></td>
         </tr>
         <tr>
             <td><pre>500</pre></td>

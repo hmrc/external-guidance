@@ -18,37 +18,40 @@ package services
 
 import models.ocelot.stanzas._
 import models.ocelot.{Link, Phrase, Process}
-
+import models.ocelot.errors._
 import scala.annotation.tailrec
 
 trait ProcessPopulation {
 
-  def stanza(id: String, process: Process): Either[FlowError, Stanza] =
+  def stanza(id: String, process: Process): Either[GuidanceError, Stanza] =
     process.flow.get(id) match {
-      case Some(stanza) => populateStanza(stanza, process)
+      case Some(stanza) => populateStanza(id, stanza, process)
       case None => Left(StanzaNotFound(id))
     }
 
-  private def populateStanza(stanza: Stanza, process: Process): Either[FlowError, Stanza] = {
+  private def populateStanza(id: String, stanza: Stanza, process: Process): Either[GuidanceError, Stanza] = {
 
-    def phrase(phraseIndex: Int): Either[FlowError, Phrase] =
-      process.phraseOption(phraseIndex).map(Right(_)).getOrElse(Left(PhraseNotFound(phraseIndex)))
+    def phrase(phraseIndex: Int): Either[GuidanceError, Phrase] =
+      process.phraseOption(phraseIndex).fold(Left(PhraseNotFound(id, phraseIndex)): Either[GuidanceError, Phrase]){
+        case Phrase(Vector(english, welsh)) if welsh.isEmpty && !english.isEmpty => Left(MissingWelshText(id, phraseIndex.toString, english))
+        case p: Phrase => Right(p)
+      }
 
     @tailrec
-    def phrases(indexes: Seq[Int], acc: Seq[Phrase]): Either[FlowError, Seq[Phrase]] =
+    def phrases(indexes: Seq[Int], acc: Seq[Phrase]): Either[GuidanceError, Seq[Phrase]] =
       indexes match {
         case Nil => Right(acc)
         case index :: xs =>
           phrase(index) match {
             case Right(phrase) => phrases(xs, acc :+ phrase)
-            case Left(_) => Left(PhraseNotFound(index))
+            case Left(err) => Left(err)
           }
       }
 
     def link(linkIndex: Int): Either[LinkNotFound, Link] =
-      process.linkOption(linkIndex).map(Right(_)).getOrElse(Left(LinkNotFound(linkIndex)))
+      process.linkOption(linkIndex).map(Right(_)).getOrElse(Left(LinkNotFound(id, linkIndex)))
 
-    def populateInstruction(i: InstructionStanza): Either[FlowError, Instruction] = {
+    def populateInstruction(i: InstructionStanza): Either[GuidanceError, Instruction] = {
       phrase(i.text).fold(
         Left(_),
         text => {

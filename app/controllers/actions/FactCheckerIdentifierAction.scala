@@ -35,16 +35,16 @@ import scala.concurrent.{ExecutionContext, Future}
 trait FactCheckerIdentifierAction extends ActionBuilder[IdentifierRequest, AnyContent] with ActionFunction[Request, IdentifierRequest]
 
 class FactCheckerAuthenticatedIdentifierAction @Inject() (
-                                                           override val authConnector: AuthConnector,
-                                                           appConfig: AppConfig,
-                                                           val parser: BodyParsers.Default,
-                                                           val config: Configuration,
-                                                           val env: Environment
-                                                         )(
-                                                           implicit val executionContext: ExecutionContext
-                                                         ) extends FactCheckerIdentifierAction
-  with AuthorisedFunctions
-  with AuthRedirects {
+    override val authConnector: AuthConnector,
+    appConfig: AppConfig,
+    val parser: BodyParsers.Default,
+    val config: Configuration,
+    val env: Environment
+)(
+    implicit val executionContext: ExecutionContext
+) extends FactCheckerIdentifierAction
+    with AuthorisedFunctions
+    with AuthRedirects {
 
   val logger: Logger = Logger(getClass)
 
@@ -65,4 +65,3 @@ class FactCheckerAuthenticatedIdentifierAction @Inject() (
     }
   }
 }
-
