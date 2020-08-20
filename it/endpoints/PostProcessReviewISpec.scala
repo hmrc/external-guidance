@@ -79,7 +79,6 @@ class PostProcessReviewISpec extends IntegrationSpec {
             AuthStub.authorise()
             await(request.get())
           }
-          println(response.body)
           val list: List[ApprovalProcessSummary] = response.body[JsValue].as[List[ApprovalProcessSummary]]
           val updatedEntry = list.find(p => p.id == id)
           updatedEntry shouldBe 'defined
