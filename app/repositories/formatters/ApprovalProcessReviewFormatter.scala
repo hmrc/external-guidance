@@ -16,7 +16,7 @@
 
 package repositories.formatters
 
-import java.time.{LocalDate, LocalDateTime}
+import java.time.{LocalDate, ZonedDateTime}
 import java.util.UUID
 
 import models.{ApprovalProcessPageReview, ApprovalProcessReview}
@@ -35,7 +35,7 @@ object ApprovalProcessReviewFormatter {
       title <- (json \ "title").validate[String]
       lastUpdated <- (json \ "lastUpdated").validate[LocalDate]
       result <- (json \ "result").validate[String]
-      completionDate <- (json \ "completionDate").validateOpt[LocalDateTime]
+      completionDate <- (json \ "completionDate").validateOpt[ZonedDateTime]
       completionUser <- (json \ "completionUser").validateOpt[String]
       pages <- (json \ "pages").validate[List[ApprovalProcessPageReview]]
     } yield ApprovalProcessReview(

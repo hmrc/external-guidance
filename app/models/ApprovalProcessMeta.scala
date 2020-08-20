@@ -16,7 +16,7 @@
 
 package models
 
-import java.time.{LocalDate, LocalDateTime}
+import java.time.{LocalDate, ZonedDateTime}
 
 import play.api.libs.json.{Json, OFormat}
 import utils.Constants._
@@ -26,7 +26,7 @@ case class ApprovalProcessMeta(
     title: String,
     status: String = StatusSubmitted,
     dateSubmitted: LocalDate = LocalDate.now(),
-    lastModified: LocalDateTime = LocalDateTime.now(),
+    lastModified: ZonedDateTime = ZonedDateTime.now(),
     ocelotDateSubmitted: Long = 1,
     ocelotVersion: Int = 1,
     reviewType: String = ReviewType2i

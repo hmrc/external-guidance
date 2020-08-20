@@ -16,8 +16,8 @@
 
 package models
 
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 import play.api.libs.json.JsObject
 
-case class PublishedProcess(id: String, version: Int, datePublished: LocalDateTime, process: JsObject, publishedBy: String)
+case class PublishedProcess(id: String, version: Int, datePublished: ZonedDateTime, process: JsObject, publishedBy: String)

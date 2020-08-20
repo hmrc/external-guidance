@@ -16,7 +16,7 @@
 
 package repositories.formatters
 
-import java.time.{LocalDate, LocalDateTime}
+import java.time.{LocalDate, ZonedDateTime}
 
 import base.UnitSpec
 import models.{ApprovalProcessJson, ApprovalProcessMeta}
@@ -72,7 +72,7 @@ class ApprovalProcessMetaFormatterSpec extends UnitSpec with ApprovalProcessJson
     }
 
     "Generate a lastModified date based on current time when converting valid JSON that does not have a last modified date" in {
-      val baseDateTime: LocalDateTime = LocalDateTime.now().minusSeconds(1)
+      val baseDateTime: ZonedDateTime = ZonedDateTime.now().minusSeconds(1)
       validMetaJsonWithoutLastModified.validate[ApprovalProcessMeta] match {
         case JsSuccess(result, _) if result.lastModified.isAfter(baseDateTime) => succeed
         case JsSuccess(result, _) => fail(s"Deserializing valid JSON did not create correct process ${result.lastModified} : $baseDateTime")

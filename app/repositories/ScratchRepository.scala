@@ -17,7 +17,7 @@
 package repositories
 
 import java.util.UUID
-import java.time.{ZonedDateTime, ZoneId}
+import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
 import models.errors.{DatabaseError, NotFoundError}
 import models.{RequestOutcome, ScratchProcess}
@@ -31,7 +31,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import reactivemongo.api.indexes.IndexType
 import reactivemongo.api.indexes.Index
-import java.time.ZonedDateTime
 
 trait ScratchRepository {
   def save(process: JsObject): Future[RequestOutcome[UUID]]
@@ -47,7 +46,6 @@ class ScratchRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent, a
       idFormat = implicitly[Format[UUID]]
     )
     with ScratchRepository {
-  val timezone = ZoneId.of(appConfig.scratchExpiryTZ)
 
   override def indexes: Seq[Index] = Seq(
     Index(Seq("expireAt" -> IndexType.Ascending), name = Some("expiryIndex"), options = BSONDocument("expireAfterSeconds" -> 0))

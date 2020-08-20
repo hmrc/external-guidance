@@ -16,7 +16,7 @@
 
 package services
 
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 import base.UnitSpec
 import mocks.MockPublishedRepository
@@ -34,7 +34,7 @@ class PublishedServiceSpec extends UnitSpec {
     val validId: String = "ext90005"
     val invalidId: String = "ext9005"
     val invalidProcess: JsObject = Json.obj("idx" -> invalidId)
-    val publishedProcess: PublishedProcess = PublishedProcess(validId, 1, LocalDateTime.now(), validOnePageJson.as[JsObject], "user")
+    val publishedProcess: PublishedProcess = PublishedProcess(validId, 1, ZonedDateTime.now(), validOnePageJson.as[JsObject], "user")
 
     lazy val target: PublishedService = new PublishedService(mockPublishedRepository)
   }

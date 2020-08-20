@@ -16,14 +16,14 @@
 
 package repositories.formatters
 
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 import models.{ApprovalProcessPageReview, MongoDateTimeFormats}
 import play.api.libs.json._
 
 object ApprovalProcessPageReviewFormatter {
 
-  implicit val dateTimeFormat: Format[LocalDateTime] = MongoDateTimeFormats.localDateTimeFormats
+  implicit val dateTimeFormat: Format[ZonedDateTime] = MongoDateTimeFormats.zonedDateTimeFormats
 
   val read: JsValue => JsResult[ApprovalProcessPageReview] = json =>
     for {
@@ -33,7 +33,7 @@ object ApprovalProcessPageReviewFormatter {
       result <- (json \ "result").validateOpt[String]
       status <- (json \ "status").validate[String]
       comment <- (json \ "comment").validateOpt[String]
-      updateDate <- (json \ "updateDate").validate[LocalDateTime]
+      updateDate <- (json \ "updateDate").validate[ZonedDateTime]
       updateUser <- (json \ "updateUser").validateOpt[String]
     } yield ApprovalProcessPageReview(id, pageUrl, pageTitle, result, status, comment, updateDate, updateUser)
 

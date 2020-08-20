@@ -16,7 +16,7 @@
 
 package models
 
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 import play.api.libs.json.{Json, OFormat}
 import utils.Constants
@@ -28,7 +28,7 @@ case class ApprovalProcessPageReview(
     result: Option[String] = None,
     status: String = Constants.InitialPageReviewStatus,
     comment: Option[String] = None,
-    updateDate: LocalDateTime = LocalDateTime.now(),
+    updateDate: ZonedDateTime = ZonedDateTime.now(),
     updateUser: Option[String] = None
 )
 
