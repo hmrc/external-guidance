@@ -25,26 +25,19 @@ trait MongoDateTimeFormats {
   val localZoneID = ZonedDateTime.now.getZone
 
   implicit val localDateRead: Reads[LocalDate] =
-    (__ \ "$date").read[Long].map { millis =>
-      Instant.ofEpochMilli(millis).atZone(localZoneID).toLocalDate
-    }
+    (__ \ "$date").read[Long].map { millis => Instant.ofEpochMilli(millis).atZone(localZoneID).toLocalDate}
 
   implicit val localDateWrite: Writes[LocalDate] = (localDate: LocalDate) =>
-    Json.obj(
-      "$date" -> localDate.atStartOfDay(localZoneID).toInstant.toEpochMilli
-    )
-
-  implicit val zonedDateTimeRead: Reads[ZonedDateTime] =
-    (__ \ "$date").read[Long].map { millis =>
-      Instant.ofEpochMilli(millis).atZone(localZoneID)
-    }
-
-  implicit val zonedDateTimeWrite: Writes[ZonedDateTime] = (zonedDateTime: ZonedDateTime) =>
-    Json.obj(
-      "$date" -> zonedDateTime.toInstant.toEpochMilli
-    )
+    Json.obj("$date" -> localDate.atStartOfDay(localZoneID).toInstant.toEpochMilli)
 
   implicit val localDateFormats: Format[LocalDate] = Format(localDateRead, localDateWrite)
+
+  implicit val zonedDateTimeRead: Reads[ZonedDateTime] =
+    (__ \ "$date").read[Long].map { millis => Instant.ofEpochMilli(millis).atZone(localZoneID)}
+
+  implicit val zonedDateTimeWrite: Writes[ZonedDateTime] = (zonedDateTime: ZonedDateTime) =>
+    Json.obj("$date" -> zonedDateTime.toInstant.toEpochMilli)
+
   implicit val zonedDateTimeFormats: Format[ZonedDateTime] = Format(zonedDateTimeRead, zonedDateTimeWrite)
 
 }
