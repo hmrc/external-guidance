@@ -28,7 +28,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import models.errors._
 import play.api.Logger
-import controllers.actions.{IdentifiedAction, PrivilegedActionProvider}
+import controllers.actions.PrivilegedActionProvider
 import config.AppConfig
 
 @Singleton
@@ -41,7 +41,7 @@ class ApprovalController @Inject() (
 
   val logger = Logger(getClass)
 
-  val identify: IdentifiedAction = privilegedActionProvider(Enrolment(appConfig.designerRole) or
+  val identify = privilegedActionProvider(Enrolment(appConfig.designerRole) or
                                           Enrolment(appConfig.twoEyeReviewerRole) or
                                           Enrolment(appConfig.factCheckerRole))
 

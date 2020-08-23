@@ -33,7 +33,7 @@ import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.bootstrap.config.AuthRedirects
 import scala.concurrent.{ExecutionContext, Future}
 
-trait IdentifiedAction extends ActionBuilder[IdentifierRequest, AnyContent] with ActionFunction[Request, IdentifierRequest]
+trait IdentifiedAction extends ActionBuilder[IdentifierRequest, AnyContent]
 
 class PrivilegedActionProvider @Inject() (
   appConfig: AppConfig,
@@ -50,18 +50,13 @@ class PrivilegedActionProvider @Inject() (
       val parser = bodyParser
       val executionContext: ExecutionContext = ec
 
-      override def invokeBlock[A](request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] = {
-        implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
-        println(hc)
+      override def invokeBlock[A](request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] =
         invokeBlockWithConstraint(constraint)(request, block)
-      }
     }
 
   def invokeBlockWithConstraint[A](constraint: Predicate)(request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] = {
 
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
-
-    println(hc)
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
 
     authorised(constraint and AuthProviders(PrivilegedApplication))
       .retrieve(Retrievals.credentials and Retrievals.name and Retrievals.email and Retrievals.authorisedEnrolments) {
