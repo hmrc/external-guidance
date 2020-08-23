@@ -34,14 +34,14 @@ import uk.gov.hmrc.play.bootstrap.config.AuthRedirects
 import scala.concurrent.{ExecutionContext, Future}
 
 trait IdentifiedAction extends ActionBuilder[IdentifierRequest, AnyContent] with ActionFunction[Request, IdentifierRequest]
+
 class PrivilegedActionProvider @Inject() (
   appConfig: AppConfig,
   bodyParser: BodyParsers.Default,
   override val authConnector: AuthConnector,
   val config: Configuration,
   val env: Environment
-)(implicit val ec: ExecutionContext) extends AuthorisedFunctions
-                                     with AuthRedirects {
+)(implicit val ec: ExecutionContext) extends AuthorisedFunctions with AuthRedirects {
 
   val logger = Logger(getClass())
 
@@ -50,15 +50,20 @@ class PrivilegedActionProvider @Inject() (
       val parser = bodyParser
       val executionContext: ExecutionContext = ec
 
-      override def invokeBlock[A](request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] =
+      override def invokeBlock[A](request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] = {
+        implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+        println(hc)
         invokeBlockWithConstraint(constraint)(request, block)
+      }
     }
 
   def invokeBlockWithConstraint[A](constraint: Predicate)(request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
-    authorised(AuthProviders(PrivilegedApplication) and constraint)
+    println(hc)
+
+    authorised(constraint and AuthProviders(PrivilegedApplication))
       .retrieve(Retrievals.credentials and Retrievals.name and Retrievals.email and Retrievals.authorisedEnrolments) {
         case Some(Credentials(providerId, _)) ~ Some(Name(Some(name), _)) ~ Some(email) ~ authEnrolments =>
           block(IdentifierRequest(request, providerId, name, email, authEnrolments.enrolments.map(_.key).toList))
@@ -66,7 +71,9 @@ class PrivilegedActionProvider @Inject() (
           logger.warn("Identifier action could not retrieve required user details in method invokeBlock")
           Future.successful(Unauthorized)
       } recover {
-      case _ => Unauthorized
+      case err =>
+        logger.info(s"FAILED Authorise/Retrievals with $err")
+        Unauthorized
     }
   }
 
