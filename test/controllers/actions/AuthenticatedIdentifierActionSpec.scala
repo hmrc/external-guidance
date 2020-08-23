@@ -25,15 +25,23 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name, ~}
 import uk.gov.hmrc.auth.core.{AuthorisationException, Enrolment, Enrolments}
 import uk.gov.hmrc.http.HeaderCarrier
-
-import scala.concurrent.{ExecutionContext, Future}
+import models.requests.IdentifierRequest
+import scala.concurrent.{Future, ExecutionContext}
 
 class AuthenticatedIdentifierActionSpec extends ControllerBaseSpec with MockAuthConnector {
 
-  // Define simple harness class to represent controller
-  class Harness(authenticatedIdentifierAction: IdentifierAction) {
+  implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
+  val privilegedActionProvider = new PrivilegedActionProvider(MockAppConfig, bodyParser, mockAuthConnector, config, env)
 
-    def onPageLoad(): Action[AnyContent] = authenticatedIdentifierAction { _ =>
+  val authAction = privilegedActionProvider(Enrolment(MockAppConfig.designerRole) or
+                                            Enrolment(MockAppConfig.twoEyeReviewerRole) or
+                                            Enrolment(MockAppConfig.factCheckerRole))
+
+
+  // Define simple harness class to represent controller
+  class Harness(action: ActionBuilder[IdentifierRequest, AnyContent]) {
+
+    def onPageLoad(): Action[AnyContent] = action { _ =>
       Results.Ok
     }
   }
@@ -48,7 +56,7 @@ class AuthenticatedIdentifierActionSpec extends ControllerBaseSpec with MockAuth
     implicit val hc: HeaderCarrier = HeaderCarrier()
     implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
-    lazy val authAction = new AuthenticatedIdentifierAction(mockAuthConnector, MockAppConfig, bodyParser, config, env)
+    //lazy val authAction = new AuthenticatedIdentifierAction(mockAuthConnector, MockAppConfig, bodyParser, config, env)
 
     lazy val target = new Harness(authAction)
   }

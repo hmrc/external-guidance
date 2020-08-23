@@ -14,54 +14,70 @@
  * limitations under the License.
  */
 
-package controllers.actions
+// /*
+//  * Copyright 2020 HM Revenue & Customs
+//  *
+//  * Licensed under the Apache License, Version 2.0 (the "License");
+//  * you may not use this file except in compliance with the License.
+//  * You may obtain a copy of the License at
+//  *
+//  *     http://www.apache.org/licenses/LICENSE-2.0
+//  *
+//  * Unless required by applicable law or agreed to in writing, software
+//  * distributed under the License is distributed on an "AS IS" BASIS,
+//  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  * See the License for the specific language governing permissions and
+//  * limitations under the License.
+//  */
 
-import config.AppConfig
-import javax.inject.Inject
-import models.requests.IdentifierRequest
-import play.api.mvc.Results._
-import play.api.mvc._
-import play.api.{Configuration, Environment, Logger}
-import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
-import uk.gov.hmrc.auth.core._
-import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
-import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name, ~}
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.HeaderCarrierConverter
-import uk.gov.hmrc.play.bootstrap.config.AuthRedirects
+// package controllers.actions
 
-import scala.concurrent.{ExecutionContext, Future}
+// import config.AppConfig
+// import javax.inject.Inject
+// import models.requests.IdentifierRequest
+// import play.api.mvc.Results._
+// import play.api.mvc._
+// import play.api.{Configuration, Environment, Logger}
+// import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
+// import uk.gov.hmrc.auth.core._
+// import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
+// import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name, ~}
+// import uk.gov.hmrc.http.HeaderCarrier
+// import uk.gov.hmrc.play.HeaderCarrierConverter
+// import uk.gov.hmrc.play.bootstrap.config.AuthRedirects
 
-trait FactCheckerIdentifierAction extends ActionBuilder[IdentifierRequest, AnyContent] with ActionFunction[Request, IdentifierRequest]
+// import scala.concurrent.{ExecutionContext, Future}
 
-class FactCheckerAuthenticatedIdentifierAction @Inject() (
-    override val authConnector: AuthConnector,
-    appConfig: AppConfig,
-    val parser: BodyParsers.Default,
-    val config: Configuration,
-    val env: Environment
-)(
-    implicit val executionContext: ExecutionContext
-) extends FactCheckerIdentifierAction
-    with AuthorisedFunctions
-    with AuthRedirects {
+// trait FactCheckerIdentifierAction extends ActionBuilder[IdentifierRequest, AnyContent] with ActionFunction[Request, IdentifierRequest]
 
-  val logger: Logger = Logger(getClass)
+// class FactCheckerAuthenticatedIdentifierAction @Inject() (
+//     override val authConnector: AuthConnector,
+//     appConfig: AppConfig,
+//     val parser: BodyParsers.Default,
+//     val config: Configuration,
+//     val env: Environment
+// )(
+//     implicit val executionContext: ExecutionContext
+// ) extends FactCheckerIdentifierAction
+//     with AuthorisedFunctions
+//     with AuthRedirects {
 
-  override def invokeBlock[A](request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] = {
+//   val logger: Logger = Logger(getClass)
 
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
+//   override def invokeBlock[A](request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] = {
 
-    // Restrict access to users with fact checker role
-    authorised(Enrolment(appConfig.factCheckerRole) and AuthProviders(PrivilegedApplication))
-      .retrieve(Retrievals.credentials and Retrievals.name and Retrievals.email and Retrievals.authorisedEnrolments) {
-        case Some(Credentials(providerId, _)) ~ Some(Name(Some(name), _)) ~ Some(email) ~ authEnrolments =>
-          block(IdentifierRequest(request, providerId, name, email, authEnrolments.enrolments.map(_.key).toList))
-        case _ =>
-          logger.warn("Fact Checker Identifier action could not retrieve required user details in method invokeBlock")
-          Future.successful(Unauthorized)
-      } recover {
-      case _ => Unauthorized
-    }
-  }
-}
+//     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
+
+//     // Restrict access to users with fact checker role
+//     authorised(Enrolment(appConfig.factCheckerRole) and AuthProviders(PrivilegedApplication))
+//       .retrieve(Retrievals.credentials and Retrievals.name and Retrievals.email and Retrievals.authorisedEnrolments) {
+//         case Some(Credentials(providerId, _)) ~ Some(Name(Some(name), _)) ~ Some(email) ~ authEnrolments =>
+//           block(IdentifierRequest(request, providerId, name, email, authEnrolments.enrolments.map(_.key).toList))
+//         case _ =>
+//           logger.warn("Fact Checker Identifier action could not retrieve required user details in method invokeBlock")
+//           Future.successful(Unauthorized)
+//       } recover {
+//       case _ => Unauthorized
+//     }
+//   }
+// }

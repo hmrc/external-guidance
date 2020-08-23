@@ -16,7 +16,8 @@
 
 package controllers
 
-import controllers.actions.{FactCheckerIdentifierAction, TwoEyeReviewerIdentifierAction}
+import controllers.actions.{IdentifiedAction, PrivilegedActionProvider}
+import uk.gov.hmrc.auth.core.Enrolment
 import javax.inject.{Inject, Singleton}
 import models.errors._
 import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange}
@@ -25,17 +26,20 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ReviewService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils.Constants._
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import config.AppConfig
 
 @Singleton
 class ProcessReviewController @Inject() (
-    factCheckerIdentifierAction: FactCheckerIdentifierAction,
-    twoEyeReviewerIdentifierAction: TwoEyeReviewerIdentifierAction,
+    privilegedActionProvider: PrivilegedActionProvider,
     reviewService: ReviewService,
-    cc: ControllerComponents
+    cc: ControllerComponents,
+    appConfig: AppConfig
 ) extends BackendController(cc) {
+
+  val twoEyeReviewerIdentifierAction: IdentifiedAction = privilegedActionProvider(Enrolment(appConfig.twoEyeReviewerRole))
+  val factCheckerIdentifierAction: IdentifiedAction = privilegedActionProvider(Enrolment(appConfig.factCheckerRole))
 
   def approval2iReviewInfo(id: String): Action[AnyContent] = twoEyeReviewerIdentifierAction.async { _ =>
     getReviewInfo(id, ReviewType2i)

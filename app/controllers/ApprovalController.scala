@@ -16,8 +16,8 @@
 
 package controllers
 
-import controllers.actions.IdentifierAction
 import javax.inject.{Inject, Singleton}
+import uk.gov.hmrc.auth.core.Enrolment
 import models.errors.{BadRequestError, ValidationError, InternalServiceError, NotFoundError, Error}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
@@ -28,11 +28,22 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import models.errors._
 import play.api.Logger
+import controllers.actions.{IdentifiedAction, PrivilegedActionProvider}
+import config.AppConfig
 
 @Singleton
-class ApprovalController @Inject() (identify: IdentifierAction, approvalService: ApprovalService, cc: ControllerComponents) extends BackendController(cc) {
+class ApprovalController @Inject() (
+  privilegedActionProvider: PrivilegedActionProvider,
+  approvalService: ApprovalService,
+  cc: ControllerComponents,
+  appConfig: AppConfig
+) extends BackendController(cc) {
 
   val logger = Logger(getClass)
+
+  val identify: IdentifiedAction = privilegedActionProvider(Enrolment(appConfig.designerRole) or
+                                          Enrolment(appConfig.twoEyeReviewerRole) or
+                                          Enrolment(appConfig.factCheckerRole))
 
   def saveFor2iReview: Action[JsValue] = Action.async(parse.json) { implicit request =>
     saveProcess(request.body.as[JsObject], ReviewType2i)

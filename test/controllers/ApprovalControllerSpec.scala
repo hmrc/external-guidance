@@ -16,13 +16,15 @@
 
 package controllers
 
-import controllers.actions.FakeIdentifierAction
+import base.ControllerBaseSpec
+import mocks._
+import controllers.actions.PrivilegedActionProvider
 import mocks.MockApprovalService
 import models.errors.{BadRequestError, Error, InternalServiceError, NotFoundError, ProcessError, ValidationError}
 import models.ocelot.errors.DuplicatePageUrl
 import models.{ApprovalProcess, ApprovalProcessJson}
-import org.scalatest.{Matchers, WordSpec}
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name, ~}
+import uk.gov.hmrc.auth.core.{AuthorisationException, Enrolment, Enrolments}
 import play.api.http.ContentTypes
 import play.api.http.Status.UNPROCESSABLE_ENTITY
 import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
@@ -33,15 +35,18 @@ import repositories.formatters.ApprovalProcessFormatter
 import services.toProcessErr
 import utils.Constants._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerSuite with MockApprovalService with ApprovalProcessJson {
+class ApprovalControllerSpec extends ControllerBaseSpec with MockApprovalService with MockAuthConnector with ApprovalProcessJson {
 
   private trait Test extends MockApprovalService {
     val invalidId: String = "ext95"
     val invalidProcess: JsObject = Json.obj("id" -> "ext0093")
+    implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
-    lazy val controller: ApprovalController = new ApprovalController(FakeIdentifierAction, mockApprovalService, stubControllerComponents())
+    val actionProvider = new PrivilegedActionProvider(MockAppConfig, bodyParser, mockAuthConnector, config, env)
+
+    lazy val controller: ApprovalController = new ApprovalController(actionProvider, mockApprovalService, stubControllerComponents(), MockAppConfig)
   }
 
   "Calling the saveFor2iReview action" when {
@@ -402,6 +407,10 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
       }
 
       "return an OK response" in new ValidListTest {
+      val enrolments: Enrolments = Enrolments(Set(Enrolment(key = "FactChecker")))
+      val authResult = new ~(new ~(new ~(Some(Credentials("id", "type")), Some(Name(Some("name"), None))), Some("email")), enrolments)
+
+      MockAuthConnector.authorize().returns(Future.successful(authResult))
         private val result = controller.approvalSummaryList()(request)
         status(result) shouldBe OK
       }

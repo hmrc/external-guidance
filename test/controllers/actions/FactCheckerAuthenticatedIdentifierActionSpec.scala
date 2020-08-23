@@ -25,15 +25,19 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name, ~}
 import uk.gov.hmrc.auth.core.{AuthorisationException, Enrolment, Enrolments}
 import uk.gov.hmrc.http.HeaderCarrier
-
+import models.requests.IdentifierRequest
 import scala.concurrent.{ExecutionContext, Future}
 
 class FactCheckerAuthenticatedIdentifierActionSpec extends ControllerBaseSpec with MockAuthConnector {
 
-  // Define simple harness class to represent controller
-  class Harness(factCheckerAuthenticatedIdentifierAction: FactCheckerIdentifierAction) {
+  implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
+  val privilegedActionProvider = new PrivilegedActionProvider(MockAppConfig, bodyParser, mockAuthConnector, config, env)
+  val factCheckerAuthAction = privilegedActionProvider(Enrolment(MockAppConfig.factCheckerRole))
 
-    def onPageLoad(): Action[AnyContent] = factCheckerAuthenticatedIdentifierAction { _ =>
+  // Define simple harness class to represent controller
+  class Harness(action: ActionBuilder[IdentifierRequest, AnyContent]) {
+
+    def onPageLoad(): Action[AnyContent] = action { _ =>
       Results.Ok
     }
   }
@@ -47,14 +51,6 @@ class FactCheckerAuthenticatedIdentifierActionSpec extends ControllerBaseSpec wi
 
     implicit val hc: HeaderCarrier = HeaderCarrier()
     implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
-
-    lazy val factCheckerAuthAction = new FactCheckerAuthenticatedIdentifierAction(
-      mockAuthConnector,
-      MockAppConfig,
-      bodyParser,
-      config,
-      env
-    )
 
     lazy val target = new Harness(factCheckerAuthAction)
   }

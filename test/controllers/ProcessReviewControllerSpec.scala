@@ -16,15 +16,14 @@
 
 package controllers
 
-import controllers.actions.{FakeFactCheckerIdentifierAction, FakeTwoEyeReviewerIdentifierAction}
+import base.ControllerBaseSpec
+import mocks._
+import controllers.actions.PrivilegedActionProvider
 import data.ReviewData
 import mocks.MockReviewService
 import models._
 import models.errors._
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{Matchers, WordSpec}
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.ContentTypes
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.{AnyContentAsEmpty, Result}
@@ -32,10 +31,9 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import utils.Constants._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class ProcessReviewControllerSpec extends WordSpec
-  with Matchers with ScalaFutures with GuiceOneAppPerSuite with MockFactory with ReviewData with ApprovalProcessJson {
+class ProcessReviewControllerSpec extends ControllerBaseSpec with MockFactory with ReviewData with MockAuthConnector with ApprovalProcessJson {
 
   private trait Test extends MockReviewService {
     val invalidId: String = "ext95"
@@ -46,13 +44,18 @@ class ProcessReviewControllerSpec extends WordSpec
                               approvalProcessCompleted.version,
                               "author", 111111, approvalProcessCompleted.version)
     val approvalProcessContainingInvalidOcelotProcess: ApprovalProcess = approvalProcess.copy()
+    implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
+
+    val actionProvider = new PrivilegedActionProvider(MockAppConfig, bodyParser, mockAuthConnector, config, env)
+
     val reviewUpdate: ApprovalProcessPageReview = ApprovalProcessPageReview("id", "/pageUrl", "Title", None, "status")
 
     lazy val controller: ProcessReviewController = new ProcessReviewController(
-      FakeFactCheckerIdentifierAction,
-      FakeTwoEyeReviewerIdentifierAction,
+      actionProvider,
       mockReviewService,
-      stubControllerComponents())
+      stubControllerComponents(),
+      MockAppConfig
+    )
   }
   "Calling the approval2iReviewInfo action" when {
 
