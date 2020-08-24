@@ -16,7 +16,7 @@
 
 package controllers
 
-import controllers.actions.{IdentifiedAction, PrivilegedActionProvider}
+import controllers.actions.IdentifiedActionProvider
 import uk.gov.hmrc.auth.core.Enrolment
 import javax.inject.{Inject, Singleton}
 import models.errors._
@@ -32,14 +32,14 @@ import config.AppConfig
 
 @Singleton
 class ProcessReviewController @Inject() (
-    privilegedActionProvider: PrivilegedActionProvider,
+    identifiedActionProvider: IdentifiedActionProvider,
     reviewService: ReviewService,
     cc: ControllerComponents,
     appConfig: AppConfig
 ) extends BackendController(cc) {
 
-  val twoEyeReviewerAction = privilegedActionProvider(Enrolment(appConfig.twoEyeReviewerRole))
-  val factCheckerAction = privilegedActionProvider(Enrolment(appConfig.factCheckerRole))
+  val twoEyeReviewerAction = identifiedActionProvider(Enrolment(appConfig.twoEyeReviewerRole))
+  val factCheckerAction = identifiedActionProvider(Enrolment(appConfig.factCheckerRole))
 
   def approval2iReviewInfo(id: String): Action[AnyContent] = twoEyeReviewerAction.async { _ =>
     getReviewInfo(id, ReviewType2i)

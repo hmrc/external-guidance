@@ -18,13 +18,11 @@ package controllers
 
 import base.ControllerBaseSpec
 import mocks._
-import controllers.actions.PrivilegedActionProvider
+import controllers.actions.FakeIdentifiedActionProvider
 import mocks.MockApprovalService
 import models.errors.{BadRequestError, Error, InternalServiceError, NotFoundError, ProcessError, ValidationError}
 import models.ocelot.errors.DuplicatePageUrl
 import models.{ApprovalProcess, ApprovalProcessJson}
-import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name, ~}
-import uk.gov.hmrc.auth.core.{AuthorisationException, Enrolment, Enrolments}
 import play.api.http.ContentTypes
 import play.api.http.Status.UNPROCESSABLE_ENTITY
 import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
@@ -44,7 +42,7 @@ class ApprovalControllerSpec extends ControllerBaseSpec with MockApprovalService
     val invalidProcess: JsObject = Json.obj("id" -> "ext0093")
     implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
-    val actionProvider = new PrivilegedActionProvider(MockAppConfig, bodyParser, mockAuthConnector, config, env)
+    val actionProvider = new FakeIdentifiedActionProvider(MockAppConfig, bodyParser, mockAuthConnector, List("FactChecker", "2iReviewer"))
 
     lazy val controller: ApprovalController = new ApprovalController(actionProvider, mockApprovalService, stubControllerComponents(), MockAppConfig)
   }
@@ -406,16 +404,13 @@ class ApprovalControllerSpec extends ControllerBaseSpec with MockApprovalService
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
 
-      "return an OK response" in new ValidListTest {
-      val enrolments: Enrolments = Enrolments(Set(Enrolment(key = "FactChecker")))
-      val authResult = new ~(new ~(new ~(Some(Credentials("id", "type")), Some(Name(Some("name"), None))), Some("email")), enrolments)
+    "return an OK response" in new ValidListTest {
 
-      MockAuthConnector.authorize().returns(Future.successful(authResult))
-        private val result = controller.approvalSummaryList()(request)
-        status(result) shouldBe OK
-      }
+      private val result = controller.approvalSummaryList()(request)
+      status(result) shouldBe OK
+    }
 
-      "return content as JSON" in new ValidListTest {
+    "return content as JSON" in new ValidListTest {
         private val result = controller.approvalSummaryList()(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }

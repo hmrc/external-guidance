@@ -31,7 +31,7 @@ import scala.concurrent.{Future, ExecutionContext}
 class AuthenticatedIdentifierActionSpec extends ControllerBaseSpec with MockAuthConnector {
 
   implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
-  val privilegedActionProvider = new PrivilegedActionProvider(MockAppConfig, bodyParser, mockAuthConnector, config, env)
+  val privilegedActionProvider = new PrivilegedIdentifiedActionProvider(MockAppConfig, bodyParser, mockAuthConnector, config, env)
 
   val authAction = privilegedActionProvider(Enrolment(MockAppConfig.designerRole) or
                                             Enrolment(MockAppConfig.twoEyeReviewerRole) or

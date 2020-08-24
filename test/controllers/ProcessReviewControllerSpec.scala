@@ -18,7 +18,7 @@ package controllers
 
 import base.ControllerBaseSpec
 import mocks._
-import controllers.actions.PrivilegedActionProvider
+import controllers.actions.FakeIdentifiedActionProvider
 import data.ReviewData
 import mocks.MockReviewService
 import models._
@@ -46,7 +46,7 @@ class ProcessReviewControllerSpec extends ControllerBaseSpec with MockFactory wi
     val approvalProcessContainingInvalidOcelotProcess: ApprovalProcess = approvalProcess.copy()
     implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
-    val actionProvider = new PrivilegedActionProvider(MockAppConfig, bodyParser, mockAuthConnector, config, env)
+    val actionProvider = new FakeIdentifiedActionProvider(MockAppConfig, bodyParser, mockAuthConnector, List(""))
 
     val reviewUpdate: ApprovalProcessPageReview = ApprovalProcessPageReview("id", "/pageUrl", "Title", None, "status")
 

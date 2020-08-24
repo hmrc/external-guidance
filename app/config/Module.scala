@@ -17,6 +17,7 @@
 package config
 
 import com.google.inject.AbstractModule
+import controllers.actions._
 import repositories._
 
 class Module extends AbstractModule {
@@ -27,5 +28,6 @@ class Module extends AbstractModule {
     bind(classOf[ScratchRepository]).to(classOf[ScratchRepositoryImpl])
     bind(classOf[ApprovalRepository]).to(classOf[ApprovalRepositoryImpl])
     bind(classOf[ApprovalProcessReviewRepository]).to(classOf[ApprovalProcessReviewRepositoryImpl])
+    bind(classOf[IdentifiedActionProvider]).to(classOf[PrivilegedIdentifiedActionProvider])
   }
 }

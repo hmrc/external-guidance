@@ -33,15 +33,19 @@ import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.bootstrap.config.AuthRedirects
 import scala.concurrent.{ExecutionContext, Future}
 
+trait IdentifiedActionProvider {
+  def apply(constraint: Predicate): IdentifiedAction
+}
+
 trait IdentifiedAction extends ActionBuilder[IdentifierRequest, AnyContent]
 
-class PrivilegedActionProvider @Inject() (
+class PrivilegedIdentifiedActionProvider @Inject() (
   appConfig: AppConfig,
   bodyParser: BodyParsers.Default,
   override val authConnector: AuthConnector,
   val config: Configuration,
   val env: Environment
-)(implicit val ec: ExecutionContext) extends AuthorisedFunctions with AuthRedirects {
+)(implicit val ec: ExecutionContext) extends IdentifiedActionProvider with AuthorisedFunctions with AuthRedirects {
 
   val logger = Logger(getClass())
 

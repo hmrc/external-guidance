@@ -31,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class FactCheckerAuthenticatedIdentifierActionSpec extends ControllerBaseSpec with MockAuthConnector {
 
   implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
-  val privilegedActionProvider = new PrivilegedActionProvider(MockAppConfig, bodyParser, mockAuthConnector, config, env)
+  val privilegedActionProvider = new PrivilegedIdentifiedActionProvider(MockAppConfig, bodyParser, mockAuthConnector, config, env)
   val factCheckerAuthAction = privilegedActionProvider(Enrolment(MockAppConfig.factCheckerRole))
 
   // Define simple harness class to represent controller

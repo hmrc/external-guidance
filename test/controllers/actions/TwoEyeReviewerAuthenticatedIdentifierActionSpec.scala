@@ -31,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class TwoEyeReviewerAuthenticatedIdentifierActionSpec extends ControllerBaseSpec with MockAuthConnector {
 
   implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
-  val privilegedActionProvider = new PrivilegedActionProvider(MockAppConfig, bodyParser, mockAuthConnector, config, env)
+  val privilegedActionProvider = new PrivilegedIdentifiedActionProvider(MockAppConfig, bodyParser, mockAuthConnector, config, env)
   val twoEyeReviewerAuthAction = privilegedActionProvider(Enrolment(MockAppConfig.twoEyeReviewerRole))
 
   // Define simple harness class to represent controller
