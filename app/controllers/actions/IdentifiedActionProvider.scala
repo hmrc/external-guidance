@@ -71,7 +71,7 @@ class PrivilegedIdentifiedActionProvider @Inject() (
           Future.successful(Unauthorized)
       } recover {
       case err =>
-        logger.info(s"FAILED Authorise/Retrievals with $err")
+        logger.error(s"FAILED Authorise/Retrievals with $err")
         Unauthorized
     }
   }
