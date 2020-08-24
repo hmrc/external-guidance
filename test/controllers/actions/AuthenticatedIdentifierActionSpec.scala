@@ -56,8 +56,6 @@ class AuthenticatedIdentifierActionSpec extends ControllerBaseSpec with MockAuth
     implicit val hc: HeaderCarrier = HeaderCarrier()
     implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
-    //lazy val authAction = new AuthenticatedIdentifierAction(mockAuthConnector, MockAppConfig, bodyParser, config, env)
-
     lazy val target = new Harness(authAction)
   }
 
