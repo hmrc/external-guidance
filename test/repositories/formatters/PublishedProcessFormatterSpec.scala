@@ -16,19 +16,19 @@
 
 package repositories.formatters
 
-import java.time.{ZoneId, ZonedDateTime}
+import java.time.ZonedDateTime
 
 import base.UnitSpec
-import models.PublishedProcess
+import models.{MongoDateTimeFormats, PublishedProcess}
 import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
 import repositories.formatters.PublishedProcessFormatter.mongoFormat
 
-class PublishedProcessFormatterSpec extends UnitSpec {
+class PublishedProcessFormatterSpec extends UnitSpec with MongoDateTimeFormats {
 
   private val process: JsObject = Json.obj()
   private val id: String = "ext90002"
 
-  private val datePublished: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, ZoneId.of("Europe/London"))
+  private val datePublished: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, localZoneID)
   private val publishedProcess: PublishedProcess = PublishedProcess(id, 1, datePublished, process, "user")
 
   private val json = Json.parse(

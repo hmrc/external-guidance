@@ -16,7 +16,7 @@
 
 package models
 
-import java.time.{ZonedDateTime, ZoneId}
+import java.time.ZonedDateTime
 
 import base.UnitSpec
 import play.api.libs.json.Json
@@ -25,7 +25,7 @@ class MongoDateTimeSpec extends  UnitSpec with MongoDateTimeFormats {
 
   "a ZonedDateTime" must {
 
-    val dateTime = ZonedDateTime.of(2018,2,1,13,45,0,0, ZoneId.of("Europe/London"))
+    val dateTime = ZonedDateTime.of(2018,2,1,13,45,0,0, localZoneID)
 
     val dateMillis = dateTime.toInstant.toEpochMilli
 
