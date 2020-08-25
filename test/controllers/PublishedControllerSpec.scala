@@ -16,7 +16,7 @@
 
 package controllers
 
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 import base.UnitSpec
 import mocks.MockPublishedService
@@ -50,7 +50,7 @@ class PublishedControllerSpec extends UnitSpec with GuiceOneAppPerSuite with Pro
       trait ValidGetTest extends Test {
 
         val expectedProcess: JsObject = validOnePageJson.as[JsObject]
-        val returnedPublishedProcess: PublishedProcess = PublishedProcess(validId, 1, LocalDateTime.now(), validOnePageJson.as[JsObject], "user")
+        val returnedPublishedProcess: PublishedProcess = PublishedProcess(validId, 1, ZonedDateTime.now(), validOnePageJson.as[JsObject], "user")
 
         MockPublishedService
           .getById(validId)

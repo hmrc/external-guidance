@@ -16,7 +16,7 @@
 
 package services
 
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.UUID
 
 import base.UnitSpec
@@ -426,7 +426,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
   "Calling the approvalPageInfo method" when {
 
     trait PageInfoTest extends Test {
-      val currentDateTime: LocalDateTime = LocalDateTime.now()
+      val currentDateTime: ZonedDateTime = ZonedDateTime.now()
       val processReview: ApprovalProcessReview = ApprovalProcessReview(
         UUID.randomUUID(),
         "validId",
@@ -558,7 +558,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       val validId = "oct90001"
 
       val pageReview: ApprovalProcessPageReview =
-        ApprovalProcessPageReview(validId, pageUrl, "title", Some("result1"), "Failed", None, LocalDateTime.now, Some("user"))
+        ApprovalProcessPageReview(validId, pageUrl, "title", Some("result1"), "Failed", None, ZonedDateTime.now, Some("user"))
     }
 
     "the ID identifies a valid process" when {
@@ -679,10 +679,10 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
             .returns(Future.successful(Right(approvalProcessReviewComplete)))
 
           MockApprovalProcessReviewRepository
-            .updateReview("validId", 
-                          approvalProcessWithValidProcess.version, 
-                          ReviewTypeFactCheck, 
-                          statusChange2iReviewInfo.userId, 
+            .updateReview("validId",
+                          approvalProcessWithValidProcess.version,
+                          ReviewTypeFactCheck,
+                          statusChange2iReviewInfo.userId,
                           statusChange2iReviewInfo.status)
             .returns(Future.successful(Right(())))
 
