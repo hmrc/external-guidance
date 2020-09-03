@@ -389,6 +389,120 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
     }
   }
 
+  "Calling the getByProcessCode action" when {
+
+    "the request is valid" should {
+
+      trait ValidGetTest extends Test {
+        MockApprovalService
+          .getByProcessCode(validId)
+          .returns(Future.successful(Right(validApprovalProcessJson)))
+
+        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
+      }
+
+      "return an OK response" in new ValidGetTest {
+        private val result = controller.getByProcessCode(validId)(request)
+        status(result) shouldBe OK
+      }
+
+      "return content as JSON" in new ValidGetTest {
+        private val result = controller.getByProcessCode(validId)(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "confirm returned content is a JSON object" in new ValidGetTest {
+        private val result = controller.getByProcessCode(validId)(request)
+        val processReturned: ApprovalProcess = contentAsJson(result).as[ApprovalProcess](ApprovalProcessFormatter.mongoFormat)
+        processReturned.id shouldBe approvalProcess.id
+      }
+    }
+
+    "the request is invalid" should {
+
+      trait InvalidGetTest extends Test {
+        val expectedErrorCode = "BAD_REQUEST"
+        MockApprovalService
+          .getByProcessCode(invalidId)
+          .returns(Future.successful(Left(BadRequestError)))
+
+        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
+      }
+
+      "return an bad request response" in new InvalidGetTest {
+        private val result = controller.getByProcessCode(invalidId)(request)
+        status(result) shouldBe BAD_REQUEST
+      }
+
+      "return content as JSON" in new InvalidGetTest {
+        private val result = controller.getByProcessCode(invalidId)(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return a error code of BAD_REQUEST" in new InvalidGetTest {
+        private val result = controller.getByProcessCode(invalidId)(request)
+        private val json = contentAsJson(result).as[JsObject]
+        (json \ "code").as[String] shouldBe expectedErrorCode
+      }
+    }
+
+    "the request contains an unknown ID" should {
+
+      trait NotFoundGetTest extends Test {
+        val expectedErrorCode = "NOT_FOUND"
+        MockApprovalService
+          .getByProcessCode(validId)
+          .returns(Future.successful(Left(NotFoundError)))
+
+        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
+      }
+
+      "return an not found response" in new NotFoundGetTest {
+        private val result = controller.getByProcessCode(validId)(request)
+        status(result) shouldBe NOT_FOUND
+      }
+
+      "return content as JSON" in new NotFoundGetTest {
+        private val result = controller.getByProcessCode(validId)(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return a error code of NOT_FOUND" in new NotFoundGetTest {
+        private val result = controller.getByProcessCode(validId)(request)
+        private val json = contentAsJson(result).as[JsObject]
+        (json \ "code").as[String] shouldBe expectedErrorCode
+      }
+    }
+
+    "a downstream error occurs" should {
+
+      trait ErrorGetTest extends Test {
+        val expectedErrorCode = "INTERNAL_SERVER_ERROR"
+        MockApprovalService
+          .getByProcessCode(validId)
+          .returns(Future.successful(Left(InternalServiceError)))
+
+        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
+      }
+
+      "return a internal server error response" in new ErrorGetTest {
+        private val result = controller.getByProcessCode(validId)(request)
+        status(result) shouldBe INTERNAL_SERVER_ERROR
+      }
+
+      "return content as JSON" in new ErrorGetTest {
+        private val result = controller.getByProcessCode(validId)(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return an error code of INTERNAL_SERVER_ERROR" in new ErrorGetTest {
+        private val result = controller.getByProcessCode(validId)(request)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe expectedErrorCode
+      }
+    }
+  }
+
   "Calling the approvalSummaryList action" when {
 
     "the request is valid" should {

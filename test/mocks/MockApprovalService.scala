@@ -36,6 +36,12 @@ trait MockApprovalService extends MockFactory {
         .expects(id)
     }
 
+    def getByProcessCode(processCode: String): CallHandler[Future[RequestOutcome[JsObject]]] = {
+      (mockApprovalService
+        .getByProcessCode(_: String))
+        .expects(processCode)
+    }
+
     def save(
         process: JsObject,
         reviewType: String = ReviewType2i,

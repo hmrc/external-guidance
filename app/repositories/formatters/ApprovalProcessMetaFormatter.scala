@@ -36,6 +36,7 @@ object ApprovalProcessMetaFormatter {
       ocelotDateSubmitted <- (json \ "ocelotDateSubmitted").validateOpt[Long]
       ocelotVersion <- (json \ "ocelotVersion").validateOpt[Int]
       reviewType <- (json \ "reviewType").validate[String]
+      processCode <- (json \ "processCode").validateOpt[String]
     } yield ApprovalProcessMeta(
       id,
       title,
@@ -44,7 +45,8 @@ object ApprovalProcessMetaFormatter {
       lastModified.getOrElse(ZonedDateTime.now()),
       ocelotDateSubmitted.getOrElse(1),
       ocelotVersion.getOrElse(1),
-      reviewType
+      reviewType,
+      processCode.getOrElse(id)
     )
 
   val write: ApprovalProcessMeta => JsObject = meta =>
@@ -56,7 +58,8 @@ object ApprovalProcessMetaFormatter {
       "lastModified" -> meta.lastModified,
       "ocelotDateSubmitted" -> meta.ocelotDateSubmitted,
       "ocelotVersion" -> meta.ocelotVersion,
-      "reviewType" -> meta.reviewType
+      "reviewType" -> meta.reviewType,
+      "processCode" -> meta.processCode
     )
 
   implicit val mongoFormat: OFormat[ApprovalProcessMeta] = OFormat(read, write)

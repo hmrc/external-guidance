@@ -23,6 +23,7 @@ import models.errors.{DatabaseError, NotFoundError}
 import models.{PublishedProcess, RequestOutcome}
 import play.api.libs.json.{Format, JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.formatters.PublishedProcessFormatter
 import uk.gov.hmrc.mongo.ReactiveRepository
 
@@ -31,8 +32,9 @@ import scala.concurrent.Future
 
 trait PublishedRepository {
 
-  def save(id: String, user: String, process: JsObject): Future[RequestOutcome[String]]
+  def save(id: String, user: String, processCode: String, process: JsObject): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[PublishedProcess]]
+  def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]]
 }
 
 @Singleton
@@ -45,7 +47,7 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
     )
     with PublishedRepository {
 
-  def save(id: String, user: String, process: JsObject): Future[RequestOutcome[String]] = {
+  def save(id: String, user: String, processCode: String, process: JsObject): Future[RequestOutcome[String]] = {
 
     logger.info(s"Saving process $id to collection published")
 
@@ -55,6 +57,7 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
       "$set" -> Json.obj(
         "process" -> process,
         "publishedBy" -> user,
+        "processCode" -> processCode,
         "datePublished" -> Json.obj("$date" -> ZonedDateTime.now.toInstant.toEpochMilli)
       )
     )
@@ -84,6 +87,25 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
       .recover {
         case error =>
           logger.error(s"Attempt to retrieve process $id from collection published failed with error : ${error.getMessage}")
+          Left(DatabaseError)
+      }
+    //$COVERAGE-ON$
+  }
+
+  def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]] = {
+
+    val selector = Json.obj("processCode" -> processCode)
+    collection
+      .find[JsObject, JsObject](selector)
+      .one[PublishedProcess]
+      .map {
+        case Some(publishedProcess) => Right(publishedProcess)
+        case None => Left(NotFoundError)
+      }
+      //$COVERAGE-OFF$
+      .recover {
+        case error =>
+          logger.error(s"Attempt to retrieve process $processCode from collection $collectionName failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
     //$COVERAGE-ON$

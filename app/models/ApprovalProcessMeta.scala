@@ -29,7 +29,8 @@ case class ApprovalProcessMeta(
     lastModified: ZonedDateTime = ZonedDateTime.now(),
     ocelotDateSubmitted: Long = 1,
     ocelotVersion: Int = 1,
-    reviewType: String = ReviewType2i
+    reviewType: String = ReviewType2i,
+    processCode: String
 )
 
 object ApprovalProcessMeta {

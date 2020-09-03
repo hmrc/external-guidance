@@ -99,6 +99,55 @@ class ApprovalServiceSpec extends UnitSpec with MockFactory {
     }
   }
 
+  "Calling the getByProcessCode method" when {
+    "the ID identifies a valid process" should {
+      "return a JSON representing the submitted ocelot process" in new Test {
+
+        val returnFromRepo: RequestOutcome[ApprovalProcess] = Right(approvalProcess)
+        val expected: RequestOutcome[JsObject] = Right(approvalProcess.process)
+
+        MockApprovalRepository
+          .getByProcessCode(validId)
+          .returns(Future.successful(returnFromRepo))
+
+        whenReady(service.getByProcessCode(validId)) { result =>
+          result shouldBe expected
+        }
+      }
+    }
+
+    "the ID cannot be matched to a submitted process" should {
+      "return a not found response" in new Test {
+
+        val expected: RequestOutcome[ApprovalProcess] = Left(NotFoundError)
+
+        MockApprovalRepository
+          .getByProcessCode(validId)
+          .returns(Future.successful(expected))
+
+        whenReady(service.getByProcessCode(validId)) { result =>
+          result shouldBe expected
+        }
+      }
+    }
+
+    "the repository reports a database error" should {
+      "return an internal server error" in new Test {
+
+        val repositoryError: RequestOutcome[ApprovalProcess] = Left(DatabaseError)
+        val expected: RequestOutcome[JsObject] = Left(InternalServiceError)
+
+        MockApprovalRepository
+          .getByProcessCode(validId)
+          .returns(Future.successful(repositoryError))
+
+        whenReady(service.getByProcessCode(validId)) { result =>
+          result shouldBe expected
+        }
+      }
+    }
+  }
+
   "Calling the save method" when {
 
     "the id and JSON are valid" should {

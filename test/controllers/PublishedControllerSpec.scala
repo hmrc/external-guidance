@@ -50,7 +50,8 @@ class PublishedControllerSpec extends UnitSpec with GuiceOneAppPerSuite with Pro
       trait ValidGetTest extends Test {
 
         val expectedProcess: JsObject = validOnePageJson.as[JsObject]
-        val returnedPublishedProcess: PublishedProcess = PublishedProcess(validId, 1, ZonedDateTime.now(), validOnePageJson.as[JsObject], "user")
+        val returnedPublishedProcess: PublishedProcess =
+          PublishedProcess(validId, 1, ZonedDateTime.now(), validOnePageJson.as[JsObject], "user", processCode = "processCode")
 
         MockPublishedService
           .getById(validId)
@@ -178,4 +179,139 @@ class PublishedControllerSpec extends UnitSpec with GuiceOneAppPerSuite with Pro
     }
   }
 
+  "Invoking the controller getByProcessCode action" when {
+
+    "the request is valid" should {
+
+      trait ValidGetTest extends Test {
+
+        val expectedProcess: JsObject = validOnePageJson.as[JsObject]
+        val returnedPublishedProcess: PublishedProcess =
+          PublishedProcess(validId, 1, ZonedDateTime.now(), validOnePageJson.as[JsObject], "user", processCode = "processCode")
+
+        MockPublishedService
+          .getByProcessCode(validId)
+          .returns(Future.successful(Right(returnedPublishedProcess)))
+
+      }
+
+      "return an Ok response" in new ValidGetTest {
+
+        private val result = target.getByProcessCode(validId)(getRequest)
+
+        status(result) shouldBe OK
+      }
+
+      "return content as JSON" in new ValidGetTest {
+
+        private val result = target.getByProcessCode(validId)(getRequest)
+
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return expected content" in new ValidGetTest {
+        private val result = target.getByProcessCode(validId)(getRequest)
+        contentAsJson(result).as[JsObject] shouldBe expectedProcess
+      }
+    }
+
+    "the request has an invalid process identifier" should {
+
+      trait InvalidIdGetTest extends Test {
+
+        val invalidId: String = "oct2002"
+
+        MockPublishedService
+          .getByProcessCode(invalidId)
+          .returns(Future.successful(Left(BadRequestError)))
+
+      }
+
+      "return a bad request response" in new InvalidIdGetTest {
+
+        private val result = target.getByProcessCode(invalidId)(getRequest)
+
+        status(result) shouldBe BAD_REQUEST
+      }
+
+      "return content as JSON" in new InvalidIdGetTest {
+
+        private val result = target.getByProcessCode(invalidId)(getRequest)
+
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return the error code for BadRequestError" in new InvalidIdGetTest {
+
+        private val result = target.getByProcessCode(invalidId)(getRequest)
+
+        val json: JsObject = contentAsJson(result).as[JsObject]
+        (json \ "code").as[String] shouldBe BadRequestError.code
+      }
+    }
+
+    "the process identified in the request does not exists" should {
+
+      trait NotFoundTest extends Test {
+
+        MockPublishedService
+          .getByProcessCode(validId)
+          .returns(Future.successful(Left(NotFoundError)))
+      }
+
+      "return a resource not found response" in new NotFoundTest {
+
+        private val result = target.getByProcessCode(validId)(getRequest)
+
+        status(result) shouldBe NOT_FOUND
+      }
+
+      "return content as JSON" in new NotFoundTest {
+
+        private val result = target.getByProcessCode(validId)(getRequest)
+
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return the error code NOT_FOUND" in new NotFoundTest {
+
+        private val result = target.getByProcessCode(validId)(getRequest)
+
+        val json: JsObject = contentAsJson(result).as[JsObject]
+        (json \ "code").as[String] shouldBe NotFoundError.code
+      }
+    }
+
+    "an internal service error is raised by the service" should {
+
+      trait InternalServiceErrorTest extends Test {
+
+        MockPublishedService
+          .getByProcessCode(validId)
+          .returns(Future.successful(Left(InternalServiceError)))
+      }
+
+      "return an internal server error response" in new InternalServiceErrorTest {
+
+        private val result = target.getByProcessCode(validId)(getRequest)
+
+        status(result) shouldBe INTERNAL_SERVER_ERROR
+      }
+
+      "return content as JSON" in new InternalServiceErrorTest {
+
+        private val result = target.getByProcessCode(validId)(getRequest)
+
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return the error code for InternalServiceError" in new InternalServiceErrorTest {
+
+        private val result = target.getByProcessCode(validId)(getRequest)
+
+        val json: JsObject = contentAsJson(result).as[JsObject]
+        (json \ "code").as[String] shouldBe InternalServiceError.code
+      }
+    }
+  }
 }

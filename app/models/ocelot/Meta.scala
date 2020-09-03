@@ -16,10 +16,18 @@
 
 package models.ocelot
 
-import play.api.libs.json._
 import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
-case class Meta(id: String, title: String, ocelot: Int, lastAuthor: String, lastUpdate: Long, version: Int, fileName: String, titlePhrase: Option[Int] = None)
+case class Meta(id: String,
+                title: String,
+                ocelot: Int,
+                lastAuthor: String,
+                lastUpdate: Long,
+                version: Int,
+                fileName: String,
+                titlePhrase: Option[Int] = None,
+                processCode: Option[String])
 
 object Meta {
 
@@ -31,6 +39,7 @@ object Meta {
       (__ \ "lastUpdate").read[Long] and
       (__ \ "version").read[Int] and
       (__ \ "filename").read[String] and
-      (__ \ "titlePhrase").readNullable[Int]
+      (__ \ "titlePhrase").readNullable[Int] and
+      (__ \ "processCode").readNullable[String]
   )(Meta.apply _)
 }

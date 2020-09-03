@@ -37,7 +37,8 @@ class ApprovalProcessMetaFormatterSpec extends UnitSpec with ApprovalProcessJson
     |    "lastModified" : {"$$date": $dateLong},
     |    "ocelotDateSubmitted" : 1,
     |    "ocelotVersion" : 1,
-    |    "reviewType" : "$ReviewType2i"
+    |    "reviewType" : "$ReviewType2i",
+    |    "processCode" : "processCode"
     |  }
     """.stripMargin
   private val validMetaJson = Json.parse(validString)

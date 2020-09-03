@@ -41,6 +41,12 @@ trait MockApprovalRepository extends MockFactory {
         .expects(*)
     }
 
+    def getByProcessCode(processCode: String): CallHandler[Future[RequestOutcome[ApprovalProcess]]] = {
+      (mockApprovalRepository
+        .getByProcessCode(_: String))
+        .expects(*)
+    }
+
     def approvalSummaryList(roles: List[String]): CallHandler[Future[RequestOutcome[List[ApprovalProcessSummary]]]] = {
       (mockApprovalRepository.approvalSummaryList (_: List[String]))
         .expects(roles)

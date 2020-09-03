@@ -38,4 +38,14 @@ class PublishedController @Inject() (publishedService: PublishedService, cc: Con
     }
   }
 
+  def getByProcessCode(processCode: String): Action[AnyContent] = Action.async {
+
+    publishedService.getByProcessCode(processCode).map {
+      case Right(process) => Ok(process.process)
+      case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
+      case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
+      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+    }
+  }
+
 }

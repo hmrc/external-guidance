@@ -39,13 +39,14 @@ class MetaSpec extends UnitSpec {
        |   "lastAuthor": "$author",
        |   "lastUpdate": $lastUpdate,
        |   "version": $version,
-       |   "filename": "$filename"
+       |   "filename": "$filename",
+       |   "processCode" : "processCode"
        |}
        |""".stripMargin
     )
     .as[JsObject]
 
-  val validModel: Meta = Meta(id, title, ocelotVersion, author, lastUpdate, version, filename)
+  val validModel: Meta = Meta(id, title, ocelotVersion, author, lastUpdate, version, filename, processCode = Some("processCode"))
 
   "Meta section" must {
 

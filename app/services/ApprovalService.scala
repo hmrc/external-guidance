@@ -25,6 +25,7 @@ import models.errors.{InternalServiceError, NotFoundError}
 import play.api.Logger
 import play.api.libs.json._
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -51,7 +52,13 @@ class ApprovalService @Inject() (
       err => Future.successful(Left(err)),
       t => {
         val (process, pages) = t
-        val processMetaSection = ApprovalProcessMeta(process.meta.id, process.meta.title, initialStatus, reviewType = reviewType)
+        val processMetaSection =
+          ApprovalProcessMeta(
+            process.meta.id,
+            process.meta.title,
+            initialStatus,
+            reviewType = reviewType,
+            processCode = process.meta.processCode.getOrElse(process.meta.id))
         repository.update(ApprovalProcess(process.meta.id, processMetaSection, jsonProcess)) flatMap {
           case Right(savedId) =>
             repository.getById(savedId) flatMap {
@@ -78,6 +85,13 @@ class ApprovalService @Inject() (
 
   def getById(id: String): Future[RequestOutcome[JsObject]] =
     repository.getById(id) map {
+      case Left(NotFoundError) => Left(NotFoundError)
+      case Left(_) => Left(InternalServiceError)
+      case Right(result) => Right(result.process)
+    }
+
+  def getByProcessCode(processCode: String): Future[RequestOutcome[JsObject]] =
+    repository.getByProcessCode(processCode) map {
       case Left(NotFoundError) => Left(NotFoundError)
       case Left(_) => Left(InternalServiceError)
       case Right(result) => Right(result.process)

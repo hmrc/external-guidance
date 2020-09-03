@@ -29,7 +29,7 @@ class PublishedProcessFormatterSpec extends UnitSpec with MongoDateTimeFormats {
   private val id: String = "ext90002"
 
   private val datePublished: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, localZoneID)
-  private val publishedProcess: PublishedProcess = PublishedProcess(id, 1, datePublished, process, "user")
+  private val publishedProcess: PublishedProcess = PublishedProcess(id, 1, datePublished, process, "user", processCode = "processCode")
 
   private val json = Json.parse(
     s"""
@@ -38,7 +38,8 @@ class PublishedProcessFormatterSpec extends UnitSpec with MongoDateTimeFormats {
        | "version": 1,
        | "datePublished": {"$$date": ${datePublished.toInstant.toEpochMilli}},
        | "process": {},
-       | "publishedBy": "user"
+       | "publishedBy": "user",
+       | "processCode" : "processCode"
        |}
        |""".stripMargin
   )
