@@ -26,6 +26,7 @@ import play.api.libs.json.{Format, JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.Cursor.FailOnError
 import reactivemongo.api.ReadPreference
+import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.formatters.ApprovalProcessFormatter
 import repositories.formatters.ApprovalProcessMetaFormatter._
@@ -55,6 +56,14 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
       idFormat = implicitly[Format[String]]
     )
     with ApprovalRepository {
+
+  override def indexes: Seq[Index] = Seq(
+    Index(
+      key = Seq("meta.processCode" -> IndexType.Ascending),
+      name = Some("approval-secondary-Index-process-code"),
+      unique = false
+    )
+  )
 
   def update(approvalProcess: ApprovalProcess): Future[RequestOutcome[String]] = {
 

@@ -23,6 +23,7 @@ import models.errors.{DatabaseError, NotFoundError}
 import models.{PublishedProcess, RequestOutcome}
 import play.api.libs.json.{Format, JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
+import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.formatters.PublishedProcessFormatter
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -46,6 +47,14 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
       idFormat = implicitly[Format[String]]
     )
     with PublishedRepository {
+
+  override def indexes: Seq[Index] = Seq(
+    Index(
+      key = Seq("processCode" -> IndexType.Ascending),
+      name = Some("published-secondary-Index-process-code"),
+      unique = false
+    )
+  )
 
   def save(id: String, user: String, processCode: String, process: JsObject): Future[RequestOutcome[String]] = {
 
