@@ -414,7 +414,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
       "confirm returned content is a JSON object" in new ValidGetTest {
         private val result = controller.getByProcessCode(validId)(request)
         val processReturned: ApprovalProcess = contentAsJson(result).as[ApprovalProcess](ApprovalProcessFormatter.mongoFormat)
-        processReturned.id shouldBe approvalProcess.id
+        processReturned shouldBe approvalProcess
       }
     }
 

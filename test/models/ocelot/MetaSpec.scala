@@ -55,7 +55,7 @@ class MetaSpec extends UnitSpec {
       result shouldBe validModel
     }
 
-    missingJsObjectAttrTests[Meta](validJson)
+    missingJsObjectAttrTests[Meta](validJson, List("processCode"))
   }
 
 }

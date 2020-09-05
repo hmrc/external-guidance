@@ -4,7 +4,7 @@ GET         /scratch/:id            controllers.ScratchController.get(id)
 POST        /scratch                controllers.ScratchController.save
 
 GET         /published/:id          controllers.PublishedController.get(id)
-GET         /published/code/:id     controllers.PublishedController.get(id)
+GET         /published/code/:id     controllers.PublishedController.getByProcessCode(id)
 
 GET         /approval               controllers.ApprovalController.approvalSummaryList
 GET         /approval/:id           controllers.ApprovalController.get(id)
