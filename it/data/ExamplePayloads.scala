@@ -189,7 +189,8 @@ object ExamplePayloads {
       |    "lastAuthor": "7903088",
       |    "lastUpdate": 1591002966651,
       |    "version": 7,
-      |    "filename": "trn90088.js"
+      |    "filename": "trn90088.js",
+      |    "processCode": "this-is-the-process-code"
       |  },
       |  "flow": {
       |    "34": {

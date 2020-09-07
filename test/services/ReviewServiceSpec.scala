@@ -223,7 +223,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
             .returns(Future.successful(Right(())))
 
           MockPublishedService
-            .save("validId", publishedStatusChangeInfo.userId, approvalProcessWithValidProcess.process)
+            .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcessWithValidProcess.process)
             .returns(Future.successful(Right("validId")))
 
           whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
@@ -412,7 +412,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
           .returns(Future.successful(expectedChangeStatusResponse))
 
         MockPublishedService
-          .save("validId", publishedStatusChangeInfo.userId, approvalProcess.process)
+          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process)
           .returns(Future.successful(Left(InternalServiceError)))
 
         whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>

@@ -18,16 +18,16 @@ package controllers
 
 import controllers.actions.IdentifierAction
 import javax.inject.{Inject, Singleton}
-import models.errors.{BadRequestError, ValidationError, InternalServiceError, NotFoundError, Error}
+import models.errors.{BadRequestError, Error, InternalServiceError, NotFoundError, ValidationError}
+import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ApprovalService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils.Constants._
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import models.errors._
-import play.api.Logger
 
 @Singleton
 class ApprovalController @Inject() (identify: IdentifierAction, approvalService: ApprovalService, cc: ControllerComponents) extends BackendController(cc) {
@@ -58,6 +58,16 @@ class ApprovalController @Inject() (identify: IdentifierAction, approvalService:
 
   def get(id: String): Action[AnyContent] = Action.async { _ =>
     approvalService.getById(id).map {
+      case Right(approvalProcess) => Ok(approvalProcess)
+      case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
+      case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
+      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+    }
+  }
+
+  def getByProcessCode(processCode: String): Action[AnyContent] = Action.async { _ =>
+
+    approvalService.getByProcessCode(processCode).map {
       case Right(approvalProcess) => Ok(approvalProcess)
       case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
       case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))

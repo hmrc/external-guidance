@@ -81,6 +81,63 @@ class GetApprovalProcessISpec extends IntegrationSpec {
     }
   }
 
+  "Calling the approval GET process code endpoint with a valid ID" should {
+
+    def populateDatabase(processToSave: JsValue): String = {
+      lazy val request = buildRequest("/external-guidance/approval/2i-review")
+
+      val result = await(request.post(processToSave))
+      val json = result.body[JsValue].as[JsObject]
+      (json \ "id").as[String]
+    }
+    val processCode = "this-is-the-process-code"
+    val processToSave: JsValue = ExamplePayloads.validProcessWithCallouts
+    lazy val id = populateDatabase(processToSave)
+    lazy val request = buildRequest(s"/external-guidance/approval/code/$processCode")
+    lazy val response: WSResponse = {
+      AuthStub.authorise()
+      AuditStub.audit()
+      await(request.get())
+    }
+
+    "return a OK status code" in {
+      response.status shouldBe Status.OK
+    }
+
+    "return content as JSON" in {
+      response.contentType shouldBe ContentTypes.JSON
+    }
+
+    "return the corresponding JSON in the response" in {
+      val json = response.body[JsValue].as[JsObject]
+      json shouldBe ExamplePayloads.validProcessWithCallouts
+    }
+  }
+
+  "Calling the approval GET process code endpoint with a unknown ID" should {
+
+    lazy val processCode = "oeh12345"
+    lazy val request = buildRequest(s"/external-guidance/approval/code/$processCode")
+    lazy val response: WSResponse = {
+      AuthStub.authorise()
+      AuditStub.audit()
+      await(request.get())
+    }
+
+    "return a not found status code" in {
+      response.status shouldBe Status.NOT_FOUND
+    }
+
+    "return content as JSON" in {
+      response.contentType shouldBe ContentTypes.JSON
+    }
+
+    "return the not found error response" in {
+      val json = response.body[JsValue].as[JsObject]
+      (json \ "code").as[String] shouldBe "NOT_FOUND"
+    }
+  }
+
   "Calling the approval summaries endpoint" should {
 
     lazy val request = buildRequest(s"/external-guidance/approval")

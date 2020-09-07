@@ -32,7 +32,8 @@ object PublishedProcessFormatter {
       datePublished <- (json \ "datePublished").validate[ZonedDateTime]
       process <- (json \ "process").validate[JsObject]
       publishedBy <- (json \ "publishedBy").validate[String]
-    } yield PublishedProcess(id, version, datePublished, process, publishedBy)
+      processCode <- (json \ "processCode").validateOpt[String]
+    } yield PublishedProcess(id, version, datePublished, process, publishedBy, processCode.getOrElse(id))
 
   val write: PublishedProcess => JsObject = publishedProcess =>
     Json.obj(
@@ -40,7 +41,8 @@ object PublishedProcessFormatter {
       "version" -> publishedProcess.version,
       "datePublished" -> publishedProcess.datePublished,
       "process" -> publishedProcess.process,
-      "publishedBy" -> publishedProcess.publishedBy
+      "publishedBy" -> publishedProcess.publishedBy,
+      "processCode" -> publishedProcess.processCode
     )
 
   implicit val mongoFormat: OFormat[PublishedProcess] = OFormat(read, write)

@@ -19,9 +19,9 @@ package models
 import java.time.{LocalDate, ZonedDateTime}
 import java.util.UUID
 
+import data.ProcessData._
 import play.api.libs.json.{JsObject, Json}
 import utils.Constants._
-import data.ProcessData._
 
 trait ApprovalProcessJson {
 
@@ -32,7 +32,7 @@ trait ApprovalProcessJson {
   val submittedDateInMilliseconds: Long = dateSubmitted.atStartOfDay(localZoneID).toInstant.toEpochMilli
 
   val approvalProcessMeta: ApprovalProcessMeta =
-    ApprovalProcessMeta(validId, "This is the title", StatusSubmitted, dateSubmitted, dateSubmitted.atStartOfDay(localZoneID))
+    ApprovalProcessMeta(validId, "This is the title", StatusSubmitted, dateSubmitted, dateSubmitted.atStartOfDay(localZoneID), processCode = "processCode")
   val approvalProcess: ApprovalProcess = ApprovalProcess(validId, approvalProcessMeta, Json.obj())
   val approvalProcessWithValidProcess = approvalProcess.copy(process = process90087Json)
 
@@ -52,7 +52,8 @@ trait ApprovalProcessJson {
       |    "lastModified" : {"$$date": $submittedDateInMilliseconds},
       |    "ocelotDateSubmitted" : 1,
       |    "ocelotVersion" : 1,
-      |    "reviewType" : "$ReviewType2i"
+      |    "reviewType" : "$ReviewType2i",
+      |    "processCode" : "processCode"
       |  },
       |  "process" : {
       |  },
@@ -72,7 +73,8 @@ trait ApprovalProcessJson {
         |    "status" : "$StatusSubmitted",
         |    "dateSubmitted" : {"$$date": $submittedDateInMilliseconds},
         |    "lastModified" : {"$$date": $submittedDateInMilliseconds},
-        |    "reviewType" : "$ReviewType2i"
+        |    "reviewType" : "$ReviewType2i",
+        |    "processCode" : "processCode"
         |  },
         |  "process" : {
         |  },
