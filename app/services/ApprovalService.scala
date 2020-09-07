@@ -58,7 +58,7 @@ class ApprovalService @Inject() (
             process.meta.title,
             initialStatus,
             reviewType = reviewType,
-            processCode = process.meta.processCode.getOrElse(process.meta.id))
+            processCode = process.meta.code)
         repository.update(ApprovalProcess(process.meta.id, processMetaSection, jsonProcess)) flatMap {
           case Right(savedId) =>
             repository.getById(savedId) flatMap {

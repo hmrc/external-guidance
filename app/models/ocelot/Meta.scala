@@ -27,7 +27,9 @@ case class Meta(id: String,
                 version: Int,
                 fileName: String,
                 titlePhrase: Option[Int] = None,
-                processCode: Option[String] = None)
+                processCode: Option[String] = None) {
+  lazy val code: String = processCode.getOrElse(id)
+}
 
 object Meta {
 
