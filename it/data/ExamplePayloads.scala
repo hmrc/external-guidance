@@ -35,7 +35,8 @@ object ExamplePayloads {
       |    "lastAuthor": "000000",
       |    "lastUpdate": 1500298931016,
       |    "version": 4,
-      |    "filename": "oct90001.js"
+      |    "filename": "oct90001.js",
+      |    "processCode": "CupOfTea"
       |  },
       |  "howto": [],
       |  "contacts": [],
