@@ -21,32 +21,50 @@ import play.api.libs.json._
 
 class MetaSpec extends UnitSpec {
 
-  val title = "Process title"
+  val title = "Title"
   val id = "abc90001"
   val ocelotVersion = 1
   val author = "1234567"
   val lastUpdate = 1500298931016L
   val version = 2
   val filename = s"$id.js"
+  val titlePhrase: Int = 0
+  val processCode = "processIdentifierCode"
 
-  val validJson: JsObject = Json
-    .parse(
-      s"""
-       |{
-       |   "title": "$title",
-       |   "id": "$id",
-       |   "ocelot": $ocelotVersion,
-       |   "lastAuthor": "$author",
-       |   "lastUpdate": $lastUpdate,
-       |   "version": $version,
-       |   "filename": "$filename",
-       |   "processCode" : "processCode"
-       |}
-       |""".stripMargin
-    )
-    .as[JsObject]
+  val validJsonAsString = s"""
+                             |{
+                             |   "id": "$id",
+                             |   "title": "$title",
+                             |   "ocelot": $ocelotVersion,
+                             |   "lastAuthor": "$author",
+                             |   "lastUpdate": $lastUpdate,
+                             |   "version": $version,
+                             |   "filename": "$filename"
+                             |}
+                             |""".stripMargin
 
-  val validModel: Meta = Meta(id, title, ocelotVersion, author, lastUpdate, version, filename, processCode = Some("processCode"))
+  val validJson: JsObject = Json.parse(validJsonAsString).as[JsObject]
+
+  val validJsonWithOptionalPropertiesAsString = s"""
+                                                   |{
+                                                   |   "id": "$id",
+                                                   |   "title": "$title",
+                                                   |   "ocelot": $ocelotVersion,
+                                                   |   "lastAuthor": "$author",
+                                                   |   "lastUpdate": $lastUpdate,
+                                                   |   "version": $version,
+                                                   |   "filename": "$filename",
+                                                   |   "titlePhrase": $titlePhrase,
+                                                   |   "processCode": "$processCode"
+                                                   |}
+                                                   |""".stripMargin
+
+  val validJsonWithOptionalProperties: JsObject = Json.parse(validJsonWithOptionalPropertiesAsString).as[JsObject]
+
+  val validModel: Meta = Meta(id, title, ocelotVersion, author, lastUpdate, version, filename)
+
+  val validModelWithOptionalProperties: Meta = Meta(
+    id, title, ocelotVersion, author, lastUpdate, version, filename, Some(titlePhrase), Some(processCode) )
 
   "Meta section" must {
 
@@ -55,7 +73,13 @@ class MetaSpec extends UnitSpec {
       result shouldBe validModel
     }
 
-    missingJsObjectAttrTests[Meta](validJson, List("processCode"))
+    "deserialise JSON representation with optional fields correctly" in {
+      val result: Meta = validJsonWithOptionalProperties.as[Meta]
+      result shouldBe validModelWithOptionalProperties
+    }
+
+    missingJsObjectAttrTests[Meta](validJsonWithOptionalProperties, List("titlePhrase", "processCode"))
+
   }
 
 }

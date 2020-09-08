@@ -124,6 +124,33 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
       }
     }
 
+    "detect UnknownStanza error when currently unsupported stanza found" in {
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/blah", Seq("1"), false),
+        "1" -> InstructionStanza(0, Seq("2"), None, false),
+        "2" -> InputStanza(Currency, Seq("3"), 0, 1,"INPUT", 3, false),
+        "3" -> InstructionStanza(0, Seq("end"), None, false),
+        "end" -> EndStanza
+      )
+      val process = Process(
+        metaSection,
+        flow,
+        Vector[Phrase](
+          Phrase(Vector("Some Text", "Welsh, Some Text")),
+          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
+        ),
+        Vector[Link]()
+      )
+
+      pageBuilder.pages(process) match {
+        case Left(List(UnknownStanza("2", "InputStanza"))) => succeed
+        case Left(err) => fail(s"Missing ValueStanza containing PageUrl value not detected, failed with $err")
+        case _ => fail(s"Missing ValueStanza containing PageUrl value not detected")
+      }
+    }
+
     "detect PageUrlEmptyOrInvalid error when PageValue is present but url is blank" in {
       val flow = Map(
         Process.StartStanzaId -> PageStanza("", Seq("1"), false),
@@ -342,17 +369,18 @@ class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
     }
 
     "detect UnknownCalloutType" in {
-      val processErrors: List[ProcessError] = List(ProcessError("Unsupported stanza type UnknownStanza found at stanza id 2","2"), 
-                                                   ProcessError("Unsupported CalloutStanza type UnknownType found at stanza id 3","3"), 
-                                                   ProcessError("Unknown parse error error.minLength at location /phrases(0)",""))
+      val processErrors: List[ProcessError] = List(ProcessError("Process Meta section parse error: error.path.missing at location ocelot",""),
+                                                   ProcessError("Unsupported CalloutStanza type UnknownType found at stanza id 3","3"),
+                                                   ProcessError("Unsupported stanza type UnknownStanza found at stanza id 2","2"),
+                                                   ProcessError("Process Phrases section parse error: error.minLength at location 5",""))
       guidancePages(new PageBuilder(), assortedParseErrorsJson).fold(
         errs => errs match {
         case MainError(MainError.UnprocessableEntity, None,Some(errors)) if errors == processErrors => succeed
-        case _ => fail(s"Failed with errors")
-        }, 
+        case _ => fail(s"Failed with errors: $errs")
+        },
         _ => fail)
-      
-      
+
+
     }
 
   }

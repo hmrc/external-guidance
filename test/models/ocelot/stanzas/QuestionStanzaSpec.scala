@@ -42,21 +42,21 @@ class QuestionStanzaSpec extends UnitSpec {
 
   val twoAnswersQuestionStanzaJsonInput: String =
     s"""|{
-        | "type" : "$stanzaType",
-        | "text": $one,
-        | "answers": [ $zero, $two ],
-        | "next": [ "$twoStr", "$fiveStr" ],
-        | "stack": $stack
-        |}""".stripMargin
+       | "type" : "$stanzaType",
+       | "text": $one,
+       | "answers": [ $zero, $two ],
+       | "next": [ "$twoStr", "$fiveStr" ],
+       | "stack": $stack
+       |}""".stripMargin
 
   val threeAnswersQuestionStanzaJsonInput: String =
     s"""|{
-        | "type": "$stanzaType",
-        | "text": $one,
-        | "answers": [ $three, $four, $five ],
-        | "next": [ "$fourStr", "$sevenStr", "$eightStr" ],
-        | "stack": $stack
-        |}""".stripMargin
+       | "type": "$stanzaType",
+       | "text": $one,
+       | "answers": [ $three, $four, $five ],
+       | "next": [ "$fourStr", "$sevenStr", "$eightStr" ],
+       | "stack": $stack
+       |}""".stripMargin
 
   val validQuestionStanzaJson: JsObject = Json.parse(twoAnswersQuestionStanzaJsonInput).as[JsObject]
 

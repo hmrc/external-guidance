@@ -27,6 +27,9 @@ sealed trait LinksError extends GuidanceError
 case class UnknownStanza(id: String, typeName: String) extends FlowError
 case class UnknownCalloutType(id: String, typeName: String) extends FlowError
 case class UnknownValueType(id: String, typeName: String) extends FlowError
+case class UnknownCalcOperationType(id: String, typeName: String) extends FlowError
+case class UnknownTestType(id: String, typeName: String) extends FlowError
+case class UnknownInputType(id: String, typeName: String) extends FlowError
 case class StanzaNotFound(id: String) extends FlowError
 case class PageStanzaMissing(id: String) extends FlowError
 case class PageUrlEmptyOrInvalid(id: String) extends FlowError
@@ -35,29 +38,43 @@ case class LinkNotFound(id: String, index: Int) extends FlowError
 case class DuplicatePageUrl(id: String, url: String) extends FlowError
 case class MissingWelshText(id: String, index: String, english: String) extends FlowError
 case class ParseError(jsPath: JsPath, errs: Seq[JsonValidationError]) extends GuidanceError
-case class FlowParseError(msg: String) extends FlowError
-case class MetaParseError(msg: String) extends MetaError
-case class PhrasesParseError(msg: String) extends PhrasesError
-case class LinksParseError(msg: String) extends LinksError
+case class FlowParseError(id: String, msg: String, arg: String) extends FlowError
+case class MetaParseError(id: String, msg: String, arg: String) extends MetaError
+case class PhrasesParseError(id: String, msg: String, arg: String) extends PhrasesError
+case class LinksParseError(id: String, msg: String, arg: String) extends LinksError
 
 object GuidanceError {
 
-  // Handle errors occuring at second level of JsPath which include an indentifying message
-  // added during the parse to indicate unsupported stanzas, callout or value types. All 
-  // other validation errors are converted to a general parse error containing the JsPath
-  // and seq of JsonValidationError errors
+  // Some flow errors add a hint the to JsonValidationError message to indicate that an
+  // unsupported type/stanza or option has been found. Other validation errors are
+  // converted to a general parse error for the containing section
   def fromJsonValidationError(err: (JsPath, Seq[JsonValidationError])): GuidanceError = {
     val (jsPath, errs) = err
-    jsPath.path.lift(1).fold(ParseError(jsPath, errs): GuidanceError)(pth => {
-      errs.head.messages.head match {
-        case "CalloutType" => UnknownCalloutType(pth.toJsonString.drop(1), errs.head.args(0).toString)
-        case "Stanza" => UnknownStanza(pth.toJsonString.drop(1), errs.head.args(0).toString)
-        case "ValueType" => UnknownValueType(pth.toJsonString.drop(1), errs.head.args(0).toString)
-        case _ => ParseError(jsPath, errs)
-      }
-    })
+    jsPath.path.lift(0).fold[GuidanceError](ParseError(jsPath, errs))( root => {
+      val id = jsPath.path.lift(1).fold("Unknown")(_.toString.drop(1))
+      errs.headOption.fold[GuidanceError](ParseError(jsPath, errs))( err => {
+        val msg = err.message
+        val arg = err.args.headOption.fold("")(_.toString)
+        root.toString match {
+          case "/flow" =>
+            errs.headOption.fold[GuidanceError](FlowParseError(id, msg, jsPath.toString))( err =>
+              err.messages.headOption.collect{
+                case "CalloutType" => UnknownCalloutType(id, arg)
+                case "Stanza" => UnknownStanza(id, arg)
+                case "ValueType" => UnknownValueType(id, arg)
+                case "TestType" => UnknownTestType(id, arg)
+                case "InputType" => UnknownInputType(id, arg)
+                case "CalcOperationType" => UnknownCalcOperationType(id, arg)
+              }.getOrElse(FlowParseError(id, msg, jsPath.toString))
+            )
+          case "/meta" => MetaParseError(id, msg, arg)
+          case "/phrases" => PhrasesParseError(id.dropRight(1), msg, arg)
+          case "/links" => LinksParseError(id.dropRight(1), msg, arg)
+        }
+      })
+      })
   }
 
-  def fromJsonValidationErrors(jsErrors: Seq[(JsPath, Seq[JsonValidationError])]): List[GuidanceError] =  
+  def fromJsonValidationErrors(jsErrors: Seq[(JsPath, Seq[JsonValidationError])]): List[GuidanceError] =
     jsErrors.map(fromJsonValidationError).toList
 }

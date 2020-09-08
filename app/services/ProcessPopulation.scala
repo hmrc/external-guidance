@@ -32,7 +32,7 @@ trait ProcessPopulation {
   private def populateStanza(id: String, stanza: Stanza, process: Process): Either[GuidanceError, Stanza] = {
 
     def phrase(phraseIndex: Int): Either[GuidanceError, Phrase] =
-      process.phraseOption(phraseIndex).fold(Left(PhraseNotFound(id, phraseIndex)): Either[GuidanceError, Phrase]){
+      process.phraseOption(phraseIndex).fold[Either[GuidanceError, Phrase]](Left(PhraseNotFound(id, phraseIndex))){
         case Phrase(Vector(english, welsh)) if welsh.isEmpty && !english.isEmpty => Left(MissingWelshText(id, phraseIndex.toString, english))
         case p: Phrase => Right(p)
       }

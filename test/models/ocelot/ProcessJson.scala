@@ -81,6 +81,65 @@ trait ProcessJson {
     """.stripMargin
   )
 
+  val validOnePageProcessWithProcessCodeJson: JsValue = Json.parse(
+    """
+      |{
+      |  "meta": {
+      |    "title": "Customer wants to make a cup of tea",
+      |    "id": "oct90001",
+      |    "ocelot": 1,
+      |    "lastAuthor": "000000",
+      |    "lastUpdate": 1500298931016,
+      |    "version": 4,
+      |    "filename": "oct90001.js",
+      |    "titlePhrase": 8,
+      |    "processCode": "CupOfTea"
+      |  },
+      |  "howto": [],
+      |  "contacts": [],
+      |  "links": [],
+      |  "flow": {
+      |    "start": {
+      |      "type": "PageStanza",
+      |      "url": "/feeling-bad",
+      |      "next": ["3"],
+      |      "stack": true
+      |    },
+      |    "3": {
+      |      "type": "InstructionStanza",
+      |      "text": 1,
+      |      "next": [
+      |        "2"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "2": {
+      |      "type": "InstructionStanza",
+      |      "text": 0,
+      |      "next": [
+      |        "end"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "end": {
+      |      "type": "EndStanza"
+      |    }
+      |  },
+      |  "phrases": [
+      |    ["Ask the customer if they have a tea bag", "Welsh, Ask the customer if they have a tea bag"],
+      |    ["Do you have a tea bag?", "Welsh, Do you have a tea bag?"],
+      |    ["Yes - they do have a tea bag", "Welsh, Yes - they do have a tea bag"],
+      |    ["No - they do not have a tea bag", "Welsh, No - they do not have a tea bag"],
+      |    ["Ask the customer if they have a cup", "Welsh, Ask the customer if they have a cup"],
+      |    ["Do you have a cup?", "Welsh, Do you have a cup?"],
+      |    ["yes - they do have a cup ", "Welsh, yes - they do have a cup "],
+      |    ["no - they don’t have a cup", "Welsh, no - they don’t have a cup"],
+      |    ["Customer wants to make a cup of tea", "Welsh, Customer wants to make a cup of tea"]
+      |  ]
+      |}
+    """.stripMargin
+  )
+
   // Includes a url without leading / and a url which is just /
   val invalidOnePageJson: JsValue = Json.parse(
     """
@@ -166,7 +225,6 @@ trait ProcessJson {
       |  "meta": {
       |    "title": "Customer wants to make a cup of tea",
       |    "id": "oct90001",
-      |    "ocelot": 1,
       |    "lastAuthor": "000000",
       |    "lastUpdate": 1500298931016,
       |    "version": 4,
@@ -208,18 +266,18 @@ trait ProcessJson {
       |      "text": 59,
       |      "type": "CalloutStanza"
       |    },
-      |      
+      |
       |    "end": {
       |      "type": "EndStanza"
       |    }
       |  },
       |  "phrases": [
-      |    ["Ask the customer if they have a tea bag"],
+      |    ["Ask the customer if they have a tea bag", "Welsh, Ask the customer if they have a tea bag"],
       |    ["Do you have a tea bag?", "Welsh, Do you have a tea bag?"],
       |    ["Yes - they do have a tea bag", "Welsh, Yes - they do have a tea bag"],
       |    ["No - they do not have a tea bag", "Welsh, No - they do not have a tea bag"],
       |    ["Ask the customer if they have a cup", "Welsh, Ask the customer if they have a cup"],
-      |    ["Do you have a cup?", "Welsh, Do you have a cup?"],
+      |    ["Do you have a cup?"],
       |    ["yes - they do have a cup ", "Welsh, yes - they do have a cup "],
       |    ["no - they don’t have a cup", "Welsh, no - they don’t have a cup"],
       |    ["Customer wants to make a cup of tea", "Welsh, Customer wants to make a cup of tea"]
@@ -1875,28 +1933,27 @@ trait ProcessJson {
   val prototypeLinksSection: String =
     s"""[
          |{
-         |   "id": $id,
-         |   "dest": "$dest",
-         |   "title": "$title",
-         |   "window": $window,
-         |   "leftbar": $leftbar,
-         |   "always": $always,
-         |   "popup": $popUp
+         |   "id": ${id},
+         |   "dest": "${dest}",
+         |   "title": "${title}",
+         |   "window": ${window},
+         |   "leftbar": ${leftbar},
+         |   "always": ${always},
+         |   "popup": ${popUp}
          |}
         ]""".stripMargin
 
   val prototypeJson: JsObject = Json
     .parse(
-      s"""{ "meta" : $prototypeMetaSection,
-         | "flow": $prototypeFlowSection,
-         | "phrases": $prototypePhrasesSection,
-         | "links": $prototypeLinksSection,
+      s"""{ "meta" : ${prototypeMetaSection},
+         | "flow": ${prototypeFlowSection},
+         | "phrases": ${prototypePhrasesSection},
+         | "links": ${prototypeLinksSection},
          | "contacts": [],
          | "howto": []}""".stripMargin
     )
     .as[JsObject]
-
-  val processWithCallouts: String =
+      val processWithCallouts: String =
     """
       |{
       |    "meta": {
@@ -2321,8 +2378,8 @@ trait ProcessJson {
       |      "Welsh, Correct answer leads forward to next question"
       |    ],
       |    [
-      |      "Who reviews and approves the g2uid1ance produced by the designer?[hint:This is a question]",
-      |      "Welsh, Who reviews and approves the g2uid1ance produced by the designer?[hint:Welsh, This is a question]"
+      |      "Who reviews and approves the g2uid1ance produced by the designer?",
+      |      "Welsh, Who reviews and approves the g2uid1ance produced by the designer?"
       |    ],
       |    [
       |      "Users with the designer role",

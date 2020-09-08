@@ -33,21 +33,21 @@ class StanzaSpec extends UnitSpec {
   val validValueStanzaJson: JsObject = Json
     .parse(
       s"""{
-      |  "type": "$stanzaType",
+      |  "type": "${stanzaType}",
       |  "values": [
       |    {
-      |      "type": "$valueType",
-      |      "label": "$pageNameLabel",
-      |      "value": "$pageName"
+      |      "type": "${valueType}",
+      |      "label": "${pageNameLabel}",
+      |      "value": "${pageName}"
       |    },
       |    {
-      |      "type": "$valueType",
-      |      "label": "$pageUrlLabel",
-      |      "value": "$pageUrl"
+      |      "type": "${valueType}",
+      |      "label": "${pageUrlLabel}",
+      |      "value": "${pageUrl}"
       |    }
       |  ],
-      |  "next": ["$next"],
-      |  "stack": $stack
+      |  "next": ["${next}"],
+      |  "stack": ${stack}
       |}
     """.stripMargin
     )

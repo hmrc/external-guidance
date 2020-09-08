@@ -37,7 +37,6 @@ class InstructionSpec extends UnitSpec {
         s"Welsh, hello [link:Blah:${linkDest}] ;lasdk [link:Blah:${pageLinkedStanzaId}]"
       )
     )
-
     val simpleInstruction = InstructionStanza(text, next, None, false)
     val linkInstruction = InstructionStanza(text, next, Some(linkId), false)
   }
