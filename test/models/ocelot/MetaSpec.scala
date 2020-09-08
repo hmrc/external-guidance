@@ -16,10 +16,10 @@
 
 package models.ocelot
 
-import base.UnitSpec
+import base.BaseSpec
 import play.api.libs.json._
 
-class MetaSpec extends UnitSpec {
+class MetaSpec extends BaseSpec {
 
   val title = "Title"
   val id = "abc90001"
@@ -80,6 +80,13 @@ class MetaSpec extends UnitSpec {
 
     missingJsObjectAttrTests[Meta](validJsonWithOptionalProperties, List("titlePhrase", "processCode"))
 
+    "serialise JSON representation of instance of class Meta" in {
+      Json.toJson(validModel).toString() shouldBe removeSpacesAndNewLines(validJsonAsString)
+    }
+
+    "serialize JSON representation of instance of class Meta with optional fields" in {
+      Json.toJson(validModelWithOptionalProperties).toString() shouldBe removeSpacesAndNewLines(validJsonWithOptionalPropertiesAsString)
+    }
   }
 
 }

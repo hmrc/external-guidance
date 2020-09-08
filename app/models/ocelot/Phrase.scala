@@ -24,4 +24,8 @@ case class Phrase(langs: Vector[String])
 object Phrase {
   def apply(first: String, second: String): Phrase = Phrase(Vector(first, second))
   implicit val reads: Reads[Phrase] = __.read[Vector[String]](minLength[Vector[String]](2)).map(Phrase(_))
+
+  implicit val writes: Writes[Phrase] = new Writes[Phrase] {
+    override def writes(phrase: Phrase): JsValue = Json.toJson(phrase.langs)
+  }
 }

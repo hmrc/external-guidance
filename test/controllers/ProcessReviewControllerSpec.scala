@@ -173,7 +173,7 @@ class ProcessReviewControllerSpec extends WordSpec
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockReviewService
           .approvalReviewInfo(validProcessIdForReview, ReviewType2i)
-          .returns(Future.successful(Left(InternalServiceError)))
+          .returns(Future.successful(Left(InternalServerError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
@@ -280,7 +280,7 @@ class ProcessReviewControllerSpec extends WordSpec
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockReviewService
           .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
-          .returns(Future.successful(Left(InternalServiceError)))
+          .returns(Future.successful(Left(InternalServerError)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
       }
@@ -416,7 +416,7 @@ class ProcessReviewControllerSpec extends WordSpec
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockReviewService
           .checkProcessInCorrectStateForCompletion(validProcessIdForReview, ReviewType2i)
-          .returns(Future.successful(Left(InternalServiceError)))
+          .returns(Future.successful(Left(InternalServerError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
@@ -535,7 +535,7 @@ class ProcessReviewControllerSpec extends WordSpec
         val pageUrl: String = "/pageUrl"
         MockReviewService
           .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewType2i)
-          .returns(Future.successful(Left(InternalServiceError)))
+          .returns(Future.successful(Left(InternalServerError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
@@ -630,7 +630,7 @@ class ProcessReviewControllerSpec extends WordSpec
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockReviewService
           .approvalPageComplete("id", "/pageUrl", ReviewType2i, reviewUpdate)
-          .returns(Future.successful(Left(InternalServiceError)))
+          .returns(Future.successful(Left(InternalServerError)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(Json.toJson(reviewUpdate))
       }
@@ -769,7 +769,7 @@ class ProcessReviewControllerSpec extends WordSpec
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockReviewService
           .factCheckComplete(validProcessIdForReview, statusChangeInfo)
-          .returns(Future.successful(Left(InternalServiceError)))
+          .returns(Future.successful(Left(InternalServerError)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
         private val result = controller.approvalFactCheckComplete(validProcessIdForReview)(request)

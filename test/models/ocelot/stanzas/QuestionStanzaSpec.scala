@@ -16,10 +16,11 @@
 
 package models.ocelot.stanzas
 
-import base.UnitSpec
 import play.api.libs.json._
 
-class QuestionStanzaSpec extends UnitSpec {
+import base.BaseSpec
+
+class QuestionStanzaSpec extends BaseSpec {
 
   val zero: Int = 0
   val one: Int = 1

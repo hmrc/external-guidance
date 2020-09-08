@@ -18,9 +18,9 @@ package models.ocelot.stanzas
 
 import play.api.libs.json._
 
-import base.UnitSpec
+import base.BaseSpec
 
-class InstructionStanzaSpec extends UnitSpec {
+class InstructionStanzaSpec extends BaseSpec {
 
   val stanzaType: String = "InstructionStanza"
   val text: Int = 10

@@ -16,12 +16,12 @@
 
 package repositories.formatters
 
-import base.UnitSpec
+import base.BaseSpec
 import models.{ApprovalProcess, ApprovalProcessJson}
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import repositories.formatters.ApprovalProcessFormatter.mongoFormat
 
-class ApprovalProcessFormatterSpec extends UnitSpec with ApprovalProcessJson {
+class ApprovalProcessFormatterSpec extends BaseSpec with ApprovalProcessJson {
 
   private val invalidJson = Json.parse("{}")
 

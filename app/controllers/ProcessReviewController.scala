@@ -18,7 +18,7 @@ package controllers
 
 import controllers.actions.{FactCheckerIdentifierAction, TwoEyeReviewerIdentifierAction}
 import javax.inject.{Inject, Singleton}
-import models.errors._
+import models.errors.{InternalServerError => ServerError, _}
 import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
@@ -51,7 +51,7 @@ class ProcessReviewController @Inject() (
       case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
       case Left(StaleDataError) => NotFound(Json.toJson(StaleDataError))
       case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
-      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+      case Left(_) => InternalServerError(Json.toJson(ServerError))
     }
   }
 
@@ -114,7 +114,7 @@ class ProcessReviewController @Inject() (
       case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
       case Left(StaleDataError) => NotFound(Json.toJson(StaleDataError))
       case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
-      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+      case Left(_) => InternalServerError(Json.toJson(ServerError))
     }
   }
 

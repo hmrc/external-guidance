@@ -18,13 +18,13 @@ package repositories.formatters
 
 import java.util.UUID
 
-import base.UnitSpec
+import base.BaseSpec
 import models.ScratchProcess
 import play.api.libs.json.{JsSuccess, Json}
 import java.time.{ZonedDateTime, Instant}
 import models.MongoDateTimeFormats
 
-class ScratchProcessFormatterSpec extends UnitSpec with MongoDateTimeFormats {
+class ScratchProcessFormatterSpec extends BaseSpec with MongoDateTimeFormats {
 
   private val id = "3475e5c5-343d-4214-9efc-58270867214c"
   val milliseconds: Long = 1586450476247L

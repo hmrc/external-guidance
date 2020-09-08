@@ -17,7 +17,7 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-import models.errors.{BadRequestError, ValidationError, Error, InternalServiceError, NotFoundError}
+import models.errors.{BadRequestError, ValidationError, Error, InternalServerError => ServerError, NotFoundError}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.ScratchService
@@ -42,7 +42,7 @@ class ScratchController @Inject() (scratchService: ScratchService, cc: Controlle
         logger.error(s"Save on scratch service returned ValidationError")
         BadRequest(Json.toJson(BadRequestError))
       case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
-      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+      case Left(_) => InternalServerError(Json.toJson(ServerError))
     }
   }
 
@@ -51,7 +51,7 @@ class ScratchController @Inject() (scratchService: ScratchService, cc: Controlle
       case Right(process) => Ok(process)
       case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
       case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
-      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+      case Left(_) => InternalServerError(Json.toJson(ServerError))
     }
   }
 }

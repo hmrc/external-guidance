@@ -16,7 +16,7 @@
 
 package models.ocelot
 
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{JsValue, Json, JsObject}
 
 //
 // All Welsh translations are temporary placeholders and for testing purposes only

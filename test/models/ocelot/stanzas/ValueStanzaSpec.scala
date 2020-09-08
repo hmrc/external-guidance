@@ -16,10 +16,10 @@
 
 package models.ocelot.stanzas
 
-import base.UnitSpec
+import base.BaseSpec
 import play.api.libs.json._
 
-class ValueStanzaSpec extends UnitSpec {
+class ValueStanzaSpec extends BaseSpec {
 
   val stanzaType = "ValueStanza"
   val valueType = "scalar"
@@ -88,6 +88,20 @@ class ValueStanzaSpec extends UnitSpec {
       stanza.values.length shouldBe 2
       stanza.values(0) shouldBe Value(Scalar, pageNameLabel, pageName)
       stanza.values(1) shouldBe Value(Scalar, pageUrlLabel, pageUrl)
+    }
+
+    "serialise to json" in {
+      val stanza: ValueStanza = ValueStanza(List(Value(Scalar, "LabelName", "/")), Seq("4"), true)
+      val expectedJson: String = """{"values":[{"type":"scalar","label":"LabelName","value":"/"}],"next":["4"],"stack":true}"""
+      val json: String = Json.toJson(stanza).toString
+      json shouldBe expectedJson
+    }
+
+    "serialise to json from a Stanza reference" in {
+      val stanza: Stanza = ValueStanza(List(Value(Scalar, "LabelName", "/")), Seq("4"), true)
+      val expectedJson: String = """{"next":["4"],"stack":true,"values":[{"type":"scalar","label":"LabelName","value":"/"}],"type":"ValueStanza"}"""
+      val json: String = Json.toJson(stanza).toString
+      json shouldBe expectedJson
     }
 
     "fail to parse if an unkown value type is found" in {

@@ -16,10 +16,10 @@
 
 package models.ocelot.stanzas
 
-import base.UnitSpec
+import base.BaseSpec
 import play.api.libs.json._
 
-class StanzaSpec extends UnitSpec {
+class StanzaSpec extends BaseSpec {
 
   val stanzaType = "ValueStanza"
   val valueType = "scalar"

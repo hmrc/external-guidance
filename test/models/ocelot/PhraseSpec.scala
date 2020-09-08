@@ -16,10 +16,10 @@
 
 package models.ocelot
 
-import base.UnitSpec
+import base.BaseSpec
 import play.api.libs.json._
 
-class PhraseSpec extends UnitSpec with ProcessJson {
+class PhraseSpec extends BaseSpec with ProcessJson {
 
   val p1 = "Ask the customer if they have a tea bag"
   val p1w = "Welsh, Ask the customer if they have a tea bag"
@@ -47,6 +47,11 @@ class PhraseSpec extends UnitSpec with ProcessJson {
       Json.parse(s"""[ $phrase1, $phrase2, $phrase3 ]""").as[Vector[Phrase]] shouldBe
         Vector(Phrase(Vector(p1, p1w)), Phrase(Vector(p2, p2w)), Phrase(Vector(p3, p3w)))
 
+    }
+
+    "serialise from Phrase to json" in {
+      val phrase = Phrase(Vector("Hello World", "Welsh, Hello World"))
+      Json.toJson(phrase).toString shouldBe """["Hello World","Welsh, Hello World"]"""
     }
 
     "allow access to Phrase language strings" in {

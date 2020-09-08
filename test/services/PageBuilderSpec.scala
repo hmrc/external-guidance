@@ -16,15 +16,16 @@
 
 package services
 
-import base.UnitSpec
+import base.BaseSpec
 import models.errors.{Error => MainError, ProcessError}
 import models.ocelot.errors._
 import models.ocelot.stanzas._
-import models.ocelot.{Page, _}
+import models.ocelot._
 import play.api.libs.json._
 import utils.StanzaHelper
 
-class PageBuilderSpec extends UnitSpec with ProcessJson with StanzaHelper {
+
+class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
   // Define instance of class used in testing
   val pageBuilder: PageBuilder = new PageBuilder()

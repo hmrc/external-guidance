@@ -16,10 +16,10 @@
 
 package models.errors
 
-import base.UnitSpec
+import base.BaseSpec
 import play.api.libs.json.Json
 
-class ErrorsSpec extends UnitSpec {
+class ErrorsSpec extends BaseSpec {
 
   "Serialising a single error into JSON" should {
     "generate the correct JSON" in {

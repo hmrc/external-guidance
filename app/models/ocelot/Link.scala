@@ -31,4 +31,12 @@ object Link {
       (__ \ "title").read[String] and
       (__ \ "window").read[Boolean]
   )(Link.apply _)
+
+  implicit val writes: Writes[Link] = (
+    (__ \ "id").write[Int] and
+      (__ \ "dest").write[String] and
+      (__ \ "title").write[String] and
+      (__ \ "window").write[Boolean]
+  )(unlift(Link.unapply))
+
 }

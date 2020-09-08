@@ -17,7 +17,7 @@
 package testOnly.controllers
 
 import javax.inject.{Inject, Singleton}
-import models.errors.InternalServiceError
+import models.errors.{InternalServerError => ServerError}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
@@ -31,7 +31,7 @@ class ScratchController @Inject() (testRepo: ScratchRepository, cc: ControllerCo
   def delete(id: String): Action[AnyContent] = Action.async {
     testRepo.delete(id).map {
           case Right(_) => NoContent
-          case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+          case Left(_) => InternalServerError(Json.toJson(ServerError))
         }
   }
 }

@@ -16,10 +16,10 @@
 
 package models.ocelot.stanzas
 
-import base.UnitSpec
+import org.scalatest.{Matchers, WordSpec}
 import models.ocelot._
 
-class InstructionSpec extends UnitSpec {
+class InstructionSpec extends WordSpec with Matchers {
 
   trait Test {
     val text: Int = 10
