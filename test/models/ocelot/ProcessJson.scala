@@ -34,7 +34,8 @@ trait ProcessJson {
       |    "lastUpdate": 1500298931016,
       |    "version": 4,
       |    "filename": "oct90001.js",
-      |    "titlePhrase": 8
+      |    "titlePhrase": 8,
+      |    "processCode": "cup-of-tea"
       |  },
       |  "howto": [],
       |  "contacts": [],
@@ -92,7 +93,8 @@ trait ProcessJson {
       |    "lastAuthor": "000000",
       |    "lastUpdate": 1500298931016,
       |    "version": 4,
-      |    "filename": "oct90001.js"
+      |    "filename": "oct90001.js",
+      |    "processCode": "cup-of-tea"
       |  },
       |  "howto": [],
       |  "contacts": [],
@@ -171,7 +173,8 @@ trait ProcessJson {
       |    "lastUpdate": 1500298931016,
       |    "version": 4,
       |    "filename": "oct90001.js",
-      |    "titlePhrase": 8
+      |    "titlePhrase": 8,
+      |    "processCode": "cup-of-tea"
       |  },
       |  "howto": [],
       |  "contacts": [],
@@ -208,7 +211,7 @@ trait ProcessJson {
       |      "text": 59,
       |      "type": "CalloutStanza"
       |    },
-      |      
+      |
       |    "end": {
       |      "type": "EndStanza"
       |    }
@@ -239,7 +242,8 @@ trait ProcessJson {
       |    "lastUpdate": 1500298931016,
       |    "version": 4,
       |    "filename": "oct90001.js",
-      |    "titlePhrase": 8
+      |    "titlePhrase": 8,
+      |    "processCode": "cup-of-tea"
       |  },
       |  "howto": [],
       |  "contacts": [],
@@ -344,7 +348,8 @@ trait ProcessJson {
     |     "lastAuthor": "6031631",
     |     "lastUpdate": 1579177321336,
     |     "version": 1,
-    |     "filename": "ext90002.js"
+    |     "filename": "ext90002.js",
+    |     "processCode": "tell-hmrc"
     |  }
    """.stripMargin
 
@@ -1906,7 +1911,8 @@ trait ProcessJson {
       |    "lastAuthor": "7903088",
       |    "lastUpdate": 1591002966651,
       |    "version": 7,
-      |    "filename": "trn90088.js"
+      |    "filename": "trn90088.js",
+      |    "processCode": "eg-auto-test"
       |  },
       |  "flow": {
       |    "34": {
@@ -2424,7 +2430,8 @@ trait ProcessJson {
       |     "lastAuthor": "7903088",
       |     "lastUpdate": 1579177321336,
       |     "version": 1,
-      |     "filename": "oct90002.js"
+      |     "filename": "oct90002.js",
+      |     "processCode": "tell-hmrc"
       |  }
    """.stripMargin
 

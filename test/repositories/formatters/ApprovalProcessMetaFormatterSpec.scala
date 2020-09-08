@@ -54,7 +54,8 @@ class ApprovalProcessMetaFormatterSpec extends UnitSpec with ApprovalProcessJson
     |    "title" : "This is the title",
     |    "status" : "$StatusSubmitted",
     |    "dateSubmitted" : {"$$date": $dateLong},
-    |    "reviewType" : "$ReviewType2i"
+    |    "reviewType" : "$ReviewType2i",
+    |    "processCode" : "$processCode"
     |  }
     """.stripMargin
   private val validMetaJsonWithoutLastModified = Json.parse(validStringWithoutLastModified)

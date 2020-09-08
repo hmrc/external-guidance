@@ -32,7 +32,8 @@ object ProcessData {
       |    "lastAuthor": "000000",
       |    "lastUpdate": 1500298931016,
       |    "version": 4,
-      |    "filename": "oct90001.js"
+      |    "filename": "oct90001.js",
+      |    "processCode": "cup-of-tea"
       |  },
       |  "howto": [],
       |  "contacts": [],
@@ -88,7 +89,8 @@ object ProcessData {
       |    "lastAuthor": "000000",
       |    "lastUpdate": 1500298931016,
       |    "version": 4,
-      |    "filename": "oct90001.js"
+      |    "filename": "oct90001.js",
+      |    "processCode": "cup-of-tea"
       |  },
       |  "howto": [],
       |  "contacts": [],
@@ -161,7 +163,8 @@ object ProcessData {
         |      "lastAuthor": "7903088",
         |      "lastUpdate": 1589467563758,
         |      "filename": "trn90087.js",
-        |      "version": 6
+        |      "version": 6,
+        |      "processCode": "eg-auto-test"
         |    },
         |    "flow": {
         |      "1": {

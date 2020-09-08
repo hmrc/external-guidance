@@ -46,7 +46,7 @@ class MetaSpec extends UnitSpec {
     )
     .as[JsObject]
 
-  val validModel: Meta = Meta(id, title, ocelotVersion, author, lastUpdate, version, filename, processCode = Some("processCode"))
+  val validModel: Meta = Meta(id, title, ocelotVersion, author, lastUpdate, version, filename, processCode = "processCode")
 
   "Meta section" must {
 
