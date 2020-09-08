@@ -88,6 +88,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
       }
     }
     "the requested status update is Published" should {
+      val processCode = "CupOfTea"
       lazy val id = populateDatabase(processToSave)
       lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-review")
       val statusChangePublished = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
@@ -117,7 +118,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
       }
 
       "add the process to the Published collection" in {
-        lazy val request = buildRequest(s"/external-guidance/published/$id")
+        lazy val request = buildRequest(s"/external-guidance/published/$processCode")
         lazy val response: WSResponse = {
           AuditStub.audit()
           await(request.get())
