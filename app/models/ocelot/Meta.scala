@@ -27,8 +27,7 @@ case class Meta(id: String,
                 version: Int,
                 fileName: String,
                 titlePhrase: Option[Int] = None,
-                processCode: String) {
-}
+                processCode: String)
 
 object Meta {
 
