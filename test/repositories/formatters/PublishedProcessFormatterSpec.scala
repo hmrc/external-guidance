@@ -18,12 +18,12 @@ package repositories.formatters
 
 import java.time.ZonedDateTime
 
-import base.UnitSpec
+import base.BaseSpec
 import models.{MongoDateTimeFormats, PublishedProcess}
 import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
 import repositories.formatters.PublishedProcessFormatter.mongoFormat
 
-class PublishedProcessFormatterSpec extends UnitSpec with MongoDateTimeFormats {
+class PublishedProcessFormatterSpec extends BaseSpec with MongoDateTimeFormats {
 
   private val process: JsObject = Json.obj()
   private val id: String = "ext90002"

@@ -16,10 +16,10 @@
 
 package models.ocelot
 
-import base.UnitSpec
+import base.BaseSpec
 import play.api.libs.json._
 
-class LinkSpec extends UnitSpec {
+class LinkSpec extends BaseSpec {
 
   val id1 = 0
   val dest1 = "http://www.bbc.co.uk/news"

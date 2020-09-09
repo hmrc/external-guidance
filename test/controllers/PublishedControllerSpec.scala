@@ -18,10 +18,10 @@ package controllers
 
 import java.time.ZonedDateTime
 
-import base.UnitSpec
+import base.BaseSpec
 import mocks.MockPublishedService
 import models.PublishedProcess
-import models.errors.{BadRequestError, InternalServiceError, NotFoundError}
+import models.errors.{BadRequestError, InternalServerError, NotFoundError}
 import models.ocelot.ProcessJson
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.ContentTypes
@@ -32,7 +32,7 @@ import play.api.test.Helpers._
 
 import scala.concurrent.Future
 
-class PublishedControllerSpec extends UnitSpec with GuiceOneAppPerSuite with ProcessJson {
+class PublishedControllerSpec extends BaseSpec with GuiceOneAppPerSuite with ProcessJson {
 
   private trait Test extends MockPublishedService {
 
@@ -152,7 +152,7 @@ class PublishedControllerSpec extends UnitSpec with GuiceOneAppPerSuite with Pro
 
         MockPublishedService
           .getById(validId)
-          .returns(Future.successful(Left(InternalServiceError)))
+          .returns(Future.successful(Left(InternalServerError)))
       }
 
       "return an internal server error response" in new InternalServiceErrorTest {
@@ -169,12 +169,12 @@ class PublishedControllerSpec extends UnitSpec with GuiceOneAppPerSuite with Pro
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
-      "return the error code for InternalServiceError" in new InternalServiceErrorTest {
+      "return the error code for InternalServerError" in new InternalServiceErrorTest {
 
         private val result = target.get(validId)(getRequest)
 
         val json: JsObject = contentAsJson(result).as[JsObject]
-        (json \ "code").as[String] shouldBe InternalServiceError.code
+        (json \ "code").as[String] shouldBe InternalServerError.code
       }
     }
   }
@@ -288,7 +288,7 @@ class PublishedControllerSpec extends UnitSpec with GuiceOneAppPerSuite with Pro
 
         MockPublishedService
           .getByProcessCode(validId)
-          .returns(Future.successful(Left(InternalServiceError)))
+          .returns(Future.successful(Left(InternalServerError)))
       }
 
       "return an internal server error response" in new InternalServiceErrorTest {
@@ -305,12 +305,12 @@ class PublishedControllerSpec extends UnitSpec with GuiceOneAppPerSuite with Pro
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
-      "return the error code for InternalServiceError" in new InternalServiceErrorTest {
+      "return the error code for InternalServerError" in new InternalServiceErrorTest {
 
         private val result = target.getByProcessCode(validId)(getRequest)
 
         val json: JsObject = contentAsJson(result).as[JsObject]
-        (json \ "code").as[String] shouldBe InternalServiceError.code
+        (json \ "code").as[String] shouldBe InternalServerError.code
       }
     }
   }

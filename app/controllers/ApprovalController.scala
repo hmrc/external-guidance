@@ -18,14 +18,13 @@ package controllers
 
 import controllers.actions.IdentifierAction
 import javax.inject.{Inject, Singleton}
-import models.errors.{BadRequestError, Error, InternalServiceError, NotFoundError, ValidationError}
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ApprovalService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils.Constants._
-
+import models.errors.{BadRequestError, Error, InternalServerError => ServerError, NotFoundError, ValidationError}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -52,7 +51,7 @@ class ApprovalController @Inject() (identify: IdentifierAction, approvalService:
         logger.error(s"Failed to save process for approval due to validation errors")
         BadRequest(Json.toJson(BadRequestError))
       case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
-      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+      case Left(_) => InternalServerError(Json.toJson(ServerError))
     }
   }
 
@@ -61,7 +60,7 @@ class ApprovalController @Inject() (identify: IdentifierAction, approvalService:
       case Right(approvalProcess) => Ok(approvalProcess)
       case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
       case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
-      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+      case Left(_) => InternalServerError(Json.toJson(ServerError))
     }
   }
 
@@ -71,14 +70,14 @@ class ApprovalController @Inject() (identify: IdentifierAction, approvalService:
       case Right(approvalProcess) => Ok(approvalProcess)
       case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
       case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
-      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+      case Left(_) => InternalServerError(Json.toJson(ServerError))
     }
   }
 
   def approvalSummaryList: Action[AnyContent] = identify.async { implicit request =>
     approvalService.approvalSummaryList(request.roles).map {
       case Right(list) => Ok(list)
-      case _ => InternalServerError(Json.toJson(InternalServiceError))
+      case _ => InternalServerError(Json.toJson(ServerError))
     }
   }
 }

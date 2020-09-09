@@ -14,18 +14,26 @@
  * limitations under the License.
  */
 
-package models.ocelot
+package models.ocelot.stanzas
 
-import play.api.libs.json.Reads._
 import play.api.libs.json._
 
-case class Phrase(langs: Vector[String])
+sealed trait TestType
 
-object Phrase {
-  def apply(first: String, second: String): Phrase = Phrase(Vector(first, second))
-  implicit val reads: Reads[Phrase] = __.read[Vector[String]](minLength[Vector[String]](2)).map(Phrase(_))
+case object LessThanOrEquals extends TestType
 
-  implicit val writes: Writes[Phrase] = new Writes[Phrase] {
-    override def writes(phrase: Phrase): JsValue = Json.toJson(phrase.langs)
-  }
+object TestType {
+
+  implicit val reads: Reads[TestType] = (json: JsValue) =>
+    json match {
+      case JsString("lessThanOrEquals") => JsSuccess(LessThanOrEquals, __)
+      case typeName: JsString => JsError(JsonValidationError(Seq("TestType"), typeName.value))
+      case unknown => JsError(JsonValidationError(Seq("TestType"), unknown.toString))
+    }
+
+  implicit val writes: Writes[TestType] = (inputType: TestType) =>
+    inputType match {
+      case LessThanOrEquals => Json.toJson("lessThanOrEquals")
+    }
+
 }

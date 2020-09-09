@@ -20,7 +20,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
 import play.api.libs.json._
 
-trait UnitSpec extends WordSpec with Matchers with ScalaFutures {
+trait BaseSpec extends WordSpec with Matchers with ScalaFutures {
 
   def missingJsObjectAttrTests[T](jsObject: JsObject, attrsToIgnore: List[String] = Nil)(implicit objectReads: Reads[T]): Unit =
     jsObject.keys.filterNot(attrsToIgnore.contains(_)).foreach { attributeName =>
@@ -62,5 +62,9 @@ trait UnitSpec extends WordSpec with Matchers with ScalaFutures {
 
     }
 
+  }
+
+  def removeSpacesAndNewLines(s: String): String = {
+    s.replaceAll("\n","" ).replaceAll(" ", "")
   }
 }

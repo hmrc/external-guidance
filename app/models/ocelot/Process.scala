@@ -16,9 +16,8 @@
 
 package models.ocelot
 
-
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Reads, __}
+import play.api.libs.json.{Reads, Writes, __}
 import models.ocelot.stanzas._
 
 case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase], links: Vector[Link]) {
@@ -40,4 +39,11 @@ object Process {
       (__ \ "phrases").read[Vector[Phrase]] and
       (__ \ "links").read[Vector[Link]]
   )(Process.apply _)
+
+  implicit val writes: Writes[Process] = (
+    (__ \ "meta").write[Meta] and
+      (__ \ "flow").write[Map[String, Stanza]] and
+      (__ \ "phrases").write[Vector[Phrase]] and
+      (__ \ "links").write[Vector[Link]]
+  )(unlift(Process.unapply))
 }

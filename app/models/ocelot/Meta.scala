@@ -16,8 +16,8 @@
 
 package models.ocelot
 
-import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import play.api.libs.functional.syntax._
 
 case class Meta(id: String,
                 title: String,
@@ -42,4 +42,16 @@ object Meta {
       (__ \ "titlePhrase").readNullable[Int] and
       (__ \ "processCode").read[String]
   )(Meta.apply _)
+
+  implicit val writes: Writes[Meta] = (
+    (__ \ "id").write[String] and
+      (__ \ "title").write[String] and
+      (__ \ "ocelot").write[Int] and
+      (__ \ "lastAuthor").write[String] and
+      (__ \ "lastUpdate").write[Long] and
+      (__ \ "version").write[Int] and
+      (__ \ "filename").write[String] and
+      (__ \ "titlePhrase").writeNullable[Int] and
+      (__ \ "processCode").write[String]
+  )(unlift(Meta.unapply))
 }

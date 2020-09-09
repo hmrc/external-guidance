@@ -16,10 +16,10 @@
 
 package models.ocelot.stanzas
 
-import base.UnitSpec
+import base.BaseSpec
 import play.api.libs.json._
 
-class PageStanzaSpec extends UnitSpec {
+class PageStanzaSpec extends BaseSpec {
 
   val stanzaType = "PageStanza"
   val pageUrl = "/rent/less-than-1000/do-you-want-to-use-the-rent-a-room-scheme"

@@ -16,10 +16,10 @@
 
 package models.ocelot.stanzas
 
-import base.UnitSpec
+import org.scalatest.{Matchers, WordSpec}
 import models.ocelot._
 
-class InstructionSpec extends UnitSpec {
+class InstructionSpec extends WordSpec with Matchers {
 
   trait Test {
     val text: Int = 10
@@ -37,7 +37,6 @@ class InstructionSpec extends UnitSpec {
         s"Welsh, hello [link:Blah:${linkDest}] ;lasdk [link:Blah:${pageLinkedStanzaId}]"
       )
     )
-
     val simpleInstruction = InstructionStanza(text, next, None, false)
     val linkInstruction = InstructionStanza(text, next, Some(linkId), false)
   }
