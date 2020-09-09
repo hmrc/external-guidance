@@ -18,11 +18,11 @@ package services
 
 import java.util.UUID
 
-import base.UnitSpec
+import base.BaseSpec
 
 import models.errors.{Error, ValidationError}
 
-class ValidatorsSpec extends UnitSpec {
+class ValidatorsSpec extends BaseSpec {
 
   val validUUID: String = UUID.randomUUID().toString
   val invalidUUID: String = ""

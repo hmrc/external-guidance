@@ -16,11 +16,11 @@
 
 package models.ocelot.stanzas
 
-import base.UnitSpec
+import base.BaseSpec
 import models.ocelot.stanzas.CalloutStanza._
 import play.api.libs.json._
 
-class CalloutStanzaSpec extends UnitSpec {
+class CalloutStanzaSpec extends BaseSpec {
 
   def getStanzaJson(calloutType: String): JsValue = Json.parse(
     s"""|{

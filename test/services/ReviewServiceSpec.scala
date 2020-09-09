@@ -19,7 +19,7 @@ package services
 import java.time.ZonedDateTime
 import java.util.UUID
 
-import base.UnitSpec
+import base.BaseSpec
 import data.ReviewData
 import mocks.{MockApprovalProcessReviewRepository, MockApprovalRepository, MockPublishedService}
 import models._
@@ -30,7 +30,7 @@ import utils.Constants._
 
 import scala.concurrent.Future
 
-class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with ApprovalProcessJson {
+class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with ApprovalProcessJson {
 
   private trait Test extends MockApprovalRepository with MockApprovalProcessReviewRepository with MockPublishedService with PrivateMethodTester {
 
@@ -115,9 +115,9 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
     }
 
     "there is an error retrieving the process" should {
-      "return an InternalServiceError" in new Test {
+      "return an InternalServerError" in new Test {
 
-        val expected: RequestOutcome[String] = Left(InternalServiceError)
+        val expected: RequestOutcome[String] = Left(InternalServerError)
 
         MockApprovalRepository
           .getById(validId)
@@ -151,9 +151,9 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
     }
 
     "there is a database error when retrieving the review info" should {
-      "return an InternalServiceError" in new Test {
+      "return an InternalServerError" in new Test {
 
-        val expected: RequestOutcome[String] = Left(InternalServiceError)
+        val expected: RequestOutcome[String] = Left(InternalServerError)
 
         MockApprovalRepository
           .getById(validId)
@@ -335,7 +335,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "return an internal server error" in new ReviewCompleteTest {
 
         val repositoryError: RequestOutcome[Unit] = Left(DatabaseError)
-        val expected: RequestOutcome[ApprovalProcess] = Left(InternalServiceError)
+        val expected: RequestOutcome[ApprovalProcess] = Left(InternalServerError)
         val publishedStatusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
 
         MockApprovalRepository
@@ -362,8 +362,8 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
     "the approval repository reports an unknown error" should {
       "return an internal server error" in new ReviewCompleteTest {
 
-        val repositoryError: RequestOutcome[Unit] = Left(InternalServiceError)
-        val expected: RequestOutcome[ApprovalProcess] = Left(InternalServiceError)
+        val repositoryError: RequestOutcome[Unit] = Left(InternalServerError)
+        val expected: RequestOutcome[ApprovalProcess] = Left(InternalServerError)
         val publishedStatusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
 
         MockApprovalRepository
@@ -392,7 +392,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "indicate a database error" in new ReviewCompleteTest {
 
         val expectedChangeStatusResponse: RequestOutcome[Unit] = Right(())
-        val expected: RequestOutcome[ApprovalProcess] = Left(InternalServiceError)
+        val expected: RequestOutcome[ApprovalProcess] = Left(InternalServerError)
         val publishedStatusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
 
         MockApprovalRepository
@@ -413,7 +413,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
 
         MockPublishedService
           .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process)
-          .returns(Future.successful(Left(InternalServiceError)))
+          .returns(Future.successful(Left(InternalServerError)))
 
         whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
           result shouldBe expected
@@ -497,9 +497,9 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       }
 
       "the getById method returns a DatabaseError" should {
-        "return an InternalServiceError" in new PageInfoTest {
+        "return an InternalServerError" in new PageInfoTest {
 
-          val expected: RequestOutcome[Unit] = Left(InternalServiceError)
+          val expected: RequestOutcome[Unit] = Left(InternalServerError)
 
           MockApprovalRepository
             .getById("validId")
@@ -532,7 +532,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "the review repository reports a database error" should {
         "return an internal server error" in new PageInfoTest {
 
-          val expected: RequestOutcome[ApprovalProcessReview] = Left(InternalServiceError)
+          val expected: RequestOutcome[ApprovalProcessReview] = Left(InternalServerError)
 
           MockApprovalRepository
             .getById("validId")
@@ -626,7 +626,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
         "return an internal server error" in new PageCompleteTest {
 
           val repositoryError: RequestOutcome[ApprovalProcess] = Left(DatabaseError)
-          val expected: RequestOutcome[Unit] = Left(InternalServiceError)
+          val expected: RequestOutcome[Unit] = Left(InternalServerError)
 
           MockApprovalRepository
             .getById("validId")
@@ -641,7 +641,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
         "return an internal server error" in new PageCompleteTest {
 
           val repositoryError: RequestOutcome[Unit] = Left(DatabaseError)
-          val expected: RequestOutcome[Unit] = Left(InternalServiceError)
+          val expected: RequestOutcome[Unit] = Left(InternalServerError)
 
           MockApprovalRepository
             .getById("validId")
@@ -803,7 +803,7 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       "return an internal server error" in new ReviewCompleteTest {
 
         val repositoryError: RequestOutcome[Unit] = Left(DatabaseError)
-        val expected: RequestOutcome[ApprovalProcess] = Left(InternalServiceError)
+        val expected: RequestOutcome[ApprovalProcess] = Left(InternalServerError)
         val publishedStatusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusWithDesignerForUpdate)
 
         MockApprovalRepository
@@ -864,9 +864,9 @@ class ReviewServiceSpec extends UnitSpec with MockFactory with ReviewData with A
       }
     }
     "the getByIdAndVersion method returns a DatabaseError" should {
-      "return an InternalServiceError" in new ReviewCompleteTest {
+      "return an InternalServerError" in new ReviewCompleteTest {
 
-        val expected: RequestOutcome[ProcessReview] = Left(InternalServiceError)
+        val expected: RequestOutcome[ProcessReview] = Left(InternalServerError)
 
         MockApprovalProcessReviewRepository
           .getByIdVersionAndType(validId, ReviewType2i)

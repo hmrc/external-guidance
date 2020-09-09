@@ -16,10 +16,10 @@
 
 package models.ocelot.stanzas
 
-import base.UnitSpec
+import base.BaseSpec
 import play.api.libs.json._
 
-class StanzaSpec extends UnitSpec {
+class StanzaSpec extends BaseSpec {
 
   val stanzaType = "ValueStanza"
   val valueType = "scalar"
@@ -33,21 +33,21 @@ class StanzaSpec extends UnitSpec {
   val validValueStanzaJson: JsObject = Json
     .parse(
       s"""{
-      |  "type": "$stanzaType",
+      |  "type": "${stanzaType}",
       |  "values": [
       |    {
-      |      "type": "$valueType",
-      |      "label": "$pageNameLabel",
-      |      "value": "$pageName"
+      |      "type": "${valueType}",
+      |      "label": "${pageNameLabel}",
+      |      "value": "${pageName}"
       |    },
       |    {
-      |      "type": "$valueType",
-      |      "label": "$pageUrlLabel",
-      |      "value": "$pageUrl"
+      |      "type": "${valueType}",
+      |      "label": "${pageUrlLabel}",
+      |      "value": "${pageUrl}"
       |    }
       |  ],
-      |  "next": ["$next"],
-      |  "stack": $stack
+      |  "next": ["${next}"],
+      |  "stack": ${stack}
       |}
     """.stripMargin
     )

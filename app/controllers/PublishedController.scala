@@ -17,7 +17,7 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-import models.errors.{BadRequestError, InternalServiceError, NotFoundError}
+import models.errors.{BadRequestError, InternalServerError => ServerError, NotFoundError}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.PublishedService
@@ -34,7 +34,7 @@ class PublishedController @Inject() (publishedService: PublishedService, cc: Con
       case Right(process) => Ok(process.process)
       case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
       case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
-      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+      case Left(_) => InternalServerError(Json.toJson(ServerError))
     }
   }
 
@@ -44,7 +44,7 @@ class PublishedController @Inject() (publishedService: PublishedService, cc: Con
       case Right(process) => Ok(process.process)
       case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
       case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
-      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+      case Left(_) => InternalServerError(Json.toJson(ServerError))
     }
   }
 

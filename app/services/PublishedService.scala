@@ -17,7 +17,7 @@
 package services
 
 import javax.inject.{Inject, Singleton}
-import models.errors.{BadRequestError, InternalServiceError, NotFoundError}
+import models.errors.{BadRequestError, InternalServerError, NotFoundError}
 import models.ocelot._
 import models.{PublishedProcess, RequestOutcome}
 import play.api.Logger
@@ -36,7 +36,7 @@ class PublishedService @Inject() (repository: PublishedRepository) {
 
     def getProcess(id: String): Future[RequestOutcome[PublishedProcess]] = repository.getById(id) map {
       case error @ Left(NotFoundError) => error
-      case Left(_) => Left(InternalServiceError)
+      case Left(_) => Left(InternalServerError)
       case result => result
     }
 
@@ -52,7 +52,7 @@ class PublishedService @Inject() (repository: PublishedRepository) {
 
     repository.getByProcessCode(processCode) map {
       case error @ Left(NotFoundError) => error
-      case Left(_) => Left(InternalServiceError)
+      case Left(_) => Left(InternalServerError)
       case result => result
     }
   }
@@ -64,7 +64,7 @@ class PublishedService @Inject() (repository: PublishedRepository) {
       repository.save(id, user, processCode, jsonProcess) map {
         case Left(_) =>
           logger.error(s"Request to publish $id has failed")
-          Left(InternalServiceError)
+          Left(InternalServerError)
         case result => result
       }
 

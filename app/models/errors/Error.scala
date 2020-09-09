@@ -34,7 +34,7 @@ object Error {
   implicit val formats: OFormat[Error] = Json.format[Error]
 }
 
-object InternalServiceError extends Error("INTERNAL_SERVER_ERROR", Some("An error occurred whilst processing your request."), None)
+object InternalServerError extends Error("INTERNAL_SERVER_ERROR", Some("An error occurred whilst processing your request."), None)
 object DatabaseError extends Error("DATABASE_ERROR", Some("An error occurred whilst accessing the database."), None)
 object ValidationError extends Error("VALIDATION_ERROR", Some("Input data failed validation test."), None)
 object InvalidProcessError extends Error("BAD_REQUEST", Some("The input process is invalid"), None)
