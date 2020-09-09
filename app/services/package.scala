@@ -49,9 +49,9 @@ package object services {
     case e: UnknownInputType => ProcessError( s"Unsupported InputStanza type ${e.typeName} found at stanza id ${e.id}", e.id)
     case e: ParseError => ProcessError(s"Unknown parse error ${e.errs.map(_.messages.mkString(",")).mkString(",")} at location ${e.jsPath.toString}", "")
     case e: FlowParseError => ProcessError(s"Process Flow section parse error: ${e.msg} at location ${e.id}, ${e.arg}", e.id)
-    case e: MetaParseError => ProcessError(s"Process Meta section parse error: ${e.msg} at location ${e.id}, ${e.arg}", "")
-    case e: PhrasesParseError => ProcessError(s"Process Phrases section parse error: ${e.msg} at location ${e.id}, ${e.arg}", "")
-    case e: LinksParseError => ProcessError(s"Process Links section parse error: ${e.msg} at location ${e.id}, ${e.arg}", "")
+    case e: MetaParseError => ProcessError(s"Process Meta section parse error: ${e.msg} at location ${e.id}", "")
+    case e: PhrasesParseError => ProcessError(s"Process Phrases section parse error: ${e.msg} at location ${e.id}", "")
+    case e: LinksParseError => ProcessError(s"Process Links section parse error: ${e.msg} at location ${e.id}", "")
   }
 
   implicit def processErrs(errs: List[GuidanceError]): List[ProcessError] = errs.map(toProcessErr)
