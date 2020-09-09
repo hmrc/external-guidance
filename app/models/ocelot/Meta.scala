@@ -27,10 +27,7 @@ case class Meta(id: String,
                 version: Int,
                 fileName: String,
                 titlePhrase: Option[Int] = None,
-                processCode: Option[String] = None) {
-
-  lazy val code: String = processCode.getOrElse(id)
-}
+                processCode: String)
 
 object Meta {
 
@@ -43,7 +40,7 @@ object Meta {
       (__ \ "version").read[Int] and
       (__ \ "filename").read[String] and
       (__ \ "titlePhrase").readNullable[Int] and
-      (__ \ "processCode").readNullable[String]
+      (__ \ "processCode").read[String]
   )(Meta.apply _)
 
   implicit val writes: Writes[Meta] = (
@@ -55,6 +52,6 @@ object Meta {
       (__ \ "version").write[Int] and
       (__ \ "filename").write[String] and
       (__ \ "titlePhrase").writeNullable[Int] and
-      (__ \ "processCode").writeNullable[String]
+      (__ \ "processCode").write[String]
   )(unlift(Meta.unapply))
 }

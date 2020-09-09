@@ -32,8 +32,8 @@ object PublishedProcessFormatter {
       datePublished <- (json \ "datePublished").validate[ZonedDateTime]
       process <- (json \ "process").validate[JsObject]
       publishedBy <- (json \ "publishedBy").validate[String]
-      processCode <- (json \ "processCode").validateOpt[String]
-    } yield PublishedProcess(id, version, datePublished, process, publishedBy, processCode.getOrElse(id))
+      processCode <- (json \ "processCode").validate[String]
+    } yield PublishedProcess(id, version, datePublished, process, publishedBy, processCode)
 
   val write: PublishedProcess => JsObject = publishedProcess =>
     Json.obj(
