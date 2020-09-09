@@ -16,8 +16,32 @@
 
 package models
 
-import java.util.UUID
 import java.time.ZonedDateTime
-import play.api.libs.json.JsObject
 
-case class ScratchProcess(id: UUID, process: JsObject, expireAt: ZonedDateTime)
+import base.UnitSpec
+import play.api.libs.json.Json
+
+class MongoDateTimeSpec extends  UnitSpec with MongoDateTimeFormats {
+
+  "a ZonedDateTime" must {
+
+    val dateTime = ZonedDateTime.of(2018,2,1,13,45,0,0, localZoneID)
+
+    val dateMillis = dateTime.toInstant.toEpochMilli
+
+    val json = Json.obj(
+      "$date" -> dateMillis
+    )
+
+    "must serialise to json" in {
+      val result = Json.toJson(dateTime)
+      result shouldBe json
+    }
+
+    "must deserialise from json" in {
+      val result = json.as[ZonedDateTime]
+      result shouldBe dateTime
+    }
+
+  }
+}

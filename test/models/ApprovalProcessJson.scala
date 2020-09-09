@@ -16,23 +16,25 @@
 
 package models
 
-import java.time.{LocalDate, LocalDateTime, ZoneOffset}
+import java.time.{LocalDate, ZonedDateTime}
 import java.util.UUID
 
+import data.ProcessData._
 import play.api.libs.json.{JsObject, Json}
 import utils.Constants._
-import data.ProcessData._
 
 trait ApprovalProcessJson {
 
+   val localZoneID = ZonedDateTime.now.getZone
+
   val validId = "oct90001"
   val dateSubmitted: LocalDate = LocalDate.of(2020, 3, 3)
-  val submittedDateInMilliseconds: Long = dateSubmitted.atStartOfDay(ZoneOffset.UTC).toInstant.toEpochMilli
+  val submittedDateInMilliseconds: Long = dateSubmitted.atStartOfDay(localZoneID).toInstant.toEpochMilli
 
   val approvalProcessMeta: ApprovalProcessMeta =
-    ApprovalProcessMeta(validId, "This is the title", StatusSubmitted, dateSubmitted, dateSubmitted.atStartOfDay())
+    ApprovalProcessMeta(validId, "This is the title", StatusSubmitted, dateSubmitted, dateSubmitted.atStartOfDay(localZoneID), processCode = "processCode")
   val approvalProcess: ApprovalProcess = ApprovalProcess(validId, approvalProcessMeta, Json.obj())
-  val approvalProcessWithValidProcess = approvalProcess.copy(process = process90087Json) 
+  val approvalProcessWithValidProcess = approvalProcess.copy(process = process90087Json)
 
   val approvalProcessSummary: ApprovalProcessSummary =
     ApprovalProcessSummary(validId, "This is the title", dateSubmitted, StatusSubmittedFor2iReview, ReviewType2i)
@@ -50,7 +52,8 @@ trait ApprovalProcessJson {
       |    "lastModified" : {"$$date": $submittedDateInMilliseconds},
       |    "ocelotDateSubmitted" : 1,
       |    "ocelotVersion" : 1,
-      |    "reviewType" : "$ReviewType2i"
+      |    "reviewType" : "$ReviewType2i",
+      |    "processCode" : "processCode"
       |  },
       |  "process" : {
       |  },
@@ -70,7 +73,8 @@ trait ApprovalProcessJson {
         |    "status" : "$StatusSubmitted",
         |    "dateSubmitted" : {"$$date": $submittedDateInMilliseconds},
         |    "lastModified" : {"$$date": $submittedDateInMilliseconds},
-        |    "reviewType" : "$ReviewType2i"
+        |    "reviewType" : "$ReviewType2i",
+        |    "processCode" : "processCode"
         |  },
         |  "process" : {
         |  },
@@ -191,6 +195,6 @@ trait ApprovalProcessJson {
       List(ApprovalProcessPageReview("id", "url", "pageUrl")),
       LocalDate.now(),
       ReviewCompleteStatus,
-      Some(LocalDateTime.now())
+      Some(ZonedDateTime.now())
     )
 }

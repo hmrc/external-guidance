@@ -16,7 +16,7 @@
 
 package repositories.formatters
 
-import java.time.{LocalDate, LocalDateTime}
+import java.time.{LocalDate, ZonedDateTime}
 
 import models.{ApprovalProcessMeta, MongoDateTimeFormats}
 import play.api.libs.json._
@@ -24,7 +24,7 @@ import play.api.libs.json._
 object ApprovalProcessMetaFormatter {
 
   implicit val dateFormat: Format[LocalDate] = MongoDateTimeFormats.localDateFormats
-  implicit val dateTimeFormat: Format[LocalDateTime] = MongoDateTimeFormats.localDateTimeFormats
+  implicit val dateTimeFormat: Format[ZonedDateTime] = MongoDateTimeFormats.zonedDateTimeFormats
 
   val read: JsValue => JsResult[ApprovalProcessMeta] = json =>
     for {
@@ -32,19 +32,21 @@ object ApprovalProcessMetaFormatter {
       status <- (json \ "status").validate[String]
       title <- (json \ "title").validate[String]
       dateSubmitted <- (json \ "dateSubmitted").validate[LocalDate]
-      lastModified <- (json \ "lastModified").validateOpt[LocalDateTime]
+      lastModified <- (json \ "lastModified").validateOpt[ZonedDateTime]
       ocelotDateSubmitted <- (json \ "ocelotDateSubmitted").validateOpt[Long]
       ocelotVersion <- (json \ "ocelotVersion").validateOpt[Int]
       reviewType <- (json \ "reviewType").validate[String]
+      processCode <- (json \ "processCode").validateOpt[String]
     } yield ApprovalProcessMeta(
       id,
       title,
       status,
       dateSubmitted,
-      lastModified.getOrElse(LocalDateTime.now()),
+      lastModified.getOrElse(ZonedDateTime.now()),
       ocelotDateSubmitted.getOrElse(1),
       ocelotVersion.getOrElse(1),
-      reviewType
+      reviewType,
+      processCode.getOrElse(id)
     )
 
   val write: ApprovalProcessMeta => JsObject = meta =>
@@ -56,7 +58,8 @@ object ApprovalProcessMetaFormatter {
       "lastModified" -> meta.lastModified,
       "ocelotDateSubmitted" -> meta.ocelotDateSubmitted,
       "ocelotVersion" -> meta.ocelotVersion,
-      "reviewType" -> meta.reviewType
+      "reviewType" -> meta.reviewType,
+      "processCode" -> meta.processCode
     )
 
   implicit val mongoFormat: OFormat[ApprovalProcessMeta] = OFormat(read, write)

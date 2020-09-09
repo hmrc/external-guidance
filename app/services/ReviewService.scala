@@ -59,7 +59,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
 
     def publishIfRequired(approvalProcess: ApprovalProcess): Future[RequestOutcome[ApprovalProcess]] = info.status match {
       case StatusPublished =>
-        publishedService.save(id, info.userId, approvalProcess.process) map {
+        publishedService.save(id, info.userId, approvalProcess.meta.processCode, approvalProcess.process) map {
           case Right(_) => Right(approvalProcess)
           case Left(errors) =>
             logger.error(s"Failed to publish $id - $errors")
@@ -127,14 +127,20 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
         Future.successful(Left(NotFoundError))
       case Left(_) => Future.successful(Left(InternalServiceError))
       case Right(process) =>
-        reviewRepository.updatePageReview(process.id, process.version, pageUrl, reviewType, reviewInfo) map {
+        reviewRepository.updatePageReview(process.id, process.version, pageUrl, reviewType, reviewInfo) flatMap {
           case Left(NotFoundError) =>
             logger.warn(s"updatePageReview failed for process $id, version ${process.version}, reviewType $reviewType and pageUrl $pageUrl not found.")
-            Left(NotFoundError)
-          case Left(_) => Left(InternalServiceError)
+            Future.successful(Left(NotFoundError))
+          case Left(err) =>
+            logger.warn(s"updatePageReview failed with err $err for process $id, version ${process.version}, reviewType $reviewType and pageUrl $pageUrl not found.")
+            Future.successful(Left(InternalServiceError))
           case Right(_) =>
-            changeStatus(id, "InProgress", reviewInfo.updateUser.getOrElse("System"), reviewType)
-            Right(())
+            changeStatus(id, "InProgress", reviewInfo.updateUser.getOrElse("System"), reviewType).map{
+              case Left(err) =>
+                logger.error(s"changeStatus failed with err $err for process $id, version ${process.version}, reviewType $reviewType and pageUrl $pageUrl not found. Continueing")
+                Right(())
+              case ok @ Right(_) => ok
+            }
         }
     }
 

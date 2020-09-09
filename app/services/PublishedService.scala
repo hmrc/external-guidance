@@ -18,8 +18,8 @@ package services
 
 import javax.inject.{Inject, Singleton}
 import models.errors.{BadRequestError, InternalServiceError, NotFoundError}
-import models.{PublishedProcess, RequestOutcome}
 import models.ocelot._
+import models.{PublishedProcess, RequestOutcome}
 import play.api.Logger
 import play.api.libs.json.JsObject
 import repositories.PublishedRepository
@@ -48,10 +48,20 @@ class PublishedService @Inject() (repository: PublishedRepository) {
     }
   }
 
-  def save(id: String, user: String, jsonProcess: JsObject): Future[RequestOutcome[String]] = {
+  def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]] = {
+
+    repository.getByProcessCode(processCode) map {
+      case error @ Left(NotFoundError) => error
+      case Left(_) => Left(InternalServiceError)
+      case result => result
+    }
+  }
+
+
+  def save(id: String, user: String, processCode: String, jsonProcess: JsObject): Future[RequestOutcome[String]] = {
 
     def saveProcess: Future[RequestOutcome[String]] =
-      repository.save(id, user, jsonProcess) map {
+      repository.save(id, user, processCode, jsonProcess) map {
         case Left(_) =>
           logger.error(s"Request to publish $id has failed")
           Left(InternalServiceError)

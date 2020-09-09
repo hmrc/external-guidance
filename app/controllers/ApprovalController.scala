@@ -24,6 +24,7 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ApprovalService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils.Constants._
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import models.errors._
@@ -69,6 +70,16 @@ class ApprovalController @Inject() (
 
   def get(id: String): Action[AnyContent] = Action.async { _ =>
     approvalService.getById(id).map {
+      case Right(approvalProcess) => Ok(approvalProcess)
+      case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
+      case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
+      case Left(_) => InternalServerError(Json.toJson(InternalServiceError))
+    }
+  }
+
+  def getByProcessCode(processCode: String): Action[AnyContent] = Action.async { _ =>
+
+    approvalService.getByProcessCode(processCode).map {
       case Right(approvalProcess) => Ok(approvalProcess)
       case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
       case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))

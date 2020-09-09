@@ -16,7 +16,7 @@
 
 package models
 
-import java.time.{LocalDate, LocalDateTime}
+import java.time.{LocalDate, ZonedDateTime}
 import java.util.UUID
 
 case class ApprovalProcessReview(
@@ -28,6 +28,6 @@ case class ApprovalProcessReview(
     pages: List[ApprovalProcessPageReview],
     lastUpdated: LocalDate = LocalDate.now(),
     result: String = "",
-    completionDate: Option[LocalDateTime] = Option.empty[LocalDateTime],
+    completionDate: Option[ZonedDateTime] = Option.empty[ZonedDateTime],
     completionUser: Option[String] = Option.empty[String]
 )

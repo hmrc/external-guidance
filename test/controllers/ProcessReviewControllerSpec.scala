@@ -323,7 +323,7 @@ class ProcessReviewControllerSpec extends ControllerBaseSpec with MockFactory wi
 
       trait ValidTest extends Test {
         val approvalProcess: ApprovalProcess =
-          ApprovalProcess(validProcessIdForReview, ApprovalProcessMeta(validProcessIdForReview, "title"), Json.obj())
+          ApprovalProcess(validProcessIdForReview, ApprovalProcessMeta(validProcessIdForReview, "title", processCode = "processCode"), Json.obj())
 
         MockReviewService
           .checkProcessInCorrectStateForCompletion(validProcessIdForReview, ReviewType2i)

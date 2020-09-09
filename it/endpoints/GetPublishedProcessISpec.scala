@@ -15,13 +15,11 @@
  */
 package endpoints
 
+import models.errors.NotFoundError
 import play.api.http.{ContentTypes, Status}
 import play.api.libs.json.{JsObject, JsValue}
 import play.api.libs.ws.{WSRequest, WSResponse}
 import stubs.AuditStub
-
-import models.errors.{BadRequestError, NotFoundError}
-
 import support.IntegrationSpec
 
 /**
@@ -34,9 +32,9 @@ import support.IntegrationSpec
   */
 class GetPublishedProcessISpec extends IntegrationSpec {
 
-  "Calling the published GET endpoint with a valid process id" should {
+  "Calling the published endpoint with a valid process id" should {
 
-    val processId: String = "ext90002"
+    val processId: String = "this-is-the-process-code"
 
     lazy val request: WSRequest = buildRequest(s"/external-guidance/published/$processId")
 
@@ -44,8 +42,6 @@ class GetPublishedProcessISpec extends IntegrationSpec {
       AuditStub.audit()
       await(request.get)
     }
-
-    // TODO: Reactivate tests when save functionality implemented
 
     "return an OK status" ignore {
 
@@ -59,42 +55,9 @@ class GetPublishedProcessISpec extends IntegrationSpec {
 
     }
 
-    // TODO: When the save functionality is implemented we can use a smaller test process and check the expected content is returned
-
   }
 
-  "Calling the published GET endpoint with an invalid process id" should {
-
-    val invalidProcessId: String = "external20"
-
-    lazy val request: WSRequest = buildRequest(s"/external-guidance/published/$invalidProcessId")
-
-    lazy val response: WSResponse = {
-      AuditStub.audit()
-      await(request.get)
-    }
-
-    "return a bad request status" in {
-
-      response.status shouldBe Status.BAD_REQUEST
-
-    }
-
-    "return content as JSON" in {
-
-      response.contentType shouldBe ContentTypes.JSON
-
-    }
-
-    "return the error code BAD_REQUEST" in {
-
-      val json: JsObject = response.body[JsValue].as[JsObject]
-
-      (json \ "code").as[String] shouldBe BadRequestError.code
-    }
-  }
-
-  "Calling the published Get endpoint with an unknown process id" should {
+  "Calling the published endpoint with an unknown process id" should {
 
     val unknownProcessId: String = "unk10000"
 

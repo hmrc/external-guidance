@@ -35,7 +35,8 @@ object ExamplePayloads {
       |    "lastAuthor": "000000",
       |    "lastUpdate": 1500298931016,
       |    "version": 4,
-      |    "filename": "oct90001.js"
+      |    "filename": "oct90001.js",
+      |    "processCode": "CupOfTea"
       |  },
       |  "howto": [],
       |  "contacts": [],
@@ -189,7 +190,8 @@ object ExamplePayloads {
       |    "lastAuthor": "7903088",
       |    "lastUpdate": 1591002966651,
       |    "version": 7,
-      |    "filename": "trn90088.js"
+      |    "filename": "trn90088.js",
+      |    "processCode": "this-is-the-process-code"
       |  },
       |  "flow": {
       |    "34": {

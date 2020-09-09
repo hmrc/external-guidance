@@ -16,7 +16,7 @@
 
 package repositories
 
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 import config.AppConfig
 import javax.inject.{Inject, Singleton}
@@ -26,6 +26,7 @@ import play.api.libs.json.{Format, JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.Cursor.FailOnError
 import reactivemongo.api.ReadPreference
+import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.formatters.ApprovalProcessFormatter
 import repositories.formatters.ApprovalProcessMetaFormatter._
@@ -38,6 +39,7 @@ import scala.concurrent.Future
 trait ApprovalRepository {
   def update(process: ApprovalProcess): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[ApprovalProcess]]
+  def getByProcessCode(processCode: String): Future[RequestOutcome[ApprovalProcess]]
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]]
   def changeStatus(id: String, status: String, user: String): Future[RequestOutcome[Unit]]
 
@@ -54,6 +56,14 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
       idFormat = implicitly[Format[String]]
     )
     with ApprovalRepository {
+
+  override def indexes: Seq[Index] = Seq(
+    Index(
+      key = Seq("meta.processCode" -> IndexType.Ascending),
+      name = Some("approval-secondary-Index-process-code"),
+      unique = false
+    )
+  )
 
   def update(approvalProcess: ApprovalProcess): Future[RequestOutcome[String]] = {
 
@@ -87,6 +97,25 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
       .recover {
         case error =>
           logger.error(s"Attempt to retrieve process $id from collection $collectionName failed with error : ${error.getMessage}")
+          Left(DatabaseError)
+      }
+    //$COVERAGE-ON$
+  }
+
+  def getByProcessCode(processCode: String): Future[RequestOutcome[ApprovalProcess]] = {
+
+    val selector = Json.obj("meta.processCode" -> processCode)
+    collection
+      .find[JsObject, JsObject](selector)
+      .one[ApprovalProcess]
+      .map {
+        case Some(approvalProcess) => Right(approvalProcess)
+        case None => Left(NotFoundError)
+      }
+      //$COVERAGE-OFF$
+      .recover {
+        case error =>
+          logger.error(s"Attempt to retrieve process $processCode from collection $collectionName failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
     //$COVERAGE-ON$
@@ -130,7 +159,7 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
 
     logger.info(s"updating status of process $id to $status to collection $collectionName")
     val selector = Json.obj("_id" -> id)
-    val modifier = Json.obj("$set" -> Json.obj("meta.status" -> status, "meta.updateUser" -> user, "meta.lastModified" -> LocalDateTime.now))
+    val modifier = Json.obj("$set" -> Json.obj("meta.status" -> status, "meta.updateUser" -> user, "meta.lastModified" ->ZonedDateTime.now))
 
     this
       .findAndUpdate(selector, modifier)

@@ -16,7 +16,7 @@
 
 package repositories
 
-import java.time.{LocalDateTime, ZoneId}
+import java.time.ZonedDateTime
 import java.util.UUID
 
 import javax.inject.{Inject, Singleton}
@@ -102,7 +102,7 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
           "pages.$.status" -> reviewInfo.status,
           "pages.$.comment" -> reviewInfo.comment,
           "pages.$.updateUser" -> reviewInfo.updateUser,
-          "pages.$.updateDate" -> Json.obj("$date" -> LocalDateTime.now.atZone(ZoneId.of("UTC")).toInstant.toEpochMilli)
+          "pages.$.updateDate" -> Json.obj("$date" -> ZonedDateTime.now.toInstant.toEpochMilli)
         )
       )
 
@@ -127,7 +127,7 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
         "$set" -> Json.obj(
           "result" -> result,
           "completionUser" -> updateUser,
-          "completionDate" -> Json.obj("$date" -> LocalDateTime.now.atZone(ZoneId.of("UTC")).toInstant.toEpochMilli)
+          "completionDate" -> Json.obj("$date" -> ZonedDateTime.now.toInstant.toEpochMilli)
         )
       )
 

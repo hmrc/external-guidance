@@ -16,23 +16,24 @@
 
 package repositories.formatters
 
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 import models.{MongoDateTimeFormats, PublishedProcess}
 import play.api.libs.json._
 
 object PublishedProcessFormatter {
 
-  implicit val dateTimeFormat: Format[LocalDateTime] = MongoDateTimeFormats.localDateTimeFormats
+  implicit val dateTimeFormat: Format[ZonedDateTime] = MongoDateTimeFormats.zonedDateTimeFormats
 
   val read: JsValue => JsResult[PublishedProcess] = json =>
     for {
       id <- (json \ "_id").validate[String]
       version <- (json \ "version").validate[Int]
-      datePublished <- (json \ "datePublished").validate[LocalDateTime]
+      datePublished <- (json \ "datePublished").validate[ZonedDateTime]
       process <- (json \ "process").validate[JsObject]
       publishedBy <- (json \ "publishedBy").validate[String]
-    } yield PublishedProcess(id, version, datePublished, process, publishedBy)
+      processCode <- (json \ "processCode").validateOpt[String]
+    } yield PublishedProcess(id, version, datePublished, process, publishedBy, processCode.getOrElse(id))
 
   val write: PublishedProcess => JsObject = publishedProcess =>
     Json.obj(
@@ -40,7 +41,8 @@ object PublishedProcessFormatter {
       "version" -> publishedProcess.version,
       "datePublished" -> publishedProcess.datePublished,
       "process" -> publishedProcess.process,
-      "publishedBy" -> publishedProcess.publishedBy
+      "publishedBy" -> publishedProcess.publishedBy,
+      "processCode" -> publishedProcess.processCode
     )
 
   implicit val mongoFormat: OFormat[PublishedProcess] = OFormat(read, write)

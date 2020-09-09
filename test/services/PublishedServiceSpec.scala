@@ -16,7 +16,7 @@
 
 package services
 
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 import base.UnitSpec
 import mocks.MockPublishedRepository
@@ -34,7 +34,8 @@ class PublishedServiceSpec extends UnitSpec {
     val validId: String = "ext90005"
     val invalidId: String = "ext9005"
     val invalidProcess: JsObject = Json.obj("idx" -> invalidId)
-    val publishedProcess: PublishedProcess = PublishedProcess(validId, 1, LocalDateTime.now(), validOnePageJson.as[JsObject], "user")
+    val publishedProcess: PublishedProcess =
+      PublishedProcess(validId, 1, ZonedDateTime.now(), validOnePageJson.as[JsObject], "user", processCode = "processCode")
 
     lazy val target: PublishedService = new PublishedService(mockPublishedRepository)
   }
@@ -92,6 +93,63 @@ class PublishedServiceSpec extends UnitSpec {
     }
   }
 
+  "The method getByProcessCode of class PublishedService" should {
+
+    "Return a JsObject representing an Ocelot process when the input identifies a valid process" in new Test {
+
+      val expected: RequestOutcome[PublishedProcess] = Right(publishedProcess)
+
+      MockPublishedRepository
+        .getByProcessCode(validId)
+        .returns(Future.successful(expected))
+
+      whenReady(target.getByProcessCode(validId)) { result =>
+        result shouldBe expected
+      }
+    }
+
+    "Return a not found response when the input identifier is invalid" in new Test {
+      val expected: RequestOutcome[PublishedProcess] = Left(NotFoundError)
+      MockPublishedRepository
+        .getByProcessCode(invalidId)
+        .returns(Future.successful(expected))
+
+
+      whenReady(target.getByProcessCode(invalidId)) { result =>
+        result shouldBe expected
+      }
+    }
+
+    "Return a not found response when no process has the identifier input to the method" in new Test {
+
+      val expected: RequestOutcome[PublishedProcess] = Left(NotFoundError)
+
+      MockPublishedRepository
+        .getByProcessCode(validId)
+        .returns(Future.successful(expected))
+
+      whenReady(target.getByProcessCode(validId)) { result =>
+        result shouldBe expected
+      }
+    }
+
+    "Return an internal server error when the repository reports a database error" in new Test {
+
+      val repositoryError: RequestOutcome[PublishedProcess] = Left(DatabaseError)
+
+      val expected: RequestOutcome[JsObject] = Left(InternalServiceError)
+
+      MockPublishedRepository
+        .getByProcessCode(validId)
+        .returns(Future.successful(repositoryError))
+
+      whenReady(target.getByProcessCode(validId)) { result =>
+        result shouldBe expected
+      }
+    }
+  }
+
+
   "Calling the save method" when {
 
     "the id and JSON are valid" should {
@@ -100,10 +158,10 @@ class PublishedServiceSpec extends UnitSpec {
         val expected: RequestOutcome[String] = Right(validId)
 
         MockPublishedRepository
-          .save(validId, "userId", validOnePageJson.as[JsObject])
+          .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
           .returns(Future.successful(expected))
 
-        whenReady(target.save(validId, "userId", validOnePageJson.as[JsObject])) {
+        whenReady(target.save(validId, "userId", "processCode", validOnePageJson.as[JsObject])) {
           case Right(id) => id shouldBe validId
           case _ => fail
         }
@@ -115,16 +173,16 @@ class PublishedServiceSpec extends UnitSpec {
       "not call the repository" in new Test {
 
         MockPublishedRepository
-          .save(validId, "userId", validOnePageJson.as[JsObject])
+          .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
           .never()
 
-        target.save(validId, "userId", invalidProcess)
+        target.save(validId, "userId", "processCode", invalidProcess)
       }
 
       "return a bad request error" in new Test {
         val expected: RequestOutcome[String] = Left(BadRequestError)
 
-        whenReady(target.save(validId, "userId", invalidProcess)) {
+        whenReady(target.save(validId, "userId", "processCode", invalidProcess)) {
           case result @ Left(_) => result shouldBe expected
           case _ => fail
         }
@@ -137,10 +195,10 @@ class PublishedServiceSpec extends UnitSpec {
         val expected: RequestOutcome[String] = Left(InternalServiceError)
 
         MockPublishedRepository
-          .save(validId, "userId", validOnePageJson.as[JsObject])
+          .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
           .returns(Future.successful(repositoryResponse))
 
-        whenReady(target.save(validId, "userId", validOnePageJson.as[JsObject])) {
+        whenReady(target.save(validId, "userId", "processCode", validOnePageJson.as[JsObject])) {
           case result @ Left(_) => result shouldBe expected
           case _ => fail
         }
