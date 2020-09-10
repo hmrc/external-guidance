@@ -18,7 +18,7 @@ package services
 
 import java.time.ZonedDateTime
 
-import base.UnitSpec
+import base.BaseSpec
 import mocks.MockPublishedRepository
 import models.errors._
 import models.ocelot.ProcessJson
@@ -27,7 +27,7 @@ import play.api.libs.json.{JsObject, Json}
 
 import scala.concurrent.Future
 
-class PublishedServiceSpec extends UnitSpec {
+class PublishedServiceSpec extends BaseSpec {
 
   private trait Test extends MockPublishedRepository with ProcessJson {
 
@@ -81,7 +81,7 @@ class PublishedServiceSpec extends UnitSpec {
 
       val repositoryError: RequestOutcome[PublishedProcess] = Left(DatabaseError)
 
-      val expected: RequestOutcome[JsObject] = Left(InternalServiceError)
+      val expected: RequestOutcome[JsObject] = Left(InternalServerError)
 
       MockPublishedRepository
         .getById(validId)
@@ -137,7 +137,7 @@ class PublishedServiceSpec extends UnitSpec {
 
       val repositoryError: RequestOutcome[PublishedProcess] = Left(DatabaseError)
 
-      val expected: RequestOutcome[JsObject] = Left(InternalServiceError)
+      val expected: RequestOutcome[JsObject] = Left(InternalServerError)
 
       MockPublishedRepository
         .getByProcessCode(validId)
@@ -192,7 +192,7 @@ class PublishedServiceSpec extends UnitSpec {
     "a database error occurs" should {
       "return an internal error" in new Test {
         val repositoryResponse: RequestOutcome[String] = Left(DatabaseError)
-        val expected: RequestOutcome[String] = Left(InternalServiceError)
+        val expected: RequestOutcome[String] = Left(InternalServerError)
 
         MockPublishedRepository
           .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])

@@ -21,7 +21,7 @@ import play.api.inject.Injector
 import play.api.mvc.BodyParsers
 import play.api.{Configuration, Environment}
 
-trait ControllerBaseSpec extends UnitSpec with GuiceOneAppPerSuite {
+trait ControllerBaseSpec extends BaseSpec with GuiceOneAppPerSuite {
 
   val credential: String = "7010010"
   val name: String = "George Hudson"

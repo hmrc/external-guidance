@@ -16,11 +16,11 @@
 
 package models.ocelot
 
-import base.UnitSpec
+import base.BaseSpec
 import play.api.libs.json._
 import models.ocelot.stanzas.Stanza
 
-class ProcessSpec extends UnitSpec with ProcessJson {
+class ProcesSpec extends BaseSpec with ProcessJson {
 
   val ten: Int = 10
   val oneHundred: Int = 100

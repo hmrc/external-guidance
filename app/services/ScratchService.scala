@@ -20,7 +20,7 @@ import java.util.UUID
 
 import javax.inject.{Inject, Singleton}
 import models.RequestOutcome
-import models.errors.{BadRequestError, InternalServiceError, NotFoundError}
+import models.errors.{BadRequestError, InternalServerError, NotFoundError}
 import play.api.libs.json.JsObject
 import repositories.ScratchRepository
 import play.api.Logger
@@ -36,7 +36,7 @@ class ScratchService @Inject() (repository: ScratchRepository, pageBuilder: Page
       err => Future.successful(Left(err)),
       _ =>
         repository.save(process).map {
-          case Left(_) => Left(InternalServiceError)
+          case Left(_) => Left(InternalServerError)
           case result => result
         }
     )
@@ -45,7 +45,7 @@ class ScratchService @Inject() (repository: ScratchRepository, pageBuilder: Page
 
     def getProcess(id: UUID): Future[RequestOutcome[JsObject]] = repository.getById(id) map {
       case error @ Left(NotFoundError) => error
-      case Left(_) => Left(InternalServiceError)
+      case Left(_) => Left(InternalServerError)
       case result => result
     }
 

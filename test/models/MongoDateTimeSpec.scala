@@ -18,10 +18,10 @@ package models
 
 import java.time.ZonedDateTime
 
-import base.UnitSpec
+import base.BaseSpec
 import play.api.libs.json.Json
 
-class MongoDateTimeSpec extends  UnitSpec with MongoDateTimeFormats {
+class MongoDateTimeSpec extends  BaseSpec with MongoDateTimeFormats {
 
   "a ZonedDateTime" must {
 

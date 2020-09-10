@@ -35,18 +35,18 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
   def approvalReviewInfo(id: String, reviewType: String): Future[RequestOutcome[ProcessReview]] =
     repository.getById(id) flatMap {
       case Left(NotFoundError) => Future.successful(Left(NotFoundError))
-      case Left(_) => Future.successful(Left(InternalServiceError))
+      case Left(_) => Future.successful(Left(InternalServerError))
       case Right(process) => getReviewInfo(id, reviewType, process.version)
     }
 
   def approvalPageInfo(id: String, pageUrl: String, reviewType: String): Future[RequestOutcome[ApprovalProcessPageReview]] =
     repository.getById(id) flatMap {
       case Left(NotFoundError) => Future.successful(Left(NotFoundError))
-      case Left(_) => Future.successful(Left(InternalServiceError))
+      case Left(_) => Future.successful(Left(InternalServerError))
       case Right(process) =>
         reviewRepository.getByIdVersionAndType(id, process.version, reviewType) map {
           case Left(NotFoundError) => Left(NotFoundError)
-          case Left(_) => Left(InternalServiceError)
+          case Left(_) => Left(InternalServerError)
           case Right(info) =>
             info.pages.find(p => p.pageUrl == pageUrl) match {
               case Some(page) => Right(page)
@@ -125,7 +125,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
       case Left(NotFoundError) =>
         logger.warn(s"approvalPageComplete - process $id not found.")
         Future.successful(Left(NotFoundError))
-      case Left(_) => Future.successful(Left(InternalServiceError))
+      case Left(_) => Future.successful(Left(InternalServerError))
       case Right(process) =>
         reviewRepository.updatePageReview(process.id, process.version, pageUrl, reviewType, reviewInfo) flatMap {
           case Left(NotFoundError) =>
@@ -133,7 +133,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
             Future.successful(Left(NotFoundError))
           case Left(err) =>
             logger.warn(s"updatePageReview failed with err $err for process $id, version ${process.version}, reviewType $reviewType and pageUrl $pageUrl not found.")
-            Future.successful(Left(InternalServiceError))
+            Future.successful(Left(InternalServerError))
           case Right(_) =>
             changeStatus(id, "InProgress", reviewInfo.updateUser.getOrElse("System"), reviewType).map{
               case Left(err) =>
@@ -148,7 +148,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
     repository.changeStatus(id, status, userId) map {
       case Left(DatabaseError) =>
         logger.error(s"$reviewType - database error changing status")
-        Left(InternalServiceError)
+        Left(InternalServerError)
       case error @ Left(NotFoundError) =>
         logger.warn(s"$reviewType: Change Status: process $id was not found")
         error
@@ -174,7 +174,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
   private def getReviewInfo(id: String, reviewType: String, version: Int): Future[RequestOutcome[ProcessReview]] = {
     reviewRepository.getByIdVersionAndType(id, version, reviewType) map {
       case Left(NotFoundError) => Left(NotFoundError)
-      case Left(_) => Left(InternalServiceError)
+      case Left(_) => Left(InternalServerError)
       case Right(info) =>
         val pages: List[PageReview] = info.pages.map(p => PageReview(p.id, p.pageTitle, p.pageUrl, p.status, p.result))
         Right(ProcessReview(info.id, info.ocelotId, info.version, info.reviewType, info.title, info.lastUpdated, pages))

@@ -18,13 +18,13 @@ package repositories.formatters
 
 import java.time.{LocalDate, ZonedDateTime}
 
-import base.UnitSpec
+import base.BaseSpec
 import models.{ApprovalProcessJson, ApprovalProcessMeta}
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import repositories.formatters.ApprovalProcessMetaFormatter.mongoFormat
 import utils.Constants._
 
-class ApprovalProcessMetaFormatterSpec extends UnitSpec with ApprovalProcessJson {
+class ApprovalProcessMetaFormatterSpec extends BaseSpec with ApprovalProcessJson {
 
   private val year = 2020
   private val month = 3
@@ -54,7 +54,8 @@ class ApprovalProcessMetaFormatterSpec extends UnitSpec with ApprovalProcessJson
     |    "title" : "This is the title",
     |    "status" : "$StatusSubmitted",
     |    "dateSubmitted" : {"$$date": $dateLong},
-    |    "reviewType" : "$ReviewType2i"
+    |    "reviewType" : "$ReviewType2i",
+    |    "processCode" : "$processCode"
     |  }
     """.stripMargin
   private val validMetaJsonWithoutLastModified = Json.parse(validStringWithoutLastModified)

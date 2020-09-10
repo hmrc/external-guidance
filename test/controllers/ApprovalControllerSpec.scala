@@ -20,7 +20,7 @@ import base.ControllerBaseSpec
 import mocks._
 import controllers.actions.FakeIdentifiedActionProvider
 import mocks.MockApprovalService
-import models.errors.{BadRequestError, Error, InternalServiceError, NotFoundError, ProcessError, ValidationError}
+import models.errors.{BadRequestError, Error, InternalServerError, NotFoundError, ProcessError, ValidationError}
 import models.ocelot.errors.DuplicatePageUrl
 import models.{ApprovalProcess, ApprovalProcessJson}
 import play.api.http.ContentTypes
@@ -168,7 +168,7 @@ class ApprovalControllerSpec extends ControllerBaseSpec with MockApprovalService
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockApprovalService
           .save(invalidProcess)
-          .returns(Future.successful(Left(InternalServiceError)))
+          .returns(Future.successful(Left(InternalServerError)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidProcess)
       }
@@ -255,7 +255,7 @@ class ApprovalControllerSpec extends ControllerBaseSpec with MockApprovalService
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockApprovalService
           .save(invalidProcess, ReviewTypeFactCheck)
-          .returns(Future.successful(Left(InternalServiceError)))
+          .returns(Future.successful(Left(InternalServerError)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidProcess)
       }
@@ -369,7 +369,7 @@ class ApprovalControllerSpec extends ControllerBaseSpec with MockApprovalService
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockApprovalService
           .getById(validId)
-          .returns(Future.successful(Left(InternalServiceError)))
+          .returns(Future.successful(Left(InternalServerError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
@@ -483,7 +483,7 @@ class ApprovalControllerSpec extends ControllerBaseSpec with MockApprovalService
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockApprovalService
           .getByProcessCode(validId)
-          .returns(Future.successful(Left(InternalServiceError)))
+          .returns(Future.successful(Left(InternalServerError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
@@ -536,7 +536,7 @@ class ApprovalControllerSpec extends ControllerBaseSpec with MockApprovalService
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockApprovalService
           .approvalSummaryList(List("FactChecker", "2iReviewer"))
-          .returns(Future.successful(Left(InternalServiceError)))
+          .returns(Future.successful(Left(InternalServerError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "")
       }

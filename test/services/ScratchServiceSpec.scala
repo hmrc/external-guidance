@@ -18,7 +18,7 @@ package services
 
 import java.util.UUID
 
-import base.UnitSpec
+import base.BaseSpec
 import mocks.MockScratchRepository
 import models.RequestOutcome
 import models.ocelot.errors._
@@ -28,7 +28,7 @@ import play.api.libs.json.{JsObject, Json}
 
 import scala.concurrent.Future
 
-class ScratchServiceSpec extends UnitSpec {
+class ScratchServiceSpec extends BaseSpec {
 
   private trait Test extends MockScratchRepository {
     lazy val target: ScratchService = new ScratchService(mockScratchRepository, new PageBuilder)
@@ -91,7 +91,7 @@ class ScratchServiceSpec extends UnitSpec {
     "a database error occurs" should {
       "return a internal error" in new Test with ProcessJson {
         val repositoryResponse: RequestOutcome[UUID] = Left(DatabaseError)
-        val expected: RequestOutcome[UUID] = Left(InternalServiceError)
+        val expected: RequestOutcome[UUID] = Left(InternalServerError)
         val process: JsObject = validOnePageJson.as[JsObject]
         MockScratchRepository
           .save(process)
@@ -149,7 +149,7 @@ class ScratchServiceSpec extends UnitSpec {
     "a database error occurs" should {
       "return a internal error" in new Test {
         val repositoryResponse: RequestOutcome[JsObject] = Left(DatabaseError)
-        val expected: RequestOutcome[JsObject] = Left(InternalServiceError)
+        val expected: RequestOutcome[JsObject] = Left(InternalServerError)
         val id: UUID = UUID.randomUUID()
         MockScratchRepository
           .getById(id)

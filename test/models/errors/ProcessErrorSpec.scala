@@ -16,11 +16,11 @@
 
 package models.errors
 
-import base.UnitSpec
+import base.BaseSpec
 import models.ocelot.errors._
 import services._
 
-class ProcessErrorSpec extends UnitSpec {
+class ProcessErrorSpec extends BaseSpec {
 
   "Contructing ProcessErrors" should {
     "from UnknownStanza" in {

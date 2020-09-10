@@ -19,7 +19,7 @@ package controllers
 import java.util.UUID
 
 import mocks.MockScratchService
-import models.errors.{BadRequestError, Error, InternalServiceError, NotFoundError, ProcessError, ValidationError}
+import models.errors.{BadRequestError, Error, InternalServerError, NotFoundError, ProcessError, ValidationError}
 import models.ocelot.errors._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
@@ -155,7 +155,7 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
       trait ErrorSaveTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         val process: JsObject = Json.obj()
-        MockScratchService.save(process).returns(Future.successful(Left(InternalServiceError)))
+        MockScratchService.save(process).returns(Future.successful(Left(InternalServerError)))
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(process)
       }
 
@@ -258,7 +258,7 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
 
       trait ErrorGetTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
-        MockScratchService.getById(id).returns(Future.successful(Left(InternalServiceError)))
+        MockScratchService.getById(id).returns(Future.successful(Left(InternalServerError)))
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
       }
 
