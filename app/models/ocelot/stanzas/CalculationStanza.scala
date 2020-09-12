@@ -16,11 +16,14 @@
 
 package models.ocelot.stanzas
 
+import models.ocelot.Label
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 
-case class CalculationStanza(calcs: Seq[CalcOperation], override val next: Seq[String], stack: Boolean) extends Stanza
+case class CalculationStanza(calcs: Seq[CalcOperation], override val next: Seq[String], stack: Boolean) extends Stanza {
+  override val labels: List[Label] = calcs.map(op => Label(op.label)).toList
+}
 
 object CalculationStanza {
 

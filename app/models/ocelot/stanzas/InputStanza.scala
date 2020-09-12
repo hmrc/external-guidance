@@ -16,6 +16,7 @@
 
 package models.ocelot.stanzas
 
+import models.ocelot.{Label, Phrase}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -28,7 +29,9 @@ case class InputStanza(
   label: String,
   placeholder: Int,
   stack: Boolean
-) extends Stanza
+) extends Stanza {
+  override val labels = List(Label(label, None, Some(ipt_type)))
+}
 
 object InputStanza {
 
@@ -52,4 +55,18 @@ object InputStanza {
         (JsPath \ "stack").write[Boolean]
     )(unlift(InputStanza.unapply))
 
+}
+
+case class Input(ipt_type: InputType,
+                 override val next: Seq[String],
+                 name: Phrase,
+                 help: Phrase,
+                 label: String,
+                 placeholder: Phrase,
+                 stack: Boolean) extends PopulatedStanza
+
+object Input {
+  def apply(stanza: InputStanza, name: Phrase, help: Phrase, placeholder: Phrase): Input = {
+    Input(stanza.ipt_type, stanza.next, name, help, stanza.label, placeholder, stanza.stack)
+  }
 }

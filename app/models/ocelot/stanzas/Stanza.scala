@@ -17,14 +17,21 @@
 package models.ocelot.stanzas
 
 import play.api.libs.json._
+import models.ocelot.Label
 
 trait Stanza {
   val next: Seq[String] = Nil
+  val labels: List[Label] = Nil
+  val labelRefs: List[String] = Nil
 }
 
-trait PopulatedStanza extends Stanza
+trait PopulatedStanza extends Stanza {
+  val links: List[String] = Nil
+}
 
-case object EndStanza extends Stanza
+trait PageTerminator
+
+case object EndStanza extends Stanza  with PageTerminator
 
 object Stanza {
 

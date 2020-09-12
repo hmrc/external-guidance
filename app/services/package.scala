@@ -16,21 +16,32 @@
 
 import models.errors.{Error, ProcessError, ValidationError}
 import models.ocelot.errors._
+import scala.util.matching.Regex
 import java.util.UUID
 import models.RequestOutcome
-import models.ocelot.{Page, Process}
+import models.ocelot.{Label, Page, Process}
 import play.api.libs.json._
 
 package object services {
+  val processIdformat = "^[a-z]{3}[0-9]{5}$"
+  val uuidFormat = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
 
-  def validateUUID(id: String): Option[UUID] = {
-    val format = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-    if (id.matches(format)) Some(UUID.fromString(id)) else None
-  }
+  val hintRegex = "\\[hint:([^\\]])+\\]".r
+  val pageLinkRegex = s"\\[link:.+?:(\\d+|${Process.StartStanzaId})\\]".r
+  val labelRefRegex = s"\\[label:([0-9a-zA-Z]+)\\]".r
 
-  def validateProcessId(id: String): Either[Error, String] = {
-    val format = "^[a-z]{3}[0-9]{5}$"
-    if (id.matches(format)) Right(id) else Left(ValidationError)
+  def plSingleGroupCaptures(regex: Regex, str: String): List[String] = regex.findAllMatchIn(str).map(_.group(1)).toList
+  def pageLinkIds(str: String): List[String] = plSingleGroupCaptures(pageLinkRegex, str)
+  def labelRefs(str: String): List[String] = plSingleGroupCaptures(labelRefRegex, str)
+
+  def validateUUID(id: String): Option[UUID] = if (id.matches(uuidFormat)) Some(UUID.fromString(id)) else None
+  def validateProcessId(id: String): Either[Error, String] = if (id.matches(processIdformat)) Right(id) else Left(ValidationError)
+
+  def uniqueLabels(pages: Seq[Page]):Seq[Label] = {
+    val (notype, typed) = pages.flatMap(p => p.labels).partition(_.valueType.isEmpty)
+    val untyped = notype.distinct
+    val withType = typed.distinct
+    (withType ++ untyped.filterNot(u => withType.exists(t => t.name == u.name)))
   }
 
   implicit def toProcessErr(err: GuidanceError): ProcessError = err match {

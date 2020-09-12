@@ -16,12 +16,22 @@
 
 package models.ocelot
 
-import models.ocelot.stanzas.Stanza
+import models.ocelot.stanzas.InputType
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
-case class Page(id: String,
-                url: String,
-                stanzas: Seq[Stanza],
-                next: Seq[String],
-                linked: Seq[String] = Nil,
-                labels: Seq[Label] = Nil,
-                labelRefs: Seq[String] = Nil)
+case class Label(name: String, value: Option[String] = None, valueType: Option[stanzas.InputType] = None)
+
+object Label {
+  implicit val reads: Reads[Label] = (
+    (__ \ "name").read[String] and
+      (__ \ "value").readNullable[String] and
+      (__ \ "valueType").readNullable[InputType]
+  )(Label.apply _)
+
+  implicit val writes: Writes[Label] = (
+    (__ \ "name").write[String] and
+      (__ \ "value").writeNullable[String] and
+      (__ \ "valueType").writeNullable[InputType]
+  )(unlift(Label.unapply))
+}
