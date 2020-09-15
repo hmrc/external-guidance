@@ -37,6 +37,12 @@ class PageBuilder extends ProcessPopulation {
                        linkedAcc: Seq[String]): Either[GuidanceError, (Seq[KeyedStanza], Seq[Label], Seq[String])] =
       stanza(key, process) match {
         case Right(s: PageStanza) if acc.nonEmpty => Right((acc, labelsAcc, linkedAcc))
+        // Partially enable Calculation and Choice stanzas to allow collection of labels, both will be ignore during build of UI
+        // Calculation and Choice stanza will generate if found in the place of a PageStanza e.e. after a Question
+        case Right(s: CalculationStanza) if acc.nonEmpty => collectStanzas(s.next.head, acc :+ KeyedStanza(key, s), labelsAcc ++ s.labels, linkedAcc)
+        case Right(s: ChoiceStanza) if acc.nonEmpty => collectStanzas(s.next.head, acc :+ KeyedStanza(key, s), labelsAcc ++ s.labels, linkedAcc)
+        case Right(s: CalculationStanza) => Left(UnknownStanza(key, "CalculationStanza"))
+        case Right(s: ChoiceStanza) => Left(UnknownStanza(key, "ChoiceStanza"))
         case Right(s: Stanza with PageTerminator) => Right((acc :+ KeyedStanza(key, s), labelsAcc, linkedAcc))
         case Right(s: PopulatedStanza) => collectStanzas(s.next.head, acc :+ KeyedStanza(key, s), labelsAcc ++ s.labels, linkedAcc ++ s.links)
         case Right(s: Stanza) => collectStanzas(s.next.head, acc :+ KeyedStanza(key, s), labelsAcc ++ s.labels, linkedAcc)

@@ -125,36 +125,63 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       }
     }
 
-    // UNKNOWN STANZAS CAUGHT AT JSON PARSE STAGE
-    // "detect UnknownStanza error when currently unsupported stanza found" in {
+    "generate UnknownStanza when CalculationStanza stanza found at start of page (after a question)" in {
 
-    //   case class MadeUpStanza(override val next: Seq[String]) extends Stanza
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/blah", Seq("1"), false),
+        "1" -> InstructionStanza(0, Seq("2"), None, false),
+        "2" -> QuestionStanza(1, Seq(2, 3), Seq("3", "4"), false),
+        "3" -> CalculationStanza(Seq.empty[CalcOperation], Seq("3"), false),
+        "4" -> InstructionStanza(0, Seq("end"), None, false),
+        "end" -> EndStanza
+      )
+      val process = Process(
+        metaSection,
+        flow,
+        Vector[Phrase](
+          Phrase(Vector("Some Text", "Welsh, Some Text")),
+          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
+        ),
+        Vector[Link]()
+      )
 
-    //   val flow = Map(
-    //     Process.StartStanzaId -> PageStanza("/blah", Seq("1"), false),
-    //     "1" -> InstructionStanza(0, Seq("2"), None, false),
-    //     "2" -> MadeUpStanza(Seq("3")),
-    //     "3" -> InstructionStanza(0, Seq("end"), None, false),
-    //     "end" -> EndStanza
-    //   )
-    //   val process = Process(
-    //     metaSection,
-    //     flow,
-    //     Vector[Phrase](
-    //       Phrase(Vector("Some Text", "Welsh, Some Text")),
-    //       Phrase(Vector("Some Text1", "Welsh, Some Text1")),
-    //       Phrase(Vector("Some Text2", "Welsh, Some Text2")),
-    //       Phrase(Vector("Some Text3", "Welsh, Some Text3"))
-    //     ),
-    //     Vector[Link]()
-    //   )
+      pageBuilder.pages(process) match {
+        case Left(List(UnknownStanza("3", "CalculationStanza"))) => succeed
+        case Left(err) => fail(s"Failed with $err")
+        case x => fail(s"General failure with $x")
+      }
+    }
 
-    //   pageBuilder.pages(process) match {
-    //     case Left(List(UnknownStanza("2", "MadeUpStanza(List(3))"))) => succeed
-    //     case Left(err) => fail(s"Failed with $err")
-    //     case x => fail(s"General failure with $x")
-    //   }
-    // }
+    "generate UnknownStanza when ChoiceStanza found at start of page (after a question)" in {
+
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/blah", Seq("1"), false),
+        "1" -> InstructionStanza(0, Seq("2"), None, false),
+        "2" -> QuestionStanza(1, Seq(2, 3), Seq("3", "4"), false),
+        "3" -> ChoiceStanza(Seq("3"), Seq.empty[ChoiceTest], false),
+        "4" -> InstructionStanza(0, Seq("end"), None, false),
+        "end" -> EndStanza
+      )
+      val process = Process(
+        metaSection,
+        flow,
+        Vector[Phrase](
+          Phrase(Vector("Some Text", "Welsh, Some Text")),
+          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
+        ),
+        Vector[Link]()
+      )
+
+      pageBuilder.pages(process) match {
+        case Left(List(UnknownStanza("3", "ChoiceStanza"))) => succeed
+        case Left(err) => fail(s"Failed with $err")
+        case x => fail(s"General failure with $x")
+      }
+    }
 
     "detect PageUrlEmptyOrInvalid error when PageValue is present but url is blank" in {
       val flow = Map(
@@ -417,7 +444,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
       pageBuilder.pages(ihtProcess, "start") match {
         case Right(pages) => services.uniqueLabels(pages) shouldBe labels
-        case Left(err) => fail
+        case Left(err) => fail(s"Failed with $err")
       }
     }
   }
