@@ -44,15 +44,15 @@ class InstructionSpec extends WordSpec with Matchers {
   "when constructed via apply() Instruction" must {
 
     "contain a list of linked stanza ids drawn from placeholders within the text" in new Test {
-      val instruction = Instruction(simpleInstruction, phrase0, None)
-      instruction.linkIds.length shouldBe 0
+      val instruction = Instruction(simpleInstruction, phrase0, None, Nil)
+      instruction.links.length shouldBe 0
     }
 
     "contain a list of linked stanza ids drawn from placeholders within the text and link" in new Test {
-      val instruction = Instruction(linkInstruction, phrase0, Some(link))
-      instruction.linkIds.length shouldBe 1
+      val instruction = Instruction(linkInstruction, phrase0, Some(link), Nil)
+      instruction.links.length shouldBe 1
 
-      instruction.linkIds.contains(linkDest) shouldBe true
+      instruction.links.contains(linkDest) shouldBe true
     }
 
   }

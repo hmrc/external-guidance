@@ -19,7 +19,7 @@ package services
 import javax.inject.Singleton
 import models.ocelot.stanzas._
 import models.ocelot.errors._
-import models.ocelot.{Page, Process}
+import models.ocelot.{Label, Page, Process}
 import play.api.Logger
 import scala.annotation.tailrec
 
@@ -29,34 +29,31 @@ case class KeyedStanza(key: String, stanza: Stanza)
 class PageBuilder extends ProcessPopulation {
   val logger: Logger = Logger(this.getClass)
 
-  private val pageLinkRegex = s"\\[link:.+?:(\\d+|${Process.StartStanzaId})\\]".r
-  private val hintRegex = "\\[hint:([^\\]])+\\]".r
-
-  private def pageLinkIds(str: String): Seq[String] = pageLinkRegex.findAllMatchIn(str).map(_.group(1)).toList
-
   def buildPage(key: String, process: Process): Either[GuidanceError, Page] = {
-
     @tailrec
-    def collectStanzas(key: String, acc: Seq[KeyedStanza], linkedAcc: Seq[String]): Either[GuidanceError, (Seq[KeyedStanza], Seq[String], Seq[String])] =
+    def collectStanzas(key: String,
+                       acc: Seq[KeyedStanza],
+                       labelsAcc: Seq[Label],
+                       linkedAcc: Seq[String]): Either[GuidanceError, (Seq[KeyedStanza], Seq[Label], Seq[String])] =
       stanza(key, process) match {
-        case Right(q: Question) => Right((acc :+ KeyedStanza(key, q), q.next, linkedAcc))
-        case Right(EndStanza) => Right((acc :+ KeyedStanza(key, EndStanza), Nil, linkedAcc))
-        case Right(p: PageStanza) if acc.nonEmpty => Right((acc, acc.last.stanza.next, linkedAcc))
-        case Right(p: PageStanza) => collectStanzas(p.next.head, acc :+ KeyedStanza(key, p), linkedAcc)
-        case Right(i: Instruction) => collectStanzas(i.next.head, acc :+ KeyedStanza(key, i), linkedAcc ++ pageLinkIds(i.text.langs.head) ++ i.linkIds)
-        case Right(c: Callout) => collectStanzas(c.next.head, acc :+ KeyedStanza(key, c), linkedAcc)
-        case Right(v: ValueStanza) => collectStanzas(v.next.head, acc :+ KeyedStanza(key, v), linkedAcc)
-        case Right(cs: CalculationStanza) => Left(UnknownStanza(key, "CalculationStanza"))
-        case Right(v: ChoiceStanza) => Left(UnknownStanza(key, "ChoiceStanza"))
-        case Right(i: InputStanza) => Left(UnknownStanza(key, "InputStanza"))
+        case Right(s: PageStanza) if acc.nonEmpty => Right((acc, labelsAcc, linkedAcc))
+        // Partially enable Calculation and Choice stanzas to allow collection of labels, both will be ignore during build of UI
+        // Calculation and Choice stanza will generate if found in the place of a PageStanza e.e. after a Question
+        case Right(s: CalculationStanza) if acc.nonEmpty => collectStanzas(s.next.head, acc :+ KeyedStanza(key, s), labelsAcc ++ s.labels, linkedAcc)
+        case Right(s: ChoiceStanza) if acc.nonEmpty => collectStanzas(s.next.head, acc :+ KeyedStanza(key, s), labelsAcc ++ s.labels, linkedAcc)
+        case Right(s: CalculationStanza) => Left(UnknownStanza(key, "CalculationStanza"))
+        case Right(s: ChoiceStanza) => Left(UnknownStanza(key, "ChoiceStanza"))
+        case Right(s: Stanza with PageTerminator) => Right((acc :+ KeyedStanza(key, s), labelsAcc, linkedAcc))
+        case Right(s: PopulatedStanza) => collectStanzas(s.next.head, acc :+ KeyedStanza(key, s), labelsAcc ++ s.labels, linkedAcc ++ s.links)
+        case Right(s: Stanza) => collectStanzas(s.next.head, acc :+ KeyedStanza(key, s), labelsAcc ++ s.labels, linkedAcc)
         case Left(err) => Left(err)
       }
 
-    collectStanzas(key, Nil, Nil) match {
-      case Right((ks, next, linked)) =>
+    collectStanzas(key, Nil, Nil, Nil) match {
+      case Right((ks, labels, linked)) =>
         ks.head.stanza match {
           case p: PageStanza if p.url.isEmpty || p.url.equals("/") => Left(PageUrlEmptyOrInvalid(ks.head.key))
-          case p: PageStanza => Right(Page(ks.head.key, p.url, ks.map(_.stanza), next, linked))
+          case p: PageStanza => Right(Page(ks.head.key, p.url, ks.map(_.stanza), ks.last.stanza.next, linked, labels))
           case _ => Left(PageStanzaMissing(ks.head.key))
         }
       case Left(err) => Left(err)
@@ -64,7 +61,6 @@ class PageBuilder extends ProcessPopulation {
   }
 
   def pages(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] = {
-
     @tailrec
     def pagesByKeys(keys: Seq[String], acc: Seq[Page]): Either[GuidanceError, Seq[Page]] =
       keys match {

@@ -56,12 +56,21 @@ trait ProcessPopulation {
         Left(_),
         text => {
           i.link match {
-            case Some(linkIndex) => link(linkIndex).fold(Left(_), link => Right(Instruction(i, text, Some(link))))
-            case None => Right(Instruction(i, text, None))
+            case Some(linkIndex) => link(linkIndex).fold(Left(_), link => Right(Instruction(i, text, Some(link), pageLinkIds(text.langs.head))))
+            case None => Right(Instruction(i, text, None, pageLinkIds(text.langs.head)))
           }
         }
       )
     }
+
+    def populateInput(i: InputStanza): Either[GuidanceError, Input] =
+      phrase(i.name).fold(ne => Left(ne), name =>
+        phrase(i.help).fold(he => Left(he), help =>
+          phrase(i.placeholder).fold(pe => Left(pe), placeholder =>
+            Right(Input(i, name, help, placeholder))
+          )
+        )
+      )
 
     stanza match {
       case q: QuestionStanza =>
@@ -70,6 +79,7 @@ trait ProcessPopulation {
           case Left(err) => Left(err)
         }
       case i: InstructionStanza => populateInstruction(i)
+      case i: InputStanza => populateInput(i)
       case c: CalloutStanza => phrase(c.text).fold(Left(_), text => Right(Callout(c, text)))
       case s: Stanza => Right(s)
     }
