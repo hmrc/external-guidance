@@ -16,12 +16,11 @@
 
 package models.ocelot
 
-import models.ocelot.stanzas.Stanza
+import models.ocelot.stanzas.{KeyedStanza, Stanza}
 
-case class Page(id: String,
-                url: String,
-                stanzas: Seq[Stanza],
-                next: Seq[String],
-                linked: Seq[String] = Nil,
-                labels: Seq[Label] = Nil,
-                labelRefs: Seq[String] = Nil)
+case class Page(id: String, url: String, keyedStanzas: Seq[KeyedStanza], next: Seq[String]) {
+  val stanzas: Seq[Stanza] = keyedStanzas.map(_.stanza)
+  val linked: Seq[String] = keyedStanzas.flatMap(_.stanza.links)
+  val labels: Seq[Label] = keyedStanzas.flatMap(_.stanza.labels)
+  val labelRefs: Seq[String] = keyedStanzas.flatMap(_.stanza.labelRefs).distinct
+}

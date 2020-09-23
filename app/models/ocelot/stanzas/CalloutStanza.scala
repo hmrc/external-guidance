@@ -16,7 +16,7 @@
 
 package models.ocelot.stanzas
 
-import models.ocelot.Phrase
+import models.ocelot.{labelReferences, Phrase}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -41,7 +41,9 @@ object CalloutStanza {
 
 }
 
-case class Callout(noteType: CalloutType, text: Phrase, override val next: Seq[String], stack: Boolean) extends PopulatedStanza
+case class Callout(noteType: CalloutType, text: Phrase, override val next: Seq[String], stack: Boolean) extends PopulatedStanza {
+  override val labelRefs: List[String] = labelReferences(text.langs(0))
+}
 
 object Callout {
   def apply(stanza: CalloutStanza, text: Phrase): Callout = Callout(stanza.noteType, text, stanza.next, stanza.stack)

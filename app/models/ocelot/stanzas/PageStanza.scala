@@ -19,7 +19,9 @@ package models.ocelot.stanzas
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{OWrites, Reads, _}
 
-case class PageStanza(url: String, override val next: Seq[String], stack: Boolean) extends Stanza
+case class PageStanza(url: String, override val next: Seq[String], stack: Boolean) extends Stanza {
+  override val visual: Boolean = false
+}
 
 object PageStanza {
 

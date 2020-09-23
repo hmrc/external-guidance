@@ -35,7 +35,7 @@ class InputStanzaSpec extends BaseSpec {
   )
 
   def inputStanza(inputType: InputType): InputStanza =
-    InputStanza(inputType,  Seq("1"), 0, 1,"Price", 2, stack = false)
+    InputStanza(inputType,  Seq("1"), 0, 1,"Price", Some(2), stack = false)
 
   val expectedCurrencyStanza: InputStanza = inputStanza(Currency)
   val expectedDateStanza: InputStanza = inputStanza(Date)
@@ -111,7 +111,7 @@ class InputStanzaSpec extends BaseSpec {
   }
 
   /** Test for missing properties in Json object representing instruction stanzas */
-  missingJsObjectAttrTests[InputStanza](getStanzaJson("Currency").as[JsObject], List("type"))
+  missingJsObjectAttrTests[InputStanza](getStanzaJson("Currency").as[JsObject], List("type", "placeholder"))
 
   /** Test for properties of the wrong type in json object representing instruction stanzas */
   incorrectPropertyTypeJsObjectAttrTests[InputStanza](getStanzaJson("Currency").as[JsObject], List("type"))

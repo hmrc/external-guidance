@@ -16,11 +16,14 @@
 
 package models
 
-package object ocelot {
+import scala.util.matching.Regex
 
-  def addTitlePhrase(process: Process): Process = 
-    process.copy(
-      meta = process.meta.copy(titlePhrase = Some(process.phrases.length)),
-      phrases = process.phrases :+ Phrase(process.meta.title, s"Welsh, ${process.meta.title}")
-    )
+package object ocelot {
+  val hintRegex = "\\[hint:([^\\]])+\\]".r
+  val pageLinkRegex = s"\\[link:.+?:(\\d+|${Process.StartStanzaId})\\]".r
+  val labelRefRegex = s"\\[label:([0-9a-zA-Z\\s+]+)\\]".r
+
+  def plSingleGroupCaptures(regex: Regex, str: String): List[String] = regex.findAllMatchIn(str).map(_.group(1)).toList
+  def pageLinkIds(str: String): List[String] = plSingleGroupCaptures(pageLinkRegex, str)
+  def labelReferences(str: String): List[String] = plSingleGroupCaptures(labelRefRegex, str)
 }

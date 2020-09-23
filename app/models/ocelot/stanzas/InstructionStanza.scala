@@ -16,7 +16,7 @@
 
 package models.ocelot.stanzas
 
-import models.ocelot.{Link, Phrase}
+import models.ocelot.{labelReferences, Link, Phrase}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json.{JsPath, OWrites, Reads}
@@ -41,7 +41,9 @@ object InstructionStanza {
 
 }
 
-case class Instruction(text: Phrase, override val next: Seq[String], link: Option[Link], stack: Boolean, override val links: List[String] = Nil) extends PopulatedStanza
+case class Instruction(text: Phrase, override val next: Seq[String], link: Option[Link], stack: Boolean, override val links: List[String] = Nil) extends PopulatedStanza {
+  override val labelRefs: List[String] = labelReferences(text.langs(0))
+}
 
 object Instruction {
   def apply(stanza: InstructionStanza, text: Phrase, link: Option[Link], linkIds: List[String]): Instruction = {

@@ -302,7 +302,7 @@ trait IhtJson {
               {
                 "left": "[label:IHT result]",
                 "op": "subtract",
-                "right": "[label:Additional info]",
+                "right": "[label:Additional Info]",
                 "label": "IHT result"
               }
             ],
