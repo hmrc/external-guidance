@@ -63,7 +63,7 @@ case class Input(ipt_type: InputType,
                  help: Phrase,
                  label: String,
                  placeholder: Option[Phrase],
-                 stack: Boolean) extends PopulatedStanza {
+                 stack: Boolean) extends Stanza with Populated {
   override val labelRefs: List[String] = labelReferences(name.langs(0)) ++ labelReferences(help.langs(0))
 }
 

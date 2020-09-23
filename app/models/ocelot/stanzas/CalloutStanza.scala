@@ -41,7 +41,7 @@ object CalloutStanza {
 
 }
 
-case class Callout(noteType: CalloutType, text: Phrase, override val next: Seq[String], stack: Boolean) extends PopulatedStanza {
+case class Callout(noteType: CalloutType, text: Phrase, override val next: Seq[String], stack: Boolean) extends Stanza with Populated {
   override val labelRefs: List[String] = labelReferences(text.langs(0))
 }
 

@@ -41,7 +41,7 @@ object QuestionStanza {
 
 }
 
-case class Question(text: Phrase, answers: Seq[Phrase], override val next: Seq[String], stack: Boolean) extends PopulatedStanza {
+case class Question(text: Phrase, answers: Seq[Phrase], override val next: Seq[String], stack: Boolean) extends Stanza with Populated {
   override val labelRefs: List[String] = labelReferences(text.langs(0)) ++ answers.flatMap(a => labelReferences(a.langs(0)))
 
 }

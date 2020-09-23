@@ -27,9 +27,11 @@ trait Stanza {
   val labelRefs: List[String] = Nil
 }
 
-case class KeyedStanza(key: String, stanza: Stanza)
+trait NonVisualStanza extends Stanza {
+  override val visual: Boolean = false
+}
 
-trait PopulatedStanza extends Stanza
+trait Populated
 
 case object EndStanza extends Stanza
 

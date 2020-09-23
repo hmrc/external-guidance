@@ -39,8 +39,7 @@ object Value {
 
 }
 
-case class ValueStanza(values: List[Value], override val next: Seq[String], stack: Boolean) extends Stanza {
-  override val visual: Boolean = false
+case class ValueStanza(values: List[Value], override val next: Seq[String], stack: Boolean) extends NonVisualStanza {
   override val labels: List[Label] = values.map(v => Label(v.label, Some(v.value)))
   override val labelRefs: List[String] = values.flatMap(v => labelReferences(v.value))
 }

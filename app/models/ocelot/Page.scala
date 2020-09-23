@@ -16,7 +16,9 @@
 
 package models.ocelot
 
-import models.ocelot.stanzas.{KeyedStanza, Stanza}
+import models.ocelot.stanzas.Stanza
+
+case class KeyedStanza(key: String, stanza: Stanza)
 
 case class Page(id: String, url: String, keyedStanzas: Seq[KeyedStanza], next: Seq[String]) {
   val stanzas: Seq[Stanza] = keyedStanzas.map(_.stanza)

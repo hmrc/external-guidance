@@ -847,16 +847,9 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       "158"
     )
 
-    //val indexedPages: IndexedSeq[Page] = pages.toIndexedSeq
-
     pages.length shouldBe expectedPageIds.length
 
     pages.forall(p => expectedPageIds.contains(p.id)) shouldBe true
-
-    // expectedPageIds.zipWithIndex.foreach {
-    //   case (id, index) =>
-    //     indexedPages(index).id shouldBe id
-    // }
   }
 
   /**
