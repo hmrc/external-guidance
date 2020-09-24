@@ -621,10 +621,9 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
           // Test contents of individual pages
           testSqpQp(indexedSeqOfPages(0))
 
-          testSqpSap(indexedSeqOfPages(1))
+          testSqpFap(indexedSeqOfPages(1))
 
-          testSqpFap(indexedSeqOfPages(2))
-
+          testSqpSap(indexedSeqOfPages(2))
 
         case Left(err) => //fail(s"Flow error $err")
       }

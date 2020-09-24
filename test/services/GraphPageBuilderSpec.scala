@@ -103,12 +103,12 @@ class GraphPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
           pages shouldNot be(Nil)
 
           pages(0).stanzas.length shouldBe 4
-          pages(1).stanzas.length shouldBe 5
+          pages(1).stanzas.length shouldBe 3
           pages(2).stanzas.length shouldBe 3
           pages(3).stanzas.length shouldBe 3
           pages(4).stanzas.length shouldBe 3
           pages(5).stanzas.length shouldBe 3
-          pages(6).stanzas.length shouldBe 3
+          pages(6).stanzas.length shouldBe 5
 
         case Left(err) => fail(s"GuidanceError $err")
       }

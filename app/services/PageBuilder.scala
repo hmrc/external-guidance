@@ -111,7 +111,7 @@ class PageBuilder extends ProcessPopulation {
     @tailrec
     def pagesByKeys(keys: Seq[String], acc: Seq[Page]): Either[GuidanceError, Seq[Page]] =
       keys match {
-        case Nil => Right(acc)
+        case Nil => Right(acc.headOption.fold(Seq.empty[Page])(h => h +: acc.tail.sortWith((x,y) => x.id < y.id)))
         case key :: xs if !acc.exists(_.id == key) =>
           buildPage(key, process) match {
             case Right(page) =>
