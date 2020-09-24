@@ -44,7 +44,7 @@ case class ChoiceStanza(
   override val next: Seq[String],
   tests: Seq[ChoiceTest],
   stack: Boolean
-) extends NonVisualStanza {
+) extends Stanza {
   override val labelRefs: List[String]  = tests.flatMap(op => labelReferences(op.left) ++ labelReferences(op.right)).toList
 }
 

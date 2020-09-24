@@ -21,7 +21,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
 
-case class CalloutStanza(noteType: CalloutType, text: Int, override val next: Seq[String], stack: Boolean) extends Stanza
+case class CalloutStanza(noteType: CalloutType, text: Int, override val next: Seq[String], stack: Boolean) extends VisualStanza
 
 object CalloutStanza {
 
@@ -41,7 +41,7 @@ object CalloutStanza {
 
 }
 
-case class Callout(noteType: CalloutType, text: Phrase, override val next: Seq[String], stack: Boolean) extends Stanza with Populated {
+case class Callout(noteType: CalloutType, text: Phrase, override val next: Seq[String], stack: Boolean) extends VisualStanza with Populated {
   override val labelRefs: List[String] = labelReferences(text.langs(0))
 }
 

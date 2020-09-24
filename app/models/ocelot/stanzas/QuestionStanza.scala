@@ -21,7 +21,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
 
-case class QuestionStanza(text: Int, answers: Seq[Int], override val next: Seq[String], stack: Boolean) extends Stanza
+case class QuestionStanza(text: Int, answers: Seq[Int], override val next: Seq[String], stack: Boolean) extends VisualStanza
 
 object QuestionStanza {
 
@@ -41,7 +41,7 @@ object QuestionStanza {
 
 }
 
-case class Question(text: Phrase, answers: Seq[Phrase], override val next: Seq[String], stack: Boolean) extends Stanza with Populated {
+case class Question(text: Phrase, answers: Seq[Phrase], override val next: Seq[String], stack: Boolean) extends VisualStanza with Populated {
   override val labelRefs: List[String] = labelReferences(text.langs(0)) ++ answers.flatMap(a => labelReferences(a.langs(0)))
 
 }

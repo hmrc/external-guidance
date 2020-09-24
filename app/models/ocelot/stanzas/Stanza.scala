@@ -20,15 +20,15 @@ import play.api.libs.json._
 import models.ocelot.Label
 
 trait Stanza {
-  val visual: Boolean = true
+  val visual: Boolean = false
   val next: Seq[String] = Nil
   val links: List[String] = Nil
   val labels: List[Label] = Nil
   val labelRefs: List[String] = Nil
 }
 
-trait NonVisualStanza extends Stanza {
-  override val visual: Boolean = false
+trait VisualStanza extends Stanza {
+  override val visual: Boolean = true
 }
 
 trait Populated
