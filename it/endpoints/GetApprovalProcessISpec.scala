@@ -83,16 +83,7 @@ class GetApprovalProcessISpec extends IntegrationSpec {
 
   "Calling the approval GET process code endpoint with a valid ID" should {
 
-    // def populateDatabase(processToSave: JsValue): String = {
-    //   lazy val request = buildRequest("/external-guidance/approval/2i-review")
-
-    //   val result = await(request.post(processToSave))
-    //   val json = result.body[JsValue].as[JsObject]
-    //   (json \ "id").as[String]
-    // }
     val processCode = "this-is-the-process-code"
-    // val processToSave: JsValue = ExamplePayloads.validProcessWithCallouts
-    //   lazy val id = populateDatabase(processToSave)
     lazy val request = buildRequest(s"/external-guidance/approval/code/$processCode")
     lazy val response: WSResponse = {
       AuthStub.authorise()
