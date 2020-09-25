@@ -20,33 +20,38 @@ import play.api.libs.json._
 import models.ocelot.Label
 
 trait Stanza {
+  val visual: Boolean = false
   val next: Seq[String] = Nil
+  val links: List[String] = Nil
   val labels: List[Label] = Nil
   val labelRefs: List[String] = Nil
 }
 
-trait PopulatedStanza extends Stanza {
-  val links: List[String] = Nil
+trait VisualStanza extends Stanza {
+  override val visual: Boolean = true
 }
 
-trait PageTerminator
+trait Populated
 
-case object EndStanza extends Stanza  with PageTerminator
+case object EndStanza extends Stanza
 
 object Stanza {
 
   implicit val reads: Reads[Stanza] = (js: JsValue) => {
-    (js \ "type").as[String] match {
-      case "QuestionStanza" => js.validate[QuestionStanza]
-      case "InstructionStanza" => js.validate[InstructionStanza]
-      case "CalloutStanza" => js.validate[CalloutStanza]
-      case "PageStanza" => js.validate[PageStanza]
-      case "ValueStanza" => js.validate[ValueStanza]
-      case "CalculationStanza" => js.validate[CalculationStanza]
-      case "ChoiceStanza" => js.validate[ChoiceStanza]
-      case "InputStanza" => js.validate[InputStanza]
-      case "EndStanza" => JsSuccess(EndStanza)
-      case typeName => JsError(JsonValidationError(Seq("Stanza"), typeName))
+    (js \ "type").validate[String] match {
+      case err @ JsError(_) => err
+      case JsSuccess(typ, _) => typ match {
+        case "QuestionStanza" => js.validate[QuestionStanza]
+        case "InstructionStanza" => js.validate[InstructionStanza]
+        case "CalloutStanza" => js.validate[CalloutStanza]
+        case "PageStanza" => js.validate[PageStanza]
+        case "ValueStanza" => js.validate[ValueStanza]
+        case "CalculationStanza" => js.validate[CalculationStanza]
+        case "ChoiceStanza" => js.validate[ChoiceStanza]
+        case "InputStanza" => js.validate[InputStanza]
+        case "EndStanza" => JsSuccess(EndStanza)
+        case typeName => JsError(JsonValidationError(Seq("Stanza"), typeName))
+      }
     }
   }
 

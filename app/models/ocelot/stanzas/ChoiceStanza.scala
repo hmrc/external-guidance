@@ -16,6 +16,7 @@
 
 package models.ocelot.stanzas
 
+import models.ocelot.labelReferences
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -43,7 +44,9 @@ case class ChoiceStanza(
   override val next: Seq[String],
   tests: Seq[ChoiceTest],
   stack: Boolean
-) extends Stanza
+) extends Stanza {
+  override val labelRefs: List[String]  = tests.flatMap(op => labelReferences(op.left) ++ labelReferences(op.right)).toList
+}
 
 object ChoiceStanza {
 

@@ -16,7 +16,7 @@
 
 package models.ocelot.stanzas
 
-import models.ocelot.{Label, Phrase}
+import models.ocelot.{labelReferences, Label, Phrase}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -27,9 +27,9 @@ case class InputStanza(
   name: Int,
   help: Int,
   label: String,
-  placeholder: Int,
+  placeholder: Option[Int],
   stack: Boolean
-) extends Stanza {
+) extends VisualStanza {
   override val labels = List(Label(label, None, Some(ipt_type)))
 }
 
@@ -41,7 +41,7 @@ object InputStanza {
       (JsPath \ "name").read[Int] and
       (JsPath \ "help").read[Int] and
       (JsPath \ "label").read[String] and
-      (JsPath \ "placeholder").read[Int] and
+      (JsPath \ "placeholder").readNullable[Int] and
       (JsPath \ "stack").read[Boolean])(InputStanza.apply _)
 
   implicit val writes: OWrites[InputStanza] =
@@ -51,7 +51,7 @@ object InputStanza {
         (JsPath \ "name").write[Int] and
         (JsPath \ "help").write[Int] and
         (JsPath \ "label").write[String] and
-        (JsPath \ "placeholder").write[Int] and
+        (JsPath \ "placeholder").writeNullable[Int] and
         (JsPath \ "stack").write[Boolean]
     )(unlift(InputStanza.unapply))
 
@@ -62,11 +62,13 @@ case class Input(ipt_type: InputType,
                  name: Phrase,
                  help: Phrase,
                  label: String,
-                 placeholder: Phrase,
-                 stack: Boolean) extends PopulatedStanza
+                 placeholder: Option[Phrase],
+                 stack: Boolean) extends VisualStanza with Populated {
+  override val labelRefs: List[String] = labelReferences(name.langs(0)) ++ labelReferences(help.langs(0))
+}
 
 object Input {
-  def apply(stanza: InputStanza, name: Phrase, help: Phrase, placeholder: Phrase): Input = {
+  def apply(stanza: InputStanza, name: Phrase, help: Phrase, placeholder: Option[Phrase]): Input = {
     Input(stanza.ipt_type, stanza.next, name, help, stanza.label, placeholder, stanza.stack)
   }
 }

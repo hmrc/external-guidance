@@ -241,12 +241,39 @@ trait ProcessJson {
       |    "start": {
       |      "type": "PageStanza",
       |      "url": "/feeling-bad",
-      |      "next": ["3"],
+      |      "next": ["33"],
+      |      "stack": true
+      |    },
+      |    "33": {
+      |      "type": "ValueStanza",
+      |      "values": [
+      |        {
+      |          "type": "AnUnknownType",
+      |          "label": "SomeLabel",
+      |          "value": "43"
+      |        }
+      |      ],
+      |      "next": [
+      |        "34"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "34": {
+      |      "type": "InputStanza",
+      |      "ipt_type": "UnknownInputType",
+      |      "next": [
+      |        "23"
+      |      ],
+      |      "name": 1,
+      |      "help": 2,
+      |      "label": "LabelName",
+      |      "placeholder": 3,
       |      "stack": true
       |    },
       |    "3": {
       |      "type": "InstructionStanza",
       |      "text": 1,
+      |      "link": 0,
       |      "next": [
       |        "2"
       |      ],
@@ -256,11 +283,11 @@ trait ProcessJson {
       |      "type": "UnknownStanza",
       |      "text": 0,
       |      "next": [
-      |        "3"
+      |        "4"
       |      ],
       |      "stack": true
       |    },
-      |    "3": {
+      |    "4": {
       |      "next": [
       |        "end"
       |      ],
@@ -269,7 +296,14 @@ trait ProcessJson {
       |      "text": 59,
       |      "type": "CalloutStanza"
       |    },
-      |
+      |    "5": {
+      |      "next": [
+      |        "end"
+      |      ],
+      |      "noteType": "Error",
+      |      "stack": false,
+      |      "text": 59
+      |    },
       |    "end": {
       |      "type": "EndStanza"
       |    }
@@ -284,7 +318,17 @@ trait ProcessJson {
       |    ["yes - they do have a cup ", "Welsh, yes - they do have a cup "],
       |    ["no - they don’t have a cup", "Welsh, no - they don’t have a cup"],
       |    ["Customer wants to make a cup of tea", "Welsh, Customer wants to make a cup of tea"]
-      |  ]
+      |  ],
+      |  "links": [
+      |   {
+      |     "title": "",
+      |     "window": false,
+      |     "leftbar": false,
+      |     "always": false,
+      |     "popup": false,
+      |     "id": 0
+      |   }
+      | ]
       |}
     """.stripMargin
   )

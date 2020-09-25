@@ -17,7 +17,7 @@
 package services
 
 import models.ocelot.stanzas._
-import models.ocelot.{Link, Phrase, Process}
+import models.ocelot.{pageLinkIds, Link, Phrase, Process}
 import models.ocelot.errors._
 import scala.annotation.tailrec
 
@@ -31,28 +31,8 @@ trait ProcessPopulation {
 
   private def populateStanza(id: String, stanza: Stanza, process: Process): Either[GuidanceError, Stanza] = {
 
-    def phrase(phraseIndex: Int): Either[GuidanceError, Phrase] =
-      process.phraseOption(phraseIndex).fold[Either[GuidanceError, Phrase]](Left(PhraseNotFound(id, phraseIndex))){
-        case Phrase(Vector(english, welsh)) if welsh.isEmpty && !english.isEmpty => Left(MissingWelshText(id, phraseIndex.toString, english))
-        case p: Phrase => Right(p)
-      }
-
-    @tailrec
-    def phrases(indexes: Seq[Int], acc: Seq[Phrase]): Either[GuidanceError, Seq[Phrase]] =
-      indexes match {
-        case Nil => Right(acc)
-        case index :: xs =>
-          phrase(index) match {
-            case Right(phrase) => phrases(xs, acc :+ phrase)
-            case Left(err) => Left(err)
-          }
-      }
-
-    def link(linkIndex: Int): Either[LinkNotFound, Link] =
-      process.linkOption(linkIndex).map(Right(_)).getOrElse(Left(LinkNotFound(id, linkIndex)))
-
     def populateInstruction(i: InstructionStanza): Either[GuidanceError, Instruction] = {
-      phrase(i.text).fold(
+      phrase(i.text, id, process).fold(
         Left(_),
         text => {
           i.link match {
@@ -64,25 +44,47 @@ trait ProcessPopulation {
     }
 
     def populateInput(i: InputStanza): Either[GuidanceError, Input] =
-      phrase(i.name).fold(ne => Left(ne), name =>
-        phrase(i.help).fold(he => Left(he), help =>
-          phrase(i.placeholder).fold(pe => Left(pe), placeholder =>
-            Right(Input(i, name, help, placeholder))
+      phrase(i.name, id, process).fold(ne => Left(ne), name =>
+        phrase(i.help, id, process).fold(he => Left(he), help =>
+          i.placeholder.fold[Either[GuidanceError, Input]](Right(Input(i, name, help, None)))( ph =>
+            phrase(ph, id, process).fold(pe => Left(pe), placeholder =>
+              Right(Input(i, name, help, Some(placeholder)))
+            )
           )
         )
       )
 
+    def link(linkIndex: Int): Either[LinkNotFound, Link] =
+      process.linkOption(linkIndex).map(Right(_)).getOrElse(Left(LinkNotFound(id, linkIndex)))
+
     stanza match {
       case q: QuestionStanza =>
-        phrases(q.text +: q.answers, Nil) match {
+        phrases(q.text +: q.answers, Nil, id, process) match {
           case Right(texts) => Right(Question(q, texts.head, texts.tail))
           case Left(err) => Left(err)
         }
       case i: InstructionStanza => populateInstruction(i)
       case i: InputStanza => populateInput(i)
-      case c: CalloutStanza => phrase(c.text).fold(Left(_), text => Right(Callout(c, text)))
+      case c: CalloutStanza => phrase(c.text, id, process).fold(Left(_), text => Right(Callout(c, text)))
       case s: Stanza => Right(s)
     }
   }
+
+  private def phrase(phraseIndex: Int, stanzaId: String, process: Process): Either[GuidanceError, Phrase] =
+    process.phraseOption(phraseIndex).fold[Either[GuidanceError, Phrase]](Left(PhraseNotFound(stanzaId, phraseIndex))){
+      case Phrase(Vector(english, welsh)) if welsh.isEmpty && !english.isEmpty => Left(MissingWelshText(stanzaId, phraseIndex.toString, english))
+      case p: Phrase => Right(p)
+    }
+
+  @tailrec
+  private def phrases(indexes: Seq[Int], acc: Seq[Phrase], stanzaId: String, process: Process): Either[GuidanceError, Seq[Phrase]] =
+    indexes match {
+      case Nil => Right(acc)
+      case index :: xs =>
+        phrase(index, stanzaId, process) match {
+          case Right(phrase) => phrases(xs, acc :+ phrase, stanzaId, process)
+          case Left(err) => Left(err)
+        }
+    }
 
 }
