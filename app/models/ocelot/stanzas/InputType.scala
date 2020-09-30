@@ -27,22 +27,20 @@ case object Date extends InputType
 
 object InputType {
 
-  implicit val reads: Reads[InputType] = (json: JsValue) =>
-    json match {
-      case JsString("Currency") => JsSuccess(Currency, __)
-      case JsString("Date") => JsSuccess(Date, __)
-      case JsString("Number") => JsSuccess(Number, __)
-      case JsString("Text") => JsSuccess(Txt, __)
-      case typeName: JsString => JsError(JsonValidationError(Seq("InputType"), typeName.value))
-      case unknown => JsError(JsonValidationError(Seq("InputType"), unknown.toString))
-    }
+  implicit val reads: Reads[InputType] = {
+    case JsString("Currency") => JsSuccess(Currency, __)
+    case JsString("Date") => JsSuccess(Date, __)
+    case JsString("Number") => JsSuccess(Number, __)
+    case JsString("Text") => JsSuccess(Txt, __)
+    case typeName: JsString => JsError(JsonValidationError(Seq("InputType"), typeName.value))
+    case unknown => JsError(JsonValidationError(Seq("InputType"), unknown.toString))
+  }
 
-  implicit val writes: Writes[InputType] = (inputType: InputType) =>
-    inputType match {
-      case Currency => Json.toJson("Currency")
-      case Date => Json.toJson("Date")
-      case Number => Json.toJson("Number")
-      case Txt => Json.toJson("Text")
-    }
+  implicit val writes: Writes[InputType] = {
+    case Currency => Json.toJson("Currency")
+    case Date => Json.toJson("Date")
+    case Number => Json.toJson("Number")
+    case Txt => Json.toJson("Text")
+  }
 
 }

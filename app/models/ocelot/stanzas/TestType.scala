@@ -20,20 +20,30 @@ import play.api.libs.json._
 
 sealed trait TestType
 
+case object Equals extends TestType
+case object NotEquals extends TestType
+case object MoreThan extends TestType
+case object MoreThanOrEquals extends TestType
 case object LessThanOrEquals extends TestType
 
 object TestType {
 
-  implicit val reads: Reads[TestType] = (json: JsValue) =>
-    json match {
-      case JsString("lessThanOrEquals") => JsSuccess(LessThanOrEquals, __)
-      case typeName: JsString => JsError(JsonValidationError(Seq("TestType"), typeName.value))
-      case unknown => JsError(JsonValidationError(Seq("TestType"), unknown.toString))
-    }
+  implicit val reads: Reads[TestType] = {
+    case JsString("equals") => JsSuccess(Equals, __)
+    case JsString("notEquals") => JsSuccess(NotEquals, __)
+    case JsString("moreThan") => JsSuccess(MoreThan, __)
+    case JsString("moreThanOrEquals") => JsSuccess(MoreThanOrEquals, __)
+    case JsString("lessThanOrEquals") => JsSuccess(LessThanOrEquals, __)
+    case typeName: JsString => JsError(JsonValidationError(Seq("TestType"), typeName.value))
+    case unknown => JsError(JsonValidationError(Seq("TestType"), unknown.toString))
+  }
 
-  implicit val writes: Writes[TestType] = (inputType: TestType) =>
-    inputType match {
-      case LessThanOrEquals => Json.toJson("lessThanOrEquals")
-    }
+  implicit val writes: Writes[TestType] = {
+    case Equals => Json.toJson("equals")
+    case NotEquals => Json.toJson("notEquals")
+    case MoreThan => Json.toJson("moreThan")
+    case MoreThanOrEquals => Json.toJson("moreThanOrEquals")
+    case LessThanOrEquals => Json.toJson("lessThanOrEquals")
+  }
 
 }

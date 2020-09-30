@@ -152,19 +152,19 @@ class ChoiceStanzaSpec extends BaseSpec {
       stanza.next.length shouldBe 3
       stanza.next shouldBe next
       stanza.tests.length shouldBe 2
-      stanza.tests(0) shouldBe ChoiceTest("VAL-1", LessThanOrEquals, "VAL-2")
-      stanza.tests(1) shouldBe ChoiceTest("VAL-3", LessThanOrEquals, "VAL-4")
+      stanza.tests(0) shouldBe ChoiceStanzaTest("VAL-1", LessThanOrEquals, "VAL-2")
+      stanza.tests(1) shouldBe ChoiceStanzaTest("VAL-3", LessThanOrEquals, "VAL-4")
     }
 
     "serialise to json" in {
-      val stanza: ChoiceStanza = ChoiceStanza(next, Seq(ChoiceTest("VAL-1", LessThanOrEquals, "VAL-2"), ChoiceTest("VAL-3", LessThanOrEquals, "VAL-4")), false)
+      val stanza: ChoiceStanza = ChoiceStanza(next, Seq(ChoiceStanzaTest("VAL-1", LessThanOrEquals, "VAL-2"), ChoiceStanzaTest("VAL-3", LessThanOrEquals, "VAL-4")), false)
       val expectedJson: String = s"""{"next":[${next.map(x => s""""$x"""").mkString(",")}],"tests":[{"left":"VAL-1","test":"lessThanOrEquals","right":"VAL-2"},{"left":"VAL-3","test":"lessThanOrEquals","right":"VAL-4"}],"stack":false}"""
       val json: String = Json.toJson(stanza).toString
       json shouldBe expectedJson
     }
 
     "serialise to json from a Stanza reference" in {
-      val stanza: Stanza = ChoiceStanza(next, Seq(ChoiceTest("VAL-1", LessThanOrEquals, "VAL-2"), ChoiceTest("VAL-3", LessThanOrEquals, "VAL-4")), false)
+      val stanza: Stanza = ChoiceStanza(next, Seq(ChoiceStanzaTest("VAL-1", LessThanOrEquals, "VAL-2"), ChoiceStanzaTest("VAL-3", LessThanOrEquals, "VAL-4")), false)
       val expectedJson: String = s"""{"next":[${next.map(x => s""""$x"""").mkString(",")}],"stack":false,"tests":[{"left":"VAL-1","test":"lessThanOrEquals","right":"VAL-2"},{"left":"VAL-3","test":"lessThanOrEquals","right":"VAL-4"}],"type":"ChoiceStanza"}"""
       val json: String = Json.toJson(stanza).toString
       json shouldBe expectedJson
@@ -187,11 +187,189 @@ class ChoiceStanzaSpec extends BaseSpec {
 
   }
 
+  "Choice" must {
+    "be creatable from a ChoiceStanza " in {
+      val stanza: ChoiceStanza = ChoiceStanza(next, Seq(ChoiceStanzaTest("4", LessThanOrEquals, "3"), ChoiceStanzaTest("3", LessThanOrEquals, "4")), false)
+      val choice = Choice(stanza)
+      choice.next shouldBe stanza.next
+      choice.tests.zipWithIndex.foreach{
+        case (LessThanOrEqualsTest(_,_), index) if stanza.tests(index).test == LessThanOrEquals => succeed
+        case x => fail
+
+      }
+    }
+
+    "Evaluate to correct result when one of the tests succeed" in {
+      val stanza: ChoiceStanza = ChoiceStanza(next, Seq(ChoiceStanzaTest("4", LessThanOrEquals, "3"),
+                                                        ChoiceStanzaTest("3", LessThanOrEquals, "4")), false)
+      val choice = Choice(stanza)
+      val lc = LabelCache()
+      val expectedResult = (Seq("41"), lc)
+      choice.eval(lc) shouldBe expectedResult
+    }
+
+    "Evaluate to correct result when no tests succeed" in {
+      val stanza: ChoiceStanza = ChoiceStanza(next, Seq(ChoiceStanzaTest("4", LessThanOrEquals, "3"),
+                                                        ChoiceStanzaTest("3", MoreThan, "4")), false)
+      val choice = Choice(stanza)
+      val lc = LabelCache()
+      val expectedResult = (Seq("50"), lc)
+      choice.eval(lc) shouldBe expectedResult
+    }
+
+    "Evaluate to correct result when one of the tests succeed referencing labels" in {
+      val stanza: ChoiceStanza = ChoiceStanza(next, Seq(ChoiceStanzaTest("[label:X]", LessThanOrEquals, "[label:Y]"),
+                                                        ChoiceStanzaTest("3", LessThanOrEquals, "4"),
+                                                        ChoiceStanzaTest("3", NotEquals, "4")), false)
+      val choice = Choice(stanza)
+      val labels = Map("X"->Label("X", Some("33.5")), "Y"->Label("Y", Some("44")))
+      val lc = LabelCache(labels)
+      val expectedResult = (Seq("40"), lc)
+      choice.eval(lc) shouldBe expectedResult
+    }
+
+    "Evaluate to correct result when no tests succeed referencing labels" in {
+      val stanza: ChoiceStanza = ChoiceStanza(next, Seq(ChoiceStanzaTest("[label:X]", LessThanOrEquals, "[label:Y]"),
+                                                        ChoiceStanzaTest("3", Equals, "4"),
+                                                        ChoiceStanzaTest("3", MoreThanOrEquals, "4")),
+                                                        false)
+      val choice = Choice(stanza)
+      val labels = Map("X"->Label("X", Some("33.5")), "Y"->Label("Y", Some("4")))
+      val lc = LabelCache(labels)
+      val expectedResult = (Seq("50"), lc)
+      choice.eval(lc) shouldBe expectedResult
+    }
+
+  }
+
   "ChoiceTest" must {
+    "provide support to EqualsTest" in {
+      EqualsTest("5", "5").eval(LabelCache()) shouldBe true
+
+      EqualsTest("4", "5").eval(LabelCache()) shouldBe false
+
+      EqualsTest("hello", "hello").eval(LabelCache()) shouldBe true
+
+      EqualsTest("4", "hello").eval(LabelCache()) shouldBe false
+    }
+
+    "provide support to NotEqualsTest" in {
+      NotEqualsTest("5", "5").eval(LabelCache()) shouldBe false
+
+      NotEqualsTest("4", "5").eval(LabelCache()) shouldBe true
+
+      NotEqualsTest("hello", "hello").eval(LabelCache()) shouldBe false
+
+      NotEqualsTest("4", "hello").eval(LabelCache()) shouldBe true
+    }
+
+    "provide support to MoreThanTest" in {
+      MoreThanTest("5", "5").eval(LabelCache()) shouldBe false
+
+      MoreThanTest("4", "5").eval(LabelCache()) shouldBe false
+
+      MoreThanTest("4", "3").eval(LabelCache()) shouldBe true
+
+      MoreThanTest("hello", "hello").eval(LabelCache()) shouldBe false
+
+      MoreThanTest("4", "hello").eval(LabelCache()) shouldBe false
+    }
+
+    "provide support to MoreThanOrEqualsTest" in {
+      MoreThanOrEqualsTest("5", "5").eval(LabelCache()) shouldBe true
+
+      MoreThanOrEqualsTest("4", "5").eval(LabelCache()) shouldBe false
+
+      MoreThanOrEqualsTest("4", "3").eval(LabelCache()) shouldBe true
+
+      MoreThanOrEqualsTest("hello", "hello").eval(LabelCache()) shouldBe true
+
+      MoreThanOrEqualsTest("4", "hello").eval(LabelCache()) shouldBe false
+    }
+
+    "provide support to LessThanOrEqualsTest" in {
+      LessThanOrEqualsTest("5", "5").eval(LabelCache()) shouldBe true
+
+      LessThanOrEqualsTest("4", "5").eval(LabelCache()) shouldBe true
+
+      LessThanOrEqualsTest("4", "3").eval(LabelCache()) shouldBe false
+
+      LessThanOrEqualsTest("hello", "hello").eval(LabelCache()) shouldBe true
+
+      LessThanOrEqualsTest("4", "hello").eval(LabelCache()) shouldBe true
+    }
+  }
+
+  "ChoiceStanzaTest" must {
+
+    val lte = """{"left": "VAL-1","test": "lessThanOrEquals","right": "VAL-2"}"""
+    val e = """{"left": "VAL-3","test": "equals","right": "VAL-4"}"""
+    val ne = """{"left": "VAL-3","test": "notEquals","right": "VAL-4"}"""
+    val m = """{"left": "VAL-3","test": "moreThan","right": "VAL-4"}"""
+    val me = """{"left": "VAL-3","test": "moreThanOrEquals","right": "VAL-4"}"""
+    def choiceStanzaJson(t1: String, t2: String) = s"""{"type": "ChoiceStanza","tests": [${t1},${t2}],"next": ["1", "2", "3"],"stack": true}"""
+
+    "DeSerialise EqualsTest" in {
+      Json.parse(choiceStanzaJson(e,e)).validate[ChoiceStanza].fold(err => fail, cs => {
+        val choice = Choice(cs)
+        choice.tests(0) shouldBe EqualsTest("VAL-3", "VAL-4")
+        choice.tests(1) shouldBe EqualsTest("VAL-3", "VAL-4")
+      }
+      )
+    }
+
+    "DeSerialise NotEqualsTest" in {
+      Json.parse(choiceStanzaJson(ne,ne)).validate[ChoiceStanza].fold(err => fail, cs => {
+        val choice = Choice(cs)
+        choice.tests(0) shouldBe NotEqualsTest("VAL-3", "VAL-4")
+        choice.tests(1) shouldBe NotEqualsTest("VAL-3", "VAL-4")
+      }
+      )
+    }
+    "DeSerialise LessThanOrEqualsTest" in {
+      Json.parse(choiceStanzaJson(lte,lte)).validate[ChoiceStanza].fold(err => fail, cs => {
+        val choice = Choice(cs)
+        choice.tests(0) shouldBe LessThanOrEqualsTest("VAL-1", "VAL-2")
+        choice.tests(1) shouldBe LessThanOrEqualsTest("VAL-1", "VAL-2")
+      }
+      )
+    }
+    "DeSerialise MoreThanTest" in {
+      Json.parse(choiceStanzaJson(m,m)).validate[ChoiceStanza].fold(err => fail, cs => {
+        val choice = Choice(cs)
+        choice.tests(0) shouldBe MoreThanTest("VAL-3", "VAL-4")
+        choice.tests(1) shouldBe MoreThanTest("VAL-3", "VAL-4")
+      }
+      )
+    }
+    "DeSerialise MoreThanOrEqualsTest" in {
+      Json.parse(choiceStanzaJson(me,me)).validate[ChoiceStanza].fold(err => fail, cs => {
+        val choice = Choice(cs)
+        choice.tests(0) shouldBe MoreThanOrEqualsTest("VAL-3", "VAL-4")
+        choice.tests(1) shouldBe MoreThanOrEqualsTest("VAL-3", "VAL-4")
+      }
+      )
+    }
+
+    "Serialise EqualsTest" in {
+      Json.toJson(ChoiceStanzaTest("3", Equals, "4")).toString shouldBe """{"left":"3","test":"equals","right":"4"}"""
+    }
+    "Serialise NotEqualsTest" in {
+      Json.toJson(ChoiceStanzaTest("3", NotEquals, "4")).toString shouldBe """{"left":"3","test":"notEquals","right":"4"}"""
+    }
+    "Serialise LessThanOrEqualsTest" in {
+      Json.toJson(ChoiceStanzaTest("3", LessThanOrEquals, "4")).toString shouldBe """{"left":"3","test":"lessThanOrEquals","right":"4"}"""
+    }
+    "Serialise MoreThanTest" in {
+      Json.toJson(ChoiceStanzaTest("3", MoreThan, "4")).toString shouldBe """{"left":"3","test":"moreThan","right":"4"}"""
+    }
+    "Serialise MoreThanOrEqualsTest" in {
+      Json.toJson(ChoiceStanzaTest("3", MoreThanOrEquals, "4")).toString shouldBe """{"left":"3","test":"moreThanOrEquals","right":"4"}"""
+    }
 
     "Detect unknown test type strings at json parse level" in {
       val invalidChoiceStanzaJson: JsObject = Json.parse(s"""{"left": "VAL-1","test": "UnknownType","right": "VAL-2"}""").as[JsObject]
-      invalidChoiceStanzaJson.validate[ChoiceTest] match {
+      invalidChoiceStanzaJson.validate[ChoiceStanzaTest] match {
         case JsError(errTuple :: _) => errTuple match {
           case (_, err +: _) if err.messages(0) == "TestType" && err.args.contains("UnknownType") => succeed
           case _ => fail
@@ -203,7 +381,7 @@ class ChoiceStanzaSpec extends BaseSpec {
 
     "Detect all unknown test types at json parse level" in {
       val invalidChoiceStanzaJson: JsObject = Json.parse(s"""{"left": "VAL-1","test": 44,"right": "VAL-2"}""").as[JsObject]
-      invalidChoiceStanzaJson.validate[ChoiceTest] match {
+      invalidChoiceStanzaJson.validate[ChoiceStanzaTest] match {
         case JsError(errTuple :: _) => errTuple match {
           case (_, err +: _) if err.messages(0) == "TestType" && err.args.contains("44") => succeed
           case _ => fail
@@ -212,7 +390,6 @@ class ChoiceStanzaSpec extends BaseSpec {
         case JsSuccess(_, _) => fail
       }
     }
-
   }
 
   "Page buiding" must {
