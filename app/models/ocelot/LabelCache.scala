@@ -18,11 +18,13 @@ package models.ocelot
 
 trait Labels {
   def value(name: String): Option[String]
+  def formattedValue(name: String): Option[String]
   def update(name: String, value: String): Labels
 }
 
 class LabelCache(labels: Map[String, Label]) extends Labels {
   def value(name: String): Option[String] = labels.get(name).map(_.value.getOrElse(""))
+  def formattedValue(name: String): Option[String] = value(name)  // TODO format for type of label
   def update(name: String, value: String): Labels =  new LabelCache(updateOrAddLabel(name, value))
 
   private def updateOrAddLabel(name: String, value: String): Map[String, Label] =
