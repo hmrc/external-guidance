@@ -394,7 +394,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
   }
 
   "services" must {
-    "determine unique set of labels from a collection of pages" in new IhtTest {
+    "determine unique set of case sensitive labels from a collection of pages" in new IhtTest {
       val labels = Seq(Label("Properties",Some("0"),None),
                        Label("Money",Some("0"),None),
                        Label("Household",Some("0"),None),
@@ -421,7 +421,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     }
 
     "determine unique set of label references from a collection of pages" in new IhtTest {
-      val labelsReferenced = Seq("Properties",
+     val labelsReferenced = Seq("Properties",
                                   "Money",
                                   "Value of Assets",
                                   "Household",
@@ -430,7 +430,10 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
                                   "Trust",
                                   "Foreign assets",
                                   "Other assets",
+                                  "Mortgage_debt",
+                                  "funeral_expenses",
                                   "Value of Debts",
+                                  "other_debts",
                                   "left to spouse",
                                   "registered charity",
                                   "Additional Info",

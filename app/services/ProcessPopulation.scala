@@ -66,6 +66,7 @@ trait ProcessPopulation {
       case i: InstructionStanza => populateInstruction(i)
       case i: InputStanza => populateInput(i)
       case c: CalloutStanza => phrase(c.text, id, process).fold(Left(_), text => Right(Callout(c, text)))
+      case c: ChoiceStanza => Right(Choice(c))
       case s: Stanza => Right(s)
     }
   }

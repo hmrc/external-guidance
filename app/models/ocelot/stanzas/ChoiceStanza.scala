@@ -16,35 +16,31 @@
 
 package models.ocelot.stanzas
 
-import models.ocelot.labelReferences
+import models.ocelot.{isCurrency, Labels}
+import models.ocelot.{labelReference, labelReferences}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
 
+case class ChoiceStanzaTest(left: String, test: TestType, right: String)
 
-case class ChoiceTest(left: String, test: TestType, right: String)
-
-object ChoiceTest {
-  implicit val reads: Reads[ChoiceTest] =
+object ChoiceStanzaTest {
+  implicit val reads: Reads[ChoiceStanzaTest] =
     (
       (JsPath \ "left").read[String] and
       (JsPath \ "test").read[TestType] and
       (JsPath \ "right").read[String]
-    )(ChoiceTest.apply _)
+    )(ChoiceStanzaTest.apply _)
 
-  implicit val writes: OWrites[ChoiceTest] =
+  implicit val writes: OWrites[ChoiceStanzaTest] =
     (
       (JsPath \ "left").write[String] and
       (JsPath \ "test").write[TestType] and
       (JsPath \ "right").write[String]
-    )(unlift(ChoiceTest.unapply))
+    )(unlift(ChoiceStanzaTest.unapply))
 }
 
-case class ChoiceStanza(
-  override val next: Seq[String],
-  tests: Seq[ChoiceTest],
-  stack: Boolean
-) extends Stanza {
+case class ChoiceStanza(override val next: Seq[String], tests: Seq[ChoiceStanzaTest], stack: Boolean) extends Stanza {
   override val labelRefs: List[String]  = tests.flatMap(op => labelReferences(op.left) ++ labelReferences(op.right)).toList
 }
 
@@ -53,15 +49,65 @@ object ChoiceStanza {
   implicit val reads: Reads[ChoiceStanza] =
     (
       (JsPath \ "next").read[Seq[String]](minLength[Seq[String]](2)) and
-      (JsPath \ "tests").read[Seq[ChoiceTest]](minLength[Seq[ChoiceTest]](1)) and
+      (JsPath \ "tests").read[Seq[ChoiceStanzaTest]](minLength[Seq[ChoiceStanzaTest]](1)) and
       (JsPath \ "stack").read[Boolean]
     )(ChoiceStanza.apply _)
 
   implicit val writes: OWrites[ChoiceStanza] =
     (
       (JsPath \ "next").write[Seq[String]] and
-      (JsPath \ "tests").write[Seq[ChoiceTest]] and
+      (JsPath \ "tests").write[Seq[ChoiceStanzaTest]] and
       (JsPath \ "stack").write[Boolean]
     )(unlift(ChoiceStanza.unapply))
 
+}
+
+sealed trait ChoiceTest {
+  val left: String
+  val right: String
+  def eval(labels: Labels): Boolean
+  def value(arg: String, labels: Labels): String = labelReference(arg).fold(arg)(ref => labels.value(ref).getOrElse(""))
+  def op(f: (BigDecimal, BigDecimal) => Boolean, g: (String, String) => Boolean, labels: Labels): Boolean =
+    (value(left, labels), value(right, labels)) match {
+      case (x, y) if isCurrency(x) && isCurrency(y) => f(BigDecimal(x), BigDecimal(y))
+      case (x, y) => g(x, y)
+    }
+}
+
+case class EqualsTest(left: String, right: String) extends ChoiceTest {
+  def eval(labels: Labels): Boolean = op(_ == _, _ == _, labels)
+}
+case class NotEqualsTest(left: String, right: String) extends ChoiceTest {
+  def eval(labels: Labels): Boolean = op(_ != _, _ != _, labels)
+}
+case class MoreThanTest(left: String, right: String) extends ChoiceTest {
+  def eval(labels: Labels): Boolean = op(_ > _, _ > _, labels)
+}
+case class MoreThanOrEqualsTest(left: String, right: String) extends ChoiceTest {
+  def eval(labels: Labels): Boolean = op(_ >= _, _ >= _, labels)
+}
+case class LessThanOrEqualsTest(left: String, right: String) extends ChoiceTest {
+  def eval(labels: Labels): Boolean = op(_ <= _, _ <= _, labels)
+}
+
+case class Choice(override val next: Seq[String], tests: Seq[ChoiceTest]) extends Stanza with Evaluate {
+  def eval(labels: Labels): (Seq[String], Labels) =
+    tests.zipWithIndex.find{case (x ,y) => x.eval(labels)}
+                      .fold((Seq(next.last), labels)){case (x,y) => (Seq(next(y)), labels)}
+}
+
+object Choice {
+  def apply(stanza: ChoiceStanza): Choice =
+    Choice(
+      stanza.next,
+      stanza.tests.map{ t =>
+        t.test match {
+          case Equals => EqualsTest(t.left, t.right)
+          case NotEquals => NotEqualsTest(t.left, t.right)
+          case MoreThan => MoreThanTest(t.left, t.right)
+          case MoreThanOrEquals => MoreThanOrEqualsTest(t.left, t.right)
+          case LessThanOrEquals => LessThanOrEqualsTest(t.left, t.right)
+        }
+      }
+    )
 }

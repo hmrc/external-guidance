@@ -17,7 +17,7 @@
 package models.ocelot.stanzas
 
 import play.api.libs.json._
-import models.ocelot.Label
+import models.ocelot.{Labels, Label}
 
 trait Stanza {
   val visual: Boolean = false
@@ -32,6 +32,10 @@ trait VisualStanza extends Stanza {
 }
 
 trait Populated
+
+trait Evaluate {
+  def eval(labels: Labels): (Seq[String], Labels)
+}
 
 case object EndStanza extends Stanza
 
@@ -55,17 +59,16 @@ object Stanza {
     }
   }
 
-  implicit val writes: Writes[Stanza] = (stanza: Stanza) =>
-    stanza match {
-      case q: QuestionStanza => Json.obj("type" -> "QuestionStanza") ++ Json.toJsObject[QuestionStanza](q)
-      case i: InstructionStanza => Json.obj("type" -> "InstructionStanza") ++ Json.toJsObject[InstructionStanza](i)
-      case c: CalloutStanza => Json.obj("type" -> "CalloutStanza") ++ Json.toJsObject[CalloutStanza](c)
-      case p: PageStanza => Json.obj("type" -> "PageStanza") ++ Json.toJsObject[PageStanza](p)
-      case v: ValueStanza => Json.obj("type" -> "ValueStanza") ++ Json.toJsObject[ValueStanza](v)
-      case c: CalculationStanza => Json.obj( "type" -> "CalculationStanza") ++ Json.toJsObject[CalculationStanza](c)
-      case c: ChoiceStanza => Json.obj("type" -> "ChoiceStanza") ++ Json.toJsObject[ChoiceStanza](c)
-      case i: InputStanza => Json.obj("type" -> "InputStanza") ++ Json.toJsObject[InputStanza](i)
-      case EndStanza => Json.obj("type" -> "EndStanza")
-      case s => Json.toJson("")
-    }
+  implicit val writes: Writes[Stanza] = {
+    case q: QuestionStanza => Json.obj("type" -> "QuestionStanza") ++ Json.toJsObject[QuestionStanza](q)
+    case i: InstructionStanza => Json.obj("type" -> "InstructionStanza") ++ Json.toJsObject[InstructionStanza](i)
+    case c: CalloutStanza => Json.obj("type" -> "CalloutStanza") ++ Json.toJsObject[CalloutStanza](c)
+    case p: PageStanza => Json.obj("type" -> "PageStanza") ++ Json.toJsObject[PageStanza](p)
+    case v: ValueStanza => Json.obj("type" -> "ValueStanza") ++ Json.toJsObject[ValueStanza](v)
+    case c: CalculationStanza => Json.obj( "type" -> "CalculationStanza") ++ Json.toJsObject[CalculationStanza](c)
+    case c: ChoiceStanza => Json.obj("type" -> "ChoiceStanza") ++ Json.toJsObject[ChoiceStanza](c)
+    case i: InputStanza => Json.obj("type" -> "InputStanza") ++ Json.toJsObject[InputStanza](i)
+    case EndStanza => Json.obj("type" -> "EndStanza")
+    case s => Json.toJson("")
+  }
 }

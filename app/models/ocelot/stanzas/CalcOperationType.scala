@@ -25,16 +25,14 @@ case object Subtraction extends CalcOperationType
 
 object CalcOperationType {
 
-  implicit val reads: Reads[CalcOperationType] = (json: JsValue) =>
-  json match {
+  implicit val reads: Reads[CalcOperationType] = {
     case JsString("add") => JsSuccess(Addition, __)
     case JsString("subtract") => JsSuccess(Subtraction, __)
     case typeName: JsString => JsError(JsonValidationError(Seq("CalcOperationType"), typeName.value))
     case unexpectedJsType => JsError(JsonValidationError(Seq("CalcOperationType"), unexpectedJsType.toString()))
   }
 
-  implicit val writes: Writes[CalcOperationType] = (calcOperationType: CalcOperationType) =>
-  calcOperationType match {
+  implicit val writes: Writes[CalcOperationType] = {
     case Addition => Json.toJson("add")
     case Subtraction => Json.toJson("subtract")
   }

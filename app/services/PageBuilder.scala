@@ -36,15 +36,12 @@ class PageBuilder extends ProcessPopulation {
                        stanzas: Seq[Stanza],
                        next: Seq[String]): Either[GuidanceError, (Seq[String], Seq[Stanza], Seq[String])] =
       keys match {
-        case Nil => Right((ids, stanzas, next))
-        case key :: Nil if ids.contains(key) => Right((ids, stanzas, next))                                // Already encountered this stanzas within page
+        case Nil => Right((ids, stanzas, next))                                                            // End of Page
         case key :: xs if ids.contains(key) => collectStanzas(xs, ids, stanzas, next)                      // Already encountered but more paths to follow
         case key :: xs =>
           (stanza(key, process), xs ) match {
-            case (Right(s: PageStanza), Nil) if ids.nonEmpty => Right((ids, stanzas, key +: next))         // End of page
             case (Right(s: PageStanza), _) if ids.nonEmpty => collectStanzas(xs, ids, stanzas, key +: next)// End of page but more paths to follow
             case (Right(s: PageStanza), _) => collectStanzas(xs ++ s.next, ids :+ key, stanzas :+ s, next) // Beginning of page
-            case (Right(EndStanza), Nil) => Right((ids :+ key, stanzas :+ EndStanza, next))                // End of page
             case (Right(EndStanza), _) => collectStanzas(xs, ids :+ key, stanzas :+ EndStanza, next)       // End of page but more paths to follow
             case (Right(s: Stanza), _) if ids.isEmpty => Left(PageStanzaMissing(key))
             case (Right(s: Stanza), _) => collectStanzas(xs ++ s.next, ids :+ key, stanzas :+ s, next)
