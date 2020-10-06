@@ -53,7 +53,7 @@ class ValueStanzaSpec extends BaseSpec {
     )
     .as[JsObject]
 
-  val invalidValueStanzaJson: JsObject = Json
+  val invalidValueStanzaUnknownValueTypeNameJson: JsObject = Json
     .parse(
       s"""{
       |  "type": "${stanzaType}",
@@ -72,6 +72,29 @@ class ValueStanzaSpec extends BaseSpec {
       |  "next": ["${next}"],
       |  "stack": ${stack}
       |}
+    """.stripMargin
+    )
+    .as[JsObject]
+
+  val invalidValueStanzaUnknownValueTypeTypeJson: JsObject = Json
+    .parse(
+      s"""{
+         |  "type": "${stanzaType}",
+         |  "values": [
+         |    {
+         |      "type": false,
+         |      "label": "${pageNameLabel}",
+         |      "value": "${pageName}"
+         |    },
+         |    {
+         |      "type": "${valueType}",
+         |      "label": "${pageUrlLabel}",
+         |      "value": "${pageUrl}"
+         |    }
+         |  ],
+         |  "next": ["${next}"],
+         |  "stack": ${stack}
+         |}
     """.stripMargin
     )
     .as[JsObject]
@@ -104,8 +127,15 @@ class ValueStanzaSpec extends BaseSpec {
       json shouldBe expectedJson
     }
 
-    "fail to parse if an unkown value type is found" in {
-      invalidValueStanzaJson.as[JsObject].validate[ValueStanza] match {
+    "fail to parse if an unknown value type is found" in {
+      invalidValueStanzaUnknownValueTypeNameJson.as[JsObject].validate[ValueStanza] match {
+        case JsSuccess(_, _) => fail(s"Value objects must be of valid type")
+        case JsError(_) => succeed
+      }
+    }
+
+    "fail to parse if a value type of incorrect JsValue type is found" in {
+      invalidValueStanzaUnknownValueTypeTypeJson.as[JsObject].validate[ValueStanza] match {
         case JsSuccess(_, _) => fail(s"Value objects must be of valid type")
         case JsError(_) => succeed
       }

@@ -22,7 +22,6 @@ import models.ocelot.stanzas.Stanza
 
 class ProcesSpec extends BaseSpec with ProcessJson {
 
-  val ten: Int = 10
   val oneHundred: Int = 100
 
   val meta: Meta = Json.parse(prototypeMetaSection).as[Meta]
