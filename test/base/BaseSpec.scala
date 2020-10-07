@@ -22,6 +22,15 @@ import play.api.libs.json._
 
 trait BaseSpec extends WordSpec with Matchers with ScalaFutures {
 
+  // Define numeric values used in tests
+  val nine = 9
+  val ten = 10
+  val eleven = 11
+  val twelve = 12
+  val thirteen = 13
+  val fourteen = 14
+  val fifteen = 15
+
   def missingJsObjectAttrTests[T](jsObject: JsObject, attrsToIgnore: List[String] = Nil)(implicit objectReads: Reads[T]): Unit =
     jsObject.keys.filterNot(attrsToIgnore.contains(_)).foreach { attributeName =>
       s"throw exception when json is missing attribute $attributeName" in {

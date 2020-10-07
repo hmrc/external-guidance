@@ -42,7 +42,6 @@ class CalloutStanzaSpec extends BaseSpec {
   val section: String = "Section"
   val subSection: String = "SubSection"
   val invalid: String = "invalid"
-  val ten: Int = 10
   val end: String = "end"
 
   val stackFalse: Boolean = false
