@@ -50,10 +50,10 @@ class CalculationStanzaSpec extends BaseSpec {
   trait Test {
 
     def getSingleCalcCalculationStanzaAsJsValue(
-        left: String,
-        calcOperationType: String,
-        right: String,
-        label: String): JsValue = Json.parse(
+                                                 left: String,
+                                                 calcOperationType: String,
+                                                 right: String,
+                                                 label: String): JsValue = Json.parse(
       s"""|{
           | "next": [ "1" ],
           | "stack": false,
@@ -82,20 +82,20 @@ class CalculationStanzaSpec extends BaseSpec {
     val c1Right: String = "[label:input1B"
     val c1Label: String = "outputA"
 
-    val c1CalcAdd: CalcOperation = CalcOperation( c1Left, Addition, c1Right, c1Label)
-    val c1CalcSub: CalcOperation = CalcOperation( c1Left, Subtraction, c1Right, c1Label)
+    val c1CalcAdd: CalcOperation = CalcOperation(c1Left, Addition, c1Right, c1Label)
+    val c1CalcSub: CalcOperation = CalcOperation(c1Left, Subtraction, c1Right, c1Label)
 
     val expectedSingleAdditionCalculationStanza: CalculationStanza =
-      CalculationStanza(Seq(c1CalcAdd), Seq( "1" ), stack = false)
+      CalculationStanza(Seq(c1CalcAdd), Seq("1"), stack = false)
 
     val expectedSingleSubtractionCalcCalculationStanza: CalculationStanza =
-      CalculationStanza(Seq(c1CalcSub), Seq( "1" ), stack = false)
+      CalculationStanza(Seq(c1CalcSub), Seq("1"), stack = false)
 
     val expectedMultipleCalcCalculationStanza: CalculationStanza =
       CalculationStanza(
         Seq(CalcOperation("[label:inputA]", Addition, "[label:inputB]", "outputA"),
-          CalcOperation("[label:outputA]", Subtraction, "[label:inputC]", "outputB" )),
-        Seq( "21"),
+          CalcOperation("[label:outputA]", Subtraction, "[label:inputC]", "outputB")),
+        Seq("21"),
         stack = true
       )
 
@@ -152,7 +152,7 @@ class CalculationStanzaSpec extends BaseSpec {
          |}
     """.stripMargin
 
-    val calculationStanzaWithUnknownOperationTypeName: String =
+    val calculationStanzaWithUnknownOperationType: String =
       """|"3": {
          |"next": [ "end" ],
          |"stack": false,
@@ -166,7 +166,7 @@ class CalculationStanzaSpec extends BaseSpec {
          |]
          |}""".stripMargin
 
-    val calculationStanzaWithIncorrectOperationType: String =
+    val calculationStanzaWithIncorrectType: String =
       """|"3": {
          |"next": [ "end" ],
          |"stack": false,
@@ -183,6 +183,7 @@ class CalculationStanzaSpec extends BaseSpec {
     def getOnePageJsonWithInvalidCalcOperationType(flowDef: String, calcStanzaDef: String): JsValue = Json.parse(
       flowDef.replaceAll("<calcStanza>", calcStanzaDef)
     )
+
   }
 
   "Reading a valid calculation stanza" should {
@@ -241,10 +242,10 @@ class CalculationStanzaSpec extends BaseSpec {
       }
     }
 
-    /** Test for missing properties in Json object representing instruction stanzas */
+    /** Test for missing properties in Json object representing calculation stanza */
     missingJsObjectAttrTests[CalculationStanza](validCalculationStanzaAsJsObject, List("type"))
 
-    /** Test for properties of the wrong type in json object representing instruction stanzas */
+    /** Test for properties of the wrong type in json object representing calculation stanza */
     incorrectPropertyTypeJsObjectAttrTests[CalculationStanza](validCalculationStanzaAsJsObject, List("type"))
   }
 
@@ -283,15 +284,15 @@ class CalculationStanzaSpec extends BaseSpec {
 
   "Page building" must {
 
-    "Raise an error for a invalid calculation operation type name" in new Test {
+    "Raise an error for a unknown calculation operation type" in new Test {
 
       getOnePageJsonWithInvalidCalcOperationType(
         onePageJsonWithInvalidCalcOperationType,
-        calculationStanzaWithUnknownOperationTypeName
+        calculationStanzaWithUnknownOperationType
       ).as[JsObject].validate[Process] match {
         case JsSuccess(_,_) => fail( "A process should not be created from invalid JSON")
         case JsError(errs) => GuidanceError.fromJsonValidationErrors(errs) match {
-          case Nil => fail("Nothing to match from guidance error convergence")
+          case Nil => fail("Nothing to match from guidance error conversion")
           case UnknownCalcOperationType("3", "sqrt") :: _ => succeed
           case errs => fail( "An error occurred processing Json validation errors")
         }
@@ -302,7 +303,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       getOnePageJsonWithInvalidCalcOperationType(
         onePageJsonWithInvalidCalcOperationType,
-        calculationStanzaWithIncorrectOperationType
+        calculationStanzaWithIncorrectType
       ).as[JsObject].validate[Process] match {
         case JsSuccess(_,_) => fail("A process should not be created from invalid JSON")
         case JsError(errs) => GuidanceError.fromJsonValidationErrors(errs) match {
