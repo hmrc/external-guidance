@@ -61,9 +61,9 @@ class QuestionStanzaSpec extends BaseSpec {
 
   val validQuestionStanzaJson: JsObject = Json.parse(twoAnswersQuestionStanzaJsonInput).as[JsObject]
 
-  val expectedTwoQuestionsQuestionStanza = QuestionStanza(one, Seq(zero, two), Seq(twoStr, fiveStr), stack)
+  val expectedTwoQuestionsQuestionStanza = QuestionStanza(one, Seq(zero, two), Seq(twoStr, fiveStr), None, stack)
 
-  val expectedThreeAnswersQuestionStanza = QuestionStanza(one, Seq(three, four, five), Seq(fourStr, sevenStr, eightStr), stack)
+  val expectedThreeAnswersQuestionStanza = QuestionStanza(one, Seq(three, four, five), Seq(fourStr, sevenStr, eightStr), None, stack)
 
   "Question stanza" must {
 
@@ -86,13 +86,13 @@ class QuestionStanzaSpec extends BaseSpec {
     }
 
     "serialise to json" in {
-      val stanza: QuestionStanza = QuestionStanza(0, Seq(1, 2), Seq("4", "5"), true)
+      val stanza: QuestionStanza = QuestionStanza(0, Seq(1, 2), Seq("4", "5"), None, true)
       val expectedJson: String = """{"text":0,"answers":[1,2],"next":["4","5"],"stack":true}"""
       Json.toJson(stanza).toString shouldBe expectedJson
     }
 
     "serialise to json from a Stanza reference" in {
-      val stanza: Stanza = QuestionStanza(0, Seq(1, 2), Seq("4", "5"), true)
+      val stanza: Stanza = QuestionStanza(0, Seq(1, 2), Seq("4", "5"), None, true)
       val expectedJson: String = """{"next":["4","5"],"stack":true,"answers":[1,2],"text":0,"type":"QuestionStanza"}"""
       Json.toJson(stanza).toString shouldBe expectedJson
     }

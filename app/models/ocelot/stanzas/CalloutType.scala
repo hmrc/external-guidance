@@ -32,6 +32,9 @@ case object Section extends CalloutType
 
 case object SubSection extends CalloutType
 
+case object Important extends CalloutType
+
+
 object CalloutType {
 
   implicit val reads: Reads[CalloutType] = {
@@ -41,6 +44,7 @@ object CalloutType {
     case JsString("Error") => JsSuccess(Error, __)
     case JsString("Section") => JsSuccess(Section, __)
     case JsString("SubSection") => JsSuccess(SubSection, __)
+    case JsString("Important") => JsSuccess(Important, __)
     case typeName: JsString => JsError(JsonValidationError(Seq("CalloutType"), typeName.value))
     case unknown => JsError(JsonValidationError(Seq("CalloutType"), unknown.toString))
   }
@@ -52,6 +56,7 @@ object CalloutType {
     case Lede => Json.toJson("Lede")
     case Section => Json.toJson("Section")
     case SubSection => Json.toJson("SubSection")
+    case Important => Json.toJson("Important")
   }
 
 }
