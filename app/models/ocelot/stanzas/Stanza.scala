@@ -34,7 +34,11 @@ trait VisualStanza extends Stanza {
 trait Populated
 
 trait Evaluate {
-  def eval(labels: Labels): (Seq[String], Labels)
+  def eval(labels: Labels): (String, Labels)
+}
+
+trait DataInput {
+  def eval(value: String, labels: Labels): (Option[String], Labels)
 }
 
 case object EndStanza extends Stanza
@@ -69,7 +73,7 @@ object Stanza {
     case c: CalculationStanza => Json.obj( "type" -> "CalculationStanza") ++ Json.toJsObject[CalculationStanza](c)
     case c: ChoiceStanza => Json.obj("type" -> "ChoiceStanza") ++ Json.toJsObject[ChoiceStanza](c)
     case i: InputStanza => Json.obj("type" -> "InputStanza") ++ Json.toJsObject[InputStanza](i)
-    case r: RowStanza => Json.obj("type" -> "RowStanza") ++ Json.toJsObject[RowStanza](r)
+    case r: RowStanza => Json.obj( "type" -> "RowStanza") ++ Json.toJsObject[RowStanza](r)
     case EndStanza => Json.obj("type" -> "EndStanza")
     case s => Json.toJson("")
   }

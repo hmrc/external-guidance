@@ -36,13 +36,13 @@ class PageBuilder extends ProcessPopulation {
                        stanzas: Seq[Stanza],
                        next: Seq[String]): Either[GuidanceError, (Seq[String], Seq[Stanza], Seq[String])] =
       keys match {
-        case Nil => Right((ids, stanzas, next))                                                            // End of Page
-        case key :: xs if ids.contains(key) => collectStanzas(xs, ids, stanzas, next)                      // Already encountered but more paths to follow
+        case Nil => Right((ids, stanzas, next))                                                  // End Page
+        case key :: xs if ids.contains(key) => collectStanzas(xs, ids, stanzas, next)            // Already encountered, but potentially more paths
         case key :: xs =>
           (stanza(key, process), xs ) match {
-            case (Right(s: PageStanza), _) if ids.nonEmpty => collectStanzas(xs, ids, stanzas, key +: next)// End of page but more paths to follow
-            case (Right(s: PageStanza), _) => collectStanzas(xs ++ s.next, ids :+ key, stanzas :+ s, next) // Beginning of page
-            case (Right(EndStanza), _) => collectStanzas(xs, ids :+ key, stanzas :+ EndStanza, next)       // End of page but more paths to follow
+            case (Right(s: PageStanza), _) if ids.nonEmpty => collectStanzas(xs, ids, stanzas, key +: next) // End page but potentially more paths
+            case (Right(s: PageStanza), _) => collectStanzas(xs ++ s.next, ids :+ key, stanzas :+ s, next)  // Beginning of page
+            case (Right(EndStanza), _) => collectStanzas(xs, ids :+ key, stanzas :+ EndStanza, next)        // End page but potentially more paths
             case (Right(s: Stanza), _) if ids.isEmpty => Left(PageStanzaMissing(key))
             case (Right(s: Stanza), _) => collectStanzas(xs ++ s.next, ids :+ key, stanzas :+ s, next)
             case (Left(err), _) => Left(err)
@@ -133,6 +133,8 @@ class PageBuilder extends ProcessPopulation {
           f(page.id, page.url, text.langs(0))
         case q: Question =>
           f(page.id, page.url, hintRegex.replaceAllIn(q.text.langs(0), ""))
+        case i: Input =>
+          f(page.id, page.url, hintRegex.replaceAllIn(i.name.langs(0), ""))
       }
     }
 }

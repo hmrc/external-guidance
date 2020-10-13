@@ -44,12 +44,10 @@ trait ProcessPopulation {
     }
 
     def populateInput(i: InputStanza): Either[GuidanceError, Input] =
-      phrase(i.name, id, process).fold(ne => Left(ne), name =>
-        phrase(i.help, id, process).fold(he => Left(he), help =>
-          i.placeholder.fold[Either[GuidanceError, Input]](Right(Input(i, name, help, None)))( ph =>
-            phrase(ph, id, process).fold(pe => Left(pe), placeholder =>
-              Right(Input(i, name, help, Some(placeholder)))
-            )
+      phrase(i.name, id, process).fold(Left(_), name =>
+        optionalPhrase(i.help, id, process).fold(Left(_), help =>
+          optionalPhrase(i.placeholder, id, process).fold(Left(_), placeholder =>
+            Input(i, name, help, placeholder).fold[Either[GuidanceError, Input]](Left(UnknownInputType(id, i.ipt_type.toString)))(input => Right(input))
           )
         )
       )
@@ -70,6 +68,9 @@ trait ProcessPopulation {
       case s: Stanza => Right(s)
     }
   }
+
+  private def optionalPhrase(index: Option[Int], stanzaId: String, process: Process):Either[GuidanceError, Option[Phrase]] =
+    index.fold[Either[GuidanceError, Option[Phrase]]](Right(None))(i => phrase(i, stanzaId, process).fold(Left(_), phrase => Right(Some(phrase))))
 
   private def phrase(phraseIndex: Int, stanzaId: String, process: Process): Either[GuidanceError, Phrase] =
     process.phraseOption(phraseIndex).fold[Either[GuidanceError, Phrase]](Left(PhraseNotFound(stanzaId, phraseIndex))){

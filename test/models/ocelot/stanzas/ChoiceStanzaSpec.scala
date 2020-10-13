@@ -206,7 +206,7 @@ class ChoiceStanzaSpec extends BaseSpec {
                                                         ChoiceStanzaTest("3", LessThanOrEquals, "4")), false)
       val choice = Choice(stanza)
       val lc = LabelCache()
-      val expectedResult = (Seq("41"), lc)
+      val expectedResult = ("41", lc)
       choice.eval(lc) shouldBe expectedResult
     }
 
@@ -216,7 +216,7 @@ class ChoiceStanzaSpec extends BaseSpec {
                                                         ChoiceStanzaTest("3", MoreThan, "4")), false)
       val choice = Choice(stanza)
       val lc = LabelCache()
-      val expectedResult = (Seq("50"), lc)
+      val expectedResult = ("50", lc)
       choice.eval(lc) shouldBe expectedResult
     }
 
@@ -228,7 +228,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       val choice = Choice(stanza)
       val labels = Map("X"->Label("X", Some("33.5")), "Y"->Label("Y", Some("44")))
       val lc = LabelCache(labels)
-      val expectedResult = (Seq("40"), lc)
+      val expectedResult = ("40", lc)
       choice.eval(lc) shouldBe expectedResult
     }
 
@@ -241,7 +241,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       val choice = Choice(stanza)
       val labels = Map("X"->Label("X", Some("33.5")), "Y"->Label("Y", Some("4")))
       val lc = LabelCache(labels)
-      val expectedResult = (Seq("51"), lc)
+      val expectedResult = ("51", lc)
       choice.eval(lc) shouldBe expectedResult
     }
 

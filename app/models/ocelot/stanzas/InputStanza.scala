@@ -16,7 +16,7 @@
 
 package models.ocelot.stanzas
 
-import models.ocelot.{labelReferences, Label, Phrase}
+import models.ocelot.{labelReferences, Label, Labels, Phrase}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -25,7 +25,7 @@ case class InputStanza(
   ipt_type: InputType,
   override val next: Seq[String],
   name: Int,
-  help: Int,
+  help: Option[Int],
   label: String,
   placeholder: Option[Int],
   stack: Boolean
@@ -39,7 +39,7 @@ object InputStanza {
     ((JsPath \ "ipt_type").read[InputType] and
       (JsPath \ "next").read[Seq[String]](minLength[Seq[String]](1)) and
       (JsPath \ "name").read[Int] and
-      (JsPath \ "help").read[Int] and
+      (JsPath \ "help").readNullable[Int] and
       (JsPath \ "label").read[String] and
       (JsPath \ "placeholder").readNullable[Int] and
       (JsPath \ "stack").read[Boolean])(InputStanza.apply _)
@@ -49,7 +49,7 @@ object InputStanza {
       (JsPath \ "ipt_type").write[InputType] and
         (JsPath \ "next").write[Seq[String]] and
         (JsPath \ "name").write[Int] and
-        (JsPath \ "help").write[Int] and
+        (JsPath \ "help").writeNullable[Int] and
         (JsPath \ "label").write[String] and
         (JsPath \ "placeholder").writeNullable[Int] and
         (JsPath \ "stack").write[Boolean]
@@ -57,18 +57,32 @@ object InputStanza {
 
 }
 
-case class Input(ipt_type: InputType,
-                 override val next: Seq[String],
-                 name: Phrase,
-                 help: Phrase,
-                 label: String,
-                 placeholder: Option[Phrase],
-                 stack: Boolean) extends VisualStanza with Populated {
-  override val labelRefs: List[String] = labelReferences(name.langs(0)) ++ labelReferences(help.langs(0))
+trait Input extends VisualStanza with Populated with DataInput {
+  val next: Seq[String]
+  val name: Phrase
+  val help: Option[Phrase]
+  val label: String
+  val placeholder: Option[Phrase]
+  val stack: Boolean
+
+  override val labelRefs: List[String] = labelReferences(name.langs(0)) ++ help.fold[List[String]](Nil)(h => labelReferences(h.langs(0)))
+  def eval(value: String, labels: Labels): (Option[String], Labels) = (Some(next(0)), labels.update(label, value))
 }
 
+case class CurrencyInput(
+  override val next: Seq[String],
+  name: Phrase,
+  help: Option[Phrase],
+  label: String,
+  placeholder: Option[Phrase],
+  stack: Boolean
+) extends Input
+
 object Input {
-  def apply(stanza: InputStanza, name: Phrase, help: Phrase, placeholder: Option[Phrase]): Input = {
-    Input(stanza.ipt_type, stanza.next, name, help, stanza.label, placeholder, stanza.stack)
-  }
+  def apply(stanza: InputStanza, name: Phrase, help: Option[Phrase], placeholder: Option[Phrase]): Option[Input] =
+    stanza.ipt_type match {
+      case Currency => Some(CurrencyInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack))
+      // .... Add additional input types when needed
+      case _ => None
+    }
 }

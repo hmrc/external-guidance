@@ -20,12 +20,14 @@ trait Labels {
   def value(name: String): Option[String]
   def formattedValue(name: String): Option[String]
   def update(name: String, value: String): Labels
+  def updatedLabels: Map[String, Label]
 }
 
 class LabelCache(labels: Map[String, Label]) extends Labels {
   def value(name: String): Option[String] = labels.get(name).map(_.value.getOrElse(""))
   def formattedValue(name: String): Option[String] = value(name)  // TODO format for type of label
   def update(name: String, value: String): Labels =  new LabelCache(updateOrAddLabel(name, value))
+  def updatedLabels: Map[String, Label] = labels
 
   private def updateOrAddLabel(name: String, value: String): Map[String, Label] =
     labels + (name -> labels.get(name).fold(Label(name, Some(value)))(l => l.copy(value = Some(value))))

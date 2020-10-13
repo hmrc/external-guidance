@@ -91,9 +91,9 @@ case class LessThanOrEqualsTest(left: String, right: String) extends ChoiceTest 
 }
 
 case class Choice(override val next: Seq[String], tests: Seq[ChoiceTest]) extends Stanza with Evaluate {
-  def eval(labels: Labels): (Seq[String], Labels) =
+  def eval(labels: Labels): (String, Labels) =
     tests.zipWithIndex.find{case (x ,y) => x.eval(labels)}
-                      .fold((Seq(next.last), labels)){case (x,y) => (Seq(next(y)), labels)}
+                      .fold((next.last, labels)){case (x,y) => (next(y), labels)}
 }
 
 object Choice {
