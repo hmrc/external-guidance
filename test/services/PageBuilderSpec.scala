@@ -427,9 +427,9 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
           ProcessError("Unsupported ValueStanza Value type AnUnknownType found at stanza id 33","33"),
           ProcessError("Process Meta section parse error, reason: error.path.missing, target: ocelot",""))
       guidancePages(new PageBuilder(), assortedParseErrorsJson).fold(
-        errs => errs match {
-          case MainError(MainError.UnprocessableEntity, None,Some(errors)) if errors == processErrors => succeed
-          case _ => fail(s"Failed with errors: $errs")
+        {
+          case MainError(MainError.UnprocessableEntity, None, Some(errors)) if errors == processErrors => succeed
+          case errs => fail(s"Failed with errors: $errs")
         }, _ => fail)
     }
   }
@@ -677,6 +677,29 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         case Left(err) => //fail(s"Flow error $err")
       }
     }
+
+    "When processing a simple input page" must {
+
+      val process: Process = Process(meta, simpleInputPage, phrases, links)
+
+      pageBuilder.pagesWithValidation(process) match {
+
+        case Right(pages) =>
+          "Determine the correct number of pages to be displayed" in {
+
+            pages shouldNot be(Nil)
+
+            pages.length shouldBe 2
+          }
+
+          val indexedSeqOfPages = pages.toIndexedSeq
+
+          // Test contents of individual pages
+          testSqpInput(indexedSeqOfPages(0))
+
+        case Left(err) => //fail(s"Flow error $err")
+      }
+    }
   }
 
   "When processing a 2 page flow separated by a PageStanza" must {
@@ -702,7 +725,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
       pageBuilder.pagesWithValidation(Json.parse(processWithCallouts).as[Process]) match {
         case Right(pages) =>
-          val pageInfo = pageBuilder.fromPageDetails(pages)(Dummy(_,_,_))
+          val pageInfo = pageBuilder.fromPageDetails(pages)(Dummy)
 
           pageInfo shouldNot be(Nil)
           pageInfo.length shouldBe 7
@@ -722,6 +745,24 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
           pageInfo(6).id shouldBe "31"
           pageInfo(6).pageUrl shouldBe "/example-page-7"
           pageInfo(6).pageTitle shouldBe "Congratulations"
+
+        case _ => fail
+      }
+    }
+    "determine the input page title" in new Test {
+
+      case class Dummy(id: String, pageUrl: String, pageTitle: String)
+
+      pageBuilder.pagesWithValidation(validOnePageProcessWithProcessCodeJson.as[Process]) match {
+        case Right(pages) =>
+          val pageInfo = pageBuilder.fromPageDetails(pages)(Dummy)
+
+          pageInfo shouldNot be(Nil)
+          pageInfo.length shouldBe 1
+
+          pageInfo(0).id shouldBe "start"
+          pageInfo(0).pageUrl shouldBe "/feeling-bad"
+          pageInfo(0).pageTitle shouldBe "Do you have a tea bag?"
 
         case _ => fail
       }
@@ -769,7 +810,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
   /**
     * Test question page in simple question page test
     *
-    * @param firstPage
+    * @param page - firstPage
     */
   def testSqpQp(page: Page): Unit = {
 
@@ -788,7 +829,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
   /**
     * Test first answer page in simple question page test
     *
-    * @param secondPage
+    * @param page - secondPage
     */
   def testSqpFap(page: Page): Unit = {
 
@@ -809,7 +850,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
   /**
     * Test second answer page in simple question page
     *
-    * @param thirdPage
+    * @param page - thirdPage
     */
   def testSqpSap(page: Page): Unit = {
 
@@ -827,4 +868,23 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     }
 
   }
+  /**
+   * Test input page in simple question page test
+   *
+   * @param page the input page to test
+   */
+  def testSqpInput(page: Page): Unit = {
+
+    "Define the input page correctly" in {
+
+      page.id shouldBe Process.StartStanzaId
+      page.stanzas.size shouldBe 4
+
+      page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpCallout, sqpQpInput)
+
+      page.next shouldBe Seq("4")
+    }
+
+  }
+
 }

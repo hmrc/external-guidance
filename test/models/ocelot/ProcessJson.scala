@@ -122,6 +122,18 @@ trait ProcessJson {
       |      ],
       |      "stack": true
       |    },
+      |    "3": {
+      |      "type": "InputStanza",
+      |      "ipt_type": "Currency",
+      |      "next": [
+      |        "end"
+      |      ],
+      |      "name": 1,
+      |      "help": 2,
+      |      "label": "LabelName",
+      |      "placeholder": 3,
+      |      "stack": true
+      |    },
       |    "end": {
       |      "type": "EndStanza"
       |    }
@@ -2002,7 +2014,8 @@ trait ProcessJson {
          | "howto": []}""".stripMargin
     )
     .as[JsObject]
-      val processWithCallouts: String =
+
+  val processWithCallouts: String =
     """
       |{
       |    "meta": {
