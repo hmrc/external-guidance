@@ -33,7 +33,7 @@ trait BaseSpec extends WordSpec with Matchers with ScalaFutures {
 
   def missingJsObjectAttrTests[T](jsObject: JsObject, attrsToIgnore: List[String] = Nil)(implicit objectReads: Reads[T]): Unit =
     jsObject.keys.filterNot(attrsToIgnore.contains(_)).foreach { attributeName =>
-      s"throw exception when json is missing attribute $attributeName" in {
+      s"return error when json is missing attribute $attributeName" in {
         val invalidJson = jsObject - attributeName
         invalidJson.validate[T] match {
           case JsSuccess(_, _) => fail(s"Object incorrectly created when attribute $attributeName missing")

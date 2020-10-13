@@ -53,13 +53,13 @@ trait StanzaHelper {
   val sqpQpCalloutStanza = CalloutStanza(SubTitle, 1, Seq("3"), false)
   val sqpQpQuestionStanza = QuestionStanza(two, Seq(three, four), Seq("4", "6"), None, false)
 
-  val sqpQpInputStanza = InputStanza(Currency, Seq("4"), two, three, "label", None, false)
+  val sqpQpInputStanza = InputStanza(Currency, Seq("4"), two, Some(three), "label", None, false)
 
   // Question page - After
   val sqpQpInstruction = Instruction(phrases(0), Seq("2"), None, false)
   val sqpQpCallout = Callout(SubTitle, phrases(1), Seq("3"), false)
   val sqpQpQuestion = Question(phrases(two), Seq(phrases(three), phrases(four)), Seq("4", "6"), None, false)
-  val sqpQpInput = Input(Currency, Seq("4"), phrases(two), phrases(three), "label", None, false)
+  val sqpQpInput = CurrencyInput(Seq("4"), phrases(two), Some(phrases(three)), "label", None, false)
 
   // First answer page BEFORE
   val sqpFapPageStanza = PageStanza(sqpFapValue, Seq("5"), false)

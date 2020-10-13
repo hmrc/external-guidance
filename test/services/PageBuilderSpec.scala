@@ -264,7 +264,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     "detect PhraseNotFound in InputStanza name" in {
       val flow = Map(
         Process.StartStanzaId -> PageStanza("Blah", Seq("1"), false),
-        "1" -> InputStanza(Currency, Seq("end"), 2, 3, "Label", None, false),
+        "1" -> InputStanza(Currency, Seq("end"), 2, Some(3), "Label", None, false),
         "end" -> EndStanza
       )
       val process = Process(metaSection, flow, Vector[Phrase](Phrase(Vector("Some Text", "Welsh, Some Text"))), Vector[Link]())
@@ -279,7 +279,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     "detect PhraseNotFound in InputStanza help" in {
       val flow = Map(
         Process.StartStanzaId -> PageStanza("Blah", Seq("1"), false),
-        "1" -> InputStanza(Currency, Seq("end"), 0, 3, "Label", None, false),
+        "1" -> InputStanza(Currency, Seq("end"), 0, Some(3), "Label", None, false),
         "end" -> EndStanza
       )
       val process = Process(metaSection, flow, Vector[Phrase](Phrase(Vector("Some Text", "Welsh, Some Text"))), Vector[Link]())
@@ -294,7 +294,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     "detect PhraseNotFound in InputStanza placeholder" in {
       val flow = Map(
         Process.StartStanzaId -> PageStanza("Blah", Seq("1"), false),
-        "1" -> InputStanza(Currency, Seq("end"), 0, 0, "Label", Some(3), false),
+        "1" -> InputStanza(Currency, Seq("end"), 0, Some(0), "Label", Some(3), false),
         "end" -> EndStanza
       )
       val process = Process(metaSection, flow, Vector[Phrase](Phrase(Vector("Some Text", "Welsh, Some Text"))), Vector[Link]())
