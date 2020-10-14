@@ -254,6 +254,26 @@ class ProcessReviewControllerSpec extends WordSpec
       }
     }
 
+    "the request contains a duplicate process code" should {
+
+      trait DuplicateKeyTest extends Test {
+        val expectedErrorCode = "DUPLICATE_KEY_ERROR"
+        MockReviewService
+          .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
+          .returns(Future.successful(Left(DuplicateKeyError)))
+
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(statusChangeJson)
+      }
+
+      "return a duplicate key error response" in new DuplicateKeyTest {
+        private val result = controller.approval2iReviewComplete(validProcessIdForReview)(request)
+        status(result) shouldBe BAD_REQUEST
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+        private val json = contentAsJson(result).as[JsObject]
+        (json \ "code").as[String] shouldBe expectedErrorCode
+      }
+    }
+
     "a stale data error occurs" should {
 
       trait ErrorTest extends Test {

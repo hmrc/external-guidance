@@ -149,7 +149,6 @@ class PublishedServiceSpec extends BaseSpec {
     }
   }
 
-
   "Calling the save method" when {
 
     "the id and JSON are valid" should {
@@ -167,6 +166,23 @@ class PublishedServiceSpec extends BaseSpec {
         }
       }
     }
+
+    "the processCode already exists for another process" should {
+      "return a DuplicateKeyError" in new Test {
+
+        val expected: RequestOutcome[String] = Left(DuplicateKeyError)
+
+        MockPublishedRepository
+          .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
+          .returns(Future.successful(expected))
+
+        whenReady(target.save(validId, "userId", "processCode", validOnePageJson.as[JsObject])) {
+          case Left(DuplicateKeyError) => succeed
+          case _ => fail
+        }
+      }
+    }
+
 
     "the JSON is invalid" should {
 

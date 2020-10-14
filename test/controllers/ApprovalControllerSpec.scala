@@ -18,7 +18,7 @@ package controllers
 
 import controllers.actions.FakeIdentifierAction
 import mocks.MockApprovalService
-import models.errors.{BadRequestError, Error, InternalServerError, NotFoundError, ProcessError, ValidationError}
+import models.errors.{BadRequestError, DuplicateKeyError, Error, InternalServerError, NotFoundError, ProcessError, ValidationError}
 import models.ocelot.errors.DuplicatePageUrl
 import models.{ApprovalProcess, ApprovalProcessJson}
 import org.scalatest.{Matchers, WordSpec}
@@ -138,6 +138,35 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
         MockApprovalService
           .save(validApprovalProcessJson)
           .returns(Future.successful(Left(expectedError)))
+
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(validApprovalProcessJson)
+      }
+
+      "return a bad request response" in new InvalidSaveTest {
+        private val result = controller.saveFor2iReview()(request)
+        status(result) shouldBe UNPROCESSABLE_ENTITY
+      }
+
+      "return content as JSON" in new InvalidSaveTest {
+        private val result = controller.saveFor2iReview()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return an error code of BAD_REQUEST" in new InvalidSaveTest {
+        private val result = controller.saveFor2iReview()(request)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe Error.UnprocessableEntity
+      }
+    }
+
+    "the request is invalid with a DuplicateKeyError" should {
+
+      trait InvalidSaveTest extends Test {
+        val processError: ProcessError = toProcessErr(DuplicatePageUrl("4", "/feeling-bad"))
+        val expectedError = Error(List(processError))
+        MockApprovalService
+          .save(validApprovalProcessJson)
+          .returns(Future.successful(Left(DuplicateKeyError)))
 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(validApprovalProcessJson)
       }
