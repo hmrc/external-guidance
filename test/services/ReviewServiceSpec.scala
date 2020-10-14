@@ -355,6 +355,10 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
           .changeStatus("validId", StatusPublished, "user id")
           .returns(Future.successful(repositoryError))
 
+        MockPublishedService
+          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process)
+          .returns(Future.successful(Right("validId")))
+
         whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
           result shouldBe expected
         }
@@ -382,6 +386,10 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
         MockApprovalRepository
           .changeStatus("validId", StatusPublished, "user id")
           .returns(Future.successful(repositoryError))
+
+        MockPublishedService
+          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process)
+          .returns(Future.successful(Right("validId")))
 
         whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
           result shouldBe expected
