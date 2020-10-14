@@ -61,6 +61,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
       case StatusPublished =>
         publishedService.save(id, info.userId, approvalProcess.meta.processCode, approvalProcess.process) map {
           case Right(_) => Right(approvalProcess)
+          case Left(DuplicateKeyError) => Left(DuplicateKeyError)
           case Left(errors) =>
             logger.error(s"Failed to publish $id - $errors")
             Left(errors)
@@ -132,12 +133,14 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
             logger.warn(s"updatePageReview failed for process $id, version ${process.version}, reviewType $reviewType and pageUrl $pageUrl not found.")
             Future.successful(Left(NotFoundError))
           case Left(err) =>
-            logger.warn(s"updatePageReview failed with err $err for process $id, version ${process.version}, reviewType $reviewType and pageUrl $pageUrl not found.")
+            logger.warn(s"updatePageReview failed with err $err for process $id, version ${process.version}, reviewType $reviewType " +
+              s"and pageUrl $pageUrl not found.")
             Future.successful(Left(InternalServerError))
           case Right(_) =>
             changeStatus(id, "InProgress", reviewInfo.updateUser.getOrElse("System"), reviewType).map{
               case Left(err) =>
-                logger.error(s"changeStatus failed with err $err for process $id, version ${process.version}, reviewType $reviewType and pageUrl $pageUrl not found. Continueing")
+                logger.error(s"changeStatus failed with err $err for process $id, version ${process.version}, reviewType $reviewType " +
+                  s"and pageUrl $pageUrl not found. Continuing")
                 Right(())
               case ok @ Right(_) => ok
             }

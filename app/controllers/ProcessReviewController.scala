@@ -70,6 +70,7 @@ class ProcessReviewController @Inject() (
       reviewService.twoEyeReviewComplete(id, statusChangeInfo).map {
         case Right(auditInfo) => Ok(Json.toJson(auditInfo))
         case Left(IncompleteDataError) => BadRequest(Json.toJson(IncompleteDataError))
+        case Left(DuplicateKeyError) => BadRequest(Json.toJson(DuplicateKeyError))
         case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
         case Left(StaleDataError) => NotFound(Json.toJson(StaleDataError))
         case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
