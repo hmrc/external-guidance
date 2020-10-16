@@ -90,32 +90,6 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
     }
 
   }
-  //    checkProcessInCorrectStateForCompletion(id, ReviewType2i) flatMap {
-  //      case Right(ap) =>
-  //        reviewRepository.updateReview(id, ap.version, ReviewType2i, info.userId, info.status) flatMap {
-  //          case Right(()) =>
-  //            changeStatus(id, info.status, info.userId, ReviewType2i) flatMap {
-  //              case Right(_) =>
-  //                publishIfRequired(ap).map {
-  //                  case Right(_) =>
-  //                    ap.process
-  //                      .validate[Process]
-  //                      .fold(
-  //                        _ => Left(BadRequestError): RequestOutcome[AuditInfo],
-  //                        process => Right(AuditInfo(info.userId, ap, process))
-  //                      )
-  //                  case Left(err) => Left(err)
-  //                }
-  //              case Left(errors) => Future.successful(Left(errors))
-  //            }
-  //          case Left(errors) =>
-  //            logger.error(s"updateReviewOnCompletion: Could not change status of 2i review for process $id")
-  //            Future.successful(Left(errors))
-  //        }
-  //      case Left(errors) =>
-  //        logger.error(s"2i Complete - errors returned $errors")
-  //        Future.successful(Left(errors))
-  //    }
 
   def factCheckComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[AuditInfo]] =
     checkProcessInCorrectStateForCompletion(id, ReviewTypeFactCheck) flatMap {
