@@ -52,6 +52,7 @@ class ApprovalService @Inject() (
       err => Future.successful(Left(err)),
       t => {
         val (process, pages) = t
+        println(s"PAGES: ${pages.length}")
         val processMetaSection =
           ApprovalProcessMeta(
             process.meta.id,
