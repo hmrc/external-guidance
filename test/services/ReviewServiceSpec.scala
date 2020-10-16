@@ -81,6 +81,10 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
     "there are entries to return" should {
       "return an ApprovalProcessReview object containing appropriate page info" in new Test {
 
+        MockPublishedService
+          .getByProcessCode(approvalProcess.meta.processCode)
+          .returns(Future.successful(Right(PublishedProcess(validId, 1, ZonedDateTime.now(), Json.obj(), "", approvalProcess.meta.processCode))))
+
         MockApprovalRepository
           .getById(validId)
           .returns(Future.successful(Right(approvalProcess)))
@@ -94,6 +98,28 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
             entry.ocelotId shouldBe validId
             entry.title shouldBe approvalProcessReview.title
             entry.pages.size shouldBe 1
+          case _ => fail
+        }
+      }
+    }
+
+    "there are entries to return but another published process has the same process code" should {
+      "return a duplicate key error" in new Test {
+
+        MockPublishedService
+          .getByProcessCode(approvalProcess.meta.processCode)
+          .returns(Future.successful(Right(PublishedProcess("anotherId", 1, ZonedDateTime.now(), Json.obj(), "", approvalProcess.meta.processCode))))
+
+        MockApprovalRepository
+          .getById(validId)
+          .returns(Future.successful(Right(approvalProcess)))
+
+        MockApprovalProcessReviewRepository
+          .getByIdVersionAndType(validId, ReviewType2i)
+          .returns(Future.successful(Right(approvalProcessReview)))
+
+        whenReady(service.approvalReviewInfo(validId, ReviewType2i)) {
+          case Left(DuplicateKeyError) => succeed
           case _ => fail
         }
       }
@@ -136,6 +162,10 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
 
         val expected: RequestOutcome[String] = Left(NotFoundError)
 
+        MockPublishedService
+          .getByProcessCode(approvalProcess.meta.processCode)
+          .returns(Future.successful(Right(PublishedProcess(validId, 1, ZonedDateTime.now(), Json.obj(), "", approvalProcess.meta.processCode))))
+
         MockApprovalRepository
           .getById(validId)
           .returns(Future.successful(Right(approvalProcess)))
@@ -155,6 +185,10 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
       "return an InternalServerError" in new Test {
 
         val expected: RequestOutcome[String] = Left(InternalServerError)
+
+        MockPublishedService
+          .getByProcessCode(approvalProcess.meta.processCode)
+          .returns(Future.successful(Right(PublishedProcess(validId, 1, ZonedDateTime.now(), Json.obj(), "", approvalProcess.meta.processCode))))
 
         MockApprovalRepository
           .getById(validId)

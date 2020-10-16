@@ -83,6 +83,32 @@ class ProcessReviewControllerSpec extends WordSpec
       }
     }
 
+    "the request is valid but a duplicate process code is detected" should {
+
+      trait ValidTest extends Test {
+        val expectedErrorCode = "DUPLICATE_KEY_ERROR"
+        MockReviewService
+          .approvalReviewInfo(validProcessIdForReview, ReviewType2i)
+          .returns(Future.successful(Left(DuplicateKeyError)))
+
+        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
+        lazy val result = controller.approval2iReviewInfo(validProcessIdForReview)(request)
+      }
+
+      "return an Bad_Request response" in new ValidTest {
+        status(result) shouldBe BAD_REQUEST
+      }
+
+      "return content as HTML" in new ValidTest {
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "confirm returned content is a JSON object" in new ValidTest {
+        private val json = contentAsJson(result).as[JsObject]
+        (json \ "code").as[String] shouldBe expectedErrorCode
+      }
+    }
+
     "the request is invalid" should {
 
       trait InvalidTest extends Test {

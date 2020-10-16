@@ -36,7 +36,15 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
     repository.getById(id) flatMap {
       case Left(NotFoundError) => Future.successful(Left(NotFoundError))
       case Left(_) => Future.successful(Left(InternalServerError))
-      case Right(process) => getReviewInfo(id, reviewType, process.version)
+      case Right(process) =>
+        publishedService.getByProcessCode(process.meta.processCode) flatMap {
+          case Right(p) if p.id != process.meta.id =>
+            logger.error(s"Attempt to review approval process ${process.meta.id} with code ${process.meta.processCode} " +
+              s": duplicate key in published collection for process ${p.id}")
+            Future.successful(Left(DuplicateKeyError))
+          case _ =>
+            getReviewInfo(id, reviewType, process.version)
+        }
     }
 
   def approvalPageInfo(id: String, pageUrl: String, reviewType: String): Future[RequestOutcome[ApprovalProcessPageReview]] =

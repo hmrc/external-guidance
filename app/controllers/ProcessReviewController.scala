@@ -49,6 +49,7 @@ class ProcessReviewController @Inject() (
     reviewService.approvalReviewInfo(id, reviewType).map {
       case Right(data) => Ok(Json.toJson(data).as[JsObject])
       case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
+      case Left(DuplicateKeyError) => BadRequest(Json.toJson(DuplicateKeyError))
       case Left(StaleDataError) => NotFound(Json.toJson(StaleDataError))
       case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
       case Left(_) => InternalServerError(Json.toJson(ServerError))
