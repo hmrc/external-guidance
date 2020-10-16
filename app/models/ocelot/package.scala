@@ -22,11 +22,14 @@ package object ocelot {
   val hintRegex = "\\[hint:([^\\]])+\\]".r
   val pageLinkRegex = s"\\[link:.+?:(\\d+|${Process.StartStanzaId})\\]".r
   val labelRefRegex = s"\\[label:([0-9a-zA-Z\\s+_]+)\\]".r
-  val currencyRegex = "-?\\d+(\\.\\d*)?".r
+  val inputCurrencyRegex = "^-?(\\d{1,3}(,\\d{3})*|\\d+)(\\.(\\d{1,2})?)?$".r
+  val integerRegex = "^\\d+$".r
 
   def plSingleGroupCaptures(regex: Regex, str: String): List[String] = regex.findAllMatchIn(str).map(_.group(1)).toList
   def pageLinkIds(str: String): List[String] = plSingleGroupCaptures(pageLinkRegex, str)
   def labelReferences(str: String): List[String] = plSingleGroupCaptures(labelRefRegex, str)
   def labelReference(str: String): Option[String] = plSingleGroupCaptures(labelRefRegex, str).headOption
-  def isCurrency(str: String): Boolean = currencyRegex.findFirstIn(str).fold(false)(_.equals(str))
+  def isCurrency(str: String): Boolean = inputCurrencyRegex.findFirstIn(str).fold(false)(_ => true)
+  def asCurrency(value: String): Option[BigDecimal] = inputCurrencyRegex.findFirstIn(value).map(s => BigDecimal(s.filterNot(_==',')))
+  def asInt(value: String): Option[Int] = integerRegex.findFirstIn(value).map(_.toInt)
 }

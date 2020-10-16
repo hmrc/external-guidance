@@ -24,6 +24,7 @@ case object Equals extends TestType
 case object NotEquals extends TestType
 case object MoreThan extends TestType
 case object MoreThanOrEquals extends TestType
+case object LessThan extends TestType
 case object LessThanOrEquals extends TestType
 
 object TestType {
@@ -33,6 +34,7 @@ object TestType {
     case JsString("notEquals") => JsSuccess(NotEquals, __)
     case JsString("moreThan") => JsSuccess(MoreThan, __)
     case JsString("moreThanOrEquals") => JsSuccess(MoreThanOrEquals, __)
+    case JsString("lessThan") => JsSuccess(LessThan, __)
     case JsString("lessThanOrEquals") => JsSuccess(LessThanOrEquals, __)
     case typeName: JsString => JsError(JsonValidationError(Seq("TestType"), typeName.value))
     case unknown => JsError(JsonValidationError(Seq("TestType"), unknown.toString))
@@ -43,6 +45,7 @@ object TestType {
     case NotEquals => Json.toJson("notEquals")
     case MoreThan => Json.toJson("moreThan")
     case MoreThanOrEquals => Json.toJson("moreThanOrEquals")
+    case LessThan => Json.toJson("lessThan")
     case LessThanOrEquals => Json.toJson("lessThanOrEquals")
   }
 
