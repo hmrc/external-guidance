@@ -16,6 +16,7 @@
 
 package models.ocelot.stanzas
 
+import models.ocelot.asCurrency
 import models.ocelot.{labelReferences, Label, Labels, Phrase}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
@@ -58,7 +59,6 @@ object InputStanza {
 }
 
 trait Input extends VisualStanza with Populated with DataInput {
-  val next: Seq[String]
   val name: Phrase
   val help: Option[Phrase]
   val label: String
@@ -76,7 +76,9 @@ case class CurrencyInput(
   label: String,
   placeholder: Option[Phrase],
   stack: Boolean
-) extends Input
+) extends Input {
+  def validInput(value: String): Option[String] = asCurrency(value).map(_.toString)
+}
 
 object Input {
   def apply(stanza: InputStanza, name: Phrase, help: Option[Phrase], placeholder: Option[Phrase]): Option[Input] =

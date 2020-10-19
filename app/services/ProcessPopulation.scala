@@ -31,7 +31,7 @@ trait ProcessPopulation {
 
   private def populateStanza(id: String, stanza: Stanza, process: Process): Either[GuidanceError, Stanza] = {
 
-    def populateInstruction(i: InstructionStanza): Either[GuidanceError, Instruction] = {
+    def populateInstruction(i: InstructionStanza): Either[GuidanceError, Instruction] =
       phrase(i.text, id, process).fold(
         Left(_),
         text => {
@@ -41,7 +41,6 @@ trait ProcessPopulation {
           }
         }
       )
-    }
 
     def populateInput(i: InputStanza): Either[GuidanceError, Input] =
       phrase(i.name, id, process).fold(Left(_), name =>

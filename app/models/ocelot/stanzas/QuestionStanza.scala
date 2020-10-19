@@ -16,7 +16,7 @@
 
 package models.ocelot.stanzas
 
-import models.ocelot.{labelReferences, Phrase, Label, Labels, hintRegex}
+import models.ocelot.{labelReferences, Phrase, Label, Labels, hintRegex, asInt}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -53,17 +53,16 @@ case class Question(text: Phrase,
                     label: Option[String],
                     stack: Boolean) extends VisualStanza with Populated with DataInput {
   override val labelRefs: List[String] = labelReferences(text.langs(0)) ++ answers.flatMap(a => labelReferences(a.langs(0)))
-  override val labels = label.fold[List[Label]](Nil)(l => List(Label(l, None, None)))
+  override val labels: List[Label] = label.fold[List[Label]](Nil)(l => List(Label(l, None, None)))
 
   def eval(value: String, labels: Labels): (Option[String], Labels) =
-    if (value.forall(_.isDigit))
-      answers.lift(value.toInt)
-             .fold[(Option[String], Labels)]((None, labels)){answer => {
-                  val answerText = hintRegex.split(answer.langs(0)).head.trim
-                  (Some(next(value.toInt)), label.fold(labels)(labels.update(_, answerText)))
-                }
-             }
-    else (None, labels)
+    validInput(value).fold[(Option[String], Labels)]((None, labels)){idx => {
+        val answerText = hintRegex.split(answers(idx.toInt).langs(0)).head.trim
+        (Some(next(idx.toInt)), label.fold(labels)(labels.update(_, answerText)))
+      }
+    }
+  def validInput(value: String): Option[String] =
+    asInt(value).fold[Option[String]](None)(idx => if (answers.indices.contains(idx)) Some(idx.toString) else None)
 }
 
 object Question {

@@ -18,6 +18,7 @@ package models.ocelot.stanzas
 
 import base.BaseSpec
 import play.api.libs.json._
+import models.ocelot.{LabelCache, Phrase}
 
 class InputStanzaSpec extends BaseSpec {
 
@@ -59,6 +60,74 @@ class InputStanzaSpec extends BaseSpec {
         inputStanza shouldBe expectedStanza
       }
     }
+  }
+
+  "CurrencyInput " should {
+    "update the input label" in {
+
+      Input(expectedCurrencyStanza, Phrase("",""), None, None).get match {
+        case currencyInput: CurrencyInput =>
+          val labels = LabelCache()
+
+          val (nxt, updatedLabels) = currencyInput.eval("33", labels)
+          updatedLabels.updatedLabels(expectedCurrencyStanza.label).value shouldBe Some("33")
+        case _ => fail
+      }
+
+    }
+
+    "Determine invalid input to be incorrect" in {
+
+      Input(expectedCurrencyStanza, Phrase("",""), None, None).get match {
+        case currencyInput: CurrencyInput =>
+
+          currencyInput.validInput("a value") shouldBe None
+          currencyInput.validInput("100.789") shouldBe None
+          currencyInput.validInput("100.7a9") shouldBe None
+        case _ => fail
+      }
+
+    }
+
+    "Allow for coma separated 1000s" in {
+
+      Input(expectedCurrencyStanza, Phrase("",""), None, None).get match {
+        case currencyInput: CurrencyInput =>
+
+          currencyInput.validInput("123,345,768") shouldBe Some("123345768")
+        case _ => fail
+      }
+
+    }
+
+    "Allow -ve values" in {
+
+      Input(expectedCurrencyStanza, Phrase("",""), None, None).get match {
+        case currencyInput: CurrencyInput =>
+
+          currencyInput.validInput("-567,345") shouldBe Some("-567345")
+        case _ => fail
+      }
+
+    }
+
+    "Determine valid input to be correct" in {
+
+      Input(expectedCurrencyStanza, Phrase("",""), None, None).get match {
+        case currencyInput: CurrencyInput =>
+
+          currencyInput.validInput("33") shouldBe Some("33")
+          currencyInput.validInput("33.9") shouldBe Some("33.9")
+          currencyInput.validInput("33.") shouldBe Some("33")
+          currencyInput.validInput("3,334") shouldBe Some("3334")
+          currencyInput.validInput("1,234,567") shouldBe Some("1234567")
+          currencyInput.validInput("1,234,567.89") shouldBe Some("1234567.89")
+          currencyInput.validInput("1,234,567.8") shouldBe Some("1234567.8")
+        case _ => fail
+      }
+
+    }
+
   }
 
   "Reading invalid JSON for a Input" should {
