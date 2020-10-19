@@ -20,7 +20,7 @@ import scala.util.matching.Regex
 
 package object ocelot {
   val hintRegex = "\\[hint:([^\\]])+\\]".r
-  val pageLinkRegex = s"\\[(button|link(-same|-tab)?):([^\\]]+?):(\\d+|${Process.StartStanzaId})\\]".r
+  val pageLinkRegex = s"\\[(button|link)(-same|-tab)?:([^\\]]+?):(\\d+|${Process.StartStanzaId})\\]".r
   val labelRefRegex = s"\\[label:([0-9a-zA-Z\\s+_]+)\\]".r
   val inputCurrencyRegex = "^-?(\\d{1,3}(,\\d{3})*|\\d+)(\\.(\\d{1,2})?)?$".r
   val integerRegex = "^\\d+$".r
