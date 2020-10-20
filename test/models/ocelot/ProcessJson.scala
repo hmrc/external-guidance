@@ -2630,4 +2630,70 @@ trait ProcessJson {
          | "howto": []}""".stripMargin
     )
     .as[JsObject]
+
+  val simpleRowStanzaProcessAsString: String =
+  """{
+    |  "meta": {
+    |    "title": "Simple Row Stanza example",
+    |    "id": "oct90005",
+    |    "ocelot": 1,
+    |    "lastAuthor": "000000",
+    |    "lastUpdate": 1500298931016,
+    |    "version": 4,
+    |    "filename": "SimpleRowStanza.json",
+    |    "processCode": "simple-row-stanza"
+    |  },
+    |  "howto": [],
+    |  "contacts": [],
+    |  "links": [],
+    |  "flow": {
+    |    "start": {
+    |      "type": "PageStanza",
+    |      "url":"/start",
+    |      "next": ["1"],
+    |      "stack": true
+    |    },
+    |    "1": {
+    |      "next": [
+    |        "2"
+    |      ],
+    |      "noteType": "Title",
+    |      "stack": false,
+    |      "text": 0,
+    |      "type": "CalloutStanza"
+    |    },
+    |    "2": {
+    |      "next": [ "3" ],
+    |      "stack": false,
+    |      "cells": [1],
+    |      "type": "RowStanza"
+    |    },
+    |    "3": {
+    |      "next": [ "4" ],
+    |      "stack": true,
+    |      "cells": [2, 3, 4, 5],
+    |      "type": "RowStanza"
+    |    },
+    |     "4": {
+    |      "next": [ "end" ],
+    |      "stack": true,
+    |      "cells": [],
+    |      "type": "RowStanza"
+    |    },
+    |    "end": {
+    |      "type": "EndStanza"
+    |    }
+    |  },
+    |  "phrases": [
+    |    ["Simple row stanza example", "Welsh, Simple row stanza example"],
+    |    ["Text for single cell row stanza", "Welsh, Text for single cell row stanza"],
+    |    ["Cell one text", "Welsh, Cell one text"],
+    |    ["Cell two text", "Welsh, Cell two text"],
+    |    ["Cell three text", "Welsh, Cell three text"],
+    |    ["Cell four text", "Welsh, Cell four text"]
+    |  ]
+    |}
+    |""".stripMargin
+
+  val simpleRowStanzaProcessAsJson: JsObject = Json.parse(simpleRowStanzaProcessAsString).as[JsObject]
 }

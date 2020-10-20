@@ -19,16 +19,10 @@ package utils
 import models.ocelot.stanzas._
 import models.ocelot.{Link, Phrase, Process}
 
-trait StanzaHelper {
+import base.TestConstants
 
-  // Define simple constants for use when creating stanzas
-  val two: Int = 2
-  val three: Int = 3
-  val four: Int = 4
-  val five: Int = 5
-  val six: Int = 6
-  val seven: Int = 7
-  val eight: Int = 8
+
+trait StanzaHelper extends TestConstants {
 
   val phrases: Vector[Phrase] = Vector(
     Phrase(Vector("Text 0", "Welsh, Text 0")),

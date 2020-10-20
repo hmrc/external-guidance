@@ -20,9 +20,17 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
 import play.api.libs.json._
 
-trait BaseSpec extends WordSpec with Matchers with ScalaFutures {
+trait TestConstants {
 
-  // Define numeric values used in tests
+  val zero: Int = 0
+  val one: Int = 1
+  val two: Int = 2
+  val three: Int = 3
+  val four: Int = 4
+  val five: Int = 5
+  val six: Int = 6
+  val seven: Int = 7
+  val eight: Int = 8
   val nine = 9
   val ten = 10
   val eleven = 11
@@ -30,6 +38,10 @@ trait BaseSpec extends WordSpec with Matchers with ScalaFutures {
   val thirteen = 13
   val fourteen = 14
   val fifteen = 15
+
+}
+
+trait BaseSpec extends WordSpec with Matchers with ScalaFutures with TestConstants {
 
   def missingJsObjectAttrTests[T](jsObject: JsObject, attrsToIgnore: List[String] = Nil)(implicit objectReads: Reads[T]): Unit =
     jsObject.keys.filterNot(attrsToIgnore.contains(_)).foreach { attributeName =>

@@ -702,6 +702,228 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     }
   }
 
+  "When processing guidance containing zero or more row stanzas" must {
+
+    "successfully create an instance of Row from a RowStanza with a single data cell" in new Test {
+
+      val cellDataContent: Phrase = Phrase( Vector( "Text for single data cell", "Welsh, Text for single data cell"))
+
+      val expectedRow: Row =  new Row(Seq(cellDataContent), Seq("end"), stack = false)
+
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/rowStanzaTest", Seq("1"), stack = false),
+        "1" -> CalloutStanza(Title, 0, Seq("2"), stack = false),
+        "2" -> RowStanza(Seq(1), Seq("end"), stack = false),
+        "end" -> EndStanza
+      )
+
+      val process: Process = Process(
+        metaSection,
+        flow,
+        Vector[Phrase](
+          Phrase(Vector("Single cell row stanza", "Welsh, Single cell row stanza")),
+            cellDataContent
+        ),
+        Vector[Link]()
+      )
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Right(pages) => pages.head.stanzas(2) shouldBe expectedRow
+        case Left(err) => fail(s"Attempt to parse page with single cell row stanza failed with error : ${err.toString()}")
+      }
+    }
+
+    "successfully create an instance of a Row from a RowStanza with multiple data cells" in new Test {
+
+      val cellDataContent1: Phrase = Phrase(Vector("Text for first data cell", "Welsh, Text for first data cell"))
+      val cellDataContent2: Phrase = Phrase(Vector("Text for second data cell", "Welsh, Text for second data cell"))
+      val cellDataContent3: Phrase = Phrase(Vector("Text for third data cell","Welsh, Text for third data cell"))
+
+      val expectedRow: Row = new Row(
+        Seq(cellDataContent1, cellDataContent2, cellDataContent3),
+        Seq("3"),
+        stack = false
+      )
+
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/rowStanzaTest", Seq("1"), stack = false),
+        "1" -> CalloutStanza(Title, 0, Seq("2"), stack = false),
+        "2" -> RowStanza(Seq( 1, 2, 3), Seq("3"), stack = false),
+        "3" -> InstructionStanza(four, Seq("end"), None, stack = false),
+        "end" -> EndStanza
+      )
+
+      val process: Process = Process(
+        metaSection,
+        flow,
+        Vector[Phrase](
+          Phrase(Vector("Multiple cell row stanza", "Welsh, Multiple cell row stanza")),
+          cellDataContent1,
+          cellDataContent2,
+          cellDataContent3,
+          Phrase(Vector("End of page","Welsh, End of page"))
+        ),
+        Vector[Link]()
+      )
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Right(pages) => pages.head.stanzas(2) shouldBe expectedRow
+        case Left(err) => fail(s"Attempt to parse page with single cell row stanza failed with error : ${err.toString()}")
+      }
+    }
+
+    "successfully create an instance of Row from a RowStanza with zero data cells" in new Test {
+
+      val expectedRow: Row = new Row(
+        Nil,
+        Seq("3"),
+        stack = false
+      )
+
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/rowStanzaTest", Seq("1"), stack = false),
+        "1" -> CalloutStanza(Title,0, Seq("2"), stack = false),
+        "2" -> RowStanza(Nil, Seq("3"), stack = false),
+        "3" -> InstructionStanza(1, Seq("end"), None, stack = false),
+        "end" -> EndStanza
+      )
+
+      val process: Process = Process(
+        metaSection,
+        flow,
+        Vector[Phrase](
+          Phrase(Vector("Multiple cell row stanza", "Welsh, Multiple cell row stanza")),
+          Phrase(Vector("End of page","Welsh, End of page"))
+        ),
+        Vector[Link]()
+      )
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Right(pages) => pages.head.stanzas(2) shouldBe expectedRow
+        case Left(err) => fail(s"Attempt to parse page with single cell row stanza failed with error : ${err.toString()}")
+      }
+
+    }
+
+    "create an instance of Row with linked page ids when links to pages are defined in cell data" in new Test {
+
+      val cellDataContent1: Phrase = Phrase(Vector("Cell data 1 link [link:PageId2:20]", "Welsh, Cell data 1 link [link:PageId2:20]"))
+      val cellDataContent2: Phrase = Phrase(Vector("Cell data 2 link [link:PageId5:64]", "Welsh, Cell data 2 link [link:PageId5:64]"))
+
+      val expectedRow: Row = new Row(
+        Seq(cellDataContent1, cellDataContent2),
+        Seq("3"),
+        stack = false,
+        links = List("20", "64")
+      )
+
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/rowStanzaTest-page-1", Seq("1"), stack = false),
+        "1" -> CalloutStanza(Title, 0, Seq("2"), stack = false),
+        "2" -> RowStanza(Seq(1, 2), Seq("3"), stack = false),
+        "3" -> InstructionStanza(3, Seq("end"), Some(0), stack = false),
+        "20" -> PageStanza("/rowStanzaTest-page-2", Seq("21"), stack = false),
+        "21" -> InstructionStanza(3, Seq("end"), Some(1), stack = false),
+        "64" -> PageStanza("/rowStanzaTest-page-3", Seq("65"), stack = false),
+        "65" -> InstructionStanza(six, Seq("end"), None, stack = false),
+        "end" -> EndStanza
+      )
+
+      val process: Process = Process(
+        metaSection,
+        flow,
+        Vector[Phrase](
+          Phrase(Vector("Multiple cell row stanza", "Welsh, Multiple cell row stanza")),
+          cellDataContent1,
+          cellDataContent2,
+          Phrase(Vector("End of page","Welsh, End of page")),
+          Phrase(Vector("Link to page 2", "Welsh, link to page 2")),
+          Phrase(Vector("Link to page 3", "Welsh, link to page 3")),
+          Phrase(Vector("End of test", "Welsh, End of test"))
+        ),
+        Vector[Link](
+          Link(four, "20", "Link 4 title", window = false),
+          Link(five, "64", "Link 5 title", window = false)
+        )
+      )
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Right(pages) => pages.head.stanzas(2) shouldBe expectedRow
+        case Left(err) => fail(s"Attempt to parse page with single cell row stanza failed with error : ${err.toString()}")
+      }
+    }
+
+    "successfully detect an invalid phrase identifier in the definition of a row stanza" in new Test {
+
+      val cellDataContent1: Phrase = Phrase(Vector("Text for first data cell", "Welsh, Text for first data cell"))
+      val cellDataContent2: Phrase = Phrase(Vector("Text for second data cell", "Welsh, Text for second data cell"))
+      val cellDataContent3: Phrase = Phrase(Vector("Text for third data cell","Welsh, Text for third data cell"))
+
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/rowStanzaTest", Seq("1"), stack = false),
+        "1" -> CalloutStanza(Title, 0, Seq("2"), stack = false),
+        "2" -> RowStanza(Seq( 1, five, 3), Seq("3"), stack = false),
+        "3" -> InstructionStanza(four, Seq("end"), None, stack = false),
+        "end" -> EndStanza
+      )
+
+      val process: Process = Process(
+        metaSection,
+        flow,
+        Vector[Phrase](
+          Phrase(Vector("Multiple cell row stanza", "Welsh, Multiple cell row stanza")),
+          cellDataContent1,
+          cellDataContent2,
+          cellDataContent3,
+          Phrase(Vector("End of page","Welsh, End of page"))
+        ),
+        Vector[Link]()
+      )
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Right(_) => fail( "PageBuilder should not create a row from a row stanza with an invalid phrase identifier")
+        case Left(List(PhraseNotFound("2", five))) => succeed
+        case Left(err) => fail( s"Expected error PhraseNotFound(2, 5) but received ${err.toString}")
+      }
+
+    }
+
+    "successfully create rows from row stanzas defined in guidance" in new Test {
+
+      val process: Process = simpleRowStanzaProcessAsJson.as[Process]
+
+      // Define expected single cell row
+      val singleCellText: Phrase = Phrase(Vector("Text for single cell row stanza","Welsh, Text for single cell row stanza"))
+
+      val expectedSingleCellRow: Row = new Row(Seq(singleCellText), Seq("3"), stack = false)
+
+      // Define expected multiple cell row
+      val cellOneText: Phrase = Phrase(Vector("Cell one text", "Welsh, Cell one text"))
+      val cellTwoText: Phrase = Phrase(Vector("Cell two text", "Welsh, Cell two text"))
+      val cellThreeText: Phrase = Phrase(Vector("Cell three text", "Welsh, Cell three text"))
+      val cellFourText: Phrase = Phrase(Vector("Cell four text", "Welsh, Cell four text"))
+
+      val expectedMultipleCellRow: Row = new Row(
+        Seq(cellOneText, cellTwoText, cellThreeText, cellFourText),
+        Seq("4"),
+        stack = true
+      )
+
+      // Define expected zero cells row
+      val expectedZeroCellRow: Row = new Row(Seq(), Seq("end"), stack = true)
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Right(pages) => {
+          pages.head.stanzas(2) shouldBe expectedSingleCellRow
+          pages.head.stanzas(3) shouldBe expectedMultipleCellRow
+          pages.head.stanzas(four) shouldBe expectedZeroCellRow
+        }
+        case Left(err) => fail( s"Attempt to create pages from simple row stanza example failed with error : ${err.toString}")
+      }
+    }
+
+  }
+
   "When processing a 2 page flow separated by a PageStanza" must {
     val process: Process = Process(
       meta,
