@@ -51,6 +51,12 @@ trait ProcessPopulation {
         )
       )
 
+    def populateRow(r: RowStanza): Either[GuidanceError, Row] =
+      phrases(r.cells, Nil, id, process) match {
+        case Right(texts) => Right(Row(r, texts, pageLinkIds(texts)))
+        case Left(err) => Left(err)
+      }
+
     def link(linkIndex: Int): Either[LinkNotFound, Link] =
       process.linkOption(linkIndex).map(Right(_)).getOrElse(Left(LinkNotFound(id, linkIndex)))
 
@@ -60,6 +66,7 @@ trait ProcessPopulation {
           case Right(texts) => Right(Question(q, texts.head, texts.tail))
           case Left(err) => Left(err)
         }
+      case r: RowStanza => populateRow(r)
       case i: InstructionStanza => populateInstruction(i)
       case i: InputStanza => populateInput(i)
       case c: CalloutStanza => phrase(c.text, id, process).fold(Left(_), text => Right(Callout(c, text)))

@@ -89,6 +89,36 @@ class LabelSpec extends BaseSpec with ProcessJson {
 
     }
 
+    "Return a map of new and updated labels on request" in {
+      val labelsMap = Map("X"->Label("X", Some("33.5")), "Y"->Label("Y", Some("4")), "Name" -> Label("Name", Some("Coltrane")))
+      val labels = LabelCache(labelsMap)
+      labels.value("X") shouldBe Some("33.5")
+      val labels1 = labels.update("X", "49.5")
+
+      val labels2 = labels1.update("Location", "Here")
+
+      labels2.updatedLabels shouldBe Map("X" -> Label("X",Some("49.5"),None), "Location" -> Label("Location",Some("Here"),None))
+
+    }
+
+    "Flush updated labels to main store" in {
+      val labelsMap = Map("X"->Label("X", Some("33.5")), "Y"->Label("Y", Some("4")), "Name" -> Label("Name", Some("Coltrane")))
+      val labels = LabelCache(labelsMap)
+
+      val labels1 = labels.update("X", "49.5")
+      val labels2 = labels1.update("Location", "Here")
+
+      labels2.updatedLabels shouldBe Map("X" -> Label("X",Some("49.5"),None), "Location" -> Label("Location",Some("Here"),None))
+
+      val labels3 = labels2.flush
+
+      labels3.updatedLabels shouldBe Map()
+
+      labels3.value("X") shouldBe Some("49.5")
+      labels3.value("Location") shouldBe Some("Here")
+
+    }
+
   }
 
 }

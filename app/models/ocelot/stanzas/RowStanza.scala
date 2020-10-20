@@ -16,6 +16,7 @@
 
 package models.ocelot.stanzas
 
+import models.ocelot.{labelReferences, Phrase}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json.{JsPath, OWrites, Reads}
@@ -38,4 +39,20 @@ object RowStanza {
         (JsPath \ "stack").write[Boolean]
 
     )(unlift(RowStanza.unapply))
+}
+
+case class Row( cells: Seq[Phrase],
+                override val next: Seq[String],
+                stack: Boolean = false,
+                override val links: List[String] = Nil) extends VisualStanza with Populated {
+
+  override val labelRefs: List[String] = cells.toList.flatMap(c => labelReferences(c.langs(0)))
+}
+
+object Row {
+
+  def apply(stanza: RowStanza, cells: Seq[Phrase], linkIds: List[String] ) : Row = {
+    Row(cells, stanza.next, stanza.stack, linkIds)
+  }
+  
 }

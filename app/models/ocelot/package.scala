@@ -20,13 +20,14 @@ import scala.util.matching.Regex
 
 package object ocelot {
   val hintRegex = "\\[hint:([^\\]])+\\]".r
-  val pageLinkRegex = s"\\[link:.+?:(\\d+|${Process.StartStanzaId})\\]".r
+  val pageLinkRegex = s"\\[(button|link)(-same|-tab)?:([^\\]]+?):(\\d+|${Process.StartStanzaId})\\]".r
   val labelRefRegex = s"\\[label:([0-9a-zA-Z\\s+_]+)\\]".r
   val inputCurrencyRegex = "^-?(\\d{1,3}(,\\d{3})*|\\d+)(\\.(\\d{1,2})?)?$".r
   val integerRegex = "^\\d+$".r
 
-  def plSingleGroupCaptures(regex: Regex, str: String): List[String] = regex.findAllMatchIn(str).map(_.group(1)).toList
-  def pageLinkIds(str: String): List[String] = plSingleGroupCaptures(pageLinkRegex, str)
+  def plSingleGroupCaptures(regex: Regex, str: String, index: Int = 1): List[String] = regex.findAllMatchIn(str).map(_.group(index)).toList
+  def pageLinkIds(str: String): List[String] = plSingleGroupCaptures(pageLinkRegex, str, 4)
+  def pageLinkIds(phrases: Seq[Phrase]): List[String] = phrases.flatMap(phrase => pageLinkIds(phrase.langs.head)).toList
   def labelReferences(str: String): List[String] = plSingleGroupCaptures(labelRefRegex, str)
   def labelReference(str: String): Option[String] = plSingleGroupCaptures(labelRefRegex, str).headOption
   def isCurrency(str: String): Boolean = inputCurrencyRegex.findFirstIn(str).fold(false)(_ => true)

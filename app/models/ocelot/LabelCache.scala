@@ -21,19 +21,25 @@ trait Labels {
   def formattedValue(name: String): Option[String]
   def update(name: String, value: String): Labels
   def updatedLabels: Map[String, Label]
+  def labelMap:Map[String, Label]
+  def flush(): Labels
 }
 
-class LabelCache(labels: Map[String, Label]) extends Labels {
-  def value(name: String): Option[String] = labels.get(name).map(_.value.getOrElse(""))
+private class LabelCacheImpl(labels: Map[String, Label] = Map(), cache: Map[String, Label] = Map()) extends Labels {
+  def value(name: String): Option[String] = label(name).map(_.value.getOrElse(""))
   def formattedValue(name: String): Option[String] = value(name)  // TODO format for type of label
-  def update(name: String, value: String): Labels =  new LabelCache(updateOrAddLabel(name, value))
-  def updatedLabels: Map[String, Label] = labels
+  def update(name: String, value: String): Labels = new LabelCacheImpl(labels, updateOrAddLabel(name, value))
+  def updatedLabels: Map[String, Label] = cache
+  def labelMap:Map[String, Label] = labels
+  def flush(): Labels = new LabelCacheImpl(labels ++ cache.toList, Map())
 
+  private def label(name: String): Option[Label] = cache.get(name).fold(labels.get(name))(Some(_))
   private def updateOrAddLabel(name: String, value: String): Map[String, Label] =
-    labels + (name -> labels.get(name).fold(Label(name, Some(value)))(l => l.copy(value = Some(value))))
+    cache + (name -> cache.get(name).fold(Label(name, Some(value)))(l => l.copy(value = Some(value))))
 }
 
 object LabelCache {
-  def apply(): LabelCache = new LabelCache(Map())
-  def apply(labels: Map[String, Label]): LabelCache = new LabelCache(labels)
+  def apply(): Labels = new LabelCacheImpl()
+  def apply(labels: Map[String, Label]): Labels = new LabelCacheImpl(labels)
+  def apply(labels: Map[String, Label], cache: Map[String, Label]): Labels = new LabelCacheImpl(labels, cache)
 }
