@@ -38,6 +38,10 @@ class PhraseSpec extends BaseSpec with ProcessJson {
       Json.parse(phrase2).as[Phrase] shouldBe Phrase(Vector(p2, p2w))
       Json.parse(phrase3).as[Phrase] shouldBe Phrase(Vector(p3, p3w))
     }
+
+    "allow contruction of a blank phrase" in {
+      Phrase() shouldBe Phrase(Vector("", ""))
+    }
   }
 
   "Phrases section" must {

@@ -28,4 +28,6 @@ object Phrase {
   implicit val writes: Writes[Phrase] = new Writes[Phrase] {
     override def writes(phrase: Phrase): JsValue = Json.toJson(phrase.langs)
   }
+
+  def apply(): Phrase = Phrase(Vector("",""))
 }
