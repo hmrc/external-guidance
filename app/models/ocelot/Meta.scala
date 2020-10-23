@@ -31,17 +31,37 @@ case class Meta(id: String,
 
 object Meta {
 
+  def buildMetaSection(id: String,
+                title: String,
+                ocelot: Int,
+                lastAuthor: String,
+                lastUpdate: Long,
+                optionalVersion: Option[Int],
+                fileName: String,
+                titlePhrase: Option[Int] = None,
+                processCode: String): Meta =
+    Meta(id,
+         title,
+         ocelot,
+         lastAuthor,
+         lastUpdate,
+         optionalVersion.getOrElse(1),
+         fileName,
+         titlePhrase,
+         processCode
+       )
+
   implicit val metaReads: Reads[Meta] = (
     (__ \ "id").read[String] and
       (__ \ "title").read[String] and
       (__ \ "ocelot").read[Int] and
       (__ \ "lastAuthor").read[String] and
       (__ \ "lastUpdate").read[Long] and
-      (__ \ "version").read[Int] and
+      (__ \ "version").readNullable[Int] and
       (__ \ "filename").read[String] and
       (__ \ "titlePhrase").readNullable[Int] and
       (__ \ "processCode").read[String]
-  )(Meta.apply _)
+  )(buildMetaSection _)
 
   implicit val writes: Writes[Meta] = (
     (__ \ "id").write[String] and

@@ -79,7 +79,7 @@ class MetaSpec extends BaseSpec {
       result shouldBe validModelWithOptionalProperties
     }
 
-    missingJsObjectAttrTests[Meta](validJsonWithOptionalProperties, List("titlePhrase", "processCode"))
+    missingJsObjectAttrTests[Meta](validJsonWithOptionalProperties, List("titlePhrase", "processCode", "version"))
 
     "serialise JSON representation of instance of class Meta" in {
       Json.toJson(validModel).toString() shouldBe removeSpacesAndNewLines(validJsonAsString)
