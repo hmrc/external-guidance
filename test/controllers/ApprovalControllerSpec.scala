@@ -134,7 +134,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
 
       trait InvalidSaveTest extends Test {
         val processError: ProcessError = toProcessErr(DuplicatePageUrl("4", "/feeling-bad"))
-        val expectedError = Error(List(processError))
+        val expectedError: Error = Error(List(processError))
         MockApprovalService
           .save(validApprovalProcessJson)
           .returns(Future.successful(Left(expectedError)))
@@ -162,8 +162,6 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
     "the request is invalid with a DuplicateKeyError" should {
 
       trait InvalidSaveTest extends Test {
-        val processError: ProcessError = toProcessErr(DuplicatePageUrl("4", "/feeling-bad"))
-        val expectedError = Error(List(processError))
         MockApprovalService
           .save(validApprovalProcessJson)
           .returns(Future.successful(Left(DuplicateKeyError)))
@@ -171,7 +169,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(validApprovalProcessJson)
       }
 
-      "return a bad request response" in new InvalidSaveTest {
+      "return an unprocessable entity response" in new InvalidSaveTest {
         private val result = controller.saveFor2iReview()(request)
         status(result) shouldBe UNPROCESSABLE_ENTITY
       }
@@ -181,7 +179,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
-      "return an error code of BAD_REQUEST" in new InvalidSaveTest {
+      "return an error code of UNPROCESSABLE_ENTITY" in new InvalidSaveTest {
         private val result = controller.saveFor2iReview()(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe Error.UnprocessableEntity

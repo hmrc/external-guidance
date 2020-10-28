@@ -114,10 +114,6 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
           .getById(validId)
           .returns(Future.successful(Right(approvalProcess)))
 
-        MockApprovalProcessReviewRepository
-          .getByIdVersionAndType(validId, ReviewType2i)
-          .returns(Future.successful(Right(approvalProcessReview)))
-
         whenReady(service.approvalReviewInfo(validId, ReviewType2i)) {
           case Left(DuplicateKeyError) => succeed
           case _ => fail
@@ -434,7 +430,6 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
     "the process fails to be published" should {
       "indicate a database error" in new ReviewCompleteTest {
 
-        val expectedChangeStatusResponse: RequestOutcome[Unit] = Right(())
         val expected: RequestOutcome[ApprovalProcess] = Left(InternalServerError)
         val publishedStatusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
 
@@ -445,14 +440,6 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
         MockApprovalProcessReviewRepository
           .getByIdVersionAndType("validId", ReviewType2i, approvalProcess.version)
           .returns(Future.successful(Right(approvalProcessReviewComplete)))
-
-        MockApprovalProcessReviewRepository
-          .updateReview("validId", approvalProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, StatusPublished)
-          .returns(Future.successful(Right(())))
-
-        MockApprovalRepository
-          .changeStatus("validId", StatusPublished, "user id")
-          .returns(Future.successful(expectedChangeStatusResponse))
 
         MockPublishedService
           .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process)
