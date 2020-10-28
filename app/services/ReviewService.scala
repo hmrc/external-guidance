@@ -117,14 +117,13 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
         Future.successful(Left(errors))
     }
 
-  private def validateProcess(ap: ApprovalProcess, info: ApprovalProcessStatusChange) = {
+  private def validateProcess(ap: ApprovalProcess, info: ApprovalProcessStatusChange): RequestOutcome[AuditInfo] =
     ap.process
       .validate[Process]
       .fold(
-        _ => Left(BadRequestError): RequestOutcome[AuditInfo],
+        _ => Left(BadRequestError),
         process => Right(AuditInfo(info.userId, ap, process))
       )
-  }
 
   def approvalPageComplete(id: String, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] =
     repository.getById(id) flatMap {

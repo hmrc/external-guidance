@@ -22,7 +22,7 @@ import config.AppConfig
 import javax.inject.{Inject, Singleton}
 import models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
 import models.{ApprovalProcess, ApprovalProcessSummary, RequestOutcome}
-import play.api.libs.json.{Format, JsObject, JsResultException, Json, JsonValidationError}
+import play.api.libs.json.{Format, JsObject, JsResultException, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.Cursor.FailOnError
 import reactivemongo.api.ReadPreference
@@ -33,7 +33,6 @@ import repositories.formatters.ApprovalProcessMetaFormatter._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import utils.Constants
 
-//import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ApprovalRepository {
