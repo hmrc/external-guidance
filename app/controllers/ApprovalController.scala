@@ -24,7 +24,9 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ApprovalService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils.Constants._
-import models.errors.{BadRequestError, Error, InternalServerError => ServerError, NotFoundError, ValidationError}
+import models.errors.{BadRequestError, DuplicateKeyError, Error, NotFoundError, ValidationError, InternalServerError => ServerError}
+import play.api.libs.json.Json.toJson
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -46,21 +48,24 @@ class ApprovalController @Inject() (identify: IdentifierAction, approvalService:
       case Right(id) => Created(Json.obj("id" -> id))
       case Left(err @ Error(Error.UnprocessableEntity, _, Some(details))) =>
         logger.error(s"Failed to save process for approval due to process errors $details")
-        UnprocessableEntity(Json.toJson(err))
+        UnprocessableEntity(toJson(err))
+      case Left(DuplicateKeyError) =>
+        logger.error(s"Failed to save process for approval due to duplicate processCode")
+        UnprocessableEntity(toJson(Error(Error.UnprocessableEntity, "Duplicate ProcessCode - the process has the same processCode as an existing process")))
       case Left(ValidationError) =>
         logger.error(s"Failed to save process for approval due to validation errors")
-        BadRequest(Json.toJson(BadRequestError))
-      case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
-      case Left(_) => InternalServerError(Json.toJson(ServerError))
+        BadRequest(toJson(BadRequestError))
+      case Left(BadRequestError) => BadRequest(toJson(BadRequestError))
+      case Left(_) => InternalServerError(toJson(ServerError))
     }
   }
 
   def get(id: String): Action[AnyContent] = Action.async { _ =>
     approvalService.getById(id).map {
       case Right(approvalProcess) => Ok(approvalProcess)
-      case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
-      case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
-      case Left(_) => InternalServerError(Json.toJson(ServerError))
+      case Left(NotFoundError) => NotFound(toJson(NotFoundError))
+      case Left(BadRequestError) => BadRequest(toJson(BadRequestError))
+      case Left(_) => InternalServerError(toJson(ServerError))
     }
   }
 
@@ -68,16 +73,16 @@ class ApprovalController @Inject() (identify: IdentifierAction, approvalService:
 
     approvalService.getByProcessCode(processCode).map {
       case Right(approvalProcess) => Ok(approvalProcess)
-      case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
-      case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
-      case Left(_) => InternalServerError(Json.toJson(ServerError))
+      case Left(NotFoundError) => NotFound(toJson(NotFoundError))
+      case Left(BadRequestError) => BadRequest(toJson(BadRequestError))
+      case Left(_) => InternalServerError(toJson(ServerError))
     }
   }
 
   def approvalSummaryList: Action[AnyContent] = identify.async { implicit request =>
     approvalService.approvalSummaryList(request.roles).map {
       case Right(list) => Ok(list)
-      case _ => InternalServerError(Json.toJson(ServerError))
+      case _ => InternalServerError(toJson(ServerError))
     }
   }
 }

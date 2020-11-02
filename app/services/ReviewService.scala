@@ -36,7 +36,15 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
     repository.getById(id) flatMap {
       case Left(NotFoundError) => Future.successful(Left(NotFoundError))
       case Left(_) => Future.successful(Left(InternalServerError))
-      case Right(process) => getReviewInfo(id, reviewType, process.version)
+      case Right(process) =>
+        publishedService.getByProcessCode(process.meta.processCode) flatMap {
+          case Right(p) if p.id != process.meta.id =>
+            logger.error(s"Attempt to review approval process ${process.meta.id} with code ${process.meta.processCode} " +
+              s": duplicate key in published collection for process ${p.id}")
+            Future.successful(Left(DuplicateKeyError))
+          case _ =>
+            getReviewInfo(id, reviewType, process.version)
+        }
     }
 
   def approvalPageInfo(id: String, pageUrl: String, reviewType: String): Future[RequestOutcome[ApprovalProcessPageReview]] =
@@ -61,27 +69,21 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
       case StatusPublished =>
         publishedService.save(id, info.userId, approvalProcess.meta.processCode, approvalProcess.process) map {
           case Right(_) => Right(approvalProcess)
+          case Left(DuplicateKeyError) => Left(DuplicateKeyError)
           case Left(errors) =>
             logger.error(s"Failed to publish $id - $errors")
             Left(errors)
         }
       case _ => Future.successful(Right(approvalProcess))
     }
-
     checkProcessInCorrectStateForCompletion(id, ReviewType2i) flatMap {
       case Right(ap) =>
-        reviewRepository.updateReview(id, ap.version, ReviewType2i, info.userId, info.status) flatMap {
-          case Right(()) =>
-            changeStatus(id, info.status, info.userId, ReviewType2i) flatMap {
-              case Right(_) =>
-                publishIfRequired(ap).map {
-                  case Right(_) =>
-                    ap.process
-                      .validate[Process]
-                      .fold(
-                        _ => Left(BadRequestError): RequestOutcome[AuditInfo],
-                        process => Right(AuditInfo(info.userId, ap, process))
-                      )
+        publishIfRequired(ap).flatMap {
+          case Right(ap) =>
+            reviewRepository.updateReview(id, ap.version, ReviewType2i, info.userId, info.status) flatMap {
+              case Right(()) =>
+                changeStatus(id, info.status, info.userId, ReviewType2i) map {
+                  case Right(_) => validateProcess(ap, info)
                   case Left(err) => Left(err)
                 }
               case Left(errors) => Future.successful(Left(errors))
@@ -94,6 +96,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
         logger.error(s"2i Complete - errors returned $errors")
         Future.successful(Left(errors))
     }
+
   }
 
   def factCheckComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[AuditInfo]] =
@@ -102,13 +105,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
         reviewRepository.updateReview(id, ap.version, ReviewTypeFactCheck, info.userId, info.status) flatMap {
           case Right(_) =>
             changeStatus(id, info.status, info.userId, ReviewTypeFactCheck) map {
-              case Right(_) =>
-                ap.process
-                  .validate[Process]
-                  .fold(
-                    _ => Left(BadRequestError): RequestOutcome[AuditInfo],
-                    process => Right(AuditInfo(info.userId, ap, process))
-                  )
+              case Right(_) => validateProcess(ap, info)
               case Left(error) => Left(error)
             }
           case Left(errors) =>
@@ -119,6 +116,14 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
         logger.error(s"FactCheck Complete - returning $errors")
         Future.successful(Left(errors))
     }
+
+  private def validateProcess(ap: ApprovalProcess, info: ApprovalProcessStatusChange): RequestOutcome[AuditInfo] =
+    ap.process
+      .validate[Process]
+      .fold(
+        _ => Left(BadRequestError),
+        process => Right(AuditInfo(info.userId, ap, process))
+      )
 
   def approvalPageComplete(id: String, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] =
     repository.getById(id) flatMap {
@@ -132,12 +137,14 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
             logger.warn(s"updatePageReview failed for process $id, version ${process.version}, reviewType $reviewType and pageUrl $pageUrl not found.")
             Future.successful(Left(NotFoundError))
           case Left(err) =>
-            logger.warn(s"updatePageReview failed with err $err for process $id, version ${process.version}, reviewType $reviewType and pageUrl $pageUrl not found.")
+            logger.warn(s"updatePageReview failed with err $err for process $id, version ${process.version}, reviewType $reviewType " +
+              s"and pageUrl $pageUrl not found.")
             Future.successful(Left(InternalServerError))
           case Right(_) =>
             changeStatus(id, "InProgress", reviewInfo.updateUser.getOrElse("System"), reviewType).map{
               case Left(err) =>
-                logger.error(s"changeStatus failed with err $err for process $id, version ${process.version}, reviewType $reviewType and pageUrl $pageUrl not found. Continueing")
+                logger.error(s"changeStatus failed with err $err for process $id, version ${process.version}, reviewType $reviewType " +
+                  s"and pageUrl $pageUrl not found. Continuing")
                 Right(())
               case ok @ Right(_) => ok
             }

@@ -17,7 +17,7 @@
 package services
 
 import javax.inject.{Inject, Singleton}
-import models.errors.{BadRequestError, InternalServerError, NotFoundError}
+import models.errors.{BadRequestError, DuplicateKeyError, InternalServerError, NotFoundError}
 import models.ocelot._
 import models.{PublishedProcess, RequestOutcome}
 import play.api.Logger
@@ -62,6 +62,7 @@ class PublishedService @Inject() (repository: PublishedRepository) {
 
     def saveProcess: Future[RequestOutcome[String]] =
       repository.save(id, user, processCode, jsonProcess) map {
+        case Left(DuplicateKeyError) => Left(DuplicateKeyError)
         case Left(_) =>
           logger.error(s"Request to publish $id has failed")
           Left(InternalServerError)

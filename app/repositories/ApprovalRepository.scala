@@ -20,9 +20,9 @@ import java.time.ZonedDateTime
 
 import config.AppConfig
 import javax.inject.{Inject, Singleton}
-import models.errors.{DatabaseError, NotFoundError}
+import models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
 import models.{ApprovalProcess, ApprovalProcessSummary, RequestOutcome}
-import play.api.libs.json.{Format, JsObject, Json}
+import play.api.libs.json.{Format, JsObject, JsResultException, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.Cursor.FailOnError
 import reactivemongo.api.ReadPreference
@@ -33,8 +33,7 @@ import repositories.formatters.ApprovalProcessMetaFormatter._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import utils.Constants
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait ApprovalRepository {
   def update(process: ApprovalProcess): Future[RequestOutcome[String]]
@@ -48,7 +47,7 @@ trait ApprovalRepository {
 }
 
 @Singleton
-class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoComponent, appConfig: AppConfig)
+class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoComponent, appConfig: AppConfig, ec: ExecutionContext)
     extends ReactiveRepository[ApprovalProcess, String](
       collectionName = "approvalProcesses",
       mongo = mongoComponent.mongoConnector.db,
@@ -57,11 +56,28 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
     )
     with ApprovalRepository {
 
+  private def processCodeIndexName = "approval-secondary-Index-process-code"
+
+  override def ensureIndexes(implicit ec: ExecutionContext): Future[Seq[Boolean]] =
+    // If current configuration includes an update to the unique attribute of the processCode index, drop the current index to allow its re-creation
+    collection.indexesManager.list().flatMap { indexes =>
+      indexes
+        .filter(idx =>
+          idx.name == Some(processCodeIndexName) && !idx.unique
+        )
+        .map { i =>
+          logger.warn(s"Dropping $processCodeIndexName ready for re-creation, due to configured unique change")
+          collection.indexesManager.drop(processCodeIndexName).map(ret => logger.info(s"Drop of $processCodeIndexName index returned $ret"))
+        }
+
+      super.ensureIndexes
+    }
+
   override def indexes: Seq[Index] = Seq(
     Index(
       key = Seq("meta.processCode" -> IndexType.Ascending),
-      name = Some("approval-secondary-Index-process-code"),
-      unique = false
+      name = Some(processCodeIndexName),
+      unique = true
     )
   )
 
@@ -79,6 +95,9 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
       }
       //$COVERAGE-OFF$
       .recover {
+        case e: JsResultException if hasDupeKeyViolation(e) =>
+          logger.error(s"Attempt to persist approval process ${approvalProcess.id} with duplicate processCode : ${approvalProcess.meta.processCode}")
+          Left(DuplicateKeyError)
         case error =>
           logger.error(s"Attempt to persist process ${approvalProcess.id} to collection $collectionName failed with error : ${error.getMessage}")
           Left(DatabaseError)

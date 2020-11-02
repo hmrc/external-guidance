@@ -19,17 +19,16 @@ package repositories
 import java.time.ZonedDateTime
 
 import javax.inject.{Inject, Singleton}
-import models.errors.{DatabaseError, NotFoundError}
+import models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
 import models.{PublishedProcess, RequestOutcome}
-import play.api.libs.json.{Format, JsObject, Json}
+import play.api.libs.json.{Format, JsObject, JsResultException, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.formatters.PublishedProcessFormatter
 import uk.gov.hmrc.mongo.ReactiveRepository
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait PublishedRepository {
 
@@ -39,7 +38,7 @@ trait PublishedRepository {
 }
 
 @Singleton
-class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
+class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)(implicit ec: ExecutionContext)
     extends ReactiveRepository[PublishedProcess, String](
       collectionName = "publishedProcesses",
       mongo = mongoComponent.mongoConnector.db,
@@ -48,11 +47,28 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
     )
     with PublishedRepository {
 
+  private def processCodeIndexName = "published-secondary-Index-process-code"
+
+  override def ensureIndexes(implicit ec: ExecutionContext): Future[Seq[Boolean]] =
+    // If current configuration includes an update to the unique attribute, drop the current index to allow its re-creation
+    collection.indexesManager.list().flatMap { indexes =>
+      indexes
+        .filter(idx =>
+          idx.name == Some(processCodeIndexName) && !idx.unique
+        )
+        .map { i =>
+          logger.warn(s"Dropping $processCodeIndexName ready for re-creation, due to configured unique change")
+          collection.indexesManager.drop(processCodeIndexName).map(ret => logger.info(s"Drop of $processCodeIndexName index returned $ret"))
+        }
+
+      super.ensureIndexes
+    }
+
   override def indexes: Seq[Index] = Seq(
     Index(
       key = Seq("processCode" -> IndexType.Ascending),
-      name = Some("published-secondary-Index-process-code"),
-      unique = false
+      name = Some(processCodeIndexName),
+      unique = true
     )
   )
 
@@ -78,6 +94,9 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
       }
       //$COVERAGE-OFF$
       .recover {
+        case e: JsResultException if hasDupeKeyViolation(e) =>
+          logger.error(s"Failed to publish $id due to duplicate key violation on processCode : $processCode")
+          Left(DuplicateKeyError)
         case error =>
           logger.error(s"Attempt to persist process $id to collection published failed with error : ${error.getMessage}")
           Left(DatabaseError)

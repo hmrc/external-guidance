@@ -16,10 +16,11 @@
 
 package services
 
+import java.time.ZonedDateTime
 import java.util.UUID
 
 import base.BaseSpec
-import mocks.{MockAppConfig, MockApprovalProcessReviewRepository, MockApprovalRepository}
+import mocks.{MockAppConfig, MockApprovalProcessReviewRepository, MockApprovalRepository, MockPublishedRepository}
 import models._
 import models.errors._
 import models.ocelot.ProcessJson
@@ -31,13 +32,18 @@ import scala.concurrent.Future
 
 class ApprovalServiceSpec extends BaseSpec with MockFactory {
 
-  private trait Test extends MockApprovalRepository with MockApprovalProcessReviewRepository with ApprovalProcessJson with ProcessJson {
+  private trait Test extends MockApprovalRepository
+    with MockApprovalProcessReviewRepository
+    with MockPublishedRepository
+    with ApprovalProcessJson
+    with ProcessJson {
 
     val invalidId: String = "ext9005"
 
     val invalidProcess: JsObject = Json.obj("idx" -> invalidId)
 
-    lazy val service: ApprovalService = new ApprovalService(mockApprovalRepository, mockApprovalProcessReviewRepository, new PageBuilder(), MockAppConfig)
+    lazy val service: ApprovalService =
+      new ApprovalService(mockApprovalRepository, mockApprovalProcessReviewRepository, mockPublishedRepository, new PageBuilder(), MockAppConfig)
 
     val processReview: ApprovalProcessReview =
       ApprovalProcessReview(
@@ -48,6 +54,12 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
         "title",
         List()
       )
+
+    val publishedProcessSuccessResponse: RequestOutcome[PublishedProcess] =
+      Right(PublishedProcess(validId, 1, ZonedDateTime.now(), JsObject.empty, "publishedBy", approvalProcess.meta.processCode))
+    val publishedProcessFailureResponse: RequestOutcome[PublishedProcess] =
+      Right(PublishedProcess("random-id", 1, ZonedDateTime.now(), JsObject.empty, "publishedBy", approvalProcess.meta.processCode))
+
   }
 
   "Calling the getById method" when {
@@ -154,6 +166,9 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
       "return valid Id" in new Test {
 
         val expected: RequestOutcome[String] = Right(validId)
+        MockPublishedRepository
+          .getByProcessCode("cup-of-tea")
+          .returns(Future.successful(publishedProcessSuccessResponse))
 
         MockApprovalRepository
           .update(approvalProcess)
@@ -174,11 +189,49 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
       }
     }
 
+    "the processCode exists for another process in the publishedCollection" should {
+      "return a DuplicateKeyException" in new Test {
+
+        val expected: RequestOutcome[String] = Right(validId)
+        MockPublishedRepository
+          .getByProcessCode("cup-of-tea")
+          .returns(Future.successful(publishedProcessFailureResponse))
+
+        whenReady(service.save(validOnePageJson.as[JsObject], ReviewType2i, StatusSubmittedFor2iReview)) {
+          case Left(DuplicateKeyError) => succeed
+          case _ => fail
+        }
+      }
+    }
+
+    "the processCode exists for another process in the approvedCollection" should {
+      "return a DuplicateKeyException" in new Test {
+
+        val expected: RequestOutcome[String] = Left(DuplicateKeyError)
+        MockPublishedRepository
+          .getByProcessCode("cup-of-tea")
+          .returns(Future.successful(publishedProcessSuccessResponse))
+
+        MockApprovalRepository
+          .update(approvalProcess)
+          .returns(Future.successful(expected))
+
+        whenReady(service.save(validOnePageJson.as[JsObject], ReviewType2i, StatusSubmittedFor2iReview)) {
+          case Left(DuplicateKeyError) => succeed
+          case _ => fail
+        }
+      }
+    }
+
     "the process is saved" when {
       "the save of review data fails" should {
         "return an internal error" in new Test {
 
           val expected: RequestOutcome[String] = Left(InternalServerError)
+
+          MockPublishedRepository
+            .getByProcessCode("cup-of-tea")
+            .returns(Future.successful(publishedProcessSuccessResponse))
 
           MockApprovalRepository
             .update(approvalProcess)
@@ -206,6 +259,10 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
 
           val expected: RequestOutcome[String] = Left(NotFoundError)
 
+          MockPublishedRepository
+            .getByProcessCode("cup-of-tea")
+            .returns(Future.successful(publishedProcessSuccessResponse))
+
           MockApprovalRepository
             .update(approvalProcess)
             .returns(Future.successful(Right(validId)))
@@ -225,6 +282,10 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
         "return an internal error" in new Test {
 
           val expected: RequestOutcome[String] = Left(InternalServerError)
+
+          MockPublishedRepository
+            .getByProcessCode("cup-of-tea")
+            .returns(Future.successful(publishedProcessSuccessResponse))
 
           MockApprovalRepository
             .update(approvalProcess)
@@ -263,6 +324,10 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
       "return an internal error" in new Test {
         val repositoryResponse: RequestOutcome[String] = Left(DatabaseError)
         val expected: RequestOutcome[String] = Left(InternalServerError)
+
+        MockPublishedRepository
+          .getByProcessCode("cup-of-tea")
+          .returns(Future.successful(publishedProcessSuccessResponse))
 
         MockApprovalRepository
           .update(approvalProcess)
