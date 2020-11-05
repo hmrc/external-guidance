@@ -20,11 +20,12 @@ import scala.util.matching.Regex
 import models.ocelot.stanzas.{Callout, Heading}
 
 package object ocelot {
+  val ignoredCurrencyChars = Seq(' ','£', ',')
   val hintRegex = "\\[hint:([^\\]])+\\]".r
   val pageLinkOnlyRegex = s"^\\[link:(.+?):(\\d+|${Process.StartStanzaId})\\]$$".r
   val pageLinkRegex = s"\\[(button|link)(-same|-tab)?:([^\\]]+?):(\\d+|${Process.StartStanzaId})\\]".r
   val labelRefRegex = s"\\[label:([A-Za-z0-9\\s\\-_]+)(:(currency))?\\]".r
-  val inputCurrencyRegex = "^-?(\\d{1,3}(,\\d{3})*|\\d+)(\\.(\\d{1,2})?)?$".r
+  val inputCurrencyRegex = "^-?£?(\\d{1,3}(,\\d{3})*|\\d+)(\\.(\\d{1,2})?)?$".r
   val integerRegex = "^\\d+$".r
 
   def plSingleGroupCaptures(regex: Regex, str: String, index: Int = 1): List[String] = regex.findAllMatchIn(str).map(_.group(index)).toList
@@ -32,7 +33,8 @@ package object ocelot {
   def pageLinkIds(phrases: Seq[Phrase]): List[String] = phrases.flatMap(phrase => pageLinkIds(phrase.langs.head)).toList
   def labelReferences(str: String): List[String] = plSingleGroupCaptures(labelRefRegex, str)
   def labelReference(str: String): Option[String] = plSingleGroupCaptures(labelRefRegex, str).headOption
-  def asCurrency(value: String): Option[BigDecimal] = inputCurrencyRegex.findFirstIn(value.filterNot(_==' ')).map(s => BigDecimal(s.filterNot(_==',')))
+  def asCurrency(value: String): Option[BigDecimal] = inputCurrencyRegex.findFirstIn(value.filterNot(c => c==' '))
+                                                                        .map(s => BigDecimal(s.filterNot(ignoredCurrencyChars.contains(_))))
   def asInt(value: String): Option[Int] = integerRegex.findFirstIn(value).map(_.toInt)
 
   def isLinkOnlyPhrase(phrase: Phrase): Boolean =

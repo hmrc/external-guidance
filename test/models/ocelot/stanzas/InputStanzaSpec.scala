@@ -116,6 +116,11 @@ class InputStanzaSpec extends BaseSpec {
       Input(expectedCurrencyStanza, Phrase("",""), None, None).get match {
         case currencyInput: CurrencyInput =>
 
+          currencyInput.validInput("£33") shouldBe Some("33")
+          currencyInput.validInput("-33") shouldBe Some("-33")
+          currencyInput.validInput("£33.79") shouldBe Some("33.79")
+          currencyInput.validInput("-33.99") shouldBe Some("-33.99")
+          currencyInput.validInput("-£3,453,678.99") shouldBe Some("-3453678.99")
           currencyInput.validInput("33") shouldBe Some("33")
           currencyInput.validInput("33.9") shouldBe Some("33.9")
           currencyInput.validInput("33.") shouldBe Some("33")
