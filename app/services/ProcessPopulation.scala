@@ -42,6 +42,12 @@ trait ProcessPopulation {
         }
       )
 
+    def populateQuestion(q: QuestionStanza): Either[GuidanceError, Question] =
+      phrases(q.text +: q.answers, Nil, id, process) match {
+        case Right(texts) => Right(Question(q, texts.head, texts.tail))
+        case Left(err) => Left(err)
+      }
+
     def populateInput(i: InputStanza): Either[GuidanceError, Input] =
       phrase(i.name, id, process).fold(Left(_), name =>
         optionalPhrase(i.help, id, process).fold(Left(_), help =>
@@ -61,16 +67,13 @@ trait ProcessPopulation {
       process.linkOption(linkIndex).map(Right(_)).getOrElse(Left(LinkNotFound(id, linkIndex)))
 
     stanza match {
-      case q: QuestionStanza =>
-        phrases(q.text +: q.answers, Nil, id, process) match {
-          case Right(texts) => Right(Question(q, texts.head, texts.tail))
-          case Left(err) => Left(err)
-        }
+      case q: QuestionStanza => populateQuestion(q)
       case r: RowStanza => populateRow(r)
       case i: InstructionStanza => populateInstruction(i)
       case i: InputStanza => populateInput(i)
       case c: CalloutStanza => phrase(c.text, id, process).fold(Left(_), text => Right(Callout(c, text)))
       case c: ChoiceStanza => Right(Choice(c))
+      case c: CalculationStanza => Right(Calculation(c))
       case s: Stanza => Right(s)
     }
   }

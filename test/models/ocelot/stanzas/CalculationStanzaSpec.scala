@@ -17,9 +17,8 @@
 package models.ocelot.stanzas
 
 import base.BaseSpec
-import models.ocelot._
+import models.ocelot.{LabelCache, _}
 import models.ocelot.errors.{GuidanceError, UnknownCalcOperationType}
-
 import play.api.libs.json._
 
 class CalculationStanzaSpec extends BaseSpec {
@@ -184,6 +183,23 @@ class CalculationStanzaSpec extends BaseSpec {
       flowDef.replaceAll("<calcStanza>", calcStanzaDef)
     )
 
+    val labelX: String = "[label:x]"
+    val tenAsString = "10"
+    val labelY: String = "[label:y]"
+    val twentyAsString: String = "20"
+    val result1: String = "result1"
+    val result2: String = "result2"
+
+    val calcOperations: Seq[CalcOperation] = Seq(
+      CalcOperation("[label:input1]", Addition, "[label:input2]", "output1"),
+      CalcOperation("[label:input3]", Addition, "[label:input4]", "output2"),
+      CalcOperation("[label:input5]", Subtraction, "[label:input6]", "output3"),
+      CalcOperation("[label:input7]", Subtraction, "[label:input8]", "output4")
+    )
+
+    val next: Seq[String] = Seq("16")
+
+    val exampleCalcStanza: CalculationStanza = CalculationStanza(calcOperations, next, stack = false)
   }
 
   "Reading a valid calculation stanza" should {
@@ -315,6 +331,306 @@ class CalculationStanzaSpec extends BaseSpec {
         }
       }
     }
+  }
+
+  "Calculation" must {
+
+    "provide an apply method to create an instance of Calculation from an instance of CalculationStanza" in new Test {
+
+      val operations: Seq[CalcOperation] = Seq(
+        CalcOperation(labelX, Addition, tenAsString, result1),
+        CalcOperation(twentyAsString, Subtraction, labelY, result2)
+      )
+
+      val calculationStanza: CalculationStanza = CalculationStanza(operations, next, stack = false)
+
+      val expectedOperations: Seq[Operation] = Seq(
+        Add(labelX, tenAsString, result1),
+        Subtract(twentyAsString, labelY, result2)
+      )
+
+      val expectedCalculation: Calculation = Calculation(next, expectedOperations)
+
+      Calculation(calculationStanza) shouldBe expectedCalculation
+    }
+
+    "provide a list of the labels defined within a calculation" in new Test {
+
+      val calculation: Calculation = Calculation(exampleCalcStanza)
+
+      // Define expected labels
+      val output1: Label = Label("output1")
+      val output2: Label = Label("output2")
+      val output3: Label = Label("output3")
+      val output4: Label = Label("output4")
+
+      calculation.labels shouldBe List(output1, output2, output3, output4)
+    }
+
+    "provide a list of the label references defined in the calculation" in new Test {
+
+      val calculation: Calculation = Calculation(exampleCalcStanza)
+
+      val expectedReferences: List[String] = List(
+        "input1",
+        "input2",
+        "input3",
+        "input4",
+        "input5",
+        "input6",
+        "input7",
+        "input8"
+      )
+
+      calculation.labelRefs shouldBe expectedReferences
+    }
+
+    "evaluate a simple addition using constants" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq( CalcOperation("10", Addition, "25", "result"))
+
+      val next: Seq[String] = Seq("40")
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, next, stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val labelCache = LabelCache()
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "40"
+
+      updatedLabels.value("result") shouldBe Some("35")
+    }
+
+    "evaluate a simple subtraction using constants" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq( CalcOperation("10", Subtraction, "25", "result"))
+
+      val next: Seq[String] = Seq("16")
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, next, stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val labelCache = LabelCache()
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "16"
+
+      updatedLabels.value("result") shouldBe Some("-15")
+    }
+
+    "evaluate a simple addition using label values from the label cache" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(CalcOperation("[label:input1]", Addition, "[label:input2]", "result"))
+
+      val next: Seq[String] = Seq("16")
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, next, stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val input1: Label = Label( "input1", Some("10.00"))
+      val input2: Label = Label( "input2", Some("25.00"))
+
+      val labelMap: Map[String, Label] = Map(
+        input1.name -> input1,
+        input2.name -> input2
+      )
+
+      val labelCache = LabelCache(labelMap)
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "16"
+
+      updatedLabels.value("result") shouldBe Some("35.00")
+    }
+
+    "evaluate a simple subtraction using label values from the label cache" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(CalcOperation("[label:input1]", Subtraction, "[label:input2]", "result"))
+
+      val next: Seq[String] = Seq("16")
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, next, stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val input1: Label = Label( "input1", Some("64.00"))
+      val input2: Label = Label( "input2", Some("32.00"))
+
+      val labelMap: Map[String, Label] = Map(
+        input1.name -> input1,
+        input2.name -> input2
+      )
+
+      val labelCache = LabelCache(labelMap)
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "16"
+
+      updatedLabels.value("result") shouldBe Some("32.00")
+    }
+
+    "evaluate a complex sequence of calculations using label values from the label cache" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("[label:input1]", Addition, "[label:input2]", "output1"),
+        CalcOperation("[label:output1]", Subtraction, "[label:input3]", "output2"),
+        CalcOperation("[label:output2]", Addition, "[label:input4]", "output3"),
+        CalcOperation("[label:output3]", Subtraction, "[label:input5]", "output4")
+      )
+
+      val next: Seq[String] = Seq("16")
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, next, stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val input1: Label = Label( "input1", Some("10.00"))
+      val input2: Label = Label( "input2", Some("22.00"))
+      val input3: Label = Label( "input3", Some("3.00"))
+      val input4: Label = Label( "input4", Some("4.00"))
+      val input5: Label = Label( "input5", Some("10.00"))
+
+      val labelMap: Map[String, Label] = Map(
+        input1.name -> input1,
+        input2.name -> input2,
+        input3.name -> input3,
+        input4.name -> input4,
+        input5.name -> input5
+      )
+
+      val labelCache = LabelCache(labelMap)
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "16"
+
+      updatedLabels.value("output1") shouldBe Some("32.00")
+      updatedLabels.value("output2") shouldBe Some("29.00")
+      updatedLabels.value("output3") shouldBe Some("33.00")
+      updatedLabels.value("output4") shouldBe Some("23.00")
+    }
+
+    "evaluate a simple addition using label values that have varying precision" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("[label:input1]", Addition, "[label:input2]", "output1"),
+        CalcOperation("[label:input3]", Addition, "[label:input4]", "output2"),
+        CalcOperation("[label:input5]", Subtraction, "[label:input6]", "output3"),
+        CalcOperation("[label:input7]", Subtraction, "[label:input8]", "output4")
+      )
+
+      val next: Seq[String] = Seq("16")
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, next, stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val input1: Label = Label( "input1", Some("10."))
+      val input2: Label = Label( "input2", Some("25.0"))
+
+      val input3: Label = Label( "input3", Some("10.0"))
+      val input4: Label = Label( "input4", Some("25.00"))
+
+      val input5: Label = Label( "input5", Some("25.0"))
+      val input6: Label = Label( "input6", Some("10"))
+
+      val input7: Label = Label( "input7", Some("25.00"))
+      val input8: Label = Label( "input8", Some("10"))
+
+      val labelMap: Map[String, Label] = Map(
+        input1.name -> input1,
+        input2.name -> input2,
+        input3.name -> input3,
+        input4.name -> input4,
+        input5.name -> input5,
+        input6.name -> input6,
+        input7.name -> input7,
+        input8.name -> input8
+      )
+
+      val labelCache = LabelCache(labelMap)
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "16"
+
+      updatedLabels.value("output1") shouldBe Some("35.0")
+      updatedLabels.value( "output2") shouldBe Some("35.00")
+      updatedLabels.value( "output3") shouldBe Some("15.0")
+      updatedLabels.value( "output4") shouldBe Some("15.00")
+    }
+
+    "support string addition in the form of concatenation" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("[label:input1]", Addition, "[label:input2]", "output1"),
+        CalcOperation("[label:output1]", Addition, "[label:input3]", "output2"),
+        CalcOperation("[label:output2]", Addition, "[label:input4]", "output3")
+      )
+
+      val next: Seq[String] = Seq("16")
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, next, stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val input1: Label = Label( "input1", Some("Hello"))
+      val input2: Label = Label( "input2", Some(" "))
+      val input3: Label = Label( "input3", Some("World"))
+      val input4: Label = Label( "input4", Some("!"))
+
+      val labelMap: Map[String, Label] = Map(
+        input1.name -> input1,
+        input2.name -> input2,
+        input3.name -> input3,
+        input4.name -> input4
+      )
+
+      val labelCache = LabelCache(labelMap)
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "16"
+
+      updatedLabels.value("output3") shouldBe Some( "Hello World!")
+
+    }
+
+    "not support subtraction operations on non-currency input" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(CalcOperation("[label:input1]", Subtraction, "[label:input2]", "result"))
+
+      val next: Seq[String] = Seq("16")
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, next, stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val input1: Label = Label( "input1", Some("Today"))
+      val input2: Label = Label( "input2", Some("Yesterday"))
+
+      val labelMap: Map[String, Label] = Map(
+        input1.name -> input1,
+        input2.name -> input2
+      )
+
+      val labelCache = LabelCache(labelMap)
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "16"
+
+      updatedLabels shouldBe labelCache
+    }
+
   }
 
 }
