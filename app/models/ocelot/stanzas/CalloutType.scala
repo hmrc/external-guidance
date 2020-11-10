@@ -33,6 +33,7 @@ case object Error extends CalloutType
 
 case object Lede extends CalloutType
 case object Important extends CalloutType
+case object YourCall extends CalloutType
 
 
 object CalloutType {
@@ -45,6 +46,7 @@ object CalloutType {
     case JsString("Lede") => JsSuccess(Lede, __)
     case JsString("Error") => JsSuccess(Error, __)
     case JsString("Important") => JsSuccess(Important, __)
+    case JsString("YourCall") => JsSuccess(YourCall, __)
     case typeName: JsString => JsError(JsonValidationError(Seq("CalloutType"), typeName.value))
     case unknown => JsError(JsonValidationError(Seq("CalloutType"), unknown.toString))
   }
@@ -57,6 +59,7 @@ object CalloutType {
     case Error => Json.toJson("Error")
     case Lede => Json.toJson("Lede")
     case Important => Json.toJson("Important")
+    case YourCall => Json.toJson("YourCall")
   }
 
 }
