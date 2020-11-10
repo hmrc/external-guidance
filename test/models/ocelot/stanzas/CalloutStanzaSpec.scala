@@ -43,6 +43,8 @@ class CalloutStanzaSpec extends BaseSpec {
   val subSection: String = "SubSection"
   val important: String = "Important"
   val invalid: String = "invalid"
+  val typeError: String = "TypeError"
+  val valueError: String = "ValueError"
   val end: String = "end"
 
   val stackFalse: Boolean = false
@@ -51,6 +53,8 @@ class CalloutStanzaSpec extends BaseSpec {
   val subTitleCalloutStanzaInputJson: JsValue = getStanzaJson(subTitle)
   val ledeCalloutStanzaInputJson: JsValue = getStanzaJson(lede)
   val errorCalloutStanzaInputJson: JsValue = getStanzaJson(error)
+  val typeErrorCalloutStanzaInputJson: JsValue = getStanzaJson(typeError)
+  val valueErrorCalloutStanzaInputJson: JsValue = getStanzaJson(valueError)
   val sectionCalloutStanzaInputJson: JsValue = getStanzaJson(section)
   val subSectionCalloutStanzaInputJson: JsValue = getStanzaJson(subSection)
   val importantCalloutStanzaInputJson: JsValue = getStanzaJson(important)
@@ -62,16 +66,22 @@ class CalloutStanzaSpec extends BaseSpec {
   val expectedSubTitleCalloutStanza: CalloutStanza = buildCalloutStanza(SubTitle)
   val expectedLedeCalloutStanza: CalloutStanza = buildCalloutStanza(Lede)
   val expectedErrorCalloutStanza: CalloutStanza = buildCalloutStanza(Error)
+  val expectedTypeErrorCalloutStanza: CalloutStanza = buildCalloutStanza(TypeError)
+  val expectedValueErrorCalloutStanza: CalloutStanza = buildCalloutStanza(ValueError)
   val expectedSectionCalloutStanza: CalloutStanza = buildCalloutStanza(Section)
   val expectedSubSectionCalloutStanza: CalloutStanza = buildCalloutStanza(SubSection)
   val expectedImportantCalloutStanza: CalloutStanza = buildCalloutStanza(Important)
   val expectedErrorCalloutStatus: CalloutStanza = CalloutStanza(Error, ten, Seq(end), stackFalse)
+  val expectedTypeErrorCalloutStatus: CalloutStanza = CalloutStanza(TypeError, ten, Seq(end), stackFalse)
+  val expectedValueErrorCalloutStatus: CalloutStanza = CalloutStanza(ValueError, ten, Seq(end), stackFalse)
 
   val jsonToStanzaMappings: Map[JsValue, CalloutStanza] = Map(
     titleCalloutStanzaInputJson -> expectedTitleCalloutStanza,
     subTitleCalloutStanzaInputJson -> expectedSubTitleCalloutStanza,
     ledeCalloutStanzaInputJson -> expectedLedeCalloutStanza,
     errorCalloutStanzaInputJson -> expectedErrorCalloutStanza,
+    typeErrorCalloutStanzaInputJson -> expectedTypeErrorCalloutStanza,
+    valueErrorCalloutStanzaInputJson -> expectedValueErrorCalloutStanza,
     sectionCalloutStanzaInputJson -> expectedSectionCalloutStanza,
     subSectionCalloutStanzaInputJson -> expectedSubSectionCalloutStanza,
     importantCalloutStanzaInputJson -> expectedImportantCalloutStanza
@@ -127,6 +137,12 @@ class CalloutStanzaSpec extends BaseSpec {
   }
   "serialise to json with noteType Error" in {
     Json.toJson(expectedErrorCalloutStatus).toString shouldBe """{"noteType":"Error","text":10,"next":["end"],"stack":false}"""
+  }
+  "serialise to json with noteType TypeError" in {
+    Json.toJson(expectedTypeErrorCalloutStatus).toString shouldBe """{"noteType":"TypeError","text":10,"next":["end"],"stack":false}"""
+  }
+  "serialise to json with noteType ValueError" in {
+    Json.toJson(expectedValueErrorCalloutStatus).toString shouldBe """{"noteType":"ValueError","text":10,"next":["end"],"stack":false}"""
   }
 
   "serialise to json noteType Error from a Stanza reference" in {

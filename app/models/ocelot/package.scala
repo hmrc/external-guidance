@@ -17,7 +17,6 @@
 package models
 
 import scala.util.matching.Regex
-import models.ocelot.stanzas.{Callout, Heading}
 
 package object ocelot {
   val ignoredCurrencyChars = Seq(' ','£', ',')
@@ -41,10 +40,4 @@ package object ocelot {
     pageLinkOnlyRegex
       .findFirstIn(phrase.langs(0))
       .fold(false)(_ => pageLinkOnlyRegex.findFirstIn(phrase.langs(1)).fold(false)(_ => true))
-
-  def isHeadingCallout(c: Callout): Boolean = c.noteType match {
-    case nt: Heading => true
-    case _ => false
-  }
-
 }
