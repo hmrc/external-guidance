@@ -42,6 +42,7 @@ class CalloutStanzaSpec extends BaseSpec {
   val section: String = "Section"
   val subSection: String = "SubSection"
   val important: String = "Important"
+  val yourCall: String = "YourCall"
   val invalid: String = "invalid"
   val typeError: String = "TypeError"
   val valueError: String = "ValueError"
@@ -58,6 +59,7 @@ class CalloutStanzaSpec extends BaseSpec {
   val sectionCalloutStanzaInputJson: JsValue = getStanzaJson(section)
   val subSectionCalloutStanzaInputJson: JsValue = getStanzaJson(subSection)
   val importantCalloutStanzaInputJson: JsValue = getStanzaJson(important)
+  val yourCallCalloutStanzaInputJson: JsValue = getStanzaJson(yourCall)
   val invalidCalloutStanzaInputJson: JsValue = getStanzaJson(invalid)
 
   val validCalloutStanzaAsJsObject: JsObject = titleCalloutStanzaInputJson.as[JsObject]
@@ -71,6 +73,7 @@ class CalloutStanzaSpec extends BaseSpec {
   val expectedSectionCalloutStanza: CalloutStanza = buildCalloutStanza(Section)
   val expectedSubSectionCalloutStanza: CalloutStanza = buildCalloutStanza(SubSection)
   val expectedImportantCalloutStanza: CalloutStanza = buildCalloutStanza(Important)
+  val expectedYourCallCalloutStanza: CalloutStanza = buildCalloutStanza(YourCall)
   val expectedErrorCalloutStatus: CalloutStanza = CalloutStanza(Error, ten, Seq(end), stackFalse)
   val expectedTypeErrorCalloutStatus: CalloutStanza = CalloutStanza(TypeError, ten, Seq(end), stackFalse)
   val expectedValueErrorCalloutStatus: CalloutStanza = CalloutStanza(ValueError, ten, Seq(end), stackFalse)
@@ -84,7 +87,8 @@ class CalloutStanzaSpec extends BaseSpec {
     valueErrorCalloutStanzaInputJson -> expectedValueErrorCalloutStanza,
     sectionCalloutStanzaInputJson -> expectedSectionCalloutStanza,
     subSectionCalloutStanzaInputJson -> expectedSubSectionCalloutStanza,
-    importantCalloutStanzaInputJson -> expectedImportantCalloutStanza
+    importantCalloutStanzaInputJson -> expectedImportantCalloutStanza,
+    yourCallCalloutStanzaInputJson -> expectedYourCallCalloutStanza
   )
 
   jsonToStanzaMappings foreach { mapping =>
@@ -175,6 +179,15 @@ class CalloutStanzaSpec extends BaseSpec {
   "serialise to json noteType Important from a Stanza reference" in {
     val stanza: Stanza = expectedImportantCalloutStanza
     Json.toJson(stanza).toString shouldBe """{"next":["1"],"noteType":"Important","stack":false,"text":0,"type":"CalloutStanza"}"""
+  }
+
+  "serialise to json with noteType YourCall" in {
+    Json.toJson(expectedYourCallCalloutStanza).toString shouldBe """{"noteType":"YourCall","text":0,"next":["1"],"stack":false}"""
+  }
+
+  "serialise to json noteType YourCall from a Stanza reference" in {
+    val stanza: Stanza = expectedYourCallCalloutStanza
+    Json.toJson(stanza).toString shouldBe """{"next":["1"],"noteType":"YourCall","stack":false,"text":0,"type":"CalloutStanza"}"""
   }
 
   /** Test for missing properties in Json object representing instruction stanzas */

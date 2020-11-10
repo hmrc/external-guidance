@@ -21,7 +21,7 @@ import java.util.UUID
 import config.AppConfig
 import javax.inject.{Inject, Singleton}
 import models._
-import models.errors.{BadRequestError, DuplicateKeyError, InternalServerError, NotFoundError}
+import models.errors.{DuplicateKeyError, InternalServerError, NotFoundError}
 import play.api.Logger
 import play.api.libs.json._
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository, PublishedRepository}
