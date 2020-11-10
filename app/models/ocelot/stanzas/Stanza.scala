@@ -27,15 +27,6 @@ trait Stanza {
   val labelRefs: List[String] = Nil
 }
 
-//
-// Visual stanzas stacking rules triggering use of large
-// (H1 - govuk-heading-xl, etc) and medium (H1 - govuk-heading-l, etc)
-// headings. Headings are Callouts of type Title, SubTitle, Section
-// and SubSection. Pages can include either Large or medium headings, not both
-// 1. Any stacked groups which include a heading will use medium headings
-//    Currently this is only implemented for Summary lists
-// 2. NOT IMPLEMENTED, Headings stacked to the PageStanza will be medium sized.
-//
 trait VisualStanza extends Stanza {
   val stack: Boolean
   override val visual: Boolean = true
