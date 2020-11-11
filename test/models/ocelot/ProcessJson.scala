@@ -2029,46 +2029,40 @@ trait ProcessJson {
       |    "processCode": "eg-auto-test"
       |  },
       |  "flow": {
-      |    "34": {
+      |    "start": {
       |      "next": [
-      |        "end"
-      |      ],
-      |      "stack": true,
-      |      "link": 3,
-      |      "text": 32,
-      |      "type": "InstructionStanza"
-      |    },
-      |    "12": {
-      |      "next": [
-      |        "end"
-      |      ],
-      |      "stack": true,
-      |      "text": 11,
-      |      "type": "InstructionStanza"
-      |    },
-      |    "8": {
-      |      "next": [
-      |        "9"
-      |      ],
-      |      "stack": true,
-      |      "text": 7,
-      |      "type": "InstructionStanza"
-      |    },
-      |    "19": {
-      |      "next": [
-      |        "20"
+      |        "1"
       |      ],
       |      "stack": false,
       |      "type": "PageStanza",
-      |      "url": "/example-page-3"
+      |      "url": "/example-page-1"
       |    },
-      |    "23": {
+      |    "1": {
       |      "next": [
-      |        "36"
+      |        "2"
       |      ],
-      |      "stack": true,
-      |      "text": 17,
-      |      "type": "InstructionStanza"
+      |      "noteType": "Title",
+      |      "stack": false,
+      |      "text": 0,
+      |      "type": "CalloutStanza"
+      |    },
+      |    "2": {
+      |      "next": [
+      |        "3"
+      |      ],
+      |      "noteType": "Lede",
+      |      "stack": false,
+      |      "text": 1,
+      |      "type": "CalloutStanza"
+      |    },
+      |    "3": {
+      |      "next": [
+      |        "4"
+      |      ],
+      |      "noteType": "SubTitle",
+      |      "stack": false,
+      |      "text": 2,
+      |      "type": "CalloutStanza"
       |    },
       |    "4": {
       |      "next": [
@@ -2078,12 +2072,54 @@ trait ProcessJson {
       |      "text": 3,
       |      "type": "InstructionStanza"
       |    },
-      |    "15": {
+      |    "5": {
       |      "next": [
-      |        "16"
+      |        "6"
       |      ],
       |      "stack": true,
-      |      "text": 13,
+      |      "text": 4,
+      |      "type": "InstructionStanza"
+      |    },
+      |    "6": {
+      |      "next": [
+      |        "7"
+      |      ],
+      |      "stack": true,
+      |      "text": 5,
+      |      "type": "InstructionStanza"
+      |    },
+      |    "7": {
+      |      "next": [
+      |        "8"
+      |      ],
+      |      "noteType": "SubTitle",
+      |      "stack": false,
+      |      "text": 6,
+      |      "type": "CalloutStanza"
+      |    },
+      |    "8": {
+      |      "next": [
+      |        "9"
+      |      ],
+      |      "stack": true,
+      |      "text": 7,
+      |      "type": "InstructionStanza"
+      |    },
+      |    "9": {
+      |      "next": [
+      |        "10"
+      |      ],
+      |      "stack": true,
+      |      "text": 8,
+      |      "type": "InstructionStanza"
+      |    },
+      |    "10": {
+      |      "next": [
+      |        "11"
+      |      ],
+      |      "stack": true,
+      |      "link": 0,
+      |      "text": 9,
       |      "type": "InstructionStanza"
       |    },
       |    "11": {
@@ -2095,47 +2131,13 @@ trait ProcessJson {
       |      "text": 10,
       |      "type": "CalloutStanza"
       |    },
-      |    "9": {
+      |    "12": {
       |      "next": [
-      |        "10"
+      |        "end"
       |      ],
       |      "stack": true,
-      |      "text": 8,
+      |      "text": 11,
       |      "type": "InstructionStanza"
-      |    },
-      |    "33": {
-      |      "next": [
-      |        "34"
-      |      ],
-      |      "stack": true,
-      |      "text": 31,
-      |      "type": "InstructionStanza"
-      |    },
-      |    "22": {
-      |      "next": [
-      |        "23"
-      |      ],
-      |      "stack": false,
-      |      "type": "PageStanza",
-      |      "url": "/example-page-4"
-      |    },
-      |    "26": {
-      |      "next": [
-      |        "27"
-      |      ],
-      |      "noteType": "Title",
-      |      "stack": false,
-      |      "text": 24,
-      |      "type": "CalloutStanza"
-      |    },
-      |    "37": {
-      |      "next": [
-      |        "30"
-      |      ],
-      |      "noteType": "Error",
-      |      "stack": false,
-      |      "text": 33,
-      |      "type": "CalloutStanza"
       |    },
       |    "13": {
       |      "next": [
@@ -2145,27 +2147,22 @@ trait ProcessJson {
       |      "type": "PageStanza",
       |      "url": "/example-page-2"
       |    },
-      |    "24": {
+      |    "14": {
       |      "next": [
-      |        "29",
-      |        "25"
+      |        "15"
       |      ],
+      |      "noteType": "Title",
       |      "stack": false,
-      |      "answers": [
-      |        22,
-      |        23
-      |      ],
-      |      "text": 21,
-      |      "type": "QuestionStanza"
-      |    },
-      |    "35": {
-      |      "next": [
-      |        "21"
-      |      ],
-      |      "noteType": "Error",
-      |      "stack": false,
-      |      "text": 33,
+      |      "text": 12,
       |      "type": "CalloutStanza"
+      |    },
+      |    "15": {
+      |      "next": [
+      |        "16"
+      |      ],
+      |      "stack": true,
+      |      "text": 13,
+      |      "type": "InstructionStanza"
       |    },
       |    "16": {
       |      "next": [
@@ -2175,21 +2172,37 @@ trait ProcessJson {
       |      "text": 14,
       |      "type": "InstructionStanza"
       |    },
-      |    "5": {
+      |    "17": {
       |      "next": [
-      |        "6"
+      |        "18"
       |      ],
       |      "stack": true,
-      |      "text": 4,
+      |      "text": 15,
       |      "type": "InstructionStanza"
       |    },
-      |    "10": {
+      |    "18": {
       |      "next": [
-      |        "11"
+      |        "end"
       |      ],
       |      "stack": true,
-      |      "link": 0,
-      |      "text": 9,
+      |      "link": 1,
+      |      "text": 16,
+      |      "type": "InstructionStanza"
+      |    },
+      |    "19": {
+      |      "next": [
+      |        "20"
+      |      ],
+      |      "stack": false,
+      |      "type": "PageStanza",
+      |      "url": "/example-page-3"
+      |    },
+      |    "20": {
+      |      "next": [
+      |        "35"
+      |      ],
+      |      "stack": true,
+      |      "text": 17,
       |      "type": "InstructionStanza"
       |    },
       |    "21": {
@@ -2205,48 +2218,34 @@ trait ProcessJson {
       |      "text": 18,
       |      "type": "QuestionStanza"
       |    },
-      |    "32": {
+      |    "22": {
       |      "next": [
-      |        "33"
+      |        "23"
       |      ],
-      |      "noteType": "Title",
       |      "stack": false,
-      |      "text": 30,
-      |      "type": "CalloutStanza"
+      |      "type": "PageStanza",
+      |      "url": "/example-page-4"
       |    },
-      |    "6": {
+      |    "23": {
       |      "next": [
-      |        "7"
+      |        "36"
       |      ],
       |      "stack": true,
-      |      "text": 5,
+      |      "text": 17,
       |      "type": "InstructionStanza"
       |    },
-      |    "36": {
+      |    "24": {
       |      "next": [
-      |        "24"
+      |        "29",
+      |        "25"
       |      ],
-      |      "noteType": "Error",
       |      "stack": false,
-      |      "text": 33,
-      |      "type": "CalloutStanza"
-      |    },
-      |    "1": {
-      |      "next": [
-      |        "2"
+      |      "answers": [
+      |        22,
+      |        23
       |      ],
-      |      "noteType": "Title",
-      |      "stack": false,
-      |      "text": 0,
-      |      "type": "CalloutStanza"
-      |    },
-      |    "17": {
-      |      "next": [
-      |        "18"
-      |      ],
-      |      "stack": true,
-      |      "text": 15,
-      |      "type": "InstructionStanza"
+      |      "text": 21,
+      |      "type": "QuestionStanza"
       |    },
       |    "25": {
       |      "next": [
@@ -2256,30 +2255,14 @@ trait ProcessJson {
       |      "type": "PageStanza",
       |      "url": "/example-page-5"
       |    },
-      |    "14": {
+      |    "26": {
       |      "next": [
-      |        "15"
+      |        "27"
       |      ],
       |      "noteType": "Title",
       |      "stack": false,
-      |      "text": 12,
+      |      "text": 24,
       |      "type": "CalloutStanza"
-      |    },
-      |    "31": {
-      |      "next": [
-      |        "32"
-      |      ],
-      |      "stack": false,
-      |      "type": "PageStanza",
-      |      "url": "/example-page-7"
-      |    },
-      |    "20": {
-      |      "next": [
-      |        "35"
-      |      ],
-      |      "stack": true,
-      |      "text": 17,
-      |      "type": "InstructionStanza"
       |    },
       |    "27": {
       |      "next": [
@@ -2289,26 +2272,22 @@ trait ProcessJson {
       |      "text": 25,
       |      "type": "InstructionStanza"
       |    },
-      |    "2": {
-      |      "next": [
-      |        "3"
-      |      ],
-      |      "noteType": "Lede",
-      |      "stack": false,
-      |      "text": 1,
-      |      "type": "CalloutStanza"
-      |    },
-      |    "end": {
-      |      "type": "EndStanza"
-      |    },
-      |    "18": {
+      |    "28": {
       |      "next": [
       |        "end"
       |      ],
       |      "stack": true,
-      |      "link": 1,
-      |      "text": 16,
+      |      "link": 2,
+      |      "text": 26,
       |      "type": "InstructionStanza"
+      |    },
+      |    "29": {
+      |      "next": [
+      |        "37"
+      |      ],
+      |      "stack": false,
+      |      "type": "PageStanza",
+      |      "url": "/example-page-6"
       |    },
       |    "30": {
       |      "next": [
@@ -2323,48 +2302,104 @@ trait ProcessJson {
       |      "text": 27,
       |      "type": "QuestionStanza"
       |    },
-      |    "7": {
+      |    "31": {
       |      "next": [
-      |        "8"
-      |      ],
-      |      "noteType": "SubTitle",
-      |      "stack": false,
-      |      "text": 6,
-      |      "type": "CalloutStanza"
-      |    },
-      |    "start": {
-      |      "next": [
-      |        "1"
+      |        "32"
       |      ],
       |      "stack": false,
       |      "type": "PageStanza",
-      |      "url": "/example-page-1"
+      |      "url": "/example-page-7"
       |    },
-      |    "29": {
+      |    "32": {
       |      "next": [
-      |        "37"
+      |        "33"
+      |      ],
+      |      "noteType": "Title",
+      |      "stack": false,
+      |      "text": 30,
+      |      "type": "CalloutStanza"
+      |    },
+      |    "33": {
+      |      "next": [
+      |        "34"
+      |      ],
+      |      "stack": true,
+      |      "text": 31,
+      |      "type": "InstructionStanza"
+      |    },
+      |    "34": {
+      |      "next": [
+      |        "38"
+      |      ],
+      |      "stack": true,
+      |      "link": 3,
+      |      "text": 32,
+      |      "type": "InstructionStanza"
+      |    },
+      |    "35": {
+      |      "next": [
+      |        "21"
+      |      ],
+      |      "noteType": "Error",
+      |      "stack": false,
+      |      "text": 33,
+      |      "type": "CalloutStanza"
+      |    },
+      |    "36": {
+      |      "next": [
+      |        "24"
+      |      ],
+      |      "noteType": "Error",
+      |      "stack": false,
+      |      "text": 33,
+      |      "type": "CalloutStanza"
+      |    },
+      |    "37": {
+      |      "next": [
+      |        "30"
+      |      ],
+      |      "noteType": "Error",
+      |      "stack": false,
+      |      "text": 33,
+      |      "type": "CalloutStanza"
+      |    },
+      |    "38": {
+      |      "next": [
+      |        "39"
       |      ],
       |      "stack": false,
       |      "type": "PageStanza",
-      |      "url": "/example-page-6"
+      |      "url": "/example-outcome"
       |    },
-      |    "3": {
+      |    "39": {
+      |      "type": "CalloutStanza",
+      |      "text": 34,
+      |      "noteType": "YourCall",
       |      "next": [
-      |        "4"
+      |        "40"
       |      ],
-      |      "noteType": "SubTitle",
-      |      "stack": false,
-      |      "text": 2,
-      |      "type": "CalloutStanza"
+      |      "stack": false
       |    },
-      |    "28": {
+      |    "40": {
+      |      "type": "CalloutStanza",
+      |      "text": 35,
+      |      "noteType": "YourCall",
+      |      "next": [
+      |        "41"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "41": {
+      |      "type": "CalloutStanza",
+      |      "text": 36,
+      |      "noteType": "YourCall",
       |      "next": [
       |        "end"
       |      ],
-      |      "stack": true,
-      |      "link": 2,
-      |      "text": 26,
-      |      "type": "InstructionStanza"
+      |      "stack": true
+      |    },
+      |    "end": {
+      |      "type": "EndStanza"
       |    }
       |  },
       |  "phrases": [
@@ -2503,7 +2538,10 @@ trait ProcessJson {
       |    [
       |      "You must choose one of the two options shown",
       |      "Welsh, You must choose one of the two options shown"
-      |    ]
+      |    ],
+      |    ["Calculation complete", "Welsh, Calculation complete"],
+      |    ["Callout line 2", "Welsh, Callout line 2"],
+      |    ["Callout line 3", "Welsh, Callout line 3"]
       |  ],
       |  "links": [
       |    {
