@@ -16,22 +16,21 @@
 
 package models.ocelot
 
-import models.ocelot.stanzas.InputType
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
-case class Label(name: String, value: Option[String] = None, valueType: Option[stanzas.InputType] = None)
+case class Label(name: String, english: Option[String] = None, welsh: Option[String] = None)
 
 object Label {
   implicit val reads: Reads[Label] = (
     (__ \ "name").read[String] and
-      (__ \ "value").readNullable[String] and
-      (__ \ "valueType").readNullable[InputType]
+      (__ \ "english").readNullable[String] and
+      (__ \ "welsh").readNullable[String]
   )(Label.apply _)
 
   implicit val writes: Writes[Label] = (
     (__ \ "name").write[String] and
-      (__ \ "value").writeNullable[String] and
-      (__ \ "valueType").writeNullable[InputType]
+      (__ \ "english").writeNullable[String] and
+      (__ \ "welsh").writeNullable[String]
   )(unlift(Label.unapply))
 }

@@ -440,25 +440,25 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
   "services" must {
     "determine unique set of case sensitive labels from a collection of pages" in new IhtTest {
-      val labels = Seq(Label("Properties",None,None),
-                       Label("Money",None,None),
-                       Label("Household",None,None),
-                       Label("Motor Vehicles",None,None),
-                       Label("Private pension",None,None),
-                       Label("Trust",None,None),
-                       Label("Foreign assets",None,None),
-                       Label("Other assets",None,None),
-                       Label("Mortgage_debt",None,None),
-                       Label("funeral_expenses",None,None),
-                       Label("other_debts",None,None),
-                       Label("left to spouse",None,None),
-                       Label("registered charity",None,None),
-                       Label("nil rate band",None,None),
-                       Label("more than 100k",None,None),
-                       Label("Value of Assets",None,None),
-                       Label("Value of Debts",None,None),
-                       Label("Additional Info",None,None),
-                       Label("IHT result",None,None))
+      val labels = Seq(Label("Properties",None),
+                       Label("Money",None),
+                       Label("Household",None),
+                       Label("Motor Vehicles",None),
+                       Label("Private pension",None),
+                       Label("Trust",None),
+                       Label("Foreign assets",None),
+                       Label("Other assets",None),
+                       Label("Mortgage_debt",None),
+                       Label("funeral_expenses",None),
+                       Label("other_debts",None),
+                       Label("left to spouse",None),
+                       Label("registered charity",None),
+                       Label("nil rate band",None),
+                       Label("more than 100k",None, None),
+                       Label("Value of Assets",None),
+                       Label("Value of Debts",None),
+                       Label("Additional Info",None),
+                       Label("IHT result",None))
 
       pageBuilder.pagesWithValidation(ihtProcess, "start") match {
         case Right(pages) => services.uniqueLabels(pages) shouldBe labels
@@ -950,7 +950,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
           val pageInfo = pageBuilder.fromPageDetails(pages)(Dummy)
 
           pageInfo shouldNot be(Nil)
-          pageInfo.length shouldBe 8
+          pageInfo.length shouldBe 7
 
           pageInfo(0).id shouldBe "start"
           pageInfo(0).pageUrl shouldBe "/example-page-1"
@@ -967,10 +967,6 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
           pageInfo(6).id shouldBe "31"
           pageInfo(6).pageUrl shouldBe "/example-page-7"
           pageInfo(6).pageTitle shouldBe "Congratulations"
-
-          pageInfo(7).id shouldBe "38"
-          pageInfo(7).pageUrl shouldBe "/example-outcome"
-          pageInfo(7).pageTitle shouldBe "Calculation complete"
 
         case _ => fail
       }

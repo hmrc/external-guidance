@@ -98,7 +98,7 @@ class PageBuilder extends ProcessPopulation {
 
   def pagesWithValidation(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] =
     pages(process, start).fold[Either[List[GuidanceError], Seq[Page]]]( e => Left(e), pages => {
-        checkQuestionPages(pages, Nil) ++ duplicateUrlErrors(pages.reverse, Nil) match {
+        (checkQuestionPages(pages, Nil) ++ duplicateUrlErrors(pages.reverse, Nil)) match {
           case Nil => Right(pages.headOption.fold(Seq.empty[Page])(h => h +: pages.tail.sortWith((x,y) => x.id < y.id)))
           case duplicates => Left(duplicates)
         }
