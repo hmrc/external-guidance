@@ -29,12 +29,7 @@ package object services {
   def validateUUID(id: String): Option[UUID] = if (id.matches(uuidFormat)) Some(UUID.fromString(id)) else None
   def validateProcessId(id: String): Either[Error, String] = if (id.matches(processIdformat)) Right(id) else Left(ValidationError)
 
-  def uniqueLabels(pages: Seq[Page]):Seq[Label] = {
-    val (notype, typed) = pages.flatMap(p => p.labels).partition(_.valueType.isEmpty)
-    val untyped = notype.distinct
-    val withType = typed.distinct
-    (withType ++ untyped.filterNot(u => withType.exists(t => t.name == u.name)))
-  }
+  def uniqueLabels(pages: Seq[Page]):Seq[Label] = pages.flatMap(p => p.labels).distinct
 
   def uniqueLabelRefs(pages: Seq[Page]): Seq[String] = pages.flatMap(_.labelRefs)
 

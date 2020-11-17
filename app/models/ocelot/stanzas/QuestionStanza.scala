@@ -57,8 +57,10 @@ case class Question(text: Phrase,
 
   def eval(value: String, labels: Labels): (Option[String], Labels) =
     validInput(value).fold[(Option[String], Labels)]((None, labels)){idx => {
-        val answerText = hintRegex.split(answers(idx.toInt).langs(0)).head.trim
-        (Some(next(idx.toInt)), label.fold(labels)(labels.update(_, answerText)))
+        val answer = answers(idx.toInt)
+        val english = hintRegex.split(answer.langs(0)).head.trim
+        val welsh = hintRegex.split(answer.langs(1)).head.trim
+        (Some(next(idx.toInt)), label.fold(labels)(labels.update(_, english, welsh)))
       }
     }
   def validInput(value: String): Option[String] =

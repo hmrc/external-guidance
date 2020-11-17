@@ -70,7 +70,7 @@ class InputStanzaSpec extends BaseSpec {
           val labels = LabelCache()
 
           val (nxt, updatedLabels) = currencyInput.eval("33", labels)
-          updatedLabels.updatedLabels(expectedCurrencyStanza.label).value shouldBe Some("33")
+          updatedLabels.updatedLabels(expectedCurrencyStanza.label).english shouldBe Some("33")
         case _ => fail
       }
 
