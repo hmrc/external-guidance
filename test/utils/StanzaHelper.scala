@@ -51,7 +51,7 @@ trait StanzaHelper extends TestConstants {
 
   // Question page - After
   val sqpQpInstruction = Instruction(phrases(0), Seq("2"), None, false)
-  val sqpQpCallout = Callout(SubTitle, phrases(1), Seq("3"), false)
+  val sqpQpCallout = SubTitleCallout(phrases(1), Seq("3"), false)
   val sqpQpQuestion = Question(phrases(two), Seq(phrases(three), phrases(four)), Seq("4", "6"), None, false)
   val sqpQpInput = CurrencyInput(Seq("4"), phrases(two), Some(phrases(three)), "label", None, false)
 
@@ -67,7 +67,7 @@ trait StanzaHelper extends TestConstants {
   val sqpSapCalloutStanza = CalloutStanza(Lede, six, Seq("end"), false)
   // Second answer page AFTER
   val sqpSapInstruction = Instruction(phrases(five), Seq("8"), Some(links(0)), false)
-  val sqpSapCallout = Callout(Lede, phrases(six), Seq("end"), false)
+  val sqpSapCallout = LedeCallout(phrases(six), Seq("end"), false)
 
   def onePage: Map[String, Stanza] = {
 
