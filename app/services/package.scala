@@ -40,6 +40,7 @@ package object services {
     case e: PhraseNotFound => ProcessError(s"Referenced phrase at index ${e.index} on stanza id = ${e.id} is missing", e.id)
     case e: LinkNotFound => ProcessError(s"Referenced link at index ${e.index} on stanza id = ${e.id} is missing", e.id)
     case e: DuplicatePageUrl => ProcessError(s"Duplicate page url ${e.url} found on stanza id = ${e.id}", e.id)
+    case e: InconsistenQuestionError => ProcessError(s"Inconsistent QuestionStanza at id ${e.id}, number of answers and next locations dont match", e.id)
     case e: MissingWelshText => ProcessError(s"Welsh text at index ${e.index} on stanza id = ${e.id} is empty", e.id)
     case e: VisualStanzasAfterQuestion => ProcessError(s"Visual stanza with id = ${e.id} found following a Question stanza", e.id)
     case e: UnknownStanza => ProcessError(s"Unsupported stanza type ${e.typeName} found at stanza id ${e.id}", e.id)
