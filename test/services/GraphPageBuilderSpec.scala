@@ -47,7 +47,7 @@ class GraphPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     private val flow = Map(
       pageId1 -> PageStanza("/start", Seq("1"), false),
       "1" -> InstructionStanza(3, Seq("2"), None, false),
-      "2" -> QuestionStanza(1, Seq(2, 1), Seq("3"), None, false),
+      "2" -> QuestionStanza(1, Seq(2, 1), Seq("3", "3"), None, false),
       "3" -> ChoiceStanza(Seq(pageId2, pageId4), Seq(choiceTest), false),
       pageId2 -> PageStanza("/this4", Seq("5"), false),
       "5" -> InstructionStanza(1, Seq("end"), Some(2), false),

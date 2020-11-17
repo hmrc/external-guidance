@@ -31,7 +31,6 @@ sealed trait Heading
 case class CalloutStanza(noteType: CalloutType, text: Int, override val next: Seq[String], stack: Boolean) extends VisualStanza
 
 object CalloutStanza {
-
   implicit val calloutReads: Reads[CalloutStanza] =
     ((JsPath \ "noteType").read[CalloutType] and
       (JsPath \ "text").read[Int] and
@@ -45,7 +44,6 @@ object CalloutStanza {
         (JsPath \ "next").write[Seq[String]] and
         (JsPath \ "stack").write[Boolean]
     )(unlift(CalloutStanza.unapply))
-
 }
 
 object Callout {
@@ -61,6 +59,8 @@ object Callout {
       case TypeError => TypeErrorCallout(text, stanza.next, stanza.stack)
       case Important => ImportantCallout(text, stanza.next, stanza.stack)
       case YourCall => YourCallCallout(text, stanza.next, stanza.stack)
+      case NumberedList => NumberedListCallout(text, stanza.next, stanza.stack)
+      case NumberedCircleList => NumberedCircleListCallout(text, stanza.next, stanza.stack)
     }
 }
 
@@ -74,3 +74,5 @@ case class ValueErrorCallout(text: Phrase, override val next: Seq[String], stack
 case class TypeErrorCallout(text: Phrase, override val next: Seq[String], stack: Boolean) extends Callout
 case class ImportantCallout(text: Phrase, override val next: Seq[String], stack: Boolean) extends Callout
 case class YourCallCallout(text: Phrase, override val next: Seq[String], stack: Boolean) extends Callout
+case class NumberedListCallout(text: Phrase, override val next: Seq[String], stack: Boolean) extends Callout
+case class NumberedCircleListCallout(text: Phrase, override val next: Seq[String], stack: Boolean) extends Callout

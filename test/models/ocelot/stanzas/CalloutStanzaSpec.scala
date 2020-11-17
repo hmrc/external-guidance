@@ -46,6 +46,8 @@ class CalloutStanzaSpec extends BaseSpec {
   val invalid: String = "invalid"
   val typeError: String = "TypeError"
   val valueError: String = "ValueError"
+  val numberedList: String = "NumberedList"
+  val numberedCircleList: String = "NumberedCircleList"
   val end: String = "end"
 
   val stackFalse: Boolean = false
@@ -60,7 +62,11 @@ class CalloutStanzaSpec extends BaseSpec {
   val subSectionCalloutStanzaInputJson: JsValue = getStanzaJson(subSection)
   val importantCalloutStanzaInputJson: JsValue = getStanzaJson(important)
   val yourCallCalloutStanzaInputJson: JsValue = getStanzaJson(yourCall)
+  val numberedListCalloutStanzaInputJson: JsValue = getStanzaJson(numberedList)
+  val numberedCircleListCalloutStanzaInputJson: JsValue = getStanzaJson(numberedCircleList)
+
   val invalidCalloutStanzaInputJson: JsValue = getStanzaJson(invalid)
+
 
   val validCalloutStanzaAsJsObject: JsObject = titleCalloutStanzaInputJson.as[JsObject]
 
@@ -74,6 +80,8 @@ class CalloutStanzaSpec extends BaseSpec {
   val expectedSubSectionCalloutStanza: CalloutStanza = buildCalloutStanza(SubSection)
   val expectedImportantCalloutStanza: CalloutStanza = buildCalloutStanza(Important)
   val expectedYourCallCalloutStanza: CalloutStanza = buildCalloutStanza(YourCall)
+  val expectedNumberedListCalloutStanza: CalloutStanza = buildCalloutStanza(NumberedList)
+  val expectedNumberedCircleListCalloutStanza: CalloutStanza = buildCalloutStanza(NumberedCircleList)
   val expectedErrorCalloutStatus: CalloutStanza = CalloutStanza(Error, ten, Seq(end), stackFalse)
   val expectedTypeErrorCalloutStatus: CalloutStanza = CalloutStanza(TypeError, ten, Seq(end), stackFalse)
   val expectedValueErrorCalloutStatus: CalloutStanza = CalloutStanza(ValueError, ten, Seq(end), stackFalse)
@@ -88,7 +96,9 @@ class CalloutStanzaSpec extends BaseSpec {
     sectionCalloutStanzaInputJson -> expectedSectionCalloutStanza,
     subSectionCalloutStanzaInputJson -> expectedSubSectionCalloutStanza,
     importantCalloutStanzaInputJson -> expectedImportantCalloutStanza,
-    yourCallCalloutStanzaInputJson -> expectedYourCallCalloutStanza
+    yourCallCalloutStanzaInputJson -> expectedYourCallCalloutStanza,
+    numberedListCalloutStanzaInputJson -> expectedNumberedListCalloutStanza,
+    numberedCircleListCalloutStanzaInputJson -> expectedNumberedCircleListCalloutStanza
   )
 
   jsonToStanzaMappings foreach { mapping =>
@@ -183,6 +193,20 @@ class CalloutStanzaSpec extends BaseSpec {
       }
     }
 
+    "Create NumberedListCallout from NumberedList noteType" in {
+      Callout(expectedNumberedListCalloutStanza, models.ocelot.Phrase()) match {
+        case _: NumberedListCallout => succeed
+        case _ => fail
+      }
+    }
+
+    "Create NumberedCircleListCallout from NumberedCircleList noteType" in {
+      Callout(expectedNumberedCircleListCalloutStanza, models.ocelot.Phrase()) match {
+        case _: NumberedCircleListCallout => succeed
+        case _ => fail
+      }
+    }
+
   }
 
   "serialise to json with noteType Title" in {
@@ -211,12 +235,15 @@ class CalloutStanzaSpec extends BaseSpec {
     val stanza: Stanza = expectedLedeCalloutStanza
     Json.toJson(stanza).toString shouldBe """{"next":["1"],"noteType":"Lede","stack":false,"text":0,"type":"CalloutStanza"}"""
   }
+
   "serialise to json with noteType Error" in {
     Json.toJson(expectedErrorCalloutStatus).toString shouldBe """{"noteType":"Error","text":10,"next":["end"],"stack":false}"""
   }
+
   "serialise to json with noteType TypeError" in {
     Json.toJson(expectedTypeErrorCalloutStatus).toString shouldBe """{"noteType":"TypeError","text":10,"next":["end"],"stack":false}"""
   }
+
   "serialise to json with noteType ValueError" in {
     Json.toJson(expectedValueErrorCalloutStatus).toString shouldBe """{"noteType":"ValueError","text":10,"next":["end"],"stack":false}"""
   }
@@ -224,6 +251,16 @@ class CalloutStanzaSpec extends BaseSpec {
   "serialise to json noteType Error from a Stanza reference" in {
     val stanza: Stanza = expectedErrorCalloutStatus
     Json.toJson(stanza).toString shouldBe """{"next":["end"],"noteType":"Error","stack":false,"text":10,"type":"CalloutStanza"}"""
+  }
+
+  "serialise to json noteType NumberedList from a Stanza reference" in {
+    val stanza: Stanza = expectedNumberedListCalloutStanza
+    Json.toJson(stanza).toString shouldBe """{"next":["1"],"noteType":"NumberedList","stack":false,"text":0,"type":"CalloutStanza"}"""
+  }
+
+  "serialise to json noteType NumberedCircleList from a Stanza reference" in {
+    val stanza: Stanza = expectedNumberedCircleListCalloutStanza
+    Json.toJson(stanza).toString shouldBe """{"next":["1"],"noteType":"NumberedCircleList","stack":false,"text":0,"type":"CalloutStanza"}"""
   }
 
   "serialise to json with noteType Section" in {
