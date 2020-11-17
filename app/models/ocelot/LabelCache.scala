@@ -16,24 +16,35 @@
 
 package models.ocelot
 
+import play.api.i18n.Lang
+
 trait Labels {
   def value(name: String): Option[String]
-  def update(name: String, value: String): Labels
+  def displayValue(name: String)(implicit lang: Lang): Option[String]
+  def update(name: String, english: String): Labels
+  def update(name: String, english: String, welsh: String): Labels
   def updatedLabels: Map[String, Label]
   def labelMap:Map[String, Label]
   def flush(): Labels
 }
 
 private class LabelCacheImpl(labels: Map[String, Label] = Map(), cache: Map[String, Label] = Map()) extends Labels {
-  def value(name: String): Option[String] = label(name).map(_.value.getOrElse(""))
-  def update(name: String, value: String): Labels = new LabelCacheImpl(labels, updateOrAddLabel(name, value))
+  def value(name: String): Option[String] = label(name).map(_.english.getOrElse(""))
+  def displayValue(name: String)(implicit lang: Lang): Option[String] = label(name).map{lbl =>
+    lang.code match {
+      case "en" => lbl.english.getOrElse("")
+      case "cy" => lbl.welsh.fold(lbl.english.getOrElse(""))(cy => cy)
+    }
+  }
+  def update(name: String, english: String): Labels = new LabelCacheImpl(labels, updateOrAddLabel(name, english))
+  def update(name: String, english: String, welsh: String): Labels = new LabelCacheImpl(labels, updateOrAddLabel(name, english, Some(welsh)))
   def updatedLabels: Map[String, Label] = cache
   def labelMap:Map[String, Label] = labels
   def flush(): Labels = new LabelCacheImpl(labels ++ cache.toList, Map())
 
   private def label(name: String): Option[Label] = cache.get(name).fold(labels.get(name))(Some(_))
-  private def updateOrAddLabel(name: String, value: String): Map[String, Label] =
-    cache + (name -> cache.get(name).fold(Label(name, Some(value)))(l => l.copy(value = Some(value))))
+  private def updateOrAddLabel(name: String, english: String, welsh: Option[String] = None): Map[String, Label] =
+    cache + (name -> cache.get(name).fold[Label](Label(name, Some(english), welsh))(l => Label(l.name, Some(english), welsh)))
 }
 
 object LabelCache {
