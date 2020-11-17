@@ -950,7 +950,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
           val pageInfo = pageBuilder.fromPageDetails(pages)(Dummy)
 
           pageInfo shouldNot be(Nil)
-          pageInfo.length shouldBe 8
+          pageInfo.length shouldBe 7
 
           pageInfo(0).id shouldBe "start"
           pageInfo(0).pageUrl shouldBe "/example-page-1"
@@ -967,10 +967,6 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
           pageInfo(6).id shouldBe "31"
           pageInfo(6).pageUrl shouldBe "/example-page-7"
           pageInfo(6).pageTitle shouldBe "Congratulations"
-
-          pageInfo(7).id shouldBe "38"
-          pageInfo(7).pageUrl shouldBe "/example-outcome"
-          pageInfo(7).pageTitle shouldBe "Calculation complete"
 
         case _ => fail
       }

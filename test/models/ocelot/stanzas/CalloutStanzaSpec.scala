@@ -112,6 +112,78 @@ class CalloutStanzaSpec extends BaseSpec {
     }
   }
 
+  "Creating a populated callout from a CalloutStanza and Phrase" should {
+    "Create TitleCallout from Title noteType" in {
+      Callout(expectedTitleCalloutStanza, models.ocelot.Phrase()) match {
+        case _: TitleCallout => succeed
+        case _ => fail
+      }
+    }
+
+    "Create SubTitleCallout from SubTitle noteType" in {
+      Callout(expectedSubTitleCalloutStanza, models.ocelot.Phrase()) match {
+        case _: SubTitleCallout => succeed
+        case _ => fail
+      }
+    }
+
+    "Create SectionCallout from Section noteType" in {
+      Callout(expectedSectionCalloutStanza, models.ocelot.Phrase()) match {
+        case _: SectionCallout => succeed
+        case _ => fail
+      }
+    }
+
+    "Create SubSectionCallout from SubSection noteType" in {
+      Callout(expectedSubSectionCalloutStanza, models.ocelot.Phrase()) match {
+        case _: SubSectionCallout => succeed
+        case _ => fail
+      }
+    }
+
+    "Create LedeCallout from Lede noteType" in {
+      Callout(expectedLedeCalloutStanza, models.ocelot.Phrase()) match {
+        case _: LedeCallout => succeed
+        case _ => fail
+      }
+    }
+
+    "Create ErrorCallout from Error noteType" in {
+      Callout(expectedErrorCalloutStanza, models.ocelot.Phrase()) match {
+        case _: ErrorCallout => succeed
+        case _ => fail
+      }
+    }
+
+    "Create ValueErrorCallout from ValueError noteType" in {
+      Callout(expectedValueErrorCalloutStanza, models.ocelot.Phrase()) match {
+        case _: ValueErrorCallout => succeed
+        case _ => fail
+      }
+    }
+
+    "Create TypeErrorCallout from TypeError noteType" in {
+      Callout(expectedTypeErrorCalloutStanza, models.ocelot.Phrase()) match {
+        case _: TypeErrorCallout => succeed
+        case _ => fail
+      }
+    }
+
+    "Create ImportantCallout from Important noteType" in {
+      Callout(expectedImportantCalloutStanza, models.ocelot.Phrase()) match {
+        case _: ImportantCallout => succeed
+        case _ => fail
+      }
+    }
+
+    "Create YourCallCallout from YourCall noteType" in {
+      Callout(expectedYourCallCalloutStanza, models.ocelot.Phrase()) match {
+        case _: YourCallCallout => succeed
+        case _ => fail
+      }
+    }
+
+  }
 
   "serialise to json with noteType Title" in {
     Json.toJson(expectedTitleCalloutStanza).toString shouldBe """{"noteType":"Title","text":0,"next":["1"],"stack":false}"""
