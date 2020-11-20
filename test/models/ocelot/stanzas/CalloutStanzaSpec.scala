@@ -80,8 +80,8 @@ class CalloutStanzaSpec extends BaseSpec {
   val expectedSubSectionCalloutStanza: CalloutStanza = buildCalloutStanza(SubSection)
   val expectedImportantCalloutStanza: CalloutStanza = buildCalloutStanza(Important)
   val expectedYourCallCalloutStanza: CalloutStanza = buildCalloutStanza(YourCall)
-  val expectedNumberedListCalloutStanza: CalloutStanza = buildCalloutStanza(NumberedList)
-  val expectedNumberedCircleListCalloutStanza: CalloutStanza = buildCalloutStanza(NumberedCircleList)
+  val expectedNumListCalloutStanza: CalloutStanza = buildCalloutStanza(NumberedList)
+  val expectedNumCircListCalloutStanza: CalloutStanza = buildCalloutStanza(NumberedCircleList)
   val expectedErrorCalloutStatus: CalloutStanza = CalloutStanza(Error, ten, Seq(end), stackFalse)
   val expectedTypeErrorCalloutStatus: CalloutStanza = CalloutStanza(TypeError, ten, Seq(end), stackFalse)
   val expectedValueErrorCalloutStatus: CalloutStanza = CalloutStanza(ValueError, ten, Seq(end), stackFalse)
@@ -97,8 +97,8 @@ class CalloutStanzaSpec extends BaseSpec {
     subSectionCalloutStanzaInputJson -> expectedSubSectionCalloutStanza,
     importantCalloutStanzaInputJson -> expectedImportantCalloutStanza,
     yourCallCalloutStanzaInputJson -> expectedYourCallCalloutStanza,
-    numberedListCalloutStanzaInputJson -> expectedNumberedListCalloutStanza,
-    numberedCircleListCalloutStanzaInputJson -> expectedNumberedCircleListCalloutStanza
+    numberedListCalloutStanzaInputJson -> expectedNumListCalloutStanza,
+    numberedCircleListCalloutStanzaInputJson -> expectedNumCircListCalloutStanza
   )
 
   jsonToStanzaMappings foreach { mapping =>
@@ -193,16 +193,16 @@ class CalloutStanzaSpec extends BaseSpec {
       }
     }
 
-    "Create NumberedListCallout from NumberedList noteType" in {
-      Callout(expectedNumberedListCalloutStanza, models.ocelot.Phrase()) match {
-        case _: NumberedListCallout => succeed
+    "Create NumListCallout from NumberedList noteType" in {
+      Callout(expectedNumListCalloutStanza, models.ocelot.Phrase()) match {
+        case _: NumListCallout => succeed
         case _ => fail
       }
     }
 
-    "Create NumberedCircleListCallout from NumberedCircleList noteType" in {
-      Callout(expectedNumberedCircleListCalloutStanza, models.ocelot.Phrase()) match {
-        case _: NumberedCircleListCallout => succeed
+    "Create NumCircListCallout from NumberedCircleList noteType" in {
+      Callout(expectedNumCircListCalloutStanza, models.ocelot.Phrase()) match {
+        case _: NumCircListCallout => succeed
         case _ => fail
       }
     }
@@ -254,12 +254,12 @@ class CalloutStanzaSpec extends BaseSpec {
   }
 
   "serialise to json noteType NumberedList from a Stanza reference" in {
-    val stanza: Stanza = expectedNumberedListCalloutStanza
+    val stanza: Stanza = expectedNumListCalloutStanza
     Json.toJson(stanza).toString shouldBe """{"next":["1"],"noteType":"NumberedList","stack":false,"text":0,"type":"CalloutStanza"}"""
   }
 
   "serialise to json noteType NumberedCircleList from a Stanza reference" in {
-    val stanza: Stanza = expectedNumberedCircleListCalloutStanza
+    val stanza: Stanza = expectedNumCircListCalloutStanza
     Json.toJson(stanza).toString shouldBe """{"next":["1"],"noteType":"NumberedCircleList","stack":false,"text":0,"type":"CalloutStanza"}"""
   }
 
