@@ -26,6 +26,7 @@ package object ocelot {
   val labelRefRegex = s"\\[label:([A-Za-z0-9\\s\\-_]+)(:(currency))?\\]".r
   val inputCurrencyRegex = "^-?£?(\\d{1,3}(,\\d{3})*|\\d+)(\\.(\\d{1,2})?)?$".r
   val integerRegex = "^\\d+$".r
+  val anyIntegerRegex = "^[\\-]?\\d+$".r
 
   def plSingleGroupCaptures(regex: Regex, str: String, index: Int = 1): List[String] = regex.findAllMatchIn(str).map(_.group(index)).toList
   def pageLinkIds(str: String): List[String] = plSingleGroupCaptures(pageLinkRegex, str, 4)
@@ -35,6 +36,7 @@ package object ocelot {
   def asCurrency(value: String): Option[BigDecimal] = inputCurrencyRegex.findFirstIn(value.filterNot(c => c==' '))
                                                                         .map(s => BigDecimal(s.filterNot(ignoredCurrencyChars.contains(_))))
   def asInt(value: String): Option[Int] = integerRegex.findFirstIn(value).map(_.toInt)
+  def asAnyInt(value: String): Option[Int] = anyIntegerRegex.findFirstIn(value).map(_.toInt)
 
   def isLinkOnlyPhrase(phrase: Phrase): Boolean =
     pageLinkOnlyRegex

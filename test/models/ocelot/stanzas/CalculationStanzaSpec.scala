@@ -38,6 +38,16 @@ class CalculationStanzaSpec extends BaseSpec {
         |             "op":"subtract",
         |             "right":"[label:inputC]",
         |             "label":"outputB"
+        |             },
+        |             {"left":"[label:inputC]",
+        |             "op":"ceiling",
+        |             "right":"0",
+        |             "label":"outputC"
+        |             },
+        |             {"left":"[label:inputD]",
+        |             "op":"floor",
+        |             "right":"2",
+        |             "label":"outputD"
         |             }
         |           ]
         |}""".stripMargin
@@ -76,13 +86,19 @@ class CalculationStanzaSpec extends BaseSpec {
           |}""".stripMargin
     )
 
+    val stanzaId: String = "5"
+
     // Define expected deserialization results
     val c1Left: String = "[label:input1A]"
-    val c1Right: String = "[label:input1B"
+    val c1Right: String = "[label:input1B]"
+    val c1CeilingRight: String = "1"
+    val c1FloorRight: String = "-2"
     val c1Label: String = "outputA"
 
     val c1CalcAdd: CalcOperation = CalcOperation(c1Left, Addition, c1Right, c1Label)
     val c1CalcSub: CalcOperation = CalcOperation(c1Left, Subtraction, c1Right, c1Label)
+    val c1CalcCeiling: CalcOperation = CalcOperation(c1Left, Ceiling, c1CeilingRight, c1Label)
+    val c1CalcFloor: CalcOperation = CalcOperation(c1Left, Floor, c1FloorRight, c1Label)
 
     val expectedSingleAdditionCalculationStanza: CalculationStanza =
       CalculationStanza(Seq(c1CalcAdd), Seq("1"), stack = false)
@@ -90,10 +106,19 @@ class CalculationStanzaSpec extends BaseSpec {
     val expectedSingleSubtractionCalcCalculationStanza: CalculationStanza =
       CalculationStanza(Seq(c1CalcSub), Seq("1"), stack = false)
 
+    val expectedSingleCeilingCalcCalculationStanza: CalculationStanza =
+      CalculationStanza(Seq(c1CalcCeiling), Seq("1"), stack = false)
+
+    val expectedSingleFloorCalcCalculationStanza: CalculationStanza =
+      CalculationStanza(Seq(c1CalcFloor), Seq("1"), stack = false)
+
     val expectedMultipleCalcCalculationStanza: CalculationStanza =
       CalculationStanza(
         Seq(CalcOperation("[label:inputA]", Addition, "[label:inputB]", "outputA"),
-          CalcOperation("[label:outputA]", Subtraction, "[label:inputC]", "outputB")),
+          CalcOperation("[label:outputA]", Subtraction, "[label:inputC]", "outputB"),
+          CalcOperation("[label:inputC]", Ceiling, "0", "outputC"),
+          CalcOperation("[label:inputD]", Floor, "2", "outputD")
+        ),
         Seq("21"),
         stack = true
       )
@@ -183,6 +208,41 @@ class CalculationStanzaSpec extends BaseSpec {
       flowDef.replaceAll("<calcStanza>", calcStanzaDef)
     )
 
+    def getIntegerScaleFactorCalculationStanzaAsJsValue(): JsValue = Json.parse(
+      s"""|{
+          | "next": [ "21" ],
+          | "stack": true,
+          | "type": "CalculationStanza",
+          | "calcs": [
+          |             {"left":"[label:inputC]",
+          |             "op":"ceiling",
+          |             "right":"0",
+          |             "label":"outputC"
+          |             },
+          |             {"left":"[label:inputE]",
+          |             "op":"floor",
+          |             "right":"-1",
+          |             "label":"outputD"
+          |             }
+          |           ]
+          |}""".stripMargin
+    )
+
+    def getInvalidScaleFactorCalculationStanzaAsJsValue(op: String, scaleFactor: String): JsValue = Json.parse(
+      s"""|{
+          | "next": [ "21" ],
+          | "stack": true,
+          | "type": "CalculationStanza",
+          | "calcs": [
+          |             {"left":"[label:inputE]",
+          |             "op":"${op}",
+          |             "right":"${scaleFactor}",
+          |             "label":"outputD"
+          |             }
+          |           ]
+          |}""".stripMargin
+    )
+
     val labelX: String = "[label:x]"
     val tenAsString = "10"
     val labelY: String = "[label:y]"
@@ -221,6 +281,26 @@ class CalculationStanzaSpec extends BaseSpec {
       calcStanzaAsJsValue.validate[CalculationStanza] match {
         case JsSuccess(calcStanza, _) => calcStanza shouldBe expectedSingleSubtractionCalcCalculationStanza
         case e:JsError => fail( "Unable to parse single subtraction calculation stanza")
+      }
+    }
+
+    "deserialize calculation stanza with single ceiling operation" in new Test {
+
+      val calcStanzaAsJsValue: JsValue = getSingleCalcCalculationStanzaAsJsValue(c1Left, "ceiling", c1CeilingRight, c1Label)
+
+      calcStanzaAsJsValue.validate[CalculationStanza] match {
+        case JsSuccess(calcStanza, _) => calcStanza shouldBe expectedSingleCeilingCalcCalculationStanza
+        case e:JsError => fail( "Unable to parse single ceiling calculation stanza")
+      }
+    }
+
+    "deserialize calculation stanza with single floor operation" in new Test {
+
+      val calcStanzaAsJsValue: JsValue = getSingleCalcCalculationStanzaAsJsValue(c1Left, "floor", c1FloorRight, c1Label)
+
+      calcStanzaAsJsValue.validate[CalculationStanza] match {
+        case JsSuccess(calcStanza, _) => calcStanza shouldBe expectedSingleFloorCalcCalculationStanza
+        case e:JsError => fail( "Unable to parse single floor calculation stanza")
       }
     }
 
@@ -287,6 +367,26 @@ class CalculationStanzaSpec extends BaseSpec {
       actualResult shouldBe expectedResult
     }
 
+    "serialize a calculation stanza with a single ceiling operation" in new Test {
+
+      val expectedResult: String = getSingleCalcCalculationStanzaAsJsValue(c1Left, "ceiling", c1CeilingRight, c1Label).toString()
+
+      val stanza: Stanza = expectedSingleCeilingCalcCalculationStanza
+      val actualResult: String = Json.toJson(stanza).toString()
+
+      actualResult shouldBe expectedResult
+    }
+
+    "serialize a calculation stanza with a single floor operation" in new Test {
+
+      val expectedResult: String = getSingleCalcCalculationStanzaAsJsValue(c1Left, "floor", c1FloorRight, c1Label).toString()
+
+      val stanza: Stanza = expectedSingleFloorCalcCalculationStanza
+      val actualResult: String = Json.toJson(stanza).toString()
+
+      actualResult shouldBe expectedResult
+    }
+
     "serialize a calculation stanza with multiple operations" in new Test {
 
       val expectedResult: String = getMultipleCalcCalculationStanzaAsJsValue().toString()
@@ -306,12 +406,12 @@ class CalculationStanzaSpec extends BaseSpec {
         onePageJsonWithInvalidCalcOperationType,
         calculationStanzaWithUnknownOperationType
       ).as[JsObject].validate[Process] match {
-        case JsSuccess(_,_) => fail( "A process should not be created from invalid JSON")
+        case JsSuccess(_, _) => fail("A process should not be created from invalid JSON")
         case JsError(errs) => GuidanceError.fromJsonValidationErrors(errs) match {
-          case Nil => fail("Nothing to match from guidance error conversion")
-          case UnknownCalcOperationType("3", "sqrt") :: _ => succeed
-          case errs => fail( "An error occurred processing Json validation errors")
-        }
+            case Nil => fail("Nothing to match from guidance error conversion")
+            case UnknownCalcOperationType("3", sqrt) :: _ => succeed
+            case errs => fail("An error occurred processing Json validation errors")
+          }
       }
     }
 
@@ -322,12 +422,13 @@ class CalculationStanzaSpec extends BaseSpec {
         calculationStanzaWithIncorrectType
       ).as[JsObject].validate[Process] match {
         case JsSuccess(_,_) => fail("A process should not be created from invalid JSON")
-        case JsError(errs) => GuidanceError.fromJsonValidationErrors(errs) match {
-          case Nil => fail("Nothing to match from guidance error conversion")
-          case UnknownCalcOperationType("3", "false") :: _ => {
-            succeed
+        case JsError(errs) => {
+          val error = GuidanceError.fromJsonValidationErrors(errs)
+          error match {
+            case Nil => fail("Nothing to match from guidance error conversion")
+            case UnknownCalcOperationType("3", "false") :: _ => succeed
+            case errs => fail("An error occurred processing Json validation errors")
           }
-          case errs => fail("An error occurred processing Json validation errors")
         }
       }
     }
@@ -345,8 +446,8 @@ class CalculationStanzaSpec extends BaseSpec {
       val calculationStanza: CalculationStanza = CalculationStanza(operations, next, stack = false)
 
       val expectedOperations: Seq[Operation] = Seq(
-        Add(labelX, tenAsString, result1),
-        Subtract(twentyAsString, labelY, result2)
+        AddOperation(labelX, tenAsString, result1),
+        SubtractOperation(twentyAsString, labelY, result2)
       )
 
       val expectedCalculation: Calculation = Calculation(next, expectedOperations)
@@ -627,6 +728,332 @@ class CalculationStanzaSpec extends BaseSpec {
       val (nextStanza, updatedLabels) = calculation.eval(labelCache)
 
       nextStanza shouldBe "16"
+
+      updatedLabels shouldBe labelCache
+    }
+
+    "support ceiling operations where operands are defined by constants and the scale is zero" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("10.3", Ceiling, "0", "output1"),
+        CalcOperation("10.7", Ceiling, "0", "output2"),
+        CalcOperation("10.36", Ceiling, "0", "output3"),
+        CalcOperation("10.82", Ceiling, "0", "output4"),
+        CalcOperation("10.45", Ceiling, "0", "output5"),
+        CalcOperation("-10.3", Ceiling, "0", "output6"),
+        CalcOperation("-10.45", Ceiling, "0", "output7")
+      )
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, Seq("5"), stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val labelCache: Labels = LabelCache()
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "5"
+
+      updatedLabels.value("output1") shouldBe Some("11")
+      updatedLabels.value("output2") shouldBe Some("11")
+      updatedLabels.value("output3") shouldBe Some("11")
+      updatedLabels.value("output4") shouldBe Some("11")
+      updatedLabels.value("output5") shouldBe Some("11")
+      updatedLabels.value("output6") shouldBe Some("-10")
+      updatedLabels.value("output7") shouldBe Some("-10")
+    }
+
+    "support ceiling operations where operands are defined by constants and the scale is one" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("10.36", Ceiling, "1", "output1"),
+        CalcOperation("10.82", Ceiling, "1", "output2"),
+        CalcOperation("-10.82", Ceiling, "1", "output3")
+      )
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, Seq("5"), stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val labelCache: Labels = LabelCache()
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "5"
+
+      updatedLabels.value("output1") shouldBe Some("10.4")
+      updatedLabels.value("output2") shouldBe Some("10.9")
+      updatedLabels.value("output3") shouldBe Some("-10.8")
+    }
+
+    "not modify values with two decimal places when applying ceiling with a scale factor of two" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("122.11", Ceiling, "2", "output1"),
+        CalcOperation("-122.11", Ceiling, "2", "output2")
+      )
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, Seq("5"), stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val labelCache: Labels = LabelCache()
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "5"
+
+      updatedLabels.value("output1") shouldBe Some("122.11")
+      updatedLabels.value("output2") shouldBe Some("-122.11")
+    }
+
+    "support ceiling operations where operands are defined by constants and the scale is minus one" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("122.11", Ceiling, "-1", "output1"),
+        CalcOperation("-122.11", Ceiling, "-1", "output2")
+      )
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, Seq("5"), stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val labelCache: Labels = LabelCache()
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "5"
+
+      updatedLabels.value("output1") shouldBe Some("130")
+      updatedLabels.value("output2") shouldBe Some("-120")
+    }
+
+    "support ceiling operations where operands are defined by constants and the scale is minus two" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("122.11", Ceiling, "-2", "output1"),
+        CalcOperation("-122.11", Ceiling, "-2", "output2")
+      )
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, Seq("5"), stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val labelCache: Labels = LabelCache()
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "5"
+
+      updatedLabels.value("output1") shouldBe Some("200")
+      updatedLabels.value("output2") shouldBe Some("-100")
+    }
+
+    "support floor operations where operands are defined by constants and the scale is zero" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("10.3", Floor, "0", "output1"),
+        CalcOperation("10.7", Floor, "0", "output2"),
+        CalcOperation("10.36", Floor, "0", "output3"),
+        CalcOperation("10.82", Floor, "0", "output4"),
+        CalcOperation("10.45", Floor, "0", "output5"),
+        CalcOperation("-10.3", Floor, "0", "output6"),
+        CalcOperation("-10.45", Floor, "0", "output7")
+      )
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, Seq("5"), stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val labelCache: Labels = LabelCache()
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "5"
+
+      updatedLabels.value("output1") shouldBe Some("10")
+      updatedLabels.value("output2") shouldBe Some("10")
+      updatedLabels.value("output3") shouldBe Some("10")
+      updatedLabels.value("output4") shouldBe Some("10")
+      updatedLabels.value("output5") shouldBe Some("10")
+      updatedLabels.value("output6") shouldBe Some("-11")
+      updatedLabels.value("output7") shouldBe Some("-11")
+    }
+
+    "support floor operations where operands are defined by constants and the scale is one" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("10.36", Floor, "1", "output1"),
+        CalcOperation("10.82", Floor, "1", "output2"),
+        CalcOperation("-10.82", Floor, "1", "output3")
+      )
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, Seq("5"), stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val labelCache: Labels = LabelCache()
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "5"
+
+      updatedLabels.value("output1") shouldBe Some("10.3")
+      updatedLabels.value("output2") shouldBe Some("10.8")
+      updatedLabels.value("output3") shouldBe Some("-10.9")
+    }
+
+    "not modify values with two decimal places when applying floor with a scale factor of two" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("122.11", Floor, "2", "output1"),
+        CalcOperation("-122.11", Floor, "2", "output2")
+      )
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, Seq("5"), stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val labelCache: Labels = LabelCache()
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "5"
+
+      updatedLabels.value("output1") shouldBe Some("122.11")
+      updatedLabels.value("output2") shouldBe Some("-122.11")
+    }
+
+    "support floor operations where operands are defined by constants and the scale is minus one" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("122.11", Floor, "-1", "output1"),
+        CalcOperation("-122.11", Floor, "-1", "output2")
+      )
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, Seq("5"), stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val labelCache: Labels = LabelCache()
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "5"
+
+      updatedLabels.value("output1") shouldBe Some("120")
+      updatedLabels.value("output2") shouldBe Some("-130")
+    }
+
+    "support floor operations where operands are defined by constants and the scale is minus two" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("122.11", Floor, "-2", "output1"),
+        CalcOperation("-122.11", Floor, "-2", "output2")
+      )
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, Seq("5"), stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val labelCache: Labels = LabelCache()
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "5"
+
+      updatedLabels.value("output1") shouldBe Some("100")
+      updatedLabels.value("output2") shouldBe Some("-200")
+    }
+
+    "support ceiling operations where the left operand is defined by a label" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("[label:input1]", Ceiling, "0", "output1" )
+      )
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, Seq("5"), stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val input1: Label = Label("input1", Some("10.5"))
+
+      val labelMap: Map[String, Label] = Map(
+        input1.name -> input1
+      )
+
+      val labelCache = LabelCache(labelMap)
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "5"
+
+      updatedLabels.value("output1") shouldBe Some("11")
+    }
+
+    "support floor operations where the left operand is defined by a label" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("[label:input1]", Floor, "0", "output1" )
+      )
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, Seq("5"), stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val input1: Label = Label("input1", Some("1021.25"))
+
+      val labelMap: Map[String, Label] = Map(
+        input1.name -> input1
+      )
+
+      val labelCache = LabelCache(labelMap)
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "5"
+
+      updatedLabels.value("output1") shouldBe Some("1021")
+    }
+
+    "not support ceiling operations on operands of incorrect type" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("", Ceiling, "1", "output")
+      )
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, Seq("25"), stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val labelCache: Labels = LabelCache()
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "25"
+
+      updatedLabels shouldBe labelCache
+    }
+
+    "not support floor operations on operands of incorrect type" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("input", Floor, "0", "output")
+      )
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, Seq("25"), stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val label: Label = Label("label", Some("data"))
+
+      val labelMap: Map[String, Label] = Map(label.name -> label)
+
+      val labelCache: Labels = LabelCache(labelMap)
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "25"
 
       updatedLabels shouldBe labelCache
     }
