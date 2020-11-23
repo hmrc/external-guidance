@@ -22,23 +22,33 @@ import play.api.libs.json._
 
 class CalcOperationSpec extends BaseSpec {
 
-  val sqrt = "sqrt"
+  val rightOperand: String = "[label:inputB]"
+  val ceiling: String = "ceiling"
+  val floor: String = "floor"
+  val sqrt: String = "sqrt"
 
-  def getCalcOperationAsJsValue(calcOperationType: String): JsValue = Json.parse(
+  def getCalcOperationAsJsValue(calcOperationType: String, rightOperand: String): JsValue = Json.parse(
     s"""|{
         | "left": "[label:inputA]",
         | "op": "$calcOperationType",
-        | "right": "[label:inputB]",
+        | "right": "$rightOperand",
         | "label": "result"
         |}""".stripMargin
   )
 
-  val validCalcOperationAsJsObject: JsObject = getCalcOperationAsJsValue("add").as[JsObject]
+  def getCalcOperationWithMissingPropertiesAsJsValue(): JsValue = Json.parse(
+    s"""|{
+        | "left": "[label:inputA]",
+        | "label": "result"
+        |}""".stripMargin
+  )
+
+  val validCalcOperationAsJsObject: JsObject = getCalcOperationAsJsValue("add", rightOperand).as[JsObject]
 
   "Reading a valid JSON representation of calculation operation" should {
 
     "deserialize valid addition operation" in {
-      val additionOperation: JsValue = getCalcOperationAsJsValue("add")
+      val additionOperation: JsValue = getCalcOperationAsJsValue("add", rightOperand)
 
       additionOperation.validate[CalcOperation] match {
         case JsSuccess(calcOperation, _) => calcOperation shouldBe CalcOperation( "[label:inputA]", Addition, "[label:inputB]", "result")
@@ -46,25 +56,83 @@ class CalcOperationSpec extends BaseSpec {
       }
     }
 
-    "deserialize JSON representation of subtraction operation" in {
-      val subtractionOperation: JsValue = getCalcOperationAsJsValue("subtract")
+    "deserialize a valid JSON representation of subtraction operation" in {
+      val subtractionOperation: JsValue = getCalcOperationAsJsValue("subtract", rightOperand)
 
       subtractionOperation.validate[CalcOperation] match {
         case JsSuccess(calcOperation, _) => calcOperation shouldBe CalcOperation( "[label:inputA]", Subtraction, "[label:inputB]", "result")
         case e: JsError => fail("Unable to parse valid subtraction operation")
       }
     }
+
+    "deserialize a valid JSON representation of ceiling operation" in {
+      val ceilingOperation: JsValue = getCalcOperationAsJsValue("ceiling", "0")
+
+      ceilingOperation.validate[CalcOperation] match {
+        case JsSuccess(calcOperation, _) => calcOperation shouldBe CalcOperation( "[label:inputA]", Ceiling, "0", "result")
+        case e: JsError => fail("Unable to parse valid subtraction operation")
+      }
+    }
+
+    "deserialize a valid JSON representation of floor operation" in {
+      val floorOperation: JsValue = getCalcOperationAsJsValue("floor", "-1")
+
+      floorOperation.validate[CalcOperation] match {
+        case JsSuccess(calcOperation, _) => calcOperation shouldBe CalcOperation( "[label:inputA]", Floor, "-1", "result")
+        case e: JsError => fail("Unable to parse valid subtraction operation")
+      }
+    }
+
   }
 
   "Reading invalid JSON representation of calculation operation" should {
 
-    "Raise an error on deserialization of JsValue with invalid operation type" in {
+    "raise an error on deserialization of JsValue with invalid operation type" in {
 
-      val invalidOperation: JsValue = getCalcOperationAsJsValue(sqrt)
+      val invalidOperation: JsValue = getCalcOperationAsJsValue(sqrt, rightOperand)
 
         invalidOperation.validate[CalcOperation] match {
           case e: JsError => succeed
           case _ => fail("An instance of CalcOperation should not be created when the operation type is invalid")
+      }
+
+    }
+
+    "raise an error on deserialization of JsValue describing ceiling operation with invalid scale factor" in {
+
+      val invalidOperation: JsValue = getCalcOperationAsJsValue(ceiling, "scale")
+
+      val result: JsResult[CalcOperation] = invalidOperation.validate[CalcOperation]
+
+      result match {
+        case e: JsError => succeed
+        case _ => fail("An instance of CalcOperation should not be created for a ceiling operation with an invalid scale factor")
+      }
+
+    }
+
+    "raise an error on deserialization of JsValue describing floor operation with invalid scale factor" in {
+
+      val invalidOperation: JsValue = getCalcOperationAsJsValue(floor,"")
+
+      val result: JsResult[CalcOperation] = invalidOperation.validate[CalcOperation]
+
+      result match {
+        case e: JsError => succeed
+        case _ => fail("An instance of CalcOperation should not be created for a floor operation with an invalid scale factor")
+      }
+
+    }
+
+    "raise an error on deserialization of JsValue with two missing properties" in {
+
+      val invalidOperation: JsValue = getCalcOperationWithMissingPropertiesAsJsValue()
+
+      val result: JsResult[CalcOperation] = invalidOperation.validate[CalcOperation]
+
+      result match {
+        case e: JsError => succeed
+        case _ => fail("An instance of CalcOperation should not be created when an operand and the operation are missing")
       }
 
     }
@@ -89,6 +157,19 @@ class CalcOperationSpec extends BaseSpec {
       Json.toJson(CalcOperation("[label:inputA]", Subtraction, "[label:inputB]", "result")).toString shouldBe
       """{"left":"[label:inputA]","op":"subtract","right":"[label:inputB]","label":"result"}"""
     }
+
+    "serialize ceiling operation" in {
+
+      Json.toJson(CalcOperation("[label:inputA]", Ceiling, "[label:inputB]", "result")).toString shouldBe
+        """{"left":"[label:inputA]","op":"ceiling","right":"[label:inputB]","label":"result"}"""
+    }
+
+    "serialize floor operation" in {
+
+      Json.toJson(CalcOperation("[label:inputA]", Floor, "[label:inputB]", "result")).toString shouldBe
+        """{"left":"[label:inputA]","op":"floor","right":"[label:inputB]","label":"result"}"""
+    }
+
   }
 
 

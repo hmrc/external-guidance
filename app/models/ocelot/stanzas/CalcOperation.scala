@@ -20,17 +20,25 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 
+import models.ocelot.asAnyInt
+
 case class CalcOperation(left:String, op: CalcOperationType, right: String, label: String)
 
 object CalcOperation {
 
-  implicit val reads: Reads[CalcOperation] =
-    (
-      (JsPath \ "left").read[String] and
-        (JsPath \ "op").read[CalcOperationType] and
-        (JsPath \ "right").read[String] and
-        (JsPath \ "label").read[String]
-    )(CalcOperation.apply _)
+  implicit val reads: Reads[CalcOperation] = (js: JsValue) =>
+    ((js \ "left").validate[String] and
+      (js \ "op").validate[CalcOperationType] and
+      (js \ "right").validate[String] and
+      (js \ "label").validate[String]).tupled match {
+      case err: JsError => err
+      case JsSuccess((left, op, right, label), _) =>
+        op match {
+          case Floor | Ceiling if asAnyInt(right).isDefined => JsSuccess(CalcOperation(left, op, right, label))
+          case Floor | Ceiling => JsError(Seq(JsPath \ "right" -> Seq(JsonValidationError(Seq("error", "error.noninteger.scalefactor")))))
+          case _ => JsSuccess(CalcOperation(left, op, right, label))
+        }
+    }
 
   implicit val writes: OWrites[CalcOperation] =
     (
@@ -39,4 +47,5 @@ object CalcOperation {
         (JsPath \ "right").write[String] and
         (JsPath \ "label").write[String]
     )(unlift(CalcOperation.unapply))
+
 }
