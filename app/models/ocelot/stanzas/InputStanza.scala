@@ -16,7 +16,7 @@
 
 package models.ocelot.stanzas
 
-import models.ocelot.asCurrency
+import models.ocelot.{asCurrency, asCurrencyPounds}
 import models.ocelot.{labelReferences, Label, Labels, Phrase}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
@@ -80,10 +80,22 @@ case class CurrencyInput(
   def validInput(value: String): Option[String] = asCurrency(value).map(_.toString)
 }
 
+case class CurrencyPoundsOnlyInput(
+  override val next: Seq[String],
+  name: Phrase,
+  help: Option[Phrase],
+  label: String,
+  placeholder: Option[Phrase],
+  stack: Boolean
+) extends Input {
+  def validInput(value: String): Option[String] = asCurrencyPounds(value).map(_.toString)
+}
+
 object Input {
   def apply(stanza: InputStanza, name: Phrase, help: Option[Phrase], placeholder: Option[Phrase]): Option[Input] =
     stanza.ipt_type match {
       case Currency => Some(CurrencyInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack))
+      case CurrencyPoundsOnly => Some(CurrencyPoundsOnlyInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack))
       // .... Add additional input types when needed
       case _ => None
     }
