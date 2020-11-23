@@ -39,12 +39,14 @@ class InputStanzaSpec extends BaseSpec {
     InputStanza(inputType,  Seq("1"), 0, Some(1),"Price", Some(2), stack = false)
 
   val expectedCurrencyStanza: InputStanza = inputStanza(Currency)
+  val expectedCurrencyPoStanza: InputStanza = inputStanza(CurrencyPoundsOnly)
   val expectedDateStanza: InputStanza = inputStanza(Date)
   val expectedNumberStanza: InputStanza = inputStanza(Number)
   val expectedTextStanza: InputStanza = inputStanza(Txt)
 
   val jsonToStanzaMappings: Map[JsValue, InputStanza] = Map(
     getStanzaJson("Currency") -> expectedCurrencyStanza,
+    getStanzaJson("CurrencyPoundsOnly") -> expectedCurrencyPoStanza,
     getStanzaJson("Date") -> expectedDateStanza,
     getStanzaJson("Number") -> expectedNumberStanza,
     getStanzaJson("Text") -> expectedTextStanza,
@@ -128,6 +130,77 @@ class InputStanzaSpec extends BaseSpec {
           currencyInput.validInput("1,234,567") shouldBe Some("1234567")
           currencyInput.validInput("1,234,567.89") shouldBe Some("1234567.89")
           currencyInput.validInput("1,234,567.8") shouldBe Some("1234567.8")
+        case _ => fail
+      }
+
+    }
+
+  }
+
+  "CurrencyPoundsOnlyInput " should {
+    "update the input label" in {
+
+      Input(expectedCurrencyPoStanza, Phrase("",""), None, None).get match {
+        case currencyInput: CurrencyPoundsOnlyInput =>
+          val labels = LabelCache()
+
+          val (nxt, updatedLabels) = currencyInput.eval("33", labels)
+          updatedLabels.updatedLabels(expectedCurrencyPoStanza.label).english shouldBe Some("33")
+        case _ => fail
+      }
+
+    }
+
+    "Determine invalid input to be incorrect" in {
+
+      Input(expectedCurrencyPoStanza, Phrase("",""), None, None).get match {
+        case currencyInput: CurrencyPoundsOnlyInput =>
+
+          currencyInput.validInput("a value") shouldBe None
+          currencyInput.validInput("100.78") shouldBe None
+          currencyInput.validInput("100.7a") shouldBe None
+        case _ => fail
+      }
+
+    }
+
+    "Allow for coma separated 1000s" in {
+
+      Input(expectedCurrencyPoStanza, Phrase("",""), None, None).get match {
+        case currencyInput: CurrencyPoundsOnlyInput =>
+
+          currencyInput.validInput("123,345,768") shouldBe Some("123345768")
+        case _ => fail
+      }
+
+    }
+
+    "Allow -ve values" in {
+
+      Input(expectedCurrencyPoStanza, Phrase("",""), None, None).get match {
+        case currencyInput: CurrencyPoundsOnlyInput =>
+
+          currencyInput.validInput("-567,345") shouldBe Some("-567345")
+        case _ => fail
+      }
+
+    }
+
+    "Determine valid input to be correct" in {
+
+      Input(expectedCurrencyPoStanza, Phrase("",""), None, None).get match {
+        case currencyInput: CurrencyPoundsOnlyInput =>
+
+          currencyInput.validInput("£33") shouldBe Some("33")
+          currencyInput.validInput("-33") shouldBe Some("-33")
+          currencyInput.validInput("£33.79") shouldBe None
+          currencyInput.validInput("-33.99") shouldBe None
+          currencyInput.validInput("-£3,453,678") shouldBe Some("-3453678")
+          currencyInput.validInput("33") shouldBe Some("33")
+          currencyInput.validInput("33.9") shouldBe None
+          currencyInput.validInput("33.") shouldBe None
+          currencyInput.validInput("3,334") shouldBe Some("3334")
+          currencyInput.validInput("1,234,567") shouldBe Some("1234567")
         case _ => fail
       }
 

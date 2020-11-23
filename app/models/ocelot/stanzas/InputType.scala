@@ -21,6 +21,7 @@ import play.api.libs.json._
 sealed trait InputType
 
 case object Currency extends InputType
+case object CurrencyPoundsOnly extends InputType
 case object Number extends InputType
 case object Txt extends InputType
 case object Date extends InputType
@@ -29,6 +30,7 @@ object InputType {
 
   implicit val reads: Reads[InputType] = {
     case JsString("Currency") => JsSuccess(Currency, __)
+    case JsString("CurrencyPoundsOnly") => JsSuccess(CurrencyPoundsOnly, __)
     case JsString("Date") => JsSuccess(Date, __)
     case JsString("Number") => JsSuccess(Number, __)
     case JsString("Text") => JsSuccess(Txt, __)
@@ -38,6 +40,7 @@ object InputType {
 
   implicit val writes: Writes[InputType] = {
     case Currency => Json.toJson("Currency")
+    case CurrencyPoundsOnly => Json.toJson("CurrencyPoundsOnly")
     case Date => Json.toJson("Date")
     case Number => Json.toJson("Number")
     case Txt => Json.toJson("Text")
