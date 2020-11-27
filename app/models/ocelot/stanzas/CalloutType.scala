@@ -36,6 +36,7 @@ case object Important extends CalloutType
 case object YourCall extends CalloutType  // "Your Decision" stanza in Ocelot editor
 case object NumberedList extends CalloutType
 case object NumberedCircleList extends CalloutType
+case object Note extends CalloutType // Used to display Inset Text
 
 
 object CalloutType {
@@ -53,6 +54,7 @@ object CalloutType {
     case JsString("YourCall") => JsSuccess(YourCall, __)
     case JsString("NumberedList") => JsSuccess(NumberedList, __)
     case JsString("NumberedCircleList") => JsSuccess(NumberedCircleList, __)
+    case JsString("Note") => JsSuccess(Note, __)
     case typeName: JsString => JsError(JsonValidationError(Seq("CalloutType"), typeName.value))
     case unknown => JsError(JsonValidationError(Seq("CalloutType"), unknown.toString))
   }
@@ -70,6 +72,7 @@ object CalloutType {
     case YourCall => Json.toJson("YourCall")
     case NumberedList => Json.toJson("NumberedList")
     case NumberedCircleList => Json.toJson("NumberedCircleList")
+    case Note => Json.toJson("Note")
   }
 
 }
