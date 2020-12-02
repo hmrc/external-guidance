@@ -159,6 +159,7 @@ class InputStanzaSpec extends BaseSpec {
           currencyInput.validInput("a value") shouldBe None
           currencyInput.validInput("100.78") shouldBe None
           currencyInput.validInput("100.7a") shouldBe None
+          currencyInput.validInput("") shouldBe None
         case _ => fail
       }
 
@@ -208,6 +209,18 @@ class InputStanzaSpec extends BaseSpec {
 
   }
 
+  "Creating input with type not currently supported" should {
+    "return None for Date Stanza" in {
+      Input(expectedDateStanza, Phrase("", ""), None, None) shouldBe None
+    }
+    "return None for Number Stanza" in {
+      Input(expectedNumberStanza, Phrase("", ""), None, None) shouldBe None
+    }
+    "return None for Text Stanza" in {
+      Input(expectedTextStanza, Phrase("", ""), None, None) shouldBe None
+    }
+  }
+
   "Reading invalid JSON for a Input" should {
     "generate a JsError" in {
       getStanzaJson("invalid").validate[InputStanza] match {
@@ -227,6 +240,15 @@ class InputStanzaSpec extends BaseSpec {
   "serialise to json ipt_type Currency from a Stanza reference" in {
     val stanza: Stanza = expectedCurrencyStanza
     Json.toJson(stanza).toString shouldBe stanzaJsonFormat("Currency")
+  }
+
+  "serialise to json with ipt_type CurrencyPoundsOnly" in {
+    Json.toJson(expectedCurrencyPoStanza).toString shouldBe inputStanzaJsonFormat("CurrencyPoundsOnly")
+  }
+
+  "serialise to json ipt_type CurrencyPoundsOnly from a Stanza reference" in {
+    val stanza: Stanza = expectedCurrencyPoStanza
+    Json.toJson(stanza).toString shouldBe stanzaJsonFormat("CurrencyPoundsOnly")
   }
 
   "serialise to json with ipt_type Date" in {

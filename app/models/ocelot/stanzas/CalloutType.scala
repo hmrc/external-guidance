@@ -34,8 +34,8 @@ case object TypeError extends CalloutType
 case object Lede extends CalloutType
 case object Important extends CalloutType
 case object YourCall extends CalloutType  // "Your Decision" stanza in Ocelot editor
-case object NumberedList extends CalloutType
-case object NumberedCircleList extends CalloutType
+case object NumListItem extends CalloutType
+case object NumCircListItem extends CalloutType
 case object Note extends CalloutType // Used to display Inset Text
 
 
@@ -52,8 +52,10 @@ object CalloutType {
     case JsString("TypeError") => JsSuccess(TypeError, __)
     case JsString("Important") => JsSuccess(Important, __)
     case JsString("YourCall") => JsSuccess(YourCall, __)
-    case JsString("NumberedList") => JsSuccess(NumberedList, __)
-    case JsString("NumberedCircleList") => JsSuccess(NumberedCircleList, __)
+    case JsString("NumberedList") => JsSuccess(NumListItem, __)
+    case JsString("NumberedCircleList") => JsSuccess(NumCircListItem, __)
+    case JsString("NumberedListItem") => JsSuccess(NumListItem, __)
+    case JsString("NumberedCircleListItem") => JsSuccess(NumCircListItem, __)
     case JsString("Note") => JsSuccess(Note, __)
     case typeName: JsString => JsError(JsonValidationError(Seq("CalloutType"), typeName.value))
     case unknown => JsError(JsonValidationError(Seq("CalloutType"), unknown.toString))
@@ -70,8 +72,8 @@ object CalloutType {
     case Lede => Json.toJson("Lede")
     case Important => Json.toJson("Important")
     case YourCall => Json.toJson("YourCall")
-    case NumberedList => Json.toJson("NumberedList")
-    case NumberedCircleList => Json.toJson("NumberedCircleList")
+    case NumListItem => Json.toJson("NumberedListItem")
+    case NumCircListItem => Json.toJson("NumberedCircleListItem")
     case Note => Json.toJson("Note")
   }
 
