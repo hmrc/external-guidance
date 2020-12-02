@@ -441,7 +441,6 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       }
     }
 
-
     "detect UnknownCalloutType" in {
       val processErrors: List[ProcessError] =
         List(

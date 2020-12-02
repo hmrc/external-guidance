@@ -59,8 +59,8 @@ object Callout {
       case TypeError => TypeErrorCallout(text, stanza.next, stanza.stack)
       case Important => ImportantCallout(text, stanza.next, stanza.stack)
       case YourCall => YourCallCallout(text, stanza.next, stanza.stack)
-      case NumberedList => NumListCallout(text, stanza.next, stanza.stack)
-      case NumberedCircleList => NumCircListCallout(text, stanza.next, stanza.stack)
+      case NumListItem => NumberedListItemCallout(text, stanza.next, stanza.stack)
+      case NumCircListItem => NumberedCircleListItemCallout(text, stanza.next, stanza.stack)
       case Note => NoteCallout(text, stanza.next, stanza.stack)
     }
 }
@@ -75,6 +75,6 @@ case class ValueErrorCallout(text: Phrase, override val next: Seq[String], stack
 case class TypeErrorCallout(text: Phrase, override val next: Seq[String], stack: Boolean) extends Callout
 case class ImportantCallout(text: Phrase, override val next: Seq[String], stack: Boolean) extends Callout
 case class YourCallCallout(text: Phrase, override val next: Seq[String], stack: Boolean) extends Callout
-case class NumListCallout(text: Phrase, override val next: Seq[String], stack: Boolean) extends Callout
-case class NumCircListCallout(text: Phrase, override val next: Seq[String], stack: Boolean) extends Callout
+case class NumberedListItemCallout(text: Phrase, override val next: Seq[String], stack: Boolean) extends Callout
+case class NumberedCircleListItemCallout(text: Phrase, override val next: Seq[String], stack: Boolean) extends Callout
 case class NoteCallout(text: Phrase, override val next: Seq[String], stack: Boolean) extends Callout
