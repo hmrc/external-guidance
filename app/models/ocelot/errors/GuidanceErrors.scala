@@ -63,21 +63,19 @@ object GuidanceError {
       }.getOrElse(FlowParseError(id, msg, jsPath.toString))
 
     val (jsPath, errs) = err
-    jsPath.path.headOption.fold[GuidanceError](ParseError(jsPath, errs))( root => {
-      val id = jsPath.path.lift(1).fold("Unknown")(_.toString.drop(1))
-      errs.headOption.fold[GuidanceError](ParseError(jsPath, errs))( err => {
-        val arg = err.args.headOption.fold("")(_.toString)
-        root.toString match {
-          case "/flow" =>
-            errs.headOption.fold[GuidanceError](FlowParseError(id, err.message, jsPath.toString))(err =>
-              flowError(jsPath, id, arg, err.message, err.messages)
-            )
-          case "/meta" => MetaParseError(id, err.message, arg)
-          case "/phrases" => PhrasesParseError(id.dropRight(1), err.message, arg)
-          case "/links" => LinksParseError(id.dropRight(1), err.message, arg)
-        }
-      })
-      })
+    val id = jsPath.path.lift(1).getOrElse("/Unknown").toString.drop(1)
+    errs.headOption.fold[GuidanceError](ParseError(jsPath, errs))( err => {
+      val arg = err.args.headOption.fold("")(_.toString)
+      jsPath.path.headOption.getOrElse("/").toString match {
+        case "/flow" =>
+          errs.headOption.fold[GuidanceError](FlowParseError(id, err.message, jsPath.toString))(err =>
+            flowError(jsPath, id, arg, err.message, err.messages)
+          )
+        case "/meta" => MetaParseError(id, err.message, arg)
+        case "/phrases" => PhrasesParseError(id.dropRight(1), err.message, arg)
+        case "/links" => LinksParseError(id.dropRight(1), err.message, arg)
+      }
+    })
   }
 
   def fromJsonValidationErrors(jsErrors: Seq[(JsPath, Seq[JsonValidationError])]): List[GuidanceError] =
