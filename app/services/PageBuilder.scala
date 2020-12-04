@@ -32,31 +32,29 @@ class PageBuilder extends ProcessPopulation {
 
     @tailrec
     def collectStanzas(keys: Seq[String],
-                       ids: Seq[String],
-                       stanzas: Seq[Stanza],
-                       next: Seq[String]): Either[GuidanceError, (Seq[String], Seq[Stanza], Seq[String])] =
+                       pageStanza: Option[PageStanza] = None,
+                       ids: Seq[String] = Nil,
+                       stanzas: Seq[Stanza] = Nil,
+                       next: Seq[String] = Nil): Either[GuidanceError, (Option[PageStanza], Seq[String], Seq[Stanza], Seq[String])] =
       keys match {
-        case Nil => Right((ids, stanzas, next))                                                  // End Page
-        case key :: xs if ids.contains(key) => collectStanzas(xs, ids, stanzas, next)            // Already encountered, but potentially more paths
+        case Nil => Right((pageStanza, ids, stanzas, next))                                                  // End Page
+        case key :: xs if ids.contains(key) => collectStanzas(xs, pageStanza, ids, stanzas, next)            // Already encountered, but potentially more paths
         case key :: xs =>
           (stanza(key, process), xs ) match {
-            case (Right(s: PageStanza), _) if ids.nonEmpty => collectStanzas(xs, ids, stanzas, key +: next) // End page but potentially more paths
-            case (Right(s: PageStanza), _) => collectStanzas(xs ++ s.next, ids :+ key, stanzas :+ s, next)  // Beginning of page
-            case (Right(EndStanza), _) => collectStanzas(xs, ids :+ key, stanzas :+ EndStanza, next)        // End page but potentially more paths
-            case (Right(s: Stanza), _) if ids.isEmpty => Left(PageStanzaMissing(key))
-            case (Right(s: Stanza), _) => collectStanzas(xs ++ s.next, ids :+ key, stanzas :+ s, next)
+            case (Right(s: PageStanza), _) if ids.nonEmpty => collectStanzas(xs, pageStanza, ids, stanzas, key +: next) // End page but potentially more paths
+            case (Right(s: PageStanza), _) => collectStanzas(xs ++ s.next, Some(s), ids :+ key, stanzas :+ s, next)     // Beginning of page
+            case (Right(EndStanza), _) => collectStanzas(xs, pageStanza, ids :+ key, stanzas :+ EndStanza, next)        // End page but potentially more paths
+            case (Right(s: Stanza), _) if ids.isEmpty => Left(PageStanzaMissing(key))                                   // None PageStanza at start of page
+            case (Right(s: Stanza), _) => collectStanzas(xs ++ s.next, pageStanza, ids :+ key, stanzas :+ s, next)      // None PageStanza within page
             case (Left(err), _) => Left(err)
           }
       }
 
-    collectStanzas(List(key), Nil, Nil, Nil) match {
-      case Right((ids, stanzas, next)) =>
+    collectStanzas(List(key)) match {
+      case Right((Some(p), ids, _, _)) if p.url.isEmpty || p.url.equals("/") => Left(PageUrlEmptyOrInvalid(ids.head))
+      case Right((Some(p), ids, stanzas, next)) =>
         val ks: Seq[KeyedStanza] = ids.zip(stanzas).map(t => KeyedStanza(t._1, t._2))
-        ks.head.stanza match {
-          case p: PageStanza if p.url.isEmpty || p.url.equals("/") => Left(PageUrlEmptyOrInvalid(ks.head.key))
-          case p: PageStanza => Right(Page(ks.head.key, p.url, ks, next))
-          case _ => Left(PageStanzaMissing(ks.head.key))
-        }
+        Right(Page(ks.head.key, p.url, ks, next))
       case Left(err) => Left(err)
     }
   }
@@ -74,9 +72,9 @@ class PageBuilder extends ProcessPopulation {
     p match {
       case Nil => Nil
       case x :: xs if seen.contains(x) => checkQuestionFollowers(xs, keyedStanzas, seen)
-      case x :: xs if !keyedStanzas.contains(x) => checkQuestionFollowers(xs, keyedStanzas, seen)
+      case x :: xs if !keyedStanzas.contains(x) => checkQuestionFollowers(xs, keyedStanzas, x +: seen)
       case x :: xs if keyedStanzas.contains(x) && keyedStanzas(x).visual => List(VisualStanzasAfterQuestion(x))
-      case x :: xs => checkQuestionFollowers(keyedStanzas(x).next ++ xs, keyedStanzas, seen)
+      case x :: xs => checkQuestionFollowers(keyedStanzas(x).next ++ xs, keyedStanzas, x +: seen)
     }
 
   @tailrec
@@ -97,11 +95,10 @@ class PageBuilder extends ProcessPopulation {
     }
 
   def pagesWithValidation(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] =
-    pages(process, start).fold[Either[List[GuidanceError], Seq[Page]]]( e => Left(e), pages => {
-        (checkQuestionPages(pages, Nil) ++ duplicateUrlErrors(pages.reverse, Nil)) match {
-          case Nil => Right(pages.headOption.fold(Seq.empty[Page])(h => h +: pages.tail.sortWith((x,y) => x.id < y.id)))
-          case duplicates => Left(duplicates)
-        }
+    pages(process, start).fold[Either[List[GuidanceError], Seq[Page]]](Left(_),
+      pages => (checkQuestionPages(pages, Nil) ++ duplicateUrlErrors(pages.reverse, Nil)) match {
+        case Nil => Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
+        case duplicates => Left(duplicates)
       }
     )
 
