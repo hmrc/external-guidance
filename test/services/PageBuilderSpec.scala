@@ -97,6 +97,31 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       }
     }
 
+    "detect UnknownInputType (currently unsupported type) error" in {
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/url", Seq("1"), true),
+        "1" -> InstructionStanza(0, Seq("2"), None, false),
+        "2" -> InputStanza(Txt, Seq("4"), 0, Some(0), "Label", None, false),
+        "4" -> InstructionStanza(0, Seq("end"), None, false),
+        "end" -> EndStanza
+      )
+      val process = Process(
+        metaSection,
+        flow,
+        Vector[Phrase](
+          Phrase(Vector("Some Text", "Welsh, Some Text")),
+          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
+        ),
+        Vector[Link]()
+      )
+      pageBuilder.buildPage("start", process) match {
+        case Left(UnknownInputType("2", "Txt")) => succeed
+        case err => fail(s"UnknownInputType not detected $err")
+      }
+    }
+
     "detect PageStanzaMissing error when stanza routes to page not starting with PageStanza" in {
       val flow = Map(
         Process.StartStanzaId -> InstructionStanza(0, Seq("2"), None, false),
@@ -147,6 +172,38 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
       pageBuilder.pagesWithValidation(process) match {
         case Left(List(VisualStanzasAfterQuestion("4"))) => succeed
+        case Left(err) => fail(s"Should generate VisualStanzasAfterQuestion, failed with $err")
+        case x => fail(s"Should generate VisualStanzasAfterQuestion, returned $x")
+      }
+    }
+
+    "detect VisualStanzasAfterQuestion with possible loop in post Question stanzas" in {
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/url", Seq("1"), true),
+        "1" -> InstructionStanza(0, Seq("2"), None, false),
+        "2" -> QuestionStanza(1, Seq(2, 3, 4, 5), Seq("4", "5", "6", "7"), None, false),
+        "4" -> Choice(ChoiceStanza(Seq("5","6"), Seq(ChoiceStanzaTest("[label:X]", LessThanOrEquals, "8")), false)),
+        "5" -> ValueStanza(List(Value(Scalar, "PageUrl", "/blah")), Seq("4"), false),
+        "6" -> InstructionStanza(0, Seq("end"), None, false),
+        "7" -> InstructionStanza(0, Seq("end"), None, false),
+        "end" -> EndStanza
+      )
+      val process = Process(
+        metaSection,
+        flow,
+        Vector[Phrase](
+          Phrase(Vector("Some Text", "Welsh, Some Text")),
+          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh, Some Text3")),
+          Phrase(Vector("Some Text4", "Welsh, Some Text4")),
+          Phrase(Vector("Some Text5", "Welsh, Some Text5"))
+        ),
+        Vector[Link]()
+      )
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Left(List(VisualStanzasAfterQuestion("6"))) => succeed
         case Left(err) => fail(s"Should generate VisualStanzasAfterQuestion, failed with $err")
         case x => fail(s"Should generate VisualStanzasAfterQuestion, returned $x")
       }
@@ -1014,6 +1071,45 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
           pageInfo(0).pageTitle shouldBe "Do you have a tea bag?"
 
         case _ => fail
+      }
+    }
+
+    "determine the Your Call page title" in new Test {
+
+      case class Dummy(id: String, pageUrl: String, pageTitle: String)
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/this", Seq("1"), false),
+        "1" -> CalloutStanza(YourCall, 2, Seq("2"), false),
+        "2" -> InstructionStanza(0, Seq("4"), None, false),
+        "4" -> PageStanza("/that", Seq("5"), false),
+        "5" -> QuestionStanza(1, Seq(2, 3), Seq("end", "end"), None, false),
+        "end" -> EndStanza
+      )
+      val process = Process(
+        metaSection,
+        flow,
+        Vector[Phrase](
+          Phrase(Vector("Some Text", "Welsh, Some Text")),
+          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
+        ),
+        Vector[Link]()
+      )
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Right(pages) =>
+          val pageInfo = pageBuilder.fromPageDetails(pages)(Dummy)
+
+          pageInfo shouldNot be(Nil)
+          pageInfo.length shouldBe 2
+
+          pageInfo(0).id shouldBe "start"
+          pageInfo(0).pageUrl shouldBe "/this"
+          pageInfo(0).pageTitle shouldBe "Some Text2"
+
+        case Left(err) =>
+          fail(s"Failed with error $err")
       }
     }
 
