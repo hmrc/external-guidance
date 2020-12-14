@@ -122,6 +122,34 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       }
     }
 
+    "detect SharedDataInputStanza error" in {
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/url", Seq("1"), true),
+        "1" -> InstructionStanza(0, Seq("2"), None, false),
+        "2" -> InputStanza(Currency, Seq("4"), 0, Some(0), "Label", None, false),
+        "4" -> Choice(ChoiceStanza(Seq("5","end"), Seq(ChoiceStanzaTest("[label:label]", LessThanOrEquals, "8")), false)),
+        "5" -> PageStanza("/url2", Seq("1"), true),
+        "6" -> InstructionStanza(0, Seq("2"), None, false),
+        "2" -> InputStanza(Currency, Seq("4"), 0, Some(0), "Label", None, false),
+        "end" -> EndStanza
+      )
+      val process = Process(
+        metaSection,
+        flow,
+        Vector[Phrase](
+          Phrase(Vector("Some Text", "Welsh, Some Text")),
+          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
+        ),
+        Vector[Link]()
+      )
+      pageBuilder.pagesWithValidation(process, Process.StartStanzaId) match {
+        case Left(Seq(SharedDataInputStanza("2", Seq(Process.StartStanzaId, "5")))) => succeed
+        case err => fail(s"SharedDataInputStanza not detected $err")
+      }
+    }
+
     "detect PageStanzaMissing error when stanza routes to page not starting with PageStanza" in {
       val flow = Map(
         Process.StartStanzaId -> InstructionStanza(0, Seq("2"), None, false),
@@ -544,7 +572,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
                        Label("Additional Info",None),
                        Label("IHT result",None))
 
-      pageBuilder.pages(ihtProcess, "start") match {
+      pageBuilder.pagesWithValidation(ihtProcess, "start") match {
         case Right(pages) => services.uniqueLabels(pages) shouldBe labels
         case Left(err) => fail(s"Failed with $err")
       }
@@ -570,7 +598,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
                                   "nil rate band",
                                   "IHT result")
 
-      pageBuilder.pages(ihtProcess, "start") match {
+      pageBuilder.pagesWithValidation(ihtProcess, "start") match {
         case Right(pages) => services.uniqueLabelRefs(pages) shouldBe labelsReferenced
         case Left(err) => fail(s"Failed with $err")
       }
@@ -580,7 +608,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
   "PageBuilder" must {
 
     "Make it possible to validate label references across a sequence of pages" in new IhtTest {
-      pageBuilder.pages(ihtProcess, "start") match {
+      pageBuilder.pagesWithValidation(ihtProcess, "start") match {
         case Right(pages) =>
           val labels = services.uniqueLabels(pages)
           services.uniqueLabelRefs(pages).forall(lr => labels.exists(_.name == lr)) shouldBe true
@@ -626,7 +654,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
         val process: Process = prototypeJson.as[Process]
 
-        pageBuilder.pages(process) match {
+        pageBuilder.pagesWithValidation(process) match {
           case Right(pages) =>
             pages shouldNot be(Nil)
 
@@ -641,7 +669,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
         val process: Process = prototypeJson.as[Process]
 
-        pageBuilder.pages(process) match {
+        pageBuilder.pagesWithValidation(process) match {
           case Right(pages) =>
             pages shouldNot be(Nil)
 
@@ -656,7 +684,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
         val process: Process = prototypeJson.as[Process]
 
-        pageBuilder.pages(process, "120") match {
+        pageBuilder.pagesWithValidation(process, "120") match {
           case Right(pages) =>
             pages shouldNot be(Nil)
 
@@ -671,7 +699,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
         val process: Process = prototypeJson.as[Process]
 
-        pageBuilder.pages(process) match {
+        pageBuilder.pagesWithValidation(process) match {
           case Right(pages) =>
             testPagesInPrototypeJson(pages)
 
@@ -714,7 +742,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
       "follows links to pages identified by stanza id " in new Test {
 
-        pageBuilder.pages(processWithLinks) match {
+        pageBuilder.pagesWithValidation(processWithLinks) match {
           case Right(pages) =>
             pages.length shouldBe 7
 
@@ -931,7 +959,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         )
       )
 
-      pageBuilder.pages(process) match {
+      pageBuilder.pagesWithValidation(process) match {
         case Right(pages) => pages.head.stanzas(2) shouldBe expectedRow
         case Left(err) => fail(s"Attempt to parse page with single cell row stanza failed with error : ${err.toString()}")
       }
@@ -1029,7 +1057,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
       case class Dummy(id: String, pageUrl: String, pageTitle: String)
 
-      pageBuilder.pages(Json.parse(processWithCallouts).as[Process]) match {
+      pageBuilder.pagesWithValidation(Json.parse(processWithCallouts).as[Process]) match {
         case Right(pages) =>
           val pageInfo = pageBuilder.fromPageDetails(pages)(Dummy)
 

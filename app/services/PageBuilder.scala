@@ -60,13 +60,15 @@ class PageBuilder extends ProcessPopulation {
 
   def pagesWithValidation(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] =
     pages(process, start).fold[Either[List[GuidanceError], Seq[Page]]](Left(_),
-      pages =>
+      pages => {
         (checkQuestionPages(pages, Nil) ++
          duplicateUrlErrors(pages.reverse, Nil) ++
-         detectDuplicateStanzaUsage(pages.map(p => (p.id, p.keyedStanzas.map(_.key).filterNot(_ == "end"))))) match {
+         detectSharedStanzaUsage(pages)) match {
           case Nil => Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
-          case errors => Left(errors)
+          case errors =>
+            Left(errors)
         }
+      }
     )
 
   def pages(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] = {
@@ -105,12 +107,14 @@ class PageBuilder extends ProcessPopulation {
       }
     }
 
-  private def detectDuplicateStanzaUsage(pages: Seq[(String, Seq[String])]): Seq[GuidanceError] =
-    pages.flatMap(_._2).distinct.flatMap{ id =>
-      pages.collect{case(pId, stanzas) if stanzas.contains(id) => (id, pId)}
+  private def detectSharedStanzaUsage(pages: Seq[Page]): Seq[GuidanceError] = {
+    val dataInputByPage: Seq[(String, Seq[String])] = pages.map(p => (p.id, p.keyedStanzas.collect{case KeyedStanza(id, _: DataInput) => id}))
+    dataInputByPage.flatMap(_._2).distinct.flatMap{ id =>
+      dataInputByPage.collect{case(pId, stanzas) if stanzas.contains(id) => (id, pId)}
     }.groupBy(t => t._1)
-     .collect{case (k, p) if p.length > 1 => DuplicateStanzaUse(k, p.map(_._2))}
+     .collect{case (k, p) if p.length > 1 => SharedDataInputStanza(k, p.map(_._2))}
      .toSeq
+  }
 
   @tailrec
   private def duplicateUrlErrors(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] =
