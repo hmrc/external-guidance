@@ -85,7 +85,7 @@ class GraphPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
     "be extractable from a Process using key 'start''" in new GraphTest {
 
-      pageBuilder.pagesWithValidation(process) match {
+      pageBuilder.pages(process) match {
         case Right(pages) =>
           pages shouldNot be(Nil)
 
@@ -98,17 +98,17 @@ class GraphPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
     "should contain the correct number of stanzas" in new GraphTest {
 
-      pageBuilder.pagesWithValidation(process) match {
+      pageBuilder.pages(process) match {
         case Right(pages) =>
           pages shouldNot be(Nil)
 
           pages(0).stanzas.length shouldBe 4
-          pages(1).stanzas.length shouldBe 3
+          pages(1).stanzas.length shouldBe 5
           pages(2).stanzas.length shouldBe 3
           pages(3).stanzas.length shouldBe 3
           pages(4).stanzas.length shouldBe 3
           pages(5).stanzas.length shouldBe 3
-          pages(6).stanzas.length shouldBe 5
+          pages(6).stanzas.length shouldBe 3
 
         case Left(err) => fail(s"GuidanceError $err")
       }
@@ -117,7 +117,7 @@ class GraphPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
     "create a set of pages with the correct next field" in new GraphTest {
 
-      pageBuilder.pagesWithValidation(process) match {
+      pageBuilder.pages(process) match {
         case Right(pages) =>
 
           val pageIds = pages.map(_.id).sorted
@@ -139,7 +139,7 @@ class GraphPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
   "PageBuilding" must {
     "create a set of pages with the correct next field" in new Test {
 
-      pageBuilder.pagesWithValidation(process) match {
+      pageBuilder.pages(process) match {
         case Right(pages) =>
           pages shouldNot be(Nil)
 
