@@ -63,7 +63,8 @@ class PageBuilder extends ProcessPopulation {
       pages => {
         (checkQuestionPages(pages, Nil) ++
          duplicateUrlErrors(pages.reverse, Nil) ++
-         detectSharedStanzaUsage(pages)) match {
+         detectSharedStanzaUsage(pages) ++
+         detectUnsupportedPageRedirect(pages)) match {
           case Nil => Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
           case errors =>
             Left(errors)
@@ -89,7 +90,12 @@ class PageBuilder extends ProcessPopulation {
 
     pagesByKeys(List(start), Nil) match {
       case Left(err) => Left(List(err))
-      case Right(pages) => Right(pages)
+      case Right(pages) =>
+        pages.foreach{p =>
+          println(s"PAGE: ${p.id} : ${p.url}")
+          p.keyedStanzas.foreach(println)
+        }
+        Right(pages)
     }
   }
 
@@ -114,6 +120,29 @@ class PageBuilder extends ProcessPopulation {
     }.groupBy(t => t._1)
      .collect{case (k, p) if p.length > 1 => SharedDataInputStanza(k, p.map(_._2))}
      .toSeq
+  }
+
+  private def detectUnsupportedPageRedirect(pages: Seq[Page]): Seq[GuidanceError] = {
+    val pageIds = pages.map(_.id)
+
+    @tailrec
+    def traverse(keys: Seq[String], page: Map[String, Stanza]): Option[String] = {
+      println(s"TRAVERSE: $keys")
+      keys match {
+        case Nil => None
+        case x :: xs => page.get(x) match {
+          case None => traverse(xs, page)
+          case Some(s: DataInput) => traverse(xs, page)
+          case Some(s: Choice) if s.next.exists(n => pageIds.contains(n)) => Some(x)
+          case Some(s: Stanza) => traverse(s.next ++ xs, page)
+        }
+      }
+    }
+
+    pages.flatMap{p =>
+      println(s"PAGE: ${p.id}")
+      traverse(Seq(p.id), p.keyedStanzas.map(ks => (ks.key, ks.stanza)).toMap).map(id => PageRedirectNotSupported(id))
+    }
   }
 
   @tailrec

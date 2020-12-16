@@ -55,6 +55,7 @@ package object services {
     case e: PhrasesParseError => ProcessError(s"Process Phrases section parse error, reason: ${e.msg}, index: ${e.id}", "")
     case e: LinksParseError => ProcessError(s"Process Links section parse error, reason: ${e.msg}, index: ${e.id}", "")
     case e: SharedDataInputStanza => ProcessError(s"Input/Question Stanza ${e.id} used on multiple pages ${e.pages}", e.id)
+    case e: PageRedirectNotSupported => ProcessError(s"Use of ChoiceStanza ${e.id} as a page redirect not supported", e.id)
   }
 
   implicit def processErrs(errs: List[GuidanceError]): List[ProcessError] = errs.map(toProcessErr)
