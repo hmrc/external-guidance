@@ -225,12 +225,6 @@ class CalloutStanzaSpec extends BaseSpec {
     }
   }
 
-  "Grouping no YourCallCallouts into a group" should {
-    "Create an empty group" in {
-      YourCallGroup(Seq.empty) shouldBe YourCallGroup(Seq.empty, Seq.empty, false)
-    }
-  }
-
   "serialise to json with noteType Title" in {
     Json.toJson(expectedTitleCalloutStanza).toString shouldBe """{"noteType":"Title","text":0,"next":["1"],"stack":false}"""
   }
