@@ -76,12 +76,7 @@ class PageBuilder extends ProcessPopulation {
 
     pagesByKeys(List(start), Nil) match {
       case Left(err) => Left(List(err))
-      case Right(pages) =>
-        pages.foreach{p =>
-          println(s"PAGE: ${p.id} : ${p.url}")
-          p.keyedStanzas.foreach(println)
-        }
-        Right(pages)
+      case Right(pages) => Right(pages)
     }
   }
 
