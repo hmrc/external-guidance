@@ -208,11 +208,47 @@ class InputStanzaSpec extends BaseSpec {
     }
 
   }
+  "DateInput" should {
+    "update the input label" in {
+      Input(expectedDateStanza, Phrase("",""), None, None).get match {
+        case input: DateInput =>
+          val labels = LabelCache()
+
+          val (nxt, updatedLabels) = input.eval("33", labels)
+          updatedLabels.updatedLabels(expectedCurrencyPoStanza.label).english shouldBe Some("33")
+        case _ => fail
+      }
+    }
+
+    "Determine invalid input to be incorrect" in {
+
+      Input(expectedDateStanza, Phrase("",""), None, None).get match {
+        case input: DateInput =>
+          input.validInput("a value") shouldBe Some("a value")
+          input.validInput("124a") shouldBe Some("124a")
+          input.validInput("100.7a") shouldBe Some("100.7a")
+          input.validInput("1,987") shouldBe Some("1,987")
+          input.validInput("-87") shouldBe Some("-87")
+        case _ => fail
+      }
+
+    }
+
+    "Determine valid input to be correct" in {
+
+      Input(expectedDateStanza, Phrase("",""), None, None).get match {
+        case input: DateInput =>
+
+          input.validInput("33") shouldBe Some("33")
+          input.validInput("1234") shouldBe Some("1234")
+        case _ => fail
+      }
+
+    }
+
+  }
 
   "Creating input with type not currently supported" should {
-    "return None for Date Stanza" in {
-      Input(expectedDateStanza, Phrase("", ""), None, None) shouldBe None
-    }
     "return None for Number Stanza" in {
       Input(expectedNumberStanza, Phrase("", ""), None, None) shouldBe None
     }
