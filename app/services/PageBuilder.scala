@@ -58,20 +58,6 @@ class PageBuilder extends ProcessPopulation {
     }
   }
 
-  def pagesWithValidation(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] =
-    pages(process, start).fold[Either[List[GuidanceError], Seq[Page]]](Left(_),
-      pages => {
-        (checkQuestionPages(pages, Nil) ++
-         duplicateUrlErrors(pages.reverse, Nil) ++
-         detectSharedStanzaUsage(pages) ++
-         detectUnsupportedPageRedirect(pages)) match {
-          case Nil => Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
-          case errors =>
-            Left(errors)
-        }
-      }
-    )
-
   def pages(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] = {
     @tailrec
     def pagesByKeys(keys: Seq[String], acc: Seq[Page]): Either[GuidanceError, Seq[Page]] =
@@ -98,6 +84,20 @@ class PageBuilder extends ProcessPopulation {
         Right(pages)
     }
   }
+
+  def pagesWithValidation(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] =
+    pages(process, start).fold[Either[List[GuidanceError], Seq[Page]]](Left(_),
+      pages => {
+        (checkQuestionPages(pages, Nil) ++
+         duplicateUrlErrors(pages.reverse, Nil) ++
+         detectSharedStanzaUsage(pages) ++
+         detectUnsupportedPageRedirect(pages)) match {
+          case Nil => Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
+          case errors =>
+            Left(errors)
+        }
+      }
+    )
 
   def fromPageDetails[A](pages: Seq[Page])(f: (String, String, String) => A): List[A] =
     pages.toList.flatMap { page =>
@@ -126,8 +126,7 @@ class PageBuilder extends ProcessPopulation {
     val pageIds = pages.map(_.id)
 
     @tailrec
-    def traverse(keys: Seq[String], page: Map[String, Stanza]): Option[String] = {
-      println(s"TRAVERSE: $keys")
+    def traverse(keys: Seq[String], page: Map[String, Stanza]): Option[String] =
       keys match {
         case Nil => None
         case x :: xs => page.get(x) match {
@@ -137,10 +136,8 @@ class PageBuilder extends ProcessPopulation {
           case Some(s: Stanza) => traverse(s.next ++ xs, page)
         }
       }
-    }
 
     pages.flatMap{p =>
-      println(s"PAGE: ${p.id}")
       traverse(Seq(p.id), p.keyedStanzas.map(ks => (ks.key, ks.stanza)).toMap).map(id => PageRedirectNotSupported(id))
     }
   }
