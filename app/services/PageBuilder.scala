@@ -27,7 +27,6 @@ import scala.annotation.tailrec
 class PageBuilder extends ProcessPopulation {
   val logger: Logger = Logger(this.getClass)
 
-
   def buildPage(key: String, process: Process): Either[GuidanceError, Page] = {
 
     @tailrec
@@ -56,6 +55,87 @@ class PageBuilder extends ProcessPopulation {
         val ks: Seq[KeyedStanza] = ids.zip(stanzas).map(t => KeyedStanza(t._1, t._2))
         Right(Page(ks.head.key, p.url, ks, next))
       case Left(err) => Left(err)
+    }
+  }
+
+  def pages(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] = {
+    @tailrec
+    def pagesByKeys(keys: Seq[String], acc: Seq[Page]): Either[GuidanceError, Seq[Page]] =
+      keys match {
+        case Nil => Right(acc)
+        case key :: xs if !acc.exists(_.id == key) =>
+          buildPage(key, process) match {
+            case Right(page) =>
+              pagesByKeys(page.next ++ xs ++ page.linked, acc :+ page)
+            case Left(err) =>
+              logger.error(s"Page building failed with error - $err")
+              Left(err)
+          }
+        case _ :: xs => pagesByKeys(xs, acc)
+      }
+
+    pagesByKeys(List(start), Nil) match {
+      case Left(err) => Left(List(err))
+      case Right(pages) => Right(pages)
+    }
+  }
+
+  def pagesWithValidation(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] =
+    pages(process, start).fold[Either[List[GuidanceError], Seq[Page]]](Left(_),
+      pages => {
+        (checkQuestionPages(pages, Nil) ++
+         duplicateUrlErrors(pages.reverse, Nil) ++
+         detectSharedStanzaUsage(pages) ++
+         detectUnsupportedPageRedirect(pages)) match {
+          case Nil => Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
+          case errors =>
+            Left(errors)
+        }
+      }
+    )
+
+  def fromPageDetails[A](pages: Seq[Page])(f: (String, String, String) => A): List[A] =
+    pages.toList.flatMap { page =>
+      page.stanzas.collectFirst {
+        case TitleCallout(text, _, _) =>
+          f(page.id, page.url, text.langs(0))
+        case YourCallCallout(text, _, _) =>
+          f(page.id, page.url, text.langs(0))
+        case q: Question =>
+          f(page.id, page.url, hintRegex.replaceAllIn(q.text.langs(0), ""))
+        case i: DateInput =>
+          f(page.id, page.url, hintRegex.replaceAllIn(i.name.langs(0), ""))
+        case i: Input =>
+          f(page.id, page.url, hintRegex.replaceAllIn(i.name.langs(0), ""))
+      }
+    }
+
+  private def detectSharedStanzaUsage(pages: Seq[Page]): Seq[GuidanceError] = {
+    val dataInputByPage: Seq[(String, Seq[String])] = pages.map(p => (p.id, p.keyedStanzas.collect{case KeyedStanza(id, _: DataInput) => id}))
+    dataInputByPage.flatMap(_._2).distinct.flatMap{ id =>
+      dataInputByPage.collect{case(pId, stanzas) if stanzas.contains(id) => (id, pId)}
+    }.groupBy(t => t._1)
+     .collect{case (k, p) if p.length > 1 => SharedDataInputStanza(k, p.map(_._2))}
+     .toSeq
+  }
+
+  private def detectUnsupportedPageRedirect(pages: Seq[Page]): Seq[GuidanceError] = {
+    val pageIds = pages.map(_.id)
+
+    @tailrec
+    def traverse(keys: Seq[String], page: Map[String, Stanza]): Option[String] =
+      keys match {
+        case Nil => None
+        case x :: xs => page.get(x) match {
+          case None => traverse(xs, page)
+          case Some(s: DataInput) => traverse(xs, page)
+          case Some(s: Choice) if s.next.exists(n => pageIds.contains(n)) => Some(x)
+          case Some(s: Stanza) => traverse(s.next ++ xs, page)
+        }
+      }
+
+    pages.flatMap{p =>
+      traverse(Seq(p.id), p.keyedStanzas.map(ks => (ks.key, ks.stanza)).toMap).map(id => PageRedirectNotSupported(id))
     }
   }
 
@@ -92,51 +172,5 @@ class PageBuilder extends ProcessPopulation {
             val anyErrors = checkQuestionFollowers(q.stanza.next, x.keyedStanzas.map(k => (k.key, k.stanza)).toMap, Nil)
             checkQuestionPages(xs, anyErrors ++ errors)
         }
-    }
-
-  def pagesWithValidation(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] =
-    pages(process, start).fold[Either[List[GuidanceError], Seq[Page]]](Left(_),
-      pages => (checkQuestionPages(pages, Nil) ++ duplicateUrlErrors(pages.reverse, Nil)) match {
-        case Nil => Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
-        case duplicates => Left(duplicates)
-      }
-    )
-
-  def pages(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] = {
-    @tailrec
-    def pagesByKeys(keys: Seq[String], acc: Seq[Page]): Either[GuidanceError, Seq[Page]] =
-      keys match {
-        case Nil => Right(acc)
-        case key :: xs if !acc.exists(_.id == key) =>
-          buildPage(key, process) match {
-            case Right(page) =>
-              pagesByKeys(page.next ++ xs ++ page.linked, acc :+ page)
-            case Left(err) =>
-              logger.error(s"Page building failed with error - $err")
-              Left(err)
-          }
-        case _ :: xs => pagesByKeys(xs, acc)
-      }
-
-    pagesByKeys(List(start), Nil) match {
-      case Left(err) => Left(List(err))
-      case Right(pages) => Right(pages)
-    }
-  }
-
-  def fromPageDetails[A](pages: Seq[Page])(f: (String, String, String) => A): List[A] =
-    pages.toList.flatMap { page =>
-      page.stanzas.collectFirst {
-        case TitleCallout(text, _, _) =>
-          f(page.id, page.url, text.langs(0))
-        case YourCallCallout(text, _, _) =>
-          f(page.id, page.url, text.langs(0))
-        case q: Question =>
-          f(page.id, page.url, hintRegex.replaceAllIn(q.text.langs(0), ""))
-        case i: DateInput =>
-          f(page.id, page.url, hintRegex.replaceAllIn(i.name.langs(0), ""))
-        case i: Input =>
-          f(page.id, page.url, hintRegex.replaceAllIn(i.name.langs(0), ""))
-      }
     }
 }

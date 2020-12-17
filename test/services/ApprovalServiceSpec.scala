@@ -192,7 +192,6 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
     "the processCode exists for another process in the publishedCollection" should {
       "return a DuplicateKeyException" in new Test {
 
-        val expected: RequestOutcome[String] = Right(validId)
         MockPublishedRepository
           .getByProcessCode("cup-of-tea")
           .returns(Future.successful(publishedProcessFailureResponse))

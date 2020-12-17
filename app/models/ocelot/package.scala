@@ -22,6 +22,7 @@ package object ocelot {
   val ignoredCurrencyChars = Seq(' ','£', ',')
   val hintRegex = "\\[hint:([^\\]])+\\]".r
   val pageLinkOnlyPattern = s"^\\[link:(.+?):(\\d+|${Process.StartStanzaId})\\]$$"
+  val boldOnlyPattern = s"^\\[bold:(.+?)\\]$$"
   val pageLinkRegex = s"\\[(button|link)(-same|-tab)?:([^\\]]+?):(\\d+|${Process.StartStanzaId})\\]".r
   val labelRefRegex = s"\\[label:([A-Za-z0-9\\s\\-_]+)(:(currency))?\\]".r
   val inputCurrencyRegex = "^-?£?(\\d{1,3}(,\\d{3})*|\\d+)(\\.(\\d{1,2})?)?$".r
@@ -42,4 +43,5 @@ package object ocelot {
   def asAnyInt(value: String): Option[Int] = anyIntegerRegex.findFirstIn(value).map(_.toInt)
 
   def isLinkOnlyPhrase(phrase: Phrase): Boolean =phrase.langs(0).matches(pageLinkOnlyPattern)
+  def isBoldOnlyPhrase(phrase: Phrase): Boolean =phrase.langs(0).matches(boldOnlyPattern)
 }

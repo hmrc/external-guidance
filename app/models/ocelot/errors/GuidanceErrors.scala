@@ -39,6 +39,8 @@ case class DuplicatePageUrl(id: String, url: String) extends FlowError
 case class InconsistenQuestionError(id: String) extends FlowError
 case class MissingWelshText(id: String, index: String, english: String) extends FlowError
 case class VisualStanzasAfterQuestion(id: String) extends FlowError
+case class SharedDataInputStanza(id: String, pages: Seq[String]) extends FlowError
+case class PageRedirectNotSupported(id: String) extends FlowError
 case class ParseError(jsPath: JsPath, errs: Seq[JsonValidationError]) extends GuidanceError
 case class FlowParseError(id: String, msg: String, arg: String) extends FlowError
 case class MetaParseError(id: String, msg: String, arg: String) extends MetaError
