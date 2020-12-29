@@ -162,7 +162,6 @@ class InputStanzaSpec extends BaseSpec {
           currencyInput.validInput("") shouldBe None
         case _ => fail
       }
-
     }
 
     "Allow for coma separated 1000s" in {
@@ -173,7 +172,6 @@ class InputStanzaSpec extends BaseSpec {
           currencyInput.validInput("123,345,768") shouldBe Some("123345768")
         case _ => fail
       }
-
     }
 
     "Allow -ve values" in {
@@ -184,7 +182,6 @@ class InputStanzaSpec extends BaseSpec {
           currencyInput.validInput("-567,345") shouldBe Some("-567345")
         case _ => fail
       }
-
     }
 
     "Determine valid input to be correct" in {
@@ -204,9 +201,7 @@ class InputStanzaSpec extends BaseSpec {
           currencyInput.validInput("1,234,567") shouldBe Some("1234567")
         case _ => fail
       }
-
     }
-
   }
 
   "DateInput" should {
@@ -230,9 +225,10 @@ class InputStanzaSpec extends BaseSpec {
           input.validInput("100.7a") shouldBe None
           input.validInput("1,987") shouldBe None
           input.validInput("-87") shouldBe None
+          input.validInput("31/9/2001") shouldBe None
+          input.validInput("29/2/2001") shouldBe None
         case _ => fail
       }
-
     }
 
     "Determine valid input to be correct" in {
@@ -240,13 +236,12 @@ class InputStanzaSpec extends BaseSpec {
       Input(expectedDateStanza, Phrase("",""), None, None).get match {
         case input: DateInput =>
 
-          input.validInput("33") shouldBe Some("33")
-          input.validInput("1234") shouldBe Some("1234")
+          input.validInput("5/6/1989") shouldBe Some("5/6/1989")
+          input.validInput("28/2/1999") shouldBe Some("28/2/1999")
+          input.validInput("29/2/2000") shouldBe Some("29/2/2000")
         case _ => fail
       }
-
     }
-
   }
 
   "Creating input with type not currently supported" should {

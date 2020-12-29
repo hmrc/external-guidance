@@ -16,7 +16,7 @@
 
 package models.ocelot.stanzas
 
-import models.ocelot.{Label, Labels, Phrase, asCurrency, asCurrencyPounds, asInt, labelReferences}
+import models.ocelot.{Label, Labels, Phrase, asCurrency, asCurrencyPounds, asDate, stringFromDate, labelReferences}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -98,7 +98,7 @@ case class DateInput(
   placeholder: Option[Phrase],
   stack: Boolean
 ) extends Input {
-  def validInput(value: String): Option[String] = asInt(value).map(_.toString) // TODO work out how we want to store dates
+  def validInput(value: String): Option[String] = asDate(value).map(stringFromDate(_))
 }
 
 object Input {
