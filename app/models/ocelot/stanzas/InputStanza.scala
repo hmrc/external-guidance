@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package models.ocelot.stanzas
 
-import models.ocelot.{Label, Labels, Phrase, asCurrency, asCurrencyPounds, asDate, stringFromDate, labelReferences}
+import models.ocelot.{Label, Labels, Phrase, asCurrency, asString, asCurrencyPounds, asDate, stringFromDate, labelReferences}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -57,7 +57,7 @@ object InputStanza {
 
 }
 
-trait Input extends VisualStanza with Populated with DataInput {
+sealed trait Input extends VisualStanza with Populated with DataInput {
   val name: Phrase
   val help: Option[Phrase]
   val label: String
@@ -66,6 +66,17 @@ trait Input extends VisualStanza with Populated with DataInput {
 
   override val labelRefs: List[String] = labelReferences(name.langs(0)) ++ help.fold[List[String]](Nil)(h => labelReferences(h.langs(0)))
   def eval(value: String, labels: Labels): (Option[String], Labels) = (Some(next(0)), labels.update(label, value))
+}
+
+case class TextInput(
+  override val next: Seq[String],
+  name: Phrase,
+  help: Option[Phrase],
+  label: String,
+  placeholder: Option[Phrase],
+  stack: Boolean
+) extends Input {
+  def validInput(value: String): Option[String] = asString(value)
 }
 
 case class CurrencyInput(
@@ -104,6 +115,7 @@ case class DateInput(
 object Input {
   def apply(stanza: InputStanza, name: Phrase, help: Option[Phrase], placeholder: Option[Phrase]): Option[Input] =
     stanza.ipt_type match {
+      case Txt => Some(TextInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack))
       case Currency => Some(CurrencyInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack))
       case CurrencyPoundsOnly => Some(CurrencyPoundsOnlyInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack))
       case Date => Some(DateInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack))
