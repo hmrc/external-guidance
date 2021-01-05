@@ -16,10 +16,11 @@
 
 package models
 
-import scala.util.matching.Regex
-import scala.util.Try
-import java.time.format.{DateTimeFormatter, ResolverStyle}
 import java.time.LocalDate
+import java.time.format.{DateTimeFormatter, ResolverStyle}
+
+import scala.util.Try
+import scala.util.matching.Regex
 
 package object ocelot {
   val ignoredCurrencyChars: Seq[Char] = Seq(' ','£', ',')
@@ -38,7 +39,7 @@ package object ocelot {
   def pageLinkIds(phrases: Seq[Phrase]): List[String] = phrases.flatMap(phrase => pageLinkIds(phrase.langs.head)).toList
   def labelReferences(str: String): List[String] = plSingleGroupCaptures(labelRefRegex, str)
   def labelReference(str: String): Option[String] = plSingleGroupCaptures(labelRefRegex, str).headOption
-  def asString(value: String): Option[String] = value.trim.headOption.fold[Option[String]](None)(_ => Some(value.trim))
+  def asTextString(value: String): Option[String] = value.trim.headOption.fold[Option[String]](None)(_ => Some(value.trim))
   def asCurrency(value: String): Option[BigDecimal] = inputCurrencyRegex.findFirstIn(value.filterNot(c => c==' '))
                                                                         .map(s => BigDecimal(s.filterNot(ignoredCurrencyChars.contains(_))))
   def asCurrencyPounds(value: String): Option[BigDecimal] = inputCurrencyPoundsRegex.findFirstIn(value.filterNot(c => c==' '))

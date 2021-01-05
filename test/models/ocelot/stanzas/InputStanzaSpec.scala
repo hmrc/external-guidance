@@ -248,9 +248,6 @@ class InputStanzaSpec extends BaseSpec {
     "return None for Number Stanza" in {
       Input(expectedNumberStanza, Phrase("", ""), None, None) shouldBe None
     }
-    "return None for Text Stanza" in {
-      Input(expectedTextStanza, Phrase("", ""), None, None) shouldBe None
-    }
   }
 
   "Reading invalid JSON for a Input" should {

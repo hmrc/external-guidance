@@ -101,7 +101,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       val flow = Map(
         Process.StartStanzaId -> PageStanza("/url", Seq("1"), true),
         "1" -> InstructionStanza(0, Seq("2"), None, false),
-        "2" -> InputStanza(Txt, Seq("4"), 0, Some(0), "Label", None, false),
+        "2" -> InputStanza(Number, Seq("4"), 0, Some(0), "Label", None, false),
         "4" -> InstructionStanza(0, Seq("end"), None, false),
         "end" -> EndStanza
       )
@@ -117,7 +117,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         Vector[Link]()
       )
       pageBuilder.buildPage("start", process) match {
-        case Left(UnknownInputType("2", "Txt")) => succeed
+        case Left(UnknownInputType("2", "Number")) => succeed
         case err => fail(s"UnknownInputType not detected $err")
       }
     }
