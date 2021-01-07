@@ -101,7 +101,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       val flow = Map(
         Process.StartStanzaId -> PageStanza("/url", Seq("1"), true),
         "1" -> InstructionStanza(0, Seq("2"), None, false),
-        "2" -> InputStanza(Txt, Seq("4"), 0, Some(0), "Label", None, false),
+        "2" -> InputStanza(Number, Seq("4"), 0, Some(0), "Label", None, false),
         "4" -> InstructionStanza(0, Seq("end"), None, false),
         "end" -> EndStanza
       )
@@ -117,7 +117,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         Vector[Link]()
       )
       pageBuilder.buildPage("start", process) match {
-        case Left(UnknownInputType("2", "Txt")) => succeed
+        case Left(UnknownInputType("2", "Number")) => succeed
         case err => fail(s"UnknownInputType not detected $err")
       }
     }
@@ -835,6 +835,30 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         case Left(err) => fail(s"Flow error $err")
       }
     }
+
+    "When processing a simple text input page" must {
+
+      val process: Process = Process(meta, simpleTextInputPage, phrases, links)
+
+      pageBuilder.pagesWithValidation(process) match {
+
+        case Right(pages) =>
+          "Determine the correct number of pages to be displayed" in {
+
+            pages shouldNot be(Nil)
+
+            pages.length shouldBe 2
+          }
+
+          val indexedSeqOfPages = pages.toIndexedSeq
+
+          // Test contents of individual pages
+          testSimpleTextInputPage(indexedSeqOfPages(0))
+
+        case Left(err) => fail(s"Flow error $err")
+      }
+    }
+
   }
 
   "When processing guidance containing zero or more row stanzas" must {
@@ -1335,4 +1359,24 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     }
 
   }
+
+  /**
+   * Test input page in simple date input page test
+   *
+   * @param page the input page to test
+   */
+  def testSimpleTextInputPage(page: Page): Unit = {
+
+    "Define the input page correctly" in {
+
+      page.id shouldBe Process.StartStanzaId
+      page.stanzas.size shouldBe 3
+
+      page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpTextInput)
+
+      page.next shouldBe Seq("4")
+    }
+
+  }
+
 }

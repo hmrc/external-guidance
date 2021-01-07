@@ -211,7 +211,7 @@ class InputStanzaSpec extends BaseSpec {
           val labels = LabelCache()
 
           val (nxt, updatedLabels) = input.eval("33", labels)
-          updatedLabels.updatedLabels(expectedCurrencyPoStanza.label).english shouldBe Some("33")
+          updatedLabels.updatedLabels(expectedDateStanza.label).english shouldBe Some("33")
         case _ => fail
       }
     }
@@ -244,12 +244,42 @@ class InputStanzaSpec extends BaseSpec {
     }
   }
 
+  "TextInput" should {
+    "update the input label" in {
+      Input(expectedTextStanza, Phrase("Name","Name"), None, None).get match {
+        case input: TextInput =>
+          val labels = LabelCache()
+
+          val (nxt, updatedLabels) = input.eval("Hello", labels)
+          updatedLabels.updatedLabels(expectedTextStanza.label).english shouldBe Some("Hello")
+        case _ => fail
+      }
+    }
+
+    "Determine invalid input to be incorrect" in {
+
+      Input(expectedTextStanza, Phrase("Name","Name"), None, None).get match {
+        case input: TextInput =>
+          input.validInput("") shouldBe None
+        case _ => fail
+      }
+    }
+
+    "Determine valid input to be correct" in {
+
+      Input(expectedTextStanza, Phrase("",""), None, None).get match {
+        case input: TextInput =>
+
+          input.validInput("a value") shouldBe Some("a value")
+          input.validInput("""any valid text!@£%^&*()":;'?><,./""") shouldBe Some("""any valid text!@£%^&*()":;'?><,./""")
+        case _ => fail
+      }
+    }
+  }
+
   "Creating input with type not currently supported" should {
     "return None for Number Stanza" in {
       Input(expectedNumberStanza, Phrase("", ""), None, None) shouldBe None
-    }
-    "return None for Text Stanza" in {
-      Input(expectedTextStanza, Phrase("", ""), None, None) shouldBe None
     }
   }
 
