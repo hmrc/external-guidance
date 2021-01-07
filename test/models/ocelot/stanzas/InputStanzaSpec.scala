@@ -211,7 +211,7 @@ class InputStanzaSpec extends BaseSpec {
           val labels = LabelCache()
 
           val (nxt, updatedLabels) = input.eval("33", labels)
-          updatedLabels.updatedLabels(expectedCurrencyPoStanza.label).english shouldBe Some("33")
+          updatedLabels.updatedLabels(expectedDateStanza.label).english shouldBe Some("33")
         case _ => fail
       }
     }
@@ -239,6 +239,39 @@ class InputStanzaSpec extends BaseSpec {
           input.validInput("5/6/1989") shouldBe Some("5/6/1989")
           input.validInput("28/2/1999") shouldBe Some("28/2/1999")
           input.validInput("29/2/2000") shouldBe Some("29/2/2000")
+        case _ => fail
+      }
+    }
+  }
+
+  "TextInput" should {
+    "update the input label" in {
+      Input(expectedTextStanza, Phrase("Name","Name"), None, None).get match {
+        case input: TextInput =>
+          val labels = LabelCache()
+
+          val (nxt, updatedLabels) = input.eval("Hello", labels)
+          updatedLabels.updatedLabels(expectedTextStanza.label).english shouldBe Some("Hello")
+        case _ => fail
+      }
+    }
+
+    "Determine invalid input to be incorrect" in {
+
+      Input(expectedTextStanza, Phrase("Name","Name"), None, None).get match {
+        case input: TextInput =>
+          input.validInput("") shouldBe None
+        case _ => fail
+      }
+    }
+
+    "Determine valid input to be correct" in {
+
+      Input(expectedTextStanza, Phrase("",""), None, None).get match {
+        case input: TextInput =>
+
+          input.validInput("a value") shouldBe Some("a value")
+          input.validInput("""any valid text!@£%^&*()":;'?><,./""") shouldBe Some("""any valid text!@£%^&*()":;'?><,./""")
         case _ => fail
       }
     }

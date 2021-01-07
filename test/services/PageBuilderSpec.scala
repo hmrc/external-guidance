@@ -835,6 +835,30 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         case Left(err) => fail(s"Flow error $err")
       }
     }
+
+    "When processing a simple text input page" must {
+
+      val process: Process = Process(meta, simpleTextInputPage, phrases, links)
+
+      pageBuilder.pagesWithValidation(process) match {
+
+        case Right(pages) =>
+          "Determine the correct number of pages to be displayed" in {
+
+            pages shouldNot be(Nil)
+
+            pages.length shouldBe 2
+          }
+
+          val indexedSeqOfPages = pages.toIndexedSeq
+
+          // Test contents of individual pages
+          testSimpleTextInputPage(indexedSeqOfPages(0))
+
+        case Left(err) => fail(s"Flow error $err")
+      }
+    }
+
   }
 
   "When processing guidance containing zero or more row stanzas" must {
@@ -1335,4 +1359,24 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     }
 
   }
+
+  /**
+   * Test input page in simple date input page test
+   *
+   * @param page the input page to test
+   */
+  def testSimpleTextInputPage(page: Page): Unit = {
+
+    "Define the input page correctly" in {
+
+      page.id shouldBe Process.StartStanzaId
+      page.stanzas.size shouldBe 3
+
+      page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpTextInput)
+
+      page.next shouldBe Seq("4")
+    }
+
+  }
+
 }
