@@ -18,8 +18,11 @@ package models.ocelot
 
 import play.api.libs.json.Reads._
 import play.api.libs.json._
+import play.api.i18n.Lang
 
-case class Phrase(langs: Vector[String])
+case class Phrase(langs: Vector[String]) {
+  def value(lang: Lang): String = if (lang.code.equals("cy")) langs(1) else langs(0)
+}
 
 object Phrase {
   def apply(first: String, second: String): Phrase = Phrase(Vector(first, second))
