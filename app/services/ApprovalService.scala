@@ -35,17 +35,17 @@ class ApprovalService @Inject() (
     reviewRepository: ApprovalProcessReviewRepository,
     publishedRepository: PublishedRepository,
     pageBuilder: PageBuilder,
+    secureProcessBuilder: SecureProcessBuilder,
     appConfig: AppConfig
 ) {
 
   val logger: Logger = Logger(this.getClass)
 
-  def save(jsonProcess: JsObject, reviewType: String, initialStatus: String): Future[RequestOutcome[String]] = {
-
-    guidancePages(pageBuilder, jsonProcess).fold(
+  def save(incomingJson: JsObject, reviewType: String, initialStatus: String): Future[RequestOutcome[String]] =
+    guidancePages(pageBuilder, secureProcessBuilder, incomingJson).fold(
       err => Future.successful(Left(err)),
-      fb = t => {
-        val (process, pages) = t
+      t => {
+        val (process, pages, json) = t
         val processMetaSection =
           ApprovalProcessMeta(
             process.meta.id,
@@ -61,7 +61,7 @@ class ApprovalService @Inject() (
               s": duplicate key in published collection for process ${p.id}")
             Future.successful(Left(DuplicateKeyError))
           case _ =>
-            repository.update(ApprovalProcess(process.meta.id, processMetaSection, jsonProcess)) flatMap {
+            repository.update(ApprovalProcess(process.meta.id, processMetaSection, json)) flatMap {
               case Right(savedId) =>
                 repository.getById(savedId) flatMap {
                   case Right(approvalProcess) =>
@@ -84,8 +84,6 @@ class ApprovalService @Inject() (
         }
       }
     )
-
-  }
 
   private def saveReview(approvalProcessReview: ApprovalProcessReview): Future[RequestOutcome[String]] =
     reviewRepository.save(approvalProcessReview) map {

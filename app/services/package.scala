@@ -28,9 +28,7 @@ package object services {
 
   def validateUUID(id: String): Option[UUID] = if (id.matches(uuidFormat)) Some(UUID.fromString(id)) else None
   def validateProcessId(id: String): Either[Error, String] = if (id.matches(processIdformat)) Right(id) else Left(ValidationError)
-
   def uniqueLabels(pages: Seq[Page]):Seq[Label] = pages.flatMap(p => p.labels).distinct
-
   def uniqueLabelRefs(pages: Seq[Page]): Seq[String] = pages.flatMap(_.labelRefs)
 
   implicit def toProcessErr(err: GuidanceError): ProcessError = err match {
@@ -60,9 +58,16 @@ package object services {
 
   implicit def processErrs(errs: List[GuidanceError]): List[ProcessError] = errs.map(toProcessErr)
 
-  def guidancePages(pageBuilder: PageBuilder, jsValue: JsValue): RequestOutcome[(Process, Seq[Page])] =
-    jsValue.validate[Process].fold(
+  def guidancePages(pageBuilder: PageBuilder, secureProcessBuilder: SecureProcessBuilder, jsObject: JsObject): RequestOutcome[(Process, Seq[Page], JsObject)] =
+    jsObject.validate[Process].fold(
       errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
-      process => pageBuilder.pagesWithValidation(process).fold(errs => Left(Error(errs)), p => Right((process, p)))
+      process => {
+        val (secureProcess, json) = process.passPhrase.fold((process, jsObject)){_ =>
+          val secureProcess: Process = secureProcessBuilder.secure(process)
+          (secureProcess, Json.toJsObject(secureProcess))
+        }
+        pageBuilder.pagesWithValidation(secureProcess, secureProcess.startPageId).fold(errs => Left(Error(errs)),
+          pages => Right((secureProcess, pages, json))
+      )}
     )
 }
