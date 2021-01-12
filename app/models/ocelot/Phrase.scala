@@ -20,17 +20,17 @@ import play.api.libs.json.Reads._
 import play.api.libs.json._
 import play.api.i18n.Lang
 
-case class Phrase(langs: Vector[String]) {
-  def value(lang: Lang): String = if (lang.code.equals("cy")) langs(1) else langs(0)
+case class Phrase(english: String, welsh: String) {
+  def value(lang: Lang): String = if (lang.code.equals("cy")) welsh else english
 }
 
 object Phrase {
-  def apply(first: String, second: String): Phrase = Phrase(Vector(first, second))
+  def apply(langs: Vector[String]): Phrase = Phrase(langs(0), langs(1))
   implicit val reads: Reads[Phrase] = __.read[Vector[String]](minLength[Vector[String]](2)).map(Phrase(_))
 
   implicit val writes: Writes[Phrase] = new Writes[Phrase] {
-    override def writes(phrase: Phrase): JsValue = Json.toJson(phrase.langs)
+    override def writes(phrase: Phrase): JsValue = Json.toJson(Vector(phrase.english, phrase.welsh))
   }
 
-  def apply(): Phrase = Phrase(Vector("",""))
+  def apply(): Phrase = Phrase("", "")
 }

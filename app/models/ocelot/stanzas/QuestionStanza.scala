@@ -52,14 +52,14 @@ case class Question(text: Phrase,
                     override val next: Seq[String],
                     label: Option[String],
                     stack: Boolean) extends VisualStanza with Populated with DataInput {
-  override val labelRefs: List[String] = labelReferences(text.langs(0)) ++ answers.flatMap(a => labelReferences(a.langs(0)))
+  override val labelRefs: List[String] = labelReferences(text.english) ++ answers.flatMap(a => labelReferences(a.english))
   override val labels: List[Label] = label.fold[List[Label]](Nil)(l => List(Label(l, None, None)))
 
   def eval(value: String, labels: Labels): (Option[String], Labels) =
     validInput(value).fold[(Option[String], Labels)]((None, labels)){idx => {
         val answer = answers(idx.toInt)
-        val english = hintRegex.split(answer.langs(0)).head.trim
-        val welsh = hintRegex.split(answer.langs(1)).head.trim
+        val english = hintRegex.split(answer.english).head.trim
+        val welsh = hintRegex.split(answer.welsh).head.trim
         (Some(next(idx.toInt)), label.fold(labels)(labels.update(_, english, welsh)))
       }
     }

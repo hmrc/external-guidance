@@ -23,7 +23,7 @@ import play.api.libs.json._
 
 sealed trait Callout extends VisualStanza with Populated {
   val text: Phrase
-  override val labelRefs: List[String] = labelReferences(text.langs(0))
+  override val labelRefs: List[String] = labelReferences(text.english)
 }
 
 sealed trait Heading

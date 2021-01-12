@@ -70,9 +70,8 @@ class PhraseSpec extends BaseSpec with ProcessJson {
 
       val protoTypePhrases = Json.parse(prototypePhrasesSection).as[Vector[Phrase]]
       val thirdPhraseIndex = 2
-      val welshLangIndex = 1
 
-      protoTypePhrases(thirdPhraseIndex).langs(welshLangIndex) shouldBe "Welsh: Overview"
+      protoTypePhrases(thirdPhraseIndex).welsh shouldBe "Welsh: Overview"
     }
 
   }

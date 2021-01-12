@@ -46,7 +46,7 @@ case class Row( cells: Seq[Phrase],
                 stack: Boolean = false,
                 override val links: List[String] = Nil) extends VisualStanza with Populated {
 
-  override val labelRefs: List[String] = cells.toList.flatMap(c => labelReferences(c.langs(0)))
+  override val labelRefs: List[String] = cells.toList.flatMap(c => labelReferences(c.english))
 }
 
 object Row {
