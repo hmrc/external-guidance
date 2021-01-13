@@ -28,11 +28,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ScratchService @Inject() (repository: ScratchRepository, pageBuilder: PageBuilder, secureProcessBuilder: SecureProcessBuilder) {
+class ScratchService @Inject() (repository: ScratchRepository, pageBuilder: PageBuilder, securedProcessBuilder: SecuredProcessBuilder) {
   val logger = Logger(getClass)
 
   def save(process: JsObject): Future[RequestOutcome[UUID]] =
-    guidancePages(pageBuilder, secureProcessBuilder: SecureProcessBuilder, process).fold(
+    guidancePages(pageBuilder, securedProcessBuilder: SecuredProcessBuilder, process).fold(
       err => Future.successful(Left(err)),
       _ =>
         repository.save(process).map {

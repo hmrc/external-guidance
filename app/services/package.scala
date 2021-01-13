@@ -58,16 +58,16 @@ package object services {
 
   implicit def processErrs(errs: List[GuidanceError]): List[ProcessError] = errs.map(toProcessErr)
 
-  def guidancePages(pageBuilder: PageBuilder, secureProcessBuilder: SecureProcessBuilder, jsObject: JsObject): RequestOutcome[(Process, Seq[Page], JsObject)] =
+  def guidancePages(pageBuilder: PageBuilder, securedProcessBuilder: SecuredProcessBuilder, jsObject: JsObject): RequestOutcome[(Process, Seq[Page], JsObject)] =
     jsObject.validate[Process].fold(
       errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
-      process => {
-        val (secureProcess, json) = process.passPhrase.fold((process, jsObject)){_ =>
-          val secureProcess: Process = secureProcessBuilder.secure(process)
-          (secureProcess, Json.toJsObject(secureProcess))
+      processElect => {
+        val (process, json) = processElect.passPhrase.fold((processElect, jsObject)){ passPhrase =>
+          val securedProcess: Process = securedProcessBuilder.secure(processElect, passPhrase)
+          (securedProcess, Json.toJsObject(securedProcess))
         }
-        pageBuilder.pagesWithValidation(secureProcess, secureProcess.startPageId).fold(errs => Left(Error(errs)),
-          pages => Right((secureProcess, pages, json))
+        pageBuilder.pagesWithValidation(process, process.startPageId).fold(errs => Left(Error(errs)),
+          pages => Right((process, pages, json))
       )}
     )
 }

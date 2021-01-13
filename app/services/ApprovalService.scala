@@ -35,14 +35,14 @@ class ApprovalService @Inject() (
     reviewRepository: ApprovalProcessReviewRepository,
     publishedRepository: PublishedRepository,
     pageBuilder: PageBuilder,
-    secureProcessBuilder: SecureProcessBuilder,
+    securedProcessBuilder: SecuredProcessBuilder,
     appConfig: AppConfig
 ) {
 
   val logger: Logger = Logger(this.getClass)
 
   def save(incomingJson: JsObject, reviewType: String, initialStatus: String): Future[RequestOutcome[String]] =
-    guidancePages(pageBuilder, secureProcessBuilder, incomingJson).fold(
+    guidancePages(pageBuilder, securedProcessBuilder, incomingJson).fold(
       err => Future.successful(Left(err)),
       t => {
         val (process, pages, json) = t

@@ -82,6 +82,97 @@ trait ProcessJson {
     """.stripMargin
   )
 
+    val validOnePageProcessWithPassPhrase: JsValue = Json.parse(
+    """
+      |{
+      |  "meta": {
+      |    "title": "Customer wants to make a cup of tea",
+      |    "id": "oct90001",
+      |    "ocelot": 1,
+      |    "lastAuthor": "000000",
+      |    "lastUpdate": 1500298931016,
+      |    "version": 4,
+      |    "filename": "oct90001.js",
+      |    "titlePhrase": 8,
+      |    "processCode": "CupOfTea"
+      |  },
+      |  "howto": [],
+      |  "contacts": [],
+      |  "links": [],
+      |  "flow": {
+      |    "start": {
+      |      "type": "PageStanza",
+      |      "url": "/feeling-bad",
+      |      "next": ["33"],
+      |      "stack": true
+      |    },
+      |    "33": {
+      |      "type": "ValueStanza",
+      |      "values": [
+      |        {
+      |          "type": "scalar",
+      |          "label": "SomeLabel",
+      |          "value": "43"
+      |        },
+      |        {
+      |          "type": "scalar",
+      |          "label": "_GuidancePassPhrase",
+      |          "value": "A not so memorable phrase"
+      |        }
+      |      ],
+      |      "next": [
+      |        "3"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "3": {
+      |      "type": "InstructionStanza",
+      |      "text": 1,
+      |      "next": [
+      |        "2"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "2": {
+      |      "type": "InstructionStanza",
+      |      "text": 0,
+      |      "next": [
+      |        "4"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "4": {
+      |      "type": "InputStanza",
+      |      "ipt_type": "Currency",
+      |      "next": [
+      |        "end"
+      |      ],
+      |      "name": 1,
+      |      "help": 2,
+      |      "label": "LabelName",
+      |      "placeholder": 3,
+      |      "stack": true
+      |    },
+      |    "end": {
+      |      "type": "EndStanza"
+      |    }
+      |  },
+      |  "phrases": [
+      |    ["Ask the customer if they have a tea bag", "Welsh, Ask the customer if they have a tea bag"],
+      |    ["Do you have a tea bag?", "Welsh, Do you have a tea bag?"],
+      |    ["Yes - they do have a tea bag", "Welsh, Yes - they do have a tea bag"],
+      |    ["No - they do not have a tea bag", "Welsh, No - they do not have a tea bag"],
+      |    ["Ask the customer if they have a cup", "Welsh, Ask the customer if they have a cup"],
+      |    ["Do you have a cup?", "Welsh, Do you have a cup?"],
+      |    ["yes - they do have a cup ", "Welsh, yes - they do have a cup "],
+      |    ["no - they don’t have a cup", "Welsh, no - they don’t have a cup"],
+      |    ["Customer wants to make a cup of tea", "Welsh, Customer wants to make a cup of tea"]
+      |  ]
+      |}
+    """.stripMargin
+  )
+
+
   val validOnePageProcessWithProcessCodeJson: JsValue = Json.parse(
     """
       |{
@@ -103,9 +194,18 @@ trait ProcessJson {
       |    "start": {
       |      "type": "PageStanza",
       |      "url": "/feeling-bad",
-      |      "next": ["3"],
+      |      "next": ["128"],
       |      "stack": true
       |    },
+      |   "128": {
+      |     "next": [
+      |       "3"
+      |     ],
+      |     "noteType": "Title",
+      |     "stack": false,
+      |     "text": 1,
+      |     "type": "CalloutStanza"
+      |   },
       |    "3": {
       |      "type": "InstructionStanza",
       |      "text": 1,
@@ -120,18 +220,6 @@ trait ProcessJson {
       |      "next": [
       |        "end"
       |      ],
-      |      "stack": true
-      |    },
-      |    "3": {
-      |      "type": "InputStanza",
-      |      "ipt_type": "Currency",
-      |      "next": [
-      |        "end"
-      |      ],
-      |      "name": 1,
-      |      "help": 2,
-      |      "label": "LabelName",
-      |      "placeholder": 3,
       |      "stack": true
       |    },
       |    "end": {

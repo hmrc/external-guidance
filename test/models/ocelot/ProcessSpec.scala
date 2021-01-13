@@ -20,7 +20,7 @@ import base.BaseSpec
 import play.api.libs.json._
 import models.ocelot.stanzas.Stanza
 
-class ProcesSpec extends BaseSpec with ProcessJson {
+class ProcessSpec extends BaseSpec with ProcessJson {
 
   val oneHundred: Int = 100
 
@@ -57,6 +57,17 @@ class ProcesSpec extends BaseSpec with ProcessJson {
     "Return None for a invalid index" in {
 
       process.phraseOption(oneHundred) shouldBe None
+    }
+  }
+
+  "Process passphrase" must {
+    "detect passphrase when present" in {
+      val protectedProcess = validOnePageProcessWithPassPhrase.as[Process]
+      protectedProcess.passPhrase shouldBe Some("A not so memorable phrase")
+    }
+
+    "Not detect passphrase when not present" in {
+      process.passPhrase shouldBe None
     }
   }
 

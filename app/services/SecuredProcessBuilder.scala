@@ -21,18 +21,18 @@ import models.ocelot.{Phrase, Process}
 import models.ocelot.stanzas.{Txt, Equals, Stanza, PageStanza, InputStanza, ChoiceStanza, ChoiceStanzaTest}
 
 @Singleton
-class SecureProcessBuilder() {
-  val InputId = "passinput"
-  val ChoiceId = "passchoice"
-  def stanzas(initialLabelIndex: Int):Seq[(String, Stanza)] = Seq(
-    (Process.PassPhrasePageId, PageStanza("/guard", Seq(InputId), false)),
+class SecuredProcessBuilder() {
+  private val InputId: String = "passinput"
+  private val ChoiceId: String = "passchoice"
+  def stanzas(initialLabelIndex: Int, passPhrase: String):Seq[(String, Stanza)] = Seq(
+    (Process.PassPhrasePageId, PageStanza(Process.SecuredProcessStartUrl, Seq(InputId), false)),
     (InputId, InputStanza(Txt, Seq(ChoiceId), initialLabelIndex, None, Process.PassPhraseResponseLabelName, None, false)),
     (ChoiceId, ChoiceStanza(
                 Seq(Process.StartStanzaId, Process.PassPhrasePageId),
-                Seq(ChoiceStanzaTest(s"[label:${Process.PassPhraseLabelName}]", Equals, s"[label:${Process.PassPhraseResponseLabelName}]")), false))
+                Seq(ChoiceStanzaTest(s"[label:${Process.PassPhraseResponseLabelName}]", Equals, passPhrase)), false))
   )
 
-  def secure(process: Process): Process =
-    process.copy(flow = process.flow ++ stanzas(process.phrases.length), phrases =process.phrases ++ Vector(Phrase("Enter passphrase", "Rhowch gyfrinair")))
+  def secure(process: Process, passPhrase: String): Process =
+    process.copy(flow = process.flow ++ stanzas(process.phrases.length, passPhrase),
+                 phrases =process.phrases ++ Vector(Phrase("Enter passphrase", "Rhowch gyfrinair")))
 }
-
