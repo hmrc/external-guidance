@@ -16,7 +16,7 @@
 
 package models.ocelot.stanzas
 
-import models.ocelot.{Label, Labels, Phrase, asCurrency, asTextString, asCurrencyPounds, asDate, stringFromDate, labelReferences}
+import models.ocelot.{Label, Labels, Phrase, asAnyInt, asCurrency, asCurrencyPounds, asDate, asTextString, labelReferences, stringFromDate}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -68,6 +68,17 @@ sealed trait Input extends VisualStanza with Populated with DataInput {
   def eval(value: String, labels: Labels): (Option[String], Labels) = (Some(next(0)), labels.update(label, value))
 }
 
+case class NumberInput(
+  override val next: Seq[String],
+  name: Phrase,
+  help: Option[Phrase],
+  label: String,
+  placeholder: Option[Phrase],
+  stack: Boolean
+) extends Input {
+  def validInput(value: String): Option[String] = asAnyInt(value).map(_.toString)
+}
+
 case class TextInput(
   override val next: Seq[String],
   name: Phrase,
@@ -109,12 +120,13 @@ case class DateInput(
   placeholder: Option[Phrase],
   stack: Boolean
 ) extends Input {
-  def validInput(value: String): Option[String] = asDate(value).map(stringFromDate(_))
+  def validInput(value: String): Option[String] = asDate(value).map(stringFromDate)
 }
 
 object Input {
   def apply(stanza: InputStanza, name: Phrase, help: Option[Phrase], placeholder: Option[Phrase]): Option[Input] =
     stanza.ipt_type match {
+      case Number => Some(NumberInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack))
       case Txt => Some(TextInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack))
       case Currency => Some(CurrencyInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack))
       case CurrencyPoundsOnly => Some(CurrencyPoundsOnlyInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack))
