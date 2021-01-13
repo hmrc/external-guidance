@@ -277,9 +277,53 @@ class InputStanzaSpec extends BaseSpec {
     }
   }
 
-  "Creating input with type not currently supported" should {
-    "return None for Number Stanza" in {
-      Input(expectedNumberStanza, Phrase("", ""), None, None) shouldBe None
+  "NumberInput " should {
+    "update the input label" in {
+
+      Input(expectedNumberStanza, Phrase("",""), None, None).get match {
+        case numberInput: NumberInput =>
+          val labels = LabelCache()
+
+          val (nxt, updatedLabels) = numberInput.eval("33", labels)
+          updatedLabels.updatedLabels(expectedNumberStanza.label).english shouldBe Some("33")
+        case _ => fail
+      }
+
+    }
+
+    "Determine invalid input to be incorrect" in {
+
+      Input(expectedNumberStanza, Phrase("",""), None, None).get match {
+        case numberInput: NumberInput =>
+
+          numberInput.validInput("a value") shouldBe None
+          numberInput.validInput("100.78") shouldBe None
+          numberInput.validInput("100.7a") shouldBe None
+          numberInput.validInput("£33") shouldBe None
+          numberInput.validInput("1,000") shouldBe None
+          numberInput.validInput("") shouldBe None
+        case _ => fail
+      }
+    }
+
+    "Allow -ve values" in {
+
+      Input(expectedNumberStanza, Phrase("",""), None, None).get match {
+        case numberInput: NumberInput =>
+
+          numberInput.validInput("-567345") shouldBe Some("-567345")
+        case _ => fail
+      }
+    }
+
+    "Determine valid input to be correct" in {
+
+      Input(expectedNumberStanza, Phrase("",""), None, None).get match {
+        case numberInput: NumberInput =>
+
+          numberInput.validInput("33") shouldBe Some("33")
+        case _ => fail
+      }
     }
   }
 
