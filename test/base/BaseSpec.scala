@@ -19,6 +19,15 @@ package base
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
 import play.api.libs.json._
+import play.api.i18n.Lang
+
+trait EnglishLanguage {
+  implicit val lang: Lang = Lang("en")
+}
+
+trait WelshLanguage {
+  implicit val lang: Lang = Lang("cy")
+}
 
 trait TestConstants {
 

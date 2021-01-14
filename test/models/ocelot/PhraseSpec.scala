@@ -18,6 +18,7 @@ package models.ocelot
 
 import base.BaseSpec
 import play.api.libs.json._
+import play.api.i18n.Lang
 
 class PhraseSpec extends BaseSpec with ProcessJson {
 
@@ -42,6 +43,13 @@ class PhraseSpec extends BaseSpec with ProcessJson {
     "allow contruction of a blank phrase" in {
       Phrase() shouldBe Phrase(Vector("", ""))
     }
+
+    "Return language text given a valid Lang setting" in {
+      val p: Phrase = Phrase(Vector(p1, p1w))
+
+      p.value(Lang("en")) shouldBe p1
+      p.value(Lang("cy")) shouldBe p1w
+    }
   }
 
   "Phrases section" must {
@@ -62,9 +70,9 @@ class PhraseSpec extends BaseSpec with ProcessJson {
 
       val protoTypePhrases = Json.parse(prototypePhrasesSection).as[Vector[Phrase]]
       val thirdPhraseIndex = 2
-      val welshLangIndex = 1
 
-      protoTypePhrases(thirdPhraseIndex).langs(welshLangIndex) shouldBe "Welsh: Overview"
+      protoTypePhrases(thirdPhraseIndex).welsh shouldBe "Welsh: Overview"
+      protoTypePhrases(thirdPhraseIndex).english shouldBe "Overview"
     }
 
   }

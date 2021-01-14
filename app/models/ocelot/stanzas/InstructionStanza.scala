@@ -45,7 +45,7 @@ case class Instruction(text: Phrase,
                        override val next: Seq[String],
                        link: Option[Link], stack: Boolean,
                        override val links: List[String] = Nil) extends VisualStanza with Populated {
-  override val labelRefs: List[String] = labelReferences(text.langs(0))
+  override val labelRefs: List[String] = labelReferences(text.english)
 }
 
 object Instruction {

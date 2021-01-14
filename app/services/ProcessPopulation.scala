@@ -36,8 +36,8 @@ trait ProcessPopulation {
         Left(_),
         text => {
           i.link match {
-            case Some(linkIndex) => link(linkIndex).fold(Left(_), link => Right(Instruction(i, text, Some(link), pageLinkIds(text.langs.head))))
-            case None => Right(Instruction(i, text, None, pageLinkIds(text.langs.head)))
+            case Some(linkIndex) => link(linkIndex).fold(Left(_), link => Right(Instruction(i, text, Some(link), pageLinkIds(text.english))))
+            case None => Right(Instruction(i, text, None, pageLinkIds(text.english)))
           }
         }
       )
@@ -84,7 +84,7 @@ trait ProcessPopulation {
 
   private def phrase(phraseIndex: Int, stanzaId: String, process: Process): Either[GuidanceError, Phrase] =
     process.phraseOption(phraseIndex).fold[Either[GuidanceError, Phrase]](Left(PhraseNotFound(stanzaId, phraseIndex))){
-      case Phrase(Vector(english, welsh)) if welsh.isEmpty && !english.isEmpty => Left(MissingWelshText(stanzaId, phraseIndex.toString, english))
+      case Phrase(english, welsh) if welsh.isEmpty && !english.isEmpty => Left(MissingWelshText(stanzaId, phraseIndex.toString, english))
       case p: Phrase => Right(p)
     }
 

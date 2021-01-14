@@ -509,7 +509,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
           ProcessError("Process Phrases section parse error, reason: error.minLength, index: 5",""),
           ProcessError("Unsupported stanza type UnknownStanza found at stanza id 2","2"),
           ProcessError("""Process Flow section parse error, reason: 'type' is undefined on object:"""+
-            """ {"next":["end"],"noteType":"Error","stack":false,"text":59}, stanzaId: 5, target: /flow/5""","5"),
+           """ {"next":["end"],"noteType":"Error","stack":false,"text":59}, stanzaId: 5, target: /flow/5""","5"),
           ProcessError("Unsupported CalloutStanza type UnknownType found at stanza id 4","4"),
           ProcessError("Unsupported ValueStanza Value type AnUnknownType found at stanza id 33","33"),
           ProcessError("Process Meta section parse error, reason: error.path.missing, target: ocelot",""))
@@ -1322,10 +1322,10 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
   }
   /**
-    * Test input page in simple question page test
-    *
-    * @param page the input page to test
-    */
+   * Test input page in simple question page test
+   *
+   * @param page the input page to test
+   */
   def testSqpInput(page: Page): Unit = {
 
     "Define the input page correctly" in {
@@ -1341,10 +1341,10 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
   }
 
   /**
-    * Test input page in simple date input page test
-    *
-    * @param page the input page to test
-    */
+   * Test input page in simple date input page test
+   *
+   * @param page the input page to test
+   */
   def testSimpleDateInputPage(page: Page): Unit = {
 
     "Define the input page correctly" in {
@@ -1360,10 +1360,10 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
   }
 
   /**
-    * Test input page in simple number input page test
-    *
-    * @param page the input page to test
-    */
+   * Test input page in simple number input page test
+   *
+   * @param page the input page to test
+   */
   def testSimpleNumberInputPage(page: Page): Unit = {
 
     "Define the input page correctly" in {
@@ -1379,10 +1379,10 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
   }
 
   /**
-    * Test input page in simple date input page test
-    *
-    * @param page the input page to test
-    */
+   * Test input page in simple date input page test
+   *
+   * @param page the input page to test
+   */
   def testSimpleTextInputPage(page: Page): Unit = {
 
     "Define the input page correctly" in {

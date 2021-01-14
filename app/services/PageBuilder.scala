@@ -98,13 +98,13 @@ class PageBuilder extends ProcessPopulation {
     pages.toList.flatMap { page =>
       page.stanzas.collectFirst {
         case TitleCallout(text, _, _) =>
-          f(page.id, page.url, text.langs(0))
+          f(page.id, page.url, text.english)
         case YourCallCallout(text, _, _) =>
-          f(page.id, page.url, text.langs(0))
+          f(page.id, page.url, text.english)
         case q: Question =>
-          f(page.id, page.url, hintRegex.replaceAllIn(q.text.langs(0), ""))
+          f(page.id, page.url, hintRegex.replaceAllIn(q.text.english, ""))
         case i: Input =>
-          f(page.id, page.url, hintRegex.replaceAllIn(i.name.langs(0), ""))
+          f(page.id, page.url, hintRegex.replaceAllIn(i.name.english, ""))
       }
     }
 

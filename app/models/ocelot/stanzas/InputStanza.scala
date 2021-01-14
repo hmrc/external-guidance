@@ -64,7 +64,7 @@ sealed trait Input extends VisualStanza with Populated with DataInput {
   val placeholder: Option[Phrase]
   val stack: Boolean
 
-  override val labelRefs: List[String] = labelReferences(name.langs(0)) ++ help.fold[List[String]](Nil)(h => labelReferences(h.langs(0)))
+  override val labelRefs: List[String] = labelReferences(name.english) ++ help.fold[List[String]](Nil)(h => labelReferences(h.english))
   def eval(value: String, labels: Labels): (Option[String], Labels) = (Some(next(0)), labels.update(label, value))
 }
 
