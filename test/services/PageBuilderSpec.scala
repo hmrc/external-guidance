@@ -97,31 +97,6 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       }
     }
 
-    "detect UnknownInputType (currently unsupported type) error" in {
-      val flow = Map(
-        Process.StartStanzaId -> PageStanza("/url", Seq("1"), true),
-        "1" -> InstructionStanza(0, Seq("2"), None, false),
-        "2" -> InputStanza(Number, Seq("4"), 0, Some(0), "Label", None, false),
-        "4" -> InstructionStanza(0, Seq("end"), None, false),
-        "end" -> EndStanza
-      )
-      val process = Process(
-        metaSection,
-        flow,
-        Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh, Some Text")),
-          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
-          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
-        ),
-        Vector[Link]()
-      )
-      pageBuilder.buildPage("start", process) match {
-        case Left(UnknownInputType("2", "Number")) => succeed
-        case err => fail(s"UnknownInputType not detected $err")
-      }
-    }
-
     "detect SharedDataInputStanza error" in {
       val flow = Map(
         Process.StartStanzaId -> PageStanza("/url", Seq("1"), true),
@@ -553,24 +528,24 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
   "services" must {
     "determine unique set of case sensitive labels from a collection of pages" in new IhtTest {
       val labels = Seq(Label("Properties",None),
-                       Label("Money",None),
-                       Label("Household",None),
-                       Label("Motor Vehicles",None),
-                       Label("Private pension",None),
-                       Label("Trust",None),
-                       Label("Foreign assets",None),
-                       Label("Other assets",None),
-                       Label("Mortgage_debt",None),
-                       Label("funeral_expenses",None),
-                       Label("other_debts",None),
-                       Label("left to spouse",None),
-                       Label("registered charity",None),
-                       Label("nil rate band",None),
-                       Label("more than 100k",None, None),
-                       Label("Value of Assets",None),
-                       Label("Value of Debts",None),
-                       Label("Additional Info",None),
-                       Label("IHT result",None))
+        Label("Money",None),
+        Label("Household",None),
+        Label("Motor Vehicles",None),
+        Label("Private pension",None),
+        Label("Trust",None),
+        Label("Foreign assets",None),
+        Label("Other assets",None),
+        Label("Mortgage_debt",None),
+        Label("funeral_expenses",None),
+        Label("other_debts",None),
+        Label("left to spouse",None),
+        Label("registered charity",None),
+        Label("nil rate band",None),
+        Label("more than 100k",None, None),
+        Label("Value of Assets",None),
+        Label("Value of Debts",None),
+        Label("Additional Info",None),
+        Label("IHT result",None))
 
       pageBuilder.pagesWithValidation(ihtProcess, "start") match {
         case Right(pages) => services.uniqueLabels(pages) shouldBe labels
@@ -579,24 +554,24 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     }
 
     "determine unique set of label references from a collection of pages" in new IhtTest {
-     val labelsReferenced = Seq("Properties",
-                                  "Money",
-                                  "Value of Assets",
-                                  "Household",
-                                  "Motor Vehicles",
-                                  "Private pension",
-                                  "Trust",
-                                  "Foreign assets",
-                                  "Other assets",
-                                  "Mortgage_debt",
-                                  "funeral_expenses",
-                                  "Value of Debts",
-                                  "other_debts",
-                                  "left to spouse",
-                                  "registered charity",
-                                  "Additional Info",
-                                  "nil rate band",
-                                  "IHT result")
+      val labelsReferenced = Seq("Properties",
+        "Money",
+        "Value of Assets",
+        "Household",
+        "Motor Vehicles",
+        "Private pension",
+        "Trust",
+        "Foreign assets",
+        "Other assets",
+        "Mortgage_debt",
+        "funeral_expenses",
+        "Value of Debts",
+        "other_debts",
+        "left to spouse",
+        "registered charity",
+        "Additional Info",
+        "nil rate band",
+        "IHT result")
 
       pageBuilder.pagesWithValidation(ihtProcess, "start") match {
         case Right(pages) => services.uniqueLabelRefs(pages) shouldBe labelsReferenced
@@ -859,6 +834,30 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       }
     }
 
+
+    "When processing a simple number input page" must {
+
+      val process: Process = Process(meta, simpleNumberInputPage, phrases, links)
+
+      pageBuilder.pagesWithValidation(process) match {
+
+        case Right(pages) =>
+          "Determine the correct number of pages to be displayed" in {
+
+            pages shouldNot be(Nil)
+
+            pages.length shouldBe 2
+          }
+
+          val indexedSeqOfPages = pages.toIndexedSeq
+
+          // Test contents of individual pages
+          testSimpleNumberInputPage(indexedSeqOfPages(0))
+
+        case Left(err) => fail(s"Flow error $err")
+      }
+    }
+
   }
 
   "When processing guidance containing zero or more row stanzas" must {
@@ -881,7 +880,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         flow,
         Vector[Phrase](
           Phrase(Vector("Single cell row stanza", "Welsh, Single cell row stanza")),
-            cellDataContent
+          cellDataContent
         ),
         Vector[Link]()
       )
@@ -1354,6 +1353,25 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       page.stanzas.size shouldBe 3
 
       page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpDateInput)
+
+      page.next shouldBe Seq("4")
+    }
+
+  }
+
+  /**
+   * Test input page in simple number input page test
+   *
+   * @param page the input page to test
+   */
+  def testSimpleNumberInputPage(page: Page): Unit = {
+
+    "Define the input page correctly" in {
+
+      page.id shouldBe Process.StartStanzaId
+      page.stanzas.size shouldBe 3
+
+      page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpNumberInput)
 
       page.next shouldBe Seq("4")
     }

@@ -26,7 +26,7 @@ trait EnglishLanguage {
 }
 
 trait WelshLanguage {
-  implicit val lang: Lang = Lang("en")
+  implicit val lang: Lang = Lang("cy")
 }
 
 trait TestConstants {
