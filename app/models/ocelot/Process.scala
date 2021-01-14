@@ -38,7 +38,7 @@ case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase
 object Process {
   val StartStanzaId = "start"
   // Secured process constants
-  val SecuredProcessStartUrl = "/authenticate"
+  val SecuredProcessStartUrl = "authenticate"
   val PassPhrasePageId = "passphrasepage"
   val PassPhraseLabelName = "_GuidancePassPhrase"
   val PassPhraseResponseLabelName = "_GuidancePassPhraseResponse"

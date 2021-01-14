@@ -194,18 +194,9 @@ trait ProcessJson {
       |    "start": {
       |      "type": "PageStanza",
       |      "url": "/feeling-bad",
-      |      "next": ["128"],
+      |      "next": ["3"],
       |      "stack": true
       |    },
-      |   "128": {
-      |     "next": [
-      |       "3"
-      |     ],
-      |     "noteType": "Title",
-      |     "stack": false,
-      |     "text": 1,
-      |     "type": "CalloutStanza"
-      |   },
       |    "3": {
       |      "type": "InstructionStanza",
       |      "text": 1,
@@ -220,6 +211,18 @@ trait ProcessJson {
       |      "next": [
       |        "end"
       |      ],
+      |      "stack": true
+      |    },
+      |    "3": {
+      |      "type": "InputStanza",
+      |      "ipt_type": "Currency",
+      |      "next": [
+      |        "end"
+      |      ],
+      |      "name": 1,
+      |      "help": 2,
+      |      "label": "LabelName",
+      |      "placeholder": 3,
       |      "stack": true
       |    },
       |    "end": {

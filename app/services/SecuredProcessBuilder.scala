@@ -25,7 +25,7 @@ class SecuredProcessBuilder() {
   private val InputId: String = "passinput"
   private val ChoiceId: String = "passchoice"
   def stanzas(initialLabelIndex: Int, passPhrase: String):Seq[(String, Stanza)] = Seq(
-    (Process.PassPhrasePageId, PageStanza(Process.SecuredProcessStartUrl, Seq(InputId), false)),
+    (Process.PassPhrasePageId, PageStanza(s"/${Process.SecuredProcessStartUrl}", Seq(InputId), false)),
     (InputId, InputStanza(Txt, Seq(ChoiceId), initialLabelIndex, None, Process.PassPhraseResponseLabelName, None, false)),
     (ChoiceId, ChoiceStanza(
                 Seq(Process.StartStanzaId, Process.PassPhrasePageId),

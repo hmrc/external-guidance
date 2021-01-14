@@ -44,3 +44,4 @@ object StaleDataError extends Error("STALE_DATA_ERROR", Some("The resource reque
 object MalformedResponseError extends Error("BAD_REQUEST", Some("The response received could not be parsed"), None)
 object BadRequestError extends Error("BAD_REQUEST", Some("The request is invalid."), None)
 object IncompleteDataError extends Error("INCOMPLETE_DATA_ERROR", Some("Data is not in the required state for the requested action."), None)
+object AuthenticationError extends Error("AUTHENTICATION_ERROR", Some("Not athenticated"), None)
