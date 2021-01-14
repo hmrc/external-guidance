@@ -32,7 +32,9 @@ class SecuredProcessBuilder() {
                 Seq(ChoiceStanzaTest(s"[label:${Process.PassPhraseResponseLabelName}]", Equals, passPhrase)), false))
   )
 
-  def secure(process: Process, passPhrase: String): Process =
-    process.copy(flow = process.flow ++ stanzas(process.phrases.length, passPhrase),
-                 phrases =process.phrases ++ Vector(Phrase("Enter passphrase", "Rhowch gyfrinair")))
+  def secure(process: Process): Process =
+    process.passPhrase.fold(process){passPhrase =>
+      process.copy(flow = process.flow ++ stanzas(process.phrases.length, passPhrase),
+                   phrases =process.phrases ++ Vector(Phrase("Enter passphrase", "Rhowch gyfrinair")))
+    }
 }

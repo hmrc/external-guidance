@@ -62,8 +62,8 @@ package object services {
     jsObject.validate[Process].fold(
       errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
       processElect => {
-        val (process, json) = processElect.passPhrase.fold((processElect, jsObject)){ passPhrase =>
-          val securedProcess: Process = securedProcessBuilder.secure(processElect, passPhrase)
+        val (process, json) = processElect.passPhrase.fold((processElect, jsObject)){ _ =>
+          val securedProcess: Process = securedProcessBuilder.secure(processElect)
           (securedProcess, Json.toJsObject(securedProcess))
         }
         pageBuilder.pagesWithValidation(process, process.startPageId).fold(errs => Left(Error(errs)),

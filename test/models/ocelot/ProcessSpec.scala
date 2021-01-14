@@ -19,6 +19,7 @@ package models.ocelot
 import base.BaseSpec
 import play.api.libs.json._
 import models.ocelot.stanzas.Stanza
+import services.SecuredProcessBuilder
 
 class ProcessSpec extends BaseSpec with ProcessJson {
 
@@ -30,6 +31,8 @@ class ProcessSpec extends BaseSpec with ProcessJson {
   val links: Vector[Link] = Json.parse(prototypeLinksSection).as[Vector[Link]]
 
   val process: Process = prototypeJson.as[Process]
+  val protectedProcess = validOnePageProcessWithPassPhrase.as[Process]
+  val securedProcessBuilder = new SecuredProcessBuilder()
 
   "Process" must {
 
@@ -62,13 +65,29 @@ class ProcessSpec extends BaseSpec with ProcessJson {
 
   "Process passphrase" must {
     "detect passphrase when present" in {
-      val protectedProcess = validOnePageProcessWithPassPhrase.as[Process]
       protectedProcess.passPhrase shouldBe Some("A not so memorable phrase")
     }
 
     "Not detect passphrase when not present" in {
       process.passPhrase shouldBe None
     }
+
+    "return the process start url with an unsecured process from startUrl" in {
+      process.startUrl shouldBe Some("/start")
+    }
+
+    "return the process start url with a secured process from startUrl" in {
+      securedProcessBuilder.secure(protectedProcess).startUrl shouldBe Some("/feeling-bad")
+    }
+
+    "return StartStanzaId with an unsecured process from startPageId" in {
+      process.startPageId shouldBe Process.StartStanzaId
+    }
+
+    "return PassPhrasePageId with a secured process from startPageId" in {
+      securedProcessBuilder.secure(protectedProcess).startPageId shouldBe Process.PassPhrasePageId
+    }
+
   }
 
   "Process link fn" must {
