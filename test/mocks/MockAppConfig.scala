@@ -28,4 +28,5 @@ object MockAppConfig extends AppConfig {
   val factCheckerRole: String = "FactChecker"
   val twoEyeReviewerRole: String = "2iReviewer"
   val addMissingWelshToUnauthenticatedGuidance: Boolean = true
+  val passPhrasePagePrompt: String = "Enter passphrase"
 }
