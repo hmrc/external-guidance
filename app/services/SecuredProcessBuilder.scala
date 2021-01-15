@@ -16,17 +16,18 @@
 
 package services
 
-import javax.inject.Singleton
+import javax.inject.{Inject, Singleton}
+import config.AppConfig
 import models.ocelot.{Phrase, Process}
 import models.ocelot.stanzas.{Txt, Equals, Stanza, PageStanza, InputStanza, ChoiceStanza, ChoiceStanzaTest}
 
 @Singleton
-class SecuredProcessBuilder() {
+class SecuredProcessBuilder @Inject()(appConfig: AppConfig) {
   private val InputId: String = "passinput"
   private val ChoiceId: String = "passchoice"
-  def stanzas(initialLabelIndex: Int, passPhrase: String):Seq[(String, Stanza)] = Seq(
+  def stanzas(nextFreePhraseIndex: Int, passPhrase: String):Seq[(String, Stanza)] = Seq(
     (Process.PassPhrasePageId, PageStanza(s"/${Process.SecuredProcessStartUrl}", Seq(InputId), false)),
-    (InputId, InputStanza(Txt, Seq(ChoiceId), initialLabelIndex, None, Process.PassPhraseResponseLabelName, None, false)),
+    (InputId, InputStanza(Txt, Seq(ChoiceId), nextFreePhraseIndex, None, Process.PassPhraseResponseLabelName, None, false)),
     (ChoiceId, ChoiceStanza(
                 Seq(Process.StartStanzaId, Process.PassPhrasePageId),
                 Seq(ChoiceStanzaTest(s"[label:${Process.PassPhraseResponseLabelName}]", Equals, passPhrase)), false))
@@ -35,6 +36,6 @@ class SecuredProcessBuilder() {
   def secure(process: Process): Process =
     process.passPhrase.fold(process){passPhrase =>
       process.copy(flow = process.flow ++ stanzas(process.phrases.length, passPhrase),
-                   phrases =process.phrases ++ Vector(Phrase("Enter passphrase", "Rhowch gyfrinair")))
+                   phrases =process.phrases ++ Vector(Phrase(appConfig.passPhrasePagePrompt, appConfig.passPhrasePagePrompt)))
     }
 }

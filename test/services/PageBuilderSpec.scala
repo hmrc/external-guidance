@@ -23,7 +23,7 @@ import models.ocelot.stanzas._
 import models.ocelot._
 import play.api.libs.json._
 import utils.StanzaHelper
-
+import mocks.MockAppConfig
 
 class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
@@ -513,7 +513,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
           ProcessError("Unsupported CalloutStanza type UnknownType found at stanza id 4","4"),
           ProcessError("Unsupported ValueStanza Value type AnUnknownType found at stanza id 33","33"),
           ProcessError("Process Meta section parse error, reason: error.path.missing, target: ocelot",""))
-      guidancePages(new PageBuilder(), new SecuredProcessBuilder(), assortedParseErrorsJson.as[JsObject]).fold(
+      guidancePages(new PageBuilder(), new SecuredProcessBuilder(MockAppConfig), assortedParseErrorsJson.as[JsObject]).fold(
         {
           case MainError(MainError.UnprocessableEntity, None, Some(errors)) if errors == processErrors => succeed
           case errs => fail(s"Failed with errors: $errs")
