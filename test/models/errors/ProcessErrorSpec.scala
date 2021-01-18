@@ -19,6 +19,7 @@ package models.errors
 import base.BaseSpec
 import models.ocelot.errors._
 import services.shared._
+import play.api.libs.json.{JsPath, JsonValidationError}
 
 class ProcessErrorSpec extends BaseSpec {
 
@@ -80,10 +81,10 @@ class ProcessErrorSpec extends BaseSpec {
       val details: ProcessError = UnknownTestType("stanzaId", "unknowntype")
       details shouldBe ProcessError("Unsupported ChoiceStanza test type unknowntype found at stanza id stanzaId", "stanzaId")
     }
-    // "from ParseError" in {
-    //   val details: ProcessError = ParseError("/flow/0", Seq.empty)
-    //   details shouldBe ProcessError("Inconsistent QuestionStanza at id stanzaId, number of answers and next locations dont match", "stanzaId")
-    // }
+    "from ParseError" in {
+      val details: ProcessError = ParseError(JsPath(Nil), Seq(JsonValidationError(Seq("err message"))))
+      details shouldBe ProcessError("Unknown parse error err message at location ", "")
+    }
     "from SharedDataInputStanza" in {
       val details: ProcessError = SharedDataInputStanza("stanzaId", Seq("page1"))
       details shouldBe ProcessError("Input/Question Stanza stanzaId used on multiple pages List(page1)", "stanzaId")

@@ -124,14 +124,12 @@ case class DateInput(
 }
 
 object Input {
-  def apply(stanza: InputStanza, name: Phrase, help: Option[Phrase], placeholder: Option[Phrase]): Option[Input] =
+  def apply(stanza: InputStanza, name: Phrase, help: Option[Phrase], placeholder: Option[Phrase]): Input =
     stanza.ipt_type match {
-      case Number => Some(NumberInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack))
-      case Txt => Some(TextInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack))
-      case Currency => Some(CurrencyInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack))
-      case CurrencyPoundsOnly => Some(CurrencyPoundsOnlyInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack))
-      case Date => Some(DateInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack))
-      // .... Add additional input types when needed
-      case _ => None
+      case Number => NumberInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack)
+      case Txt => TextInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack)
+      case Currency => CurrencyInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack)
+      case CurrencyPoundsOnly => CurrencyPoundsOnlyInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack)
+      case Date => DateInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack)
     }
 }

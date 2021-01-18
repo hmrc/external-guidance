@@ -52,9 +52,7 @@ trait ProcessPopulation {
     def populateInput(i: InputStanza): Either[GuidanceError, Input] =
       phrase(i.name, id, process).fold(Left(_), name =>
         optionalPhrase(i.help, id, process).fold(Left(_), help =>
-          optionalPhrase(i.placeholder, id, process).fold(Left(_), placeholder =>
-            Input(i, name, help, placeholder).fold[Either[GuidanceError, Input]](Left(UnknownInputType(id, i.ipt_type.toString)))(input => Right(input))
-          )
+          optionalPhrase(i.placeholder, id, process).fold(Left(_), placeholder => Right(Input(i, name, help, placeholder)))
         )
       )
 

@@ -66,264 +66,162 @@ class InputStanzaSpec extends BaseSpec {
 
   "CurrencyInput " should {
     "update the input label" in {
-
-      Input(expectedCurrencyStanza, Phrase("",""), None, None).get match {
-        case currencyInput: CurrencyInput =>
-          val labels = LabelCache()
-
-          val (nxt, updatedLabels) = currencyInput.eval("33", labels)
-          updatedLabels.updatedLabels(expectedCurrencyStanza.label).english shouldBe Some("33")
-        case _ => fail
-      }
-
+      val input = Input(expectedCurrencyStanza, Phrase("",""), None, None)
+      val labels = LabelCache()
+      val (nxt, updatedLabels) = input.eval("33", labels)
+      updatedLabels.updatedLabels(expectedCurrencyStanza.label).english shouldBe Some("33")
     }
 
     "Determine invalid input to be incorrect" in {
-
-      Input(expectedCurrencyStanza, Phrase("",""), None, None).get match {
-        case currencyInput: CurrencyInput =>
-
-          currencyInput.validInput("a value") shouldBe None
-          currencyInput.validInput("100.789") shouldBe None
-          currencyInput.validInput("100.7a9") shouldBe None
-        case _ => fail
-      }
-
+      val input = Input(expectedCurrencyStanza, Phrase("",""), None, None)
+      input.validInput("a value") shouldBe None
+      input.validInput("100.789") shouldBe None
+      input.validInput("100.7a9") shouldBe None
     }
 
     "Allow for coma separated 1000s" in {
-
-      Input(expectedCurrencyStanza, Phrase("",""), None, None).get match {
-        case currencyInput: CurrencyInput =>
-
-          currencyInput.validInput("123,345,768") shouldBe Some("123345768")
-        case _ => fail
-      }
-
+      val input = Input(expectedCurrencyStanza, Phrase("",""), None, None)
+      input.validInput("123,345,768") shouldBe Some("123345768")
     }
 
     "Allow -ve values" in {
-
-      Input(expectedCurrencyStanza, Phrase("",""), None, None).get match {
-        case currencyInput: CurrencyInput =>
-
-          currencyInput.validInput("-567,345") shouldBe Some("-567345")
-        case _ => fail
-      }
-
+      val input = Input(expectedCurrencyStanza, Phrase("",""), None, None)
+      input.validInput("-567,345") shouldBe Some("-567345")
     }
 
     "Determine valid input to be correct" in {
-
-      Input(expectedCurrencyStanza, Phrase("",""), None, None).get match {
-        case currencyInput: CurrencyInput =>
-
-          currencyInput.validInput("£33") shouldBe Some("33")
-          currencyInput.validInput("-33") shouldBe Some("-33")
-          currencyInput.validInput("£33.79") shouldBe Some("33.79")
-          currencyInput.validInput("-33.99") shouldBe Some("-33.99")
-          currencyInput.validInput("-£3,453,678.99") shouldBe Some("-3453678.99")
-          currencyInput.validInput("33") shouldBe Some("33")
-          currencyInput.validInput("33.9") shouldBe Some("33.9")
-          currencyInput.validInput("33.") shouldBe Some("33")
-          currencyInput.validInput("3,334") shouldBe Some("3334")
-          currencyInput.validInput("1,234,567") shouldBe Some("1234567")
-          currencyInput.validInput("1,234,567.89") shouldBe Some("1234567.89")
-          currencyInput.validInput("1,234,567.8") shouldBe Some("1234567.8")
-        case _ => fail
-      }
-
+      val input = Input(expectedCurrencyStanza, Phrase("",""), None, None)
+      input.validInput("£33") shouldBe Some("33")
+      input.validInput("-33") shouldBe Some("-33")
+      input.validInput("£33.79") shouldBe Some("33.79")
+      input.validInput("-33.99") shouldBe Some("-33.99")
+      input.validInput("-£3,453,678.99") shouldBe Some("-3453678.99")
+      input.validInput("33") shouldBe Some("33")
+      input.validInput("33.9") shouldBe Some("33.9")
+      input.validInput("33.") shouldBe Some("33")
+      input.validInput("3,334") shouldBe Some("3334")
+      input.validInput("1,234,567") shouldBe Some("1234567")
+      input.validInput("1,234,567.89") shouldBe Some("1234567.89")
+      input.validInput("1,234,567.8") shouldBe Some("1234567.8")
     }
-
   }
 
   "CurrencyPoundsOnlyInput " should {
     "update the input label" in {
-
-      Input(expectedCurrencyPoStanza, Phrase("",""), None, None).get match {
-        case currencyInput: CurrencyPoundsOnlyInput =>
-          val labels = LabelCache()
-
-          val (nxt, updatedLabels) = currencyInput.eval("33", labels)
-          updatedLabels.updatedLabels(expectedCurrencyPoStanza.label).english shouldBe Some("33")
-        case _ => fail
-      }
-
+      val input = Input(expectedCurrencyPoStanza, Phrase("",""), None, None)
+      val labels = LabelCache()
+      val (nxt, updatedLabels) = input.eval("33", labels)
+      updatedLabels.updatedLabels(expectedCurrencyPoStanza.label).english shouldBe Some("33")
     }
 
     "Determine invalid input to be incorrect" in {
-
-      Input(expectedCurrencyPoStanza, Phrase("",""), None, None).get match {
-        case currencyInput: CurrencyPoundsOnlyInput =>
-
-          currencyInput.validInput("a value") shouldBe None
-          currencyInput.validInput("100.78") shouldBe None
-          currencyInput.validInput("100.7a") shouldBe None
-          currencyInput.validInput("") shouldBe None
-        case _ => fail
-      }
+      val input = Input(expectedCurrencyPoStanza, Phrase("",""), None, None)
+      input.validInput("a value") shouldBe None
+      input.validInput("100.789") shouldBe None
+      input.validInput("100.7a9") shouldBe None
     }
 
     "Allow for coma separated 1000s" in {
-
-      Input(expectedCurrencyPoStanza, Phrase("",""), None, None).get match {
-        case currencyInput: CurrencyPoundsOnlyInput =>
-
-          currencyInput.validInput("123,345,768") shouldBe Some("123345768")
-        case _ => fail
-      }
+      val input = Input(expectedCurrencyPoStanza, Phrase("",""), None, None)
+      input.validInput("123,345,768") shouldBe Some("123345768")
     }
 
     "Allow -ve values" in {
-
-      Input(expectedCurrencyPoStanza, Phrase("",""), None, None).get match {
-        case currencyInput: CurrencyPoundsOnlyInput =>
-
-          currencyInput.validInput("-567,345") shouldBe Some("-567345")
-        case _ => fail
-      }
+      val input = Input(expectedCurrencyPoStanza, Phrase("",""), None, None)
+      input.validInput("-567,345") shouldBe Some("-567345")
     }
 
     "Determine valid input to be correct" in {
-
-      Input(expectedCurrencyPoStanza, Phrase("",""), None, None).get match {
-        case currencyInput: CurrencyPoundsOnlyInput =>
-
-          currencyInput.validInput("£33") shouldBe Some("33")
-          currencyInput.validInput("-33") shouldBe Some("-33")
-          currencyInput.validInput("£33.79") shouldBe None
-          currencyInput.validInput("-33.99") shouldBe None
-          currencyInput.validInput("-£3,453,678") shouldBe Some("-3453678")
-          currencyInput.validInput("33") shouldBe Some("33")
-          currencyInput.validInput("33.9") shouldBe None
-          currencyInput.validInput("33.") shouldBe None
-          currencyInput.validInput("3,334") shouldBe Some("3334")
-          currencyInput.validInput("1,234,567") shouldBe Some("1234567")
-        case _ => fail
-      }
+      val input = Input(expectedCurrencyPoStanza, Phrase("",""), None, None)
+      input.validInput("£33") shouldBe Some("33")
+      input.validInput("-33") shouldBe Some("-33")
+      input.validInput("£33.79") shouldBe None
+      input.validInput("-33.99") shouldBe None
+      input.validInput("-£3,453,678.99") shouldBe None
+      input.validInput("33") shouldBe Some("33")
+      input.validInput("33.9") shouldBe None
+      input.validInput("33.") shouldBe None
+      input.validInput("3,334") shouldBe Some("3334")
+      input.validInput("1,234,567") shouldBe Some("1234567")
+      input.validInput("1,234,567.89") shouldBe None
+      input.validInput("1,234,567.8") shouldBe None
     }
   }
 
   "DateInput" should {
     "update the input label" in {
-      Input(expectedDateStanza, Phrase("",""), None, None).get match {
-        case input: DateInput =>
-          val labels = LabelCache()
-
-          val (nxt, updatedLabels) = input.eval("33", labels)
-          updatedLabels.updatedLabels(expectedDateStanza.label).english shouldBe Some("33")
-        case _ => fail
-      }
+      val input = Input(expectedDateStanza, Phrase("",""), None, None)
+      val labels = LabelCache()
+      val (nxt, updatedLabels) = input.eval("33", labels)
+      updatedLabels.updatedLabels(expectedDateStanza.label).english shouldBe Some("33")
     }
 
     "Determine invalid input to be incorrect" in {
-
-      Input(expectedDateStanza, Phrase("",""), None, None).get match {
-        case input: DateInput =>
-          input.validInput("a value") shouldBe None
-          input.validInput("100.78") shouldBe None
-          input.validInput("100.7a") shouldBe None
-          input.validInput("1,987") shouldBe None
-          input.validInput("-87") shouldBe None
-          input.validInput("31/9/2001") shouldBe None
-          input.validInput("29/2/2001") shouldBe None
-        case _ => fail
-      }
+      val input = Input(expectedDateStanza, Phrase("",""), None, None)
+      input.validInput("a value") shouldBe None
+      input.validInput("100.78") shouldBe None
+      input.validInput("100.7a") shouldBe None
+      input.validInput("1,987") shouldBe None
+      input.validInput("-87") shouldBe None
+      input.validInput("31/9/2001") shouldBe None
+      input.validInput("29/2/2001") shouldBe None
     }
 
     "Determine valid input to be correct" in {
-
-      Input(expectedDateStanza, Phrase("",""), None, None).get match {
-        case input: DateInput =>
-
-          input.validInput("5/6/1989") shouldBe Some("5/6/1989")
-          input.validInput("28/2/1999") shouldBe Some("28/2/1999")
-          input.validInput("29/2/2000") shouldBe Some("29/2/2000")
-        case _ => fail
-      }
+      val input = Input(expectedDateStanza, Phrase("",""), None, None)
+      input.validInput("5/6/1989") shouldBe Some("5/6/1989")
+      input.validInput("28/2/1999") shouldBe Some("28/2/1999")
+      input.validInput("29/2/2000") shouldBe Some("29/2/2000")
     }
   }
 
   "TextInput" should {
     "update the input label" in {
-      Input(expectedTextStanza, Phrase("Name","Name"), None, None).get match {
-        case input: TextInput =>
-          val labels = LabelCache()
-
-          val (nxt, updatedLabels) = input.eval("Hello", labels)
-          updatedLabels.updatedLabels(expectedTextStanza.label).english shouldBe Some("Hello")
-        case _ => fail
-      }
+      val input = Input(expectedTextStanza, Phrase("",""), None, None)
+      val labels = LabelCache()
+      val (nxt, updatedLabels) = input.eval("hello", labels)
+      updatedLabels.updatedLabels(expectedTextStanza.label).english shouldBe Some("hello")
     }
 
     "Determine invalid input to be incorrect" in {
-
-      Input(expectedTextStanza, Phrase("Name","Name"), None, None).get match {
-        case input: TextInput =>
-          input.validInput("") shouldBe None
-        case _ => fail
-      }
+      val input = Input(expectedTextStanza, Phrase("Name","Name"), None, None)
+      input.validInput("") shouldBe None
     }
 
     "Determine valid input to be correct" in {
-
-      Input(expectedTextStanza, Phrase("",""), None, None).get match {
-        case input: TextInput =>
-
-          input.validInput("a value") shouldBe Some("a value")
-          input.validInput("""any valid text!@£%^&*()":;'?><,./""") shouldBe Some("""any valid text!@£%^&*()":;'?><,./""")
-        case _ => fail
-      }
+      val input = Input(expectedTextStanza, Phrase("",""), None, None)
+      input.validInput("a value") shouldBe Some("a value")
+      input.validInput("""any valid text!@£%^&*()":;'?><,./""") shouldBe Some("""any valid text!@£%^&*()":;'?><,./""")
     }
   }
 
   "NumberInput " should {
     "update the input label" in {
-
-      Input(expectedNumberStanza, Phrase("",""), None, None).get match {
-        case numberInput: NumberInput =>
-          val labels = LabelCache()
-
-          val (nxt, updatedLabels) = numberInput.eval("33", labels)
-          updatedLabels.updatedLabels(expectedNumberStanza.label).english shouldBe Some("33")
-        case _ => fail
-      }
-
+      val input = Input(expectedNumberStanza, Phrase("",""), None, None)
+      val labels = LabelCache()
+      val (nxt, newLabels) = input.eval("33", labels)
+      newLabels.updatedLabels(expectedNumberStanza.label).english shouldBe Some("33")
     }
 
     "Determine invalid input to be incorrect" in {
-
-      Input(expectedNumberStanza, Phrase("",""), None, None).get match {
-        case numberInput: NumberInput =>
-
-          numberInput.validInput("a value") shouldBe None
-          numberInput.validInput("100.78") shouldBe None
-          numberInput.validInput("100.7a") shouldBe None
-          numberInput.validInput("£33") shouldBe None
-          numberInput.validInput("1,000") shouldBe None
-          numberInput.validInput("") shouldBe None
-        case _ => fail
-      }
+      val input = Input(expectedNumberStanza, Phrase("",""), None, None)
+      input.validInput("a value") shouldBe None
+      input.validInput("100.78") shouldBe None
+      input.validInput("100.7a") shouldBe None
+      input.validInput("£33") shouldBe None
+      input.validInput("1,000") shouldBe None
+      input.validInput("") shouldBe None
     }
 
     "Allow -ve values" in {
-
-      Input(expectedNumberStanza, Phrase("",""), None, None).get match {
-        case numberInput: NumberInput =>
-
-          numberInput.validInput("-567345") shouldBe Some("-567345")
-        case _ => fail
-      }
+      val input = Input(expectedNumberStanza, Phrase("",""), None, None)
+      input.validInput("-567345") shouldBe Some("-567345")
     }
 
     "Determine valid input to be correct" in {
 
-      Input(expectedNumberStanza, Phrase("",""), None, None).get match {
-        case numberInput: NumberInput =>
-
-          numberInput.validInput("33") shouldBe Some("33")
-        case _ => fail
-      }
+      val input = Input(expectedNumberStanza, Phrase("",""), None, None)
+      input.validInput("33") shouldBe Some("33")
     }
   }
 
