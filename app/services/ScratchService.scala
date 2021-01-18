@@ -17,7 +17,7 @@
 package services
 
 import java.util.UUID
-
+import services.shared._
 import javax.inject.{Inject, Singleton}
 import models.RequestOutcome
 import models.errors.{BadRequestError, InternalServerError, NotFoundError}

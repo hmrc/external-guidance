@@ -16,6 +16,7 @@
 
 package services
 
+import services.shared.PageBuilder
 import base.BaseSpec
 import models.ocelot._
 import models.ocelot.stanzas.Stanza
@@ -30,6 +31,7 @@ class SecuredProcessBuilderSpec extends BaseSpec with ProcessJson {
 
   val process: Process = prototypeJson.as[Process]
   val passphraseProcess = validOnePageProcessWithPassPhrase.as[Process]
+  val protectedProcess = validOnePageProcessWithPassPhrase.as[Process]
   val securedProcessBuilder = new SecuredProcessBuilder(MockAppConfig)
   val pageBuilder = new PageBuilder()
 
@@ -52,6 +54,33 @@ class SecuredProcessBuilderSpec extends BaseSpec with ProcessJson {
       passphraseProcess.phrases.length shouldBe 9
       val securedProcess = securedProcessBuilder.secure(passphraseProcess)
       securedProcess.phrases.length shouldBe 10
+    }
+
+  }
+
+  "Process passphrase" must {
+    "detect passphrase when present" in {
+      protectedProcess.passPhrase shouldBe Some("A not so memorable phrase")
+    }
+
+    "Not detect passphrase when not present" in {
+      process.passPhrase shouldBe None
+    }
+
+    "return the process start url with an unsecured process from startUrl" in {
+      process.startUrl shouldBe Some("/start")
+    }
+
+    "return the process start url with a secured process from startUrl" in {
+      securedProcessBuilder.secure(protectedProcess).startUrl shouldBe Some("/feeling-bad")
+    }
+
+    "return StartStanzaId with an unsecured process from startPageId" in {
+      process.startPageId shouldBe Process.StartStanzaId
+    }
+
+    "return PassPhrasePageId with a secured process from startPageId" in {
+      securedProcessBuilder.secure(protectedProcess).startPageId shouldBe Process.PassPhrasePageId
     }
 
   }

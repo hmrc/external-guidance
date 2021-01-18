@@ -18,7 +18,7 @@ package models.errors
 
 import base.BaseSpec
 import models.ocelot.errors._
-import services._
+import services.shared._
 
 class ProcessErrorSpec extends BaseSpec {
 
@@ -66,6 +66,31 @@ class ProcessErrorSpec extends BaseSpec {
     "from InconsistenQuestionError" in {
       val details: ProcessError = InconsistenQuestionError("stanzaId")
       details shouldBe ProcessError("Inconsistent QuestionStanza at id stanzaId, number of answers and next locations dont match", "stanzaId")
+    }
+
+    "from VisualStanzasAfterQuestion" in {
+      val details: ProcessError = VisualStanzasAfterQuestion("stanzaId")
+      details shouldBe ProcessError("Visual stanza with id = stanzaId found following a Question stanza", "stanzaId")
+    }
+    "from UnknownCalcOperationType" in {
+      val details: ProcessError = UnknownCalcOperationType("stanzaId", "unknowntype")
+      details shouldBe ProcessError("Unsupported CalculationStanza operation type unknowntype found at stanza id stanzaId", "stanzaId")
+    }
+    "from UnknownTestType" in {
+      val details: ProcessError = UnknownTestType("stanzaId", "unknowntype")
+      details shouldBe ProcessError("Unsupported ChoiceStanza test type unknowntype found at stanza id stanzaId", "stanzaId")
+    }
+    // "from ParseError" in {
+    //   val details: ProcessError = ParseError("/flow/0", Seq.empty)
+    //   details shouldBe ProcessError("Inconsistent QuestionStanza at id stanzaId, number of answers and next locations dont match", "stanzaId")
+    // }
+    "from SharedDataInputStanza" in {
+      val details: ProcessError = SharedDataInputStanza("stanzaId", Seq("page1"))
+      details shouldBe ProcessError("Input/Question Stanza stanzaId used on multiple pages List(page1)", "stanzaId")
+    }
+    "from PageRedirectNotSupported" in {
+      val details: ProcessError = PageRedirectNotSupported("stanzaId")
+      details shouldBe ProcessError("Use of ChoiceStanza stanzaId as a page redirect not supported", "stanzaId")
     }
 
   }

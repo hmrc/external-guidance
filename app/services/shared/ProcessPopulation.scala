@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services
+package services.shared
 
 import models.ocelot.stanzas._
 import models.ocelot.{pageLinkIds, Link, Phrase, Process}

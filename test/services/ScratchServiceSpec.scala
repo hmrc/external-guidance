@@ -17,7 +17,7 @@
 package services
 
 import java.util.UUID
-
+import services.shared._
 import base.BaseSpec
 import mocks.MockScratchRepository
 import models.RequestOutcome
