@@ -31,7 +31,10 @@ import scala.concurrent.Future
 class ScratchServiceSpec extends BaseSpec {
 
   private trait Test extends MockScratchRepository {
-    lazy val target: ScratchService = new ScratchService(mockScratchRepository, new PageBuilder, new SecuredProcessBuilder(MockAppConfig))
+    lazy val target: ScratchService = new ScratchService(mockScratchRepository,
+                                                         new PageBuilder,
+                                                         new SecuredProcessBuilder(MockAppConfig),
+                                                         MockAppConfig)
   }
 
   "Calling save method" when {

@@ -26,9 +26,13 @@ import repositories.ScratchRepository
 import play.api.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import config.AppConfig
 
 @Singleton
-class ScratchService @Inject() (repository: ScratchRepository, pageBuilder: PageBuilder, securedProcessBuilder: SecuredProcessBuilder) {
+class ScratchService @Inject() (repository: ScratchRepository,
+                                pageBuilder: PageBuilder,
+                                securedProcessBuilder: SecuredProcessBuilder,
+                                implicit val c: AppConfig) {
   val logger = Logger(getClass)
 
   def save(process: JsObject): Future[RequestOutcome[UUID]] =

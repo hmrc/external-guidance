@@ -21,18 +21,23 @@ import models.ocelot.errors._
 import models.RequestOutcome
 import models.ocelot.Process
 import play.api.libs.json._
+import config.AppConfig
 
 package object services {
-  def guidancePages(pageBuilder: PageBuilder, securedProcessBuilder: SecuredProcessBuilder, jsObject: JsObject): RequestOutcome[(Process, Seq[Page], JsObject)] =
+  def guidancePages(pageBuilder: PageBuilder, securedProcessBuilder: SecuredProcessBuilder, jsObject: JsObject)(implicit c: AppConfig): RequestOutcome[(Process, Seq[Page], JsObject)] =
     jsObject.validate[Process].fold(
       errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
-      processElect => {
-        val (process, json) = processElect.passPhrase.fold((processElect, jsObject)){ _ =>
-          val securedProcess: Process = securedProcessBuilder.secure(processElect)
-          (securedProcess, Json.toJsObject(securedProcess))
-        }
-        pageBuilder.pagesWithValidation(process, process.startPageId).fold(errs => Left(Error(errs)),
-          pages => Right((process, pages, json))
-      )}
+      p => {
+        val process = fakeWelshText(p.passPhrase.fold(p)(_ => securedProcessBuilder.secure(p)))
+        pageBuilder.pagesWithValidation(process, process.startPageId).fold(
+          errs => Left(Error(errs)),
+          pages => Right((process, pages, Json.toJsObject(process)))
+        )
+      }
     )
+
+  def fakeWelshText(process: Process)(implicit c: AppConfig): Process =
+    if (!process.passPhrase.isEmpty || c.fakeWelshInUnauthenticatedGuidance)
+      process.copy(phrases = process.phrases.map(p => if (p.welsh.trim.isEmpty) Phrase(p.english, s"Welsh, ${p.english}") else p))
+    else process
 }

@@ -36,7 +36,7 @@ class ApprovalService @Inject() (
     publishedRepository: PublishedRepository,
     pageBuilder: PageBuilder,
     securedProcessBuilder: SecuredProcessBuilder,
-    appConfig: AppConfig
+    implicit val appConfig: AppConfig
 ) {
 
   val logger: Logger = Logger(this.getClass)

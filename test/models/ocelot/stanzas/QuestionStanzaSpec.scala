@@ -60,10 +60,27 @@ class QuestionStanzaSpec extends BaseSpec with TestConstants {
 
   "Question stanza" must {
 
+    "Evaluate valid input and return a next stanza and updated Labels" in {
+      val labels = LabelCache()
+      val stanza: Question = Question(Phrase("Question",""), Seq(Phrase("Yes",""), Phrase("No", "")), Seq("4", "5"), Some("Answer"), true)
+      val (nxt, updatedLabels) = stanza.eval("0", labels)
+
+      nxt shouldBe Some("4")
+      updatedLabels.value("Answer") shouldBe Some("Yes")
+    }
+
+    "Evaluate invalid input and return None and original Labels" in {
+      val labels = LabelCache()
+      val stanza: Question = Question(Phrase("Question",""), Seq(Phrase("Yes",""), Phrase("No", "")), Seq("4", "5"), Some("Answer"), true)
+      val (nxt, updatedLabels) = stanza.eval("7", labels)
+
+      nxt shouldBe None
+      updatedLabels.value("Answer") shouldBe None
+    }
+
     "reading a valid QuestionStanza with two answers should create an instance of the class QuestionStanza" in {
 
       val twoAnswersQuestionStanzaJson: JsValue = Json.parse(twoAnswersQuestionStanzaJsonInput)
-
       val twoAnswersQuestionStanza: QuestionStanza = twoAnswersQuestionStanzaJson.as[QuestionStanza]
 
       twoAnswersQuestionStanza shouldBe expectedTwoQuestionsQuestionStanza
