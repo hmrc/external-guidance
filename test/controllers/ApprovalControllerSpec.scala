@@ -31,7 +31,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.formatters.ApprovalProcessFormatter
 import services.shared.toProcessErr
-import utils.Constants._
+import models.Constants._
 
 import scala.concurrent.Future
 

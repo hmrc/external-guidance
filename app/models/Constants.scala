@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package utils
+package models
 
 object Constants {
   val ReviewType2i: String = "2i-review"

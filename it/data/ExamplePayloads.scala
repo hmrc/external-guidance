@@ -21,7 +21,7 @@ import java.util.UUID
 
 import models.{ApprovalProcessStatusChange, PageReview, ProcessReview}
 import play.api.libs.json.{JsObject, JsValue, Json}
-import utils.Constants._
+import models.Constants._
 
 object ExamplePayloads {
 
