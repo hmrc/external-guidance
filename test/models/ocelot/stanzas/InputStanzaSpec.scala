@@ -68,7 +68,7 @@ class InputStanzaSpec extends BaseSpec {
     "update the input label" in {
       val input = Input(expectedCurrencyStanza, Phrase("",""), None, None)
       val labels = LabelCache()
-      val (nxt, updatedLabels) = input.eval("33", labels)
+      val (_, updatedLabels) = input.eval("33", labels)
       updatedLabels.updatedLabels(expectedCurrencyStanza.label).english shouldBe Some("33")
     }
 
@@ -110,7 +110,7 @@ class InputStanzaSpec extends BaseSpec {
     "update the input label" in {
       val input = Input(expectedCurrencyPoStanza, Phrase("",""), None, None)
       val labels = LabelCache()
-      val (nxt, updatedLabels) = input.eval("33", labels)
+      val (_, updatedLabels) = input.eval("33", labels)
       updatedLabels.updatedLabels(expectedCurrencyPoStanza.label).english shouldBe Some("33")
     }
 
@@ -152,7 +152,7 @@ class InputStanzaSpec extends BaseSpec {
     "update the input label" in {
       val input = Input(expectedDateStanza, Phrase("",""), None, None)
       val labels = LabelCache()
-      val (nxt, updatedLabels) = input.eval("33", labels)
+      val (_, updatedLabels) = input.eval("33", labels)
       updatedLabels.updatedLabels(expectedDateStanza.label).english shouldBe Some("33")
     }
 
@@ -179,7 +179,7 @@ class InputStanzaSpec extends BaseSpec {
     "update the input label" in {
       val input = Input(expectedTextStanza, Phrase("",""), None, None)
       val labels = LabelCache()
-      val (nxt, updatedLabels) = input.eval("hello", labels)
+      val (_, updatedLabels) = input.eval("hello", labels)
       updatedLabels.updatedLabels(expectedTextStanza.label).english shouldBe Some("hello")
     }
 
@@ -199,7 +199,7 @@ class InputStanzaSpec extends BaseSpec {
     "update the input label" in {
       val input = Input(expectedNumberStanza, Phrase("",""), None, None)
       val labels = LabelCache()
-      val (nxt, newLabels) = input.eval("33", labels)
+      val (_, newLabels) = input.eval("33", labels)
       newLabels.updatedLabels(expectedNumberStanza.label).english shouldBe Some("33")
     }
 
