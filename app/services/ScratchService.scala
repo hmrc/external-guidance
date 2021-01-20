@@ -38,8 +38,8 @@ class ScratchService @Inject() (repository: ScratchRepository,
   def save(process: JsObject): Future[RequestOutcome[UUID]] =
     guidancePages(pageBuilder, securedProcessBuilder, process).fold(
       err => Future.successful(Left(err)),
-      _ =>
-        repository.save(process).map {
+      result =>
+        repository.save(result._3).map {
           case Left(_) => Left(InternalServerError)
           case result => result
         }
