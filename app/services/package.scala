@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import services.shared._
-import models.ocelot._
-import models.errors.Error
-import models.ocelot.errors._
-import models.RequestOutcome
-import models.ocelot.Process
+import core.services._
+import core.models.ocelot._
+import core.models.errors.Error
+import core.models.ocelot.errors._
+import core.models.RequestOutcome
+import core.models.ocelot.Process
 import play.api.libs.json._
 import config.AppConfig
 
@@ -28,17 +28,26 @@ package object services {
                    (implicit c: AppConfig): RequestOutcome[(Process, Seq[Page], JsObject)] =
     jsObject.validate[Process].fold(
       errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
-      p => {
-        val process = fakeWelshText(p.passPhrase.fold(p)(_ => securedProcessBuilder.secure(p)))
-        pageBuilder.pagesWithValidation(process, process.startPageId).fold(
+      incomingProcess => {
+        val (p, js) = fakeWelshTextIfRequired(incomingProcess, jsObject)
+        val (p1, js1) = securedProcessIfRequired(p, js)(securedProcessBuilder)
+        pageBuilder.pagesWithValidation(p1, p1.startPageId).fold(
           errs => Left(Error(errs)),
-          pages => Right((process, pages, Json.toJsObject(process)))
+          pages => Right((p1, pages, js1))
         )
       }
     )
 
-  def fakeWelshText(process: Process)(implicit c: AppConfig): Process =
-    if (!process.passPhrase.isEmpty || c.fakeWelshInUnauthenticatedGuidance)
-      process.copy(phrases = process.phrases.map(p => if (p.welsh.trim.isEmpty) Phrase(p.english, s"Welsh, ${p.english}") else p))
-    else process
+  private [services] def fakeWelshTextIfRequired(process: Process, jsObject: JsObject)(implicit c: AppConfig): (Process, JsObject) =
+    if (!process.passPhrase.isEmpty || c.fakeWelshInUnauthenticatedGuidance) {
+      val fakedWelshProcess = process.copy(phrases = process.phrases.map(p => if (p.welsh.trim.isEmpty) Phrase(p.english, s"Welsh, ${p.english}") else p))
+      (fakedWelshProcess, Json.toJsObject(fakedWelshProcess))
+    }
+    else (process, jsObject)
+
+  private [services] def securedProcessIfRequired(process: Process, jsObject: JsObject)(implicit securedProcessBuilder: SecuredProcessBuilder): (Process, JsObject) =
+    process.passPhrase.fold((process, jsObject)){_ =>
+      val securedProcess = securedProcessBuilder.secure(process)
+      (securedProcess, Json.toJsObject(securedProcess))
+    }
 }

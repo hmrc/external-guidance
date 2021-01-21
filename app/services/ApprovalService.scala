@@ -21,11 +21,12 @@ import java.util.UUID
 import config.AppConfig
 import javax.inject.{Inject, Singleton}
 import models._
-import models.errors.{DuplicateKeyError, InternalServerError, NotFoundError}
+import core.models._
+import core.models.errors.{DuplicateKeyError, InternalServerError, NotFoundError}
 import play.api.Logger
 import play.api.libs.json._
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository, PublishedRepository}
-import services.shared._
+import core.services._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

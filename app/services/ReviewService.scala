@@ -18,12 +18,12 @@ package services
 
 import javax.inject.{Inject, Singleton}
 import models._
-import models.errors._
-import models.ocelot.Process
+import core.models._
+import Constants._
+import core.models.errors._
+import core.models.ocelot.Process
 import play.api.Logger
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
-import models.Constants._
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

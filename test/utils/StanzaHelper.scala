@@ -16,8 +16,8 @@
 
 package utils
 
-import models.ocelot.stanzas._
-import models.ocelot.{Link, Phrase, Process}
+import core.models.ocelot.stanzas._
+import core.models.ocelot.{Link, Phrase, Process}
 
 import base.TestConstants
 

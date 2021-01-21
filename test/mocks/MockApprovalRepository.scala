@@ -16,7 +16,8 @@
 
 package mocks
 
-import models.{ApprovalProcess, ApprovalProcessSummary, RequestOutcome}
+import core.models.RequestOutcome
+import models.{ApprovalProcess, ApprovalProcessSummary}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import repositories.ApprovalRepository

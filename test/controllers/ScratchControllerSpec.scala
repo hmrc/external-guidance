@@ -19,8 +19,8 @@ package controllers
 import java.util.UUID
 
 import mocks.MockScratchService
-import models.errors.{BadRequestError, Error, InternalServerError, NotFoundError, ProcessError, ValidationError}
-import models.ocelot.errors._
+import core.models.errors.{BadRequestError, Error, InternalServerError, NotFoundError, ProcessError, ValidationError}
+import core.models.ocelot.errors._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -29,7 +29,7 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import services.shared.toProcessErr
+import core.services.toProcessErr
 
 import scala.concurrent.Future
 

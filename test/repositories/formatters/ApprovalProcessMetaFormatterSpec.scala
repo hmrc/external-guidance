@@ -22,7 +22,7 @@ import base.BaseSpec
 import models.{ApprovalProcessJson, ApprovalProcessMeta}
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import repositories.formatters.ApprovalProcessMetaFormatter.mongoFormat
-import models.Constants._
+import core.models.Constants._
 
 class ApprovalProcessMetaFormatterSpec extends BaseSpec with ApprovalProcessJson {
 

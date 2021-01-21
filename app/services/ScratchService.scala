@@ -16,11 +16,11 @@
 
 package services
 
+import core.services._
 import java.util.UUID
-import services.shared._
 import javax.inject.{Inject, Singleton}
-import models.RequestOutcome
-import models.errors.{BadRequestError, InternalServerError, NotFoundError}
+import core.models.RequestOutcome
+import core.models.errors.{BadRequestError, InternalServerError, NotFoundError}
 import play.api.libs.json.JsObject
 import repositories.ScratchRepository
 import play.api.Logger

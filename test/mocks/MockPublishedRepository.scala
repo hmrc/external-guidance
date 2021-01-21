@@ -16,12 +16,12 @@
 
 package mocks
 
-import models.{PublishedProcess, RequestOutcome}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.JsObject
 import repositories.PublishedRepository
-
+import core.models.RequestOutcome
+import models.PublishedProcess
 import scala.concurrent.Future
 
 trait MockPublishedRepository extends MockFactory {

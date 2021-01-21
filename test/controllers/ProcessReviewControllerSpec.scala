@@ -20,7 +20,7 @@ import controllers.actions.{FakeFactCheckerIdentifierAction, FakeTwoEyeReviewerI
 import data.ReviewData
 import mocks.MockReviewService
 import models._
-import models.errors._
+import core.models.errors._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
@@ -30,7 +30,7 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import models.Constants._
+import core.models.Constants._
 
 import scala.concurrent.Future
 

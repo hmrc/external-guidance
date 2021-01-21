@@ -20,8 +20,9 @@ import java.time.ZonedDateTime
 
 import config.AppConfig
 import javax.inject.{Inject, Singleton}
-import models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
-import models.{ApprovalProcess, ApprovalProcessSummary, RequestOutcome}
+import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
+import core.models.RequestOutcome
+import models.{ApprovalProcess, ApprovalProcessSummary}
 import play.api.libs.json.{Format, JsObject, JsResultException, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.Cursor.FailOnError
@@ -31,8 +32,7 @@ import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.formatters.ApprovalProcessFormatter
 import repositories.formatters.ApprovalProcessMetaFormatter._
 import uk.gov.hmrc.mongo.ReactiveRepository
-import models.Constants
-
+import core.models.Constants
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ApprovalRepository {

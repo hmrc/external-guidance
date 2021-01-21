@@ -16,12 +16,12 @@
 
 package mocks
 
-import models.RequestOutcome
+import core.models.RequestOutcome
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsArray, JsObject}
 import services.ApprovalService
-import models.Constants._
+import core.models.Constants._
 
 import scala.concurrent.Future
 

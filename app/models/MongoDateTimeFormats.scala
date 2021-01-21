@@ -17,7 +17,6 @@
 package models
 
 import java.time.{Instant, LocalDate, ZonedDateTime}
-
 import play.api.libs.json._
 
 trait MongoDateTimeFormats {

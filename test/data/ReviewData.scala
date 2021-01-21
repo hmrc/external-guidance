@@ -21,7 +21,7 @@ import java.util.UUID
 
 import models.{ApprovalProcessStatusChange, PageReview, ProcessReview}
 import play.api.libs.json.{JsObject, JsValue, Json}
-import models.Constants._
+import core.models.Constants._
 
 trait ReviewData {
 

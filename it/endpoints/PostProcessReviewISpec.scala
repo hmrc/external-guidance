@@ -19,15 +19,15 @@ package endpoints
 import java.time.ZonedDateTime
 
 import data.ExamplePayloads._
-import models.errors.IncompleteDataError
-import models.ocelot.Process
+import core.models.errors.IncompleteDataError
+import core.models.ocelot.Process
 import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange, ApprovalProcessSummary}
 import play.api.http.Status._
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.libs.ws.WSResponse
 import stubs.{AuditStub, AuthStub}
 import support.IntegrationSpec
-import models.Constants._
+import core.models.Constants._
 
 class PostProcessReviewISpec extends IntegrationSpec {
 

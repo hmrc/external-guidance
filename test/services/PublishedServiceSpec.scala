@@ -20,9 +20,10 @@ import java.time.ZonedDateTime
 
 import base.BaseSpec
 import mocks.MockPublishedRepository
-import models.errors._
-import models.ocelot.ProcessJson
-import models.{PublishedProcess, RequestOutcome}
+import core.models.errors._
+import core.models.ocelot.ProcessJson
+import core.models.RequestOutcome
+import models.PublishedProcess
 import play.api.libs.json.{JsObject, Json}
 
 import scala.concurrent.Future

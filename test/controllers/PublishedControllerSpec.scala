@@ -21,8 +21,8 @@ import java.time.ZonedDateTime
 import base.BaseSpec
 import mocks.MockPublishedService
 import models.PublishedProcess
-import models.errors.{BadRequestError, InternalServerError, NotFoundError}
-import models.ocelot.ProcessJson
+import core.models.errors.{BadRequestError, InternalServerError, NotFoundError}
+import core.models.ocelot.ProcessJson
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.ContentTypes
 import play.api.libs.json.JsObject
