@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models
+package core.models
 
 import java.time.{Instant, LocalDate, ZonedDateTime}
 import play.api.libs.json._
