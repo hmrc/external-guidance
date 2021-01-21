@@ -17,7 +17,6 @@
 package models
 
 import java.time.ZonedDateTime
-import core.models.Constants
 import play.api.libs.json.{Json, OFormat}
 
 case class ApprovalProcessPageReview(

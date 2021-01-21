@@ -28,7 +28,7 @@ import core.models.errors._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.PrivateMethodTester
 import play.api.libs.json.Json
-import core.models.Constants._
+import models.Constants._
 
 import scala.concurrent.Future
 

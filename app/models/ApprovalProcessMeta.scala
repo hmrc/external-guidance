@@ -19,7 +19,7 @@ package models
 import java.time.{LocalDate, ZonedDateTime}
 
 import play.api.libs.json.{Json, OFormat}
-import core.models.Constants._
+import models.Constants._
 
 case class ApprovalProcessMeta(
     id: String,

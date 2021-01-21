@@ -21,7 +21,7 @@ import java.util.UUID
 
 import data.ProcessData._
 import play.api.libs.json.{JsObject, Json}
-import core.models.Constants._
+import models.Constants._
 
 trait ApprovalProcessJson {
 

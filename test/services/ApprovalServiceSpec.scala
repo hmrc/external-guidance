@@ -27,7 +27,7 @@ import core.models.errors._
 import core.models.ocelot.ProcessJson
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsArray, JsObject, Json}
-import core.models.Constants._
+import models.Constants._
 import core.models.RequestOutcome
 import scala.concurrent.Future
 

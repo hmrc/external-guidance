@@ -27,7 +27,7 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.libs.ws.WSResponse
 import stubs.{AuditStub, AuthStub}
 import support.IntegrationSpec
-import core.models.Constants._
+import models.Constants._
 
 class PostProcessReviewISpec extends IntegrationSpec {
 
