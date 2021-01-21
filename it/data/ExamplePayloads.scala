@@ -21,7 +21,7 @@ import java.util.UUID
 
 import models.{ApprovalProcessStatusChange, PageReview, ProcessReview}
 import play.api.libs.json.{JsObject, JsValue, Json}
-import utils.Constants._
+import models.Constants._
 
 object ExamplePayloads {
 
@@ -29,8 +29,8 @@ object ExamplePayloads {
     """
       |{
       |  "meta": {
-      |    "title": "Customer wants to make a cup of tea",
       |    "id": "oct90001",
+      |    "title": "Customer wants to make a cup of tea",
       |    "ocelot": 1,
       |    "lastAuthor": "000000",
       |    "lastUpdate": 1500298931016,
@@ -38,8 +38,55 @@ object ExamplePayloads {
       |    "filename": "oct90001.js",
       |    "processCode": "CupOfTea"
       |  },
-      |  "howto": [],
-      |  "contacts": [],
+      |  "flow": {
+      |    "34": {
+      |      "next": [
+      |        "end"
+      |      ],
+      |      "stack": true,
+      |      "link": 3,
+      |      "text": 3,
+      |      "type": "InstructionStanza"
+      |    },
+      |    "33": {
+      |      "next": [
+      |        "34"
+      |      ],
+      |      "stack": true,
+      |      "text": 2,
+      |      "type": "InstructionStanza"
+      |    },
+      |    "32": {
+      |      "next": [
+      |        "33"
+      |      ],
+      |      "noteType": "Title",
+      |      "stack": false,
+      |      "text": 1,
+      |      "type": "CalloutStanza"
+      |    },
+      |    "end": {
+      |      "type": "EndStanza"
+      |    },
+      |    "start": {
+      |      "next": [
+      |        "32"
+      |      ],
+      |      "stack": false,
+      |      "type": "PageStanza",
+      |      "url": "/feeling-bad"
+      |    }
+      |  },
+      |  "phrases": [
+      |    ["Ask the customer if they have a tea bag", "Welsh, Ask the customer if they have a tea bag"],
+      |    ["Do you have a tea bag?", "Welsh, Do you have a tea bag?"],
+      |    ["Yes - they do have a tea bag", "Welsh, Yes - they do have a tea bag"],
+      |    ["No - they do not have a tea bag", "Welsh, No - they do not have a tea bag"],
+      |    ["Ask the customer if they have a cup", "Welsh, Ask the customer if they have a cup"],
+      |    ["Do you have a cup?", "Welsh, Do you have a cup?"],
+      |    ["yes - they do have a cup ", "Welsh, yes - they do have a cup "],
+      |    ["no - they don’t have a cup", "Welsh, no - they don’t have a cup"]
+      |  ],
       |  "links": [
       |    {
       |      "id": 0,
@@ -65,55 +112,6 @@ object ExamplePayloads {
       |      "title": "Return to start of process",
       |      "window": false
       |    }
-      |  ],
-      |  "flow": {
-      |    "start": {
-      |      "next": [
-      |        "32"
-      |      ],
-      |      "stack": false,
-      |      "type": "PageStanza",
-      |      "url": "/feeling-bad"
-      |    },
-      |    "32": {
-      |      "next": [
-      |        "33"
-      |      ],
-      |      "noteType": "Title",
-      |      "stack": false,
-      |      "text": 1,
-      |      "type": "CalloutStanza"
-      |    },
-      |    "33": {
-      |      "next": [
-      |        "34"
-      |      ],
-      |      "stack": true,
-      |      "text": 2,
-      |      "type": "InstructionStanza"
-      |    },
-      |    "34": {
-      |      "next": [
-      |        "end"
-      |      ],
-      |      "stack": true,
-      |      "link": 3,
-      |      "text": 3,
-      |      "type": "InstructionStanza"
-      |    },
-      |    "end": {
-      |      "type": "EndStanza"
-      |    }
-      |  },
-      |  "phrases": [
-      |    ["Ask the customer if they have a tea bag", "Welsh, Ask the customer if they have a tea bag"],
-      |    ["Do you have a tea bag?", "Welsh, Do you have a tea bag?"],
-      |    ["Yes - they do have a tea bag", "Welsh, Yes - they do have a tea bag"],
-      |    ["No - they do not have a tea bag", "Welsh, No - they do not have a tea bag"],
-      |    ["Ask the customer if they have a cup", "Welsh, Ask the customer if they have a cup"],
-      |    ["Do you have a cup?", "Welsh, Do you have a cup?"],
-      |    ["yes - they do have a cup ", "Welsh, yes - they do have a cup "],
-      |    ["no - they don’t have a cup", "Welsh, no - they don’t have a cup"]
       |  ]
       |}
     """.stripMargin

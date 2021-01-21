@@ -31,7 +31,7 @@ import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.formatters.ApprovalProcessFormatter
 import repositories.formatters.ApprovalProcessMetaFormatter._
 import uk.gov.hmrc.mongo.ReactiveRepository
-import utils.Constants
+import models.Constants
 
 import scala.concurrent.{ExecutionContext, Future}
 

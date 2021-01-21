@@ -35,14 +35,16 @@ class ScratchService @Inject() (repository: ScratchRepository,
                                 implicit val c: AppConfig) {
   val logger = Logger(getClass)
 
-  def save(process: JsObject): Future[RequestOutcome[UUID]] =
-    guidancePages(pageBuilder, securedProcessBuilder, process).fold(
+  def save(json: JsObject): Future[RequestOutcome[UUID]] =
+    guidancePages(pageBuilder, securedProcessBuilder, json).fold(
       err => Future.successful(Left(err)),
-      result =>
-        repository.save(result._3).map {
+      result => {
+        val (_, _, process) = result
+        repository.save(process).map {
           case Left(_) => Left(InternalServerError)
           case result => result
         }
+      }
     )
 
   def getById(id: String): Future[RequestOutcome[JsObject]] = {
