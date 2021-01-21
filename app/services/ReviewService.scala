@@ -22,7 +22,7 @@ import models.errors._
 import models.ocelot.Process
 import play.api.Logger
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
-import utils.Constants._
+import models.Constants._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

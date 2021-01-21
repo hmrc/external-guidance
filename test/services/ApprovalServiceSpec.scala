@@ -18,7 +18,7 @@ package services
 
 import java.time.ZonedDateTime
 import java.util.UUID
-
+import services.shared.PageBuilder
 import base.BaseSpec
 import mocks.{MockAppConfig, MockApprovalProcessReviewRepository, MockApprovalRepository, MockPublishedRepository}
 import models._
@@ -26,7 +26,7 @@ import models.errors._
 import models.ocelot.ProcessJson
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsArray, JsObject, Json}
-import utils.Constants._
+import models.Constants._
 
 import scala.concurrent.Future
 

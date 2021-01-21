@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services
+package services.shared
 
 import java.util.UUID
 

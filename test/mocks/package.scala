@@ -14,23 +14,15 @@
  * limitations under the License.
  */
 
-package models
-
-import java.time.ZonedDateTime
-
-import play.api.libs.json.{Json, OFormat}
-
-case class ApprovalProcessPageReview(
-    id: String,
-    pageUrl: String,
-    pageTitle: String,
-    result: Option[String] = None,
-    status: String = Constants.InitialPageReviewStatus,
-    comment: Option[String] = None,
-    updateDate: ZonedDateTime = ZonedDateTime.now(),
-    updateUser: Option[String] = None
-)
-
-object ApprovalProcessPageReview {
-  implicit val formats: OFormat[ApprovalProcessPageReview] = Json.format[ApprovalProcessPageReview]
-}
+ package object mocks {
+  val mockAppConfig = MockAppConfigCopyable(
+    MockAppConfig.scratchExpiryHour,
+    MockAppConfig.scratchExpiryMinutes,
+    MockAppConfig.scratchExpiryTZ,
+    MockAppConfig.designerRole,
+    MockAppConfig.factCheckerRole,
+    MockAppConfig.twoEyeReviewerRole,
+    MockAppConfig.fakeWelshInUnauthenticatedGuidance,
+    MockAppConfig.passPhrasePagePrompt,
+  )
+ }

@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package services
+package services.shared
 
 import base.BaseSpec
-import models.errors.{Error => MainError, ProcessError}
+import models.errors._
 import models.ocelot.errors._
 import models.ocelot.stanzas._
 import models.ocelot._
 import play.api.libs.json._
 import utils.StanzaHelper
-import mocks.MockAppConfig
 
 class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
@@ -513,9 +512,19 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
           ProcessError("Unsupported CalloutStanza type UnknownType found at stanza id 4","4"),
           ProcessError("Unsupported ValueStanza Value type AnUnknownType found at stanza id 33","33"),
           ProcessError("Process Meta section parse error, reason: error.path.missing, target: ocelot",""))
-      guidancePages(new PageBuilder(), new SecuredProcessBuilder(MockAppConfig), assortedParseErrorsJson.as[JsObject]).fold(
+
+      val jsObject = assortedParseErrorsJson
+      val result = jsObject.as[JsObject].validate[Process].fold(
+        errs => Left(models.errors.Error(GuidanceError.fromJsonValidationErrors(errs))),
+        process => {
+          pageBuilder.pagesWithValidation(process, process.startPageId).fold(errs => Left(models.errors.Error(errs)),
+            pages => Right((process, pages, jsObject))
+        )}
+      )
+
+      result.fold(
         {
-          case MainError(MainError.UnprocessableEntity, None, Some(errors)) if errors == processErrors => succeed
+          case models.errors.Error(models.errors.Error.UnprocessableEntity, None, Some(errors)) if errors == processErrors => succeed
           case errs => fail(s"Failed with errors: $errs")
         }, _ => fail)
     }
@@ -548,7 +557,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         Label("IHT result",None))
 
       pageBuilder.pagesWithValidation(ihtProcess, "start") match {
-        case Right(pages) => services.uniqueLabels(pages) shouldBe labels
+        case Right(pages) => uniqueLabels(pages) shouldBe labels
         case Left(err) => fail(s"Failed with $err")
       }
     }
@@ -574,7 +583,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         "IHT result")
 
       pageBuilder.pagesWithValidation(ihtProcess, "start") match {
-        case Right(pages) => services.uniqueLabelRefs(pages) shouldBe labelsReferenced
+        case Right(pages) => uniqueLabelRefs(pages) shouldBe labelsReferenced
         case Left(err) => fail(s"Failed with $err")
       }
     }
@@ -585,8 +594,8 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     "Make it possible to validate label references across a sequence of pages" in new IhtTest {
       pageBuilder.pagesWithValidation(ihtProcess, "start") match {
         case Right(pages) =>
-          val labels = services.uniqueLabels(pages)
-          services.uniqueLabelRefs(pages).forall(lr => labels.exists(_.name == lr)) shouldBe true
+          val labels = uniqueLabels(pages)
+          uniqueLabelRefs(pages).forall(lr => labels.exists(_.name == lr)) shouldBe true
         case Left(err) => fail(s"Failed with $err")
       }
     }

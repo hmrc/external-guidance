@@ -17,7 +17,7 @@
 package services
 
 import java.util.UUID
-
+import services.shared._
 import base.BaseSpec
 import mocks.MockScratchRepository
 import models.RequestOutcome
@@ -31,7 +31,12 @@ import scala.concurrent.Future
 class ScratchServiceSpec extends BaseSpec {
 
   private trait Test extends MockScratchRepository {
-    lazy val target: ScratchService = new ScratchService(mockScratchRepository, new PageBuilder, new SecuredProcessBuilder(MockAppConfig))
+    val pageBuilder = new PageBuilder
+    val securedPageBuilder = new SecuredProcessBuilder(MockAppConfig)
+    lazy val target: ScratchService = new ScratchService(mockScratchRepository,
+                                                         pageBuilder,
+                                                         securedPageBuilder,
+                                                         MockAppConfig)
   }
 
   "Calling save method" when {
@@ -41,12 +46,13 @@ class ScratchServiceSpec extends BaseSpec {
 
         val id: UUID = UUID.fromString("bf8bf6bb-0894-4df6-8209-2467bc9af6ae")
         val expected: RequestOutcome[UUID] = Right(id)
-        val process: JsObject = validOnePageJson.as[JsObject]
+        val json: JsObject = validOnePageJson.as[JsObject]
+        val Right((_, _, processedJson)) = guidancePages(pageBuilder, securedPageBuilder, json)(MockAppConfig)
         MockScratchRepository
-          .save(process)
+          .save(processedJson)
           .returns(Future.successful(expected))
 
-        whenReady(target.save(process)) {
+        whenReady(target.save(json)) {
           case Right(uuid) => uuid.toString shouldBe id.toString
           case _ => fail
         }
@@ -92,12 +98,13 @@ class ScratchServiceSpec extends BaseSpec {
       "return a internal error" in new Test with ProcessJson {
         val repositoryResponse: RequestOutcome[UUID] = Left(DatabaseError)
         val expected: RequestOutcome[UUID] = Left(InternalServerError)
-        val process: JsObject = validOnePageJson.as[JsObject]
+        val json: JsObject = validOnePageJson.as[JsObject]
+        val Right((_, _, processedJson)) = guidancePages(pageBuilder, securedPageBuilder, json)(MockAppConfig)
         MockScratchRepository
-          .save(process)
+          .save(processedJson)
           .returns(Future.successful(repositoryResponse))
 
-        whenReady(target.save(process)) {
+        whenReady(target.save(json)) {
           case result @ Left(_) => result shouldBe expected
           case _ => fail
         }
