@@ -47,7 +47,7 @@ class ScratchServiceSpec extends BaseSpec {
         val id: UUID = UUID.fromString("bf8bf6bb-0894-4df6-8209-2467bc9af6ae")
         val expected: RequestOutcome[UUID] = Right(id)
         val json: JsObject = validOnePageJson.as[JsObject]
-        val Right((_, _, processedJson)) = guidancePages(pageBuilder, securedPageBuilder, json)(MockAppConfig)
+        val Right((_, _, processedJson)) = guidancePages(pageBuilder, json)(MockAppConfig, securedPageBuilder)
         MockScratchRepository
           .save(processedJson)
           .returns(Future.successful(expected))
@@ -99,7 +99,7 @@ class ScratchServiceSpec extends BaseSpec {
         val repositoryResponse: RequestOutcome[UUID] = Left(DatabaseError)
         val expected: RequestOutcome[UUID] = Left(InternalServerError)
         val json: JsObject = validOnePageJson.as[JsObject]
-        val Right((_, _, processedJson)) = guidancePages(pageBuilder, securedPageBuilder, json)(MockAppConfig)
+        val Right((_, _, processedJson)) = guidancePages(pageBuilder, json)(MockAppConfig, securedPageBuilder)
         MockScratchRepository
           .save(processedJson)
           .returns(Future.successful(repositoryResponse))

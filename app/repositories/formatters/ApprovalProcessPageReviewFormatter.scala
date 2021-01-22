@@ -17,8 +17,8 @@
 package repositories.formatters
 
 import java.time.ZonedDateTime
-
-import models.{ApprovalProcessPageReview, MongoDateTimeFormats}
+import core.models.MongoDateTimeFormats
+import models.ApprovalProcessPageReview
 import play.api.libs.json._
 
 object ApprovalProcessPageReviewFormatter {

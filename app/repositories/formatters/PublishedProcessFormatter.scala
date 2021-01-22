@@ -17,8 +17,8 @@
 package repositories.formatters
 
 import java.time.ZonedDateTime
-
-import models.{MongoDateTimeFormats, PublishedProcess}
+import core.models.MongoDateTimeFormats
+import models.PublishedProcess
 import play.api.libs.json._
 
 object PublishedProcessFormatter {

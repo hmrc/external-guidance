@@ -36,7 +36,7 @@ class ScratchService @Inject() (repository: ScratchRepository,
   val logger = Logger(getClass)
 
   def save(json: JsObject): Future[RequestOutcome[UUID]] =
-    guidancePages(pageBuilder, securedProcessBuilder, json).fold(
+    guidancePages(pageBuilder, json)(c, securedProcessBuilder).fold(
       err => Future.successful(Left(err)),
       result => {
         val (_, _, process) = result

@@ -24,16 +24,15 @@ import play.api.libs.json._
 import config.AppConfig
 
 package object services {
-  def guidancePages(pageBuilder: PageBuilder, securedProcessBuilder: SecuredProcessBuilder, jsObject: JsObject)
-                   (implicit c: AppConfig): RequestOutcome[(Process, Seq[Page], JsObject)] =
-    jsObject.validate[Process].fold(
-      errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
+  def guidancePages(pageBuilder: PageBuilder, jsObject: JsObject)
+                   (implicit c: AppConfig, spd: SecuredProcessBuilder): RequestOutcome[(Process, Seq[Page], JsObject)] =
+    jsObject.validate[Process].fold(errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
       incomingProcess => {
-        val (p, js) = fakeWelshTextIfRequired(incomingProcess, jsObject)
-        val (p1, js1) = securedProcessIfRequired(p, js)(securedProcessBuilder)
-        pageBuilder.pagesWithValidation(p1, p1.startPageId).fold(
+        // Transform process if fake welsh required and/or secured process is indicated
+        val (p, js) = fakeWelshTextIfRequired _ tupled securedProcessIfRequired(incomingProcess, jsObject)
+        pageBuilder.pagesWithValidation(p, p.startPageId).fold(
           errs => Left(Error(errs)),
-          pages => Right((p1, pages, js1))
+          pages => Right((p, pages, js))
         )
       }
     )
@@ -42,12 +41,11 @@ package object services {
     if (!process.passPhrase.isEmpty || c.fakeWelshInUnauthenticatedGuidance) {
       val fakedWelshProcess = process.copy(phrases = process.phrases.map(p => if (p.welsh.trim.isEmpty) Phrase(p.english, s"Welsh, ${p.english}") else p))
       (fakedWelshProcess, Json.toJsObject(fakedWelshProcess))
-    }
-    else (process, jsObject)
+    } else (process, jsObject)
 
-  private [services] def securedProcessIfRequired(process: Process, jsObject: JsObject)(implicit securedProcessBuilder: SecuredProcessBuilder): (Process, JsObject) =
+  private [services] def securedProcessIfRequired(process: Process, jsObject: JsObject)(implicit spb: SecuredProcessBuilder): (Process, JsObject) =
     process.passPhrase.fold((process, jsObject)){_ =>
-      val securedProcess = securedProcessBuilder.secure(process)
+      val securedProcess = spb.secure(process)
       (securedProcess, Json.toJsObject(securedProcess))
     }
 }
