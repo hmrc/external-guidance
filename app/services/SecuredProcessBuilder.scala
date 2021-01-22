@@ -18,19 +18,23 @@ package services
 
 import javax.inject.{Inject, Singleton}
 import config.AppConfig
-import core.models.ocelot.{Phrase, Process}
+import core.models.ocelot.{Phrase, Process, SecuredProcess}
 import core.models.ocelot.stanzas.{Txt, Equals, Stanza, PageStanza, InputStanza, ChoiceStanza, ChoiceStanzaTest}
 
 @Singleton
 class SecuredProcessBuilder @Inject()(appConfig: AppConfig) {
-  private val InputId: String = "passinput"
-  private val ChoiceId: String = "passchoice"
   def stanzas(nextFreePhraseIndex: Int, passPhrase: String):Seq[(String, Stanza)] = Seq(
-    (Process.PassPhrasePageId, PageStanza(s"/${Process.SecuredProcessStartUrl}", Seq(InputId), false)),
-    (InputId, InputStanza(Txt, Seq(ChoiceId), nextFreePhraseIndex, None, Process.PassPhraseResponseLabelName, None, false)),
-    (ChoiceId, ChoiceStanza(
-                Seq(Process.StartStanzaId, Process.PassPhrasePageId),
-                Seq(ChoiceStanzaTest(s"[label:${Process.PassPhraseResponseLabelName}]", Equals, passPhrase)), false))
+    (SecuredProcess.PassPhrasePageId, PageStanza(s"/${SecuredProcess.SecuredProcessStartUrl}", Seq(SecuredProcess.InputId), false)),
+    (SecuredProcess.InputId, InputStanza(Txt,
+                Seq(SecuredProcess.ChoiceId),
+                nextFreePhraseIndex,
+                None,
+                SecuredProcess.PassPhraseResponseLabelName,
+                None,
+                false)),
+    (SecuredProcess.ChoiceId, ChoiceStanza(
+                Seq(Process.StartStanzaId, SecuredProcess.PassPhrasePageId),
+                Seq(ChoiceStanzaTest(s"[label:${SecuredProcess.PassPhraseResponseLabelName}]", Equals, passPhrase)), false))
   )
 
   def secure(process: Process): Process =
