@@ -18,15 +18,31 @@ package core.models
 
 import base.BaseSpec
 import play.api.libs.json._
-import java.time.{Instant, ZonedDateTime}
+import java.time.{Instant, ZonedDateTime, LocalDate}
 
 
 class MongoDateTimeSpec extends  BaseSpec with MongoDateTimeFormats {
+  "a LocalDate" must {
+    val localDate = LocalDate.of(2018,2,1)
+    val localDateMillis = localDate.atStartOfDay(ZonedDateTime.now.getZone).toInstant.toEpochMilli
+
+    val json = Json.obj(
+      "$date" -> localDateMillis
+    )
+
+    "must serialise to json" in {
+      val result = Json.toJson(localDate)
+      result shouldBe json
+    }
+
+    "must deserialise from json" in {
+      val result = json.as[LocalDate]
+      result shouldBe localDate
+    }
+  }
 
   "a ZonedDateTime" must {
-
     val dateTime = ZonedDateTime.of(2018,2,1,13,45,0,0, localZoneID)
-
     val dateMillis = dateTime.toInstant.toEpochMilli
 
     val json = Json.obj(
@@ -42,13 +58,10 @@ class MongoDateTimeSpec extends  BaseSpec with MongoDateTimeFormats {
       val result = json.as[ZonedDateTime]
       result shouldBe dateTime
     }
-
   }
 
-"a Instant" must {
-
+  "an Instant" must {
     val instant = Instant.ofEpochMilli(1599052069018L)
-
     val dateMillis = instant.toEpochMilli
 
     val json = Json.obj(
@@ -64,6 +77,5 @@ class MongoDateTimeSpec extends  BaseSpec with MongoDateTimeFormats {
       val result = json.as[Instant]
       result shouldBe instant
     }
-
   }
 }
