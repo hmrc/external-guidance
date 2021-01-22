@@ -17,7 +17,7 @@
 package services
 
 import java.util.UUID
-
+import services.shared._
 import javax.inject.{Inject, Singleton}
 import models.RequestOutcome
 import models.errors.{BadRequestError, InternalServerError, NotFoundError}
@@ -26,19 +26,25 @@ import repositories.ScratchRepository
 import play.api.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import config.AppConfig
 
 @Singleton
-class ScratchService @Inject() (repository: ScratchRepository, pageBuilder: PageBuilder, securedProcessBuilder: SecuredProcessBuilder) {
+class ScratchService @Inject() (repository: ScratchRepository,
+                                pageBuilder: PageBuilder,
+                                securedProcessBuilder: SecuredProcessBuilder,
+                                implicit val c: AppConfig) {
   val logger = Logger(getClass)
 
-  def save(process: JsObject): Future[RequestOutcome[UUID]] =
-    guidancePages(pageBuilder, securedProcessBuilder, process).fold(
+  def save(json: JsObject): Future[RequestOutcome[UUID]] =
+    guidancePages(pageBuilder, securedProcessBuilder, json).fold(
       err => Future.successful(Left(err)),
-      _ =>
+      result => {
+        val (_, _, process) = result
         repository.save(process).map {
           case Left(_) => Left(InternalServerError)
           case result => result
         }
+      }
     )
 
   def getById(id: String): Future[RequestOutcome[JsObject]] = {

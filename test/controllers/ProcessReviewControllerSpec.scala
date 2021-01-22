@@ -30,7 +30,7 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import utils.Constants._
+import models.Constants._
 
 import scala.concurrent.Future
 

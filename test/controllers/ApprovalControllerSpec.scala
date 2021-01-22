@@ -30,8 +30,8 @@ import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.formatters.ApprovalProcessFormatter
-import services.toProcessErr
-import utils.Constants._
+import services.shared.toProcessErr
+import models.Constants._
 
 import scala.concurrent.Future
 

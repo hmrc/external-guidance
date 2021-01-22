@@ -27,5 +27,17 @@ object MockAppConfig extends AppConfig {
   val designerRole: String = "Designer"
   val factCheckerRole: String = "FactChecker"
   val twoEyeReviewerRole: String = "2iReviewer"
+  val fakeWelshInUnauthenticatedGuidance: Boolean = true
   val passPhrasePagePrompt: String = "Enter passphrase"
 }
+
+case class MockAppConfigCopyable(scratchExpiryHour: Int,
+                                 scratchExpiryMinutes: Int,
+                                 scratchExpiryTZ: String,
+                                 designerRole: String,
+                                 factCheckerRole: String,
+                                 twoEyeReviewerRole: String,
+                                 fakeWelshInUnauthenticatedGuidance: Boolean,
+                                 passPhrasePagePrompt: String) extends AppConfig
+
+

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services
+package services.shared
 
 import javax.inject.Singleton
 import models.ocelot._
