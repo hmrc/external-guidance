@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package utils
+package core.models
 
 import core.models.ocelot.stanzas._
 import core.models.ocelot.{Link, Phrase, Process}

@@ -20,7 +20,7 @@ import base.BaseSpec
 import core.models.ocelot.stanzas._
 import core.models.ocelot._
 import play.api.libs.json._
-import utils.StanzaHelper
+import core.models.StanzaHelper
 
 
 class GraphPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
