@@ -37,13 +37,13 @@ package object services {
       }
     )
 
-  private [services] def fakeWelshTextIfRequired(process: Process, jsObject: JsObject)(implicit c: AppConfig): (Process, JsObject) =
-    if (!process.passPhrase.isEmpty || c.fakeWelshInUnauthenticatedGuidance) {
+  private[services] def fakeWelshTextIfRequired(process: Process, jsObject: JsObject)(implicit c: AppConfig): (Process, JsObject) =
+    if (process.passPhrase.isDefined || c.fakeWelshInUnauthenticatedGuidance) {
       val fakedWelshProcess = process.copy(phrases = process.phrases.map(p => if (p.welsh.trim.isEmpty) Phrase(p.english, s"Welsh, ${p.english}") else p))
       (fakedWelshProcess, Json.toJsObject(fakedWelshProcess))
     } else (process, jsObject)
 
-  private [services] def securedProcessIfRequired(process: Process, jsObject: JsObject)(implicit spb: SecuredProcessBuilder): (Process, JsObject) =
+  private[services] def securedProcessIfRequired(process: Process, jsObject: JsObject)(implicit spb: SecuredProcessBuilder): (Process, JsObject) =
     process.passPhrase.fold((process, jsObject)){_ =>
       val securedProcess = spb.secure(process)
       (securedProcess, Json.toJsObject(securedProcess))

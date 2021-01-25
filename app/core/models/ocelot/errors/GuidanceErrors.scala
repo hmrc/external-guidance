@@ -36,7 +36,7 @@ case class PageUrlEmptyOrInvalid(id: String) extends FlowError
 case class PhraseNotFound(id: String, index: Int) extends FlowError
 case class LinkNotFound(id: String, index: Int) extends FlowError
 case class DuplicatePageUrl(id: String, url: String) extends FlowError
-case class InconsistenQuestionError(id: String) extends FlowError
+case class InconsistentQuestionError(id: String) extends FlowError
 case class MissingWelshText(id: String, index: String, english: String) extends FlowError
 case class VisualStanzasAfterQuestion(id: String) extends FlowError
 case class SharedDataInputStanza(id: String, pages: Seq[String]) extends FlowError

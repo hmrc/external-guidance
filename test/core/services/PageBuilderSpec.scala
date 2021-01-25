@@ -473,7 +473,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       }
     }
 
-    "detect InconsistenQuestionError" in {
+    "detect InconsistentQuestionError" in {
       val flow = Map(
         Process.StartStanzaId -> PageStanza("/this", Seq("1"), false),
         "1" -> InstructionStanza(0, Seq("2"), None, false),
@@ -494,9 +494,9 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         Vector[Link]()
       )
       pageBuilder.pagesWithValidation(process) match {
-        case Left(List(InconsistenQuestionError("2"))) => succeed
-        case Left(err) => fail(s"InconsistenQuestionError error not detected, failed with $err")
-        case _ => fail(s"InconsistenQuestionError not detected")
+        case Left(List(InconsistentQuestionError("2"))) => succeed
+        case Left(err) => fail(s"InconsistentQuestionError error not detected, failed with $err")
+        case _ => fail(s"InconsistentQuestionError not detected")
       }
     }
 

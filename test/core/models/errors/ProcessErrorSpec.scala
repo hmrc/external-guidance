@@ -64,8 +64,8 @@ class ProcessErrorSpec extends BaseSpec {
       details shouldBe ProcessError("Welsh text at index index on stanza id = stanzaId is empty", "stanzaId")
     }
 
-    "from InconsistenQuestionError" in {
-      val details: ProcessError = InconsistenQuestionError("stanzaId")
+    "from InconsistentQuestionError" in {
+      val details: ProcessError = InconsistentQuestionError("stanzaId")
       details shouldBe ProcessError("Inconsistent QuestionStanza at id stanzaId, number of answers and next locations dont match", "stanzaId")
     }
 
