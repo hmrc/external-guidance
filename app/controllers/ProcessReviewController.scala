@@ -18,7 +18,7 @@ package controllers
 
 import controllers.actions.{FactCheckerIdentifierAction, TwoEyeReviewerIdentifierAction}
 import javax.inject.{Inject, Singleton}
-import models.errors.{InternalServerError => ServerError, _}
+import core.models.errors.{InternalServerError => ServerError, _}
 import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}

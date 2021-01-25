@@ -17,8 +17,9 @@
 package testOnly.repositories
 
 import javax.inject.{Inject, Singleton}
-import models.errors.DatabaseError
-import models.{PublishedProcess, RequestOutcome}
+import core.models.errors.DatabaseError
+import core.models.RequestOutcome
+import models.PublishedProcess
 import play.api.libs.json.Format
 import play.modules.reactivemongo.ReactiveMongoComponent
 import repositories.formatters.PublishedProcessFormatter

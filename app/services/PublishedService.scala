@@ -17,13 +17,14 @@
 package services
 
 import javax.inject.{Inject, Singleton}
-import models.errors.{BadRequestError, DuplicateKeyError, InternalServerError, NotFoundError}
-import models.ocelot._
-import models.{PublishedProcess, RequestOutcome}
+import core.models.errors.{BadRequestError, DuplicateKeyError, InternalServerError, NotFoundError}
+import core.models.ocelot._
+import core.models.RequestOutcome
+import models.PublishedProcess
 import play.api.Logger
 import play.api.libs.json.JsObject
 import repositories.PublishedRepository
-import services.shared.validateProcessId
+import core.services.validateProcessId
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

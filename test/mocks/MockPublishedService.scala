@@ -16,7 +16,8 @@
 
 package mocks
 
-import models.{PublishedProcess, RequestOutcome}
+import core.models.RequestOutcome
+import models.PublishedProcess
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.JsObject

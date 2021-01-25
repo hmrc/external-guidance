@@ -19,8 +19,9 @@ package repositories
 import java.util.UUID
 import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
-import models.errors.{DatabaseError, NotFoundError}
-import models.{RequestOutcome, ScratchProcess}
+import core.models.errors.{DatabaseError, NotFoundError}
+import core.models.RequestOutcome
+import models.ScratchProcess
 import play.api.libs.json.{Format, JsObject}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import repositories.formatters.ScratchProcessFormatter

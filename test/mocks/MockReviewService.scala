@@ -20,7 +20,7 @@ import models._
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import services.ReviewService
-
+import core.models.RequestOutcome
 import scala.concurrent.Future
 
 trait MockReviewService extends MockFactory {

@@ -16,7 +16,7 @@
 
 package models
 
-import models.ocelot.Process
+import core.models.ocelot.Process
 import play.api.libs.json.{Json, OFormat}
 
 case class AuditInfo(

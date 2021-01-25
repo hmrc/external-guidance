@@ -17,7 +17,7 @@
 package testOnly.controllers
 
 import javax.inject.{Inject, Singleton}
-import models.errors.{InternalServerError => ServerError}
+import core.models.errors.{InternalServerError => ServerError}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import testOnly.repositories.{ApprovalProcessReviewRepository, ApprovalRepository}

@@ -19,8 +19,9 @@ package repositories
 import java.time.ZonedDateTime
 
 import javax.inject.{Inject, Singleton}
-import models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
-import models.{PublishedProcess, RequestOutcome}
+import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
+import core.models.RequestOutcome
+import models.PublishedProcess
 import play.api.libs.json.{Format, JsObject, JsResultException, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.indexes.{Index, IndexType}

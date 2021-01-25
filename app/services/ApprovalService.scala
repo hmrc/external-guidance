@@ -21,11 +21,12 @@ import java.util.UUID
 import config.AppConfig
 import javax.inject.{Inject, Singleton}
 import models._
-import models.errors.{DuplicateKeyError, InternalServerError, NotFoundError}
+import core.models._
+import core.models.errors.{DuplicateKeyError, InternalServerError, NotFoundError}
 import play.api.Logger
 import play.api.libs.json._
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository, PublishedRepository}
-import services.shared._
+import core.services._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -42,7 +43,7 @@ class ApprovalService @Inject() (
   val logger: Logger = Logger(this.getClass)
 
   def save(incomingJson: JsObject, reviewType: String, initialStatus: String): Future[RequestOutcome[String]] =
-    guidancePages(pageBuilder, securedProcessBuilder, incomingJson).fold(
+    guidancePages(pageBuilder, incomingJson)(appConfig, securedProcessBuilder).fold(
       err => Future.successful(Left(err)),
       t => {
         val (process, pages, json) = t
