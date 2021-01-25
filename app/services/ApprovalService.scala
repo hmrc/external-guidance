@@ -97,7 +97,7 @@ class ApprovalService @Inject() (
     repository.getById(id) map {
       case Left(NotFoundError) => Left(NotFoundError)
       case Left(_) => Left(InternalServerError)
-      case Right(result) => Right(result.process)
+      case Right(result) => disableProcessPassPhrase(result.process)
     }
 
   def getByProcessCode(processCode: String): Future[RequestOutcome[JsObject]] =

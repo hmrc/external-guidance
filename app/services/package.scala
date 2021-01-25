@@ -22,6 +22,7 @@ import core.models.RequestOutcome
 import core.models.ocelot.Process
 import play.api.libs.json._
 import config.AppConfig
+import core.models.ocelot.stanzas.{Value, ValueStanza}
 
 package object services {
   def guidancePages(pageBuilder: PageBuilder, jsObject: JsObject)
@@ -34,6 +35,25 @@ package object services {
           errs => Left(Error(errs)),
           pages => Right((p, pages, js))
         )
+      }
+    )
+
+  // Disable passPhrase protection by providing the correct passphrase response value in page ValueStanza
+  private[services] def disableProcessPassPhrase(jsObject: JsObject): RequestOutcome[JsObject] =
+    jsObject.validate[Process].fold(errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
+      process => {
+        process.passPhrase.fold(Right(jsObject)){passphrase =>
+          process.flow.get(SecuredProcess.ResponseValueStanzaId).fold[Option[ValueStanza]](None){
+            case vs: ValueStanza =>
+              Some(vs.copy(values = vs.values.map{
+                case v: Value if v.label == SecuredProcess.PassPhraseResponseLabelName => v.copy(value = passphrase)
+                case v => v
+              }))
+            case _ => None
+          }
+          .map{vs => process.copy(flow = process.flow ++ Seq(SecuredProcess.ResponseValueStanzaId -> vs))}
+          .fold(Right(jsObject))(p => Right(Json.toJsObject(p)))
+        }
       }
     )
 

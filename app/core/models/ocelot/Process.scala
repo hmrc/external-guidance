@@ -23,6 +23,7 @@ import core.models.ocelot.stanzas._
 object SecuredProcess {
   val InputId: String = "passinput"
   val ChoiceId: String = "passchoice"
+  val ResponseValueStanzaId: String = "passresponse"
   val SecuredProcessStartUrl = "authenticate"
   val PassPhrasePageId = "passphrasepage"
   val PassPhraseLabelName = "_GuidancePassPhrase"
@@ -30,18 +31,22 @@ object SecuredProcess {
 }
 
 case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase], links: Vector[Link]) {
+  import SecuredProcess._
+  import Process._
   lazy val phraseOption: Int => Option[Phrase] = phrases.lift
   lazy val linkOption: Int => Option[Link] = links.lift
-  lazy val title: Phrase = meta.titlePhrase.fold(Phrase(meta.title, meta.title)){
-    titleIndex => phraseOption(titleIndex).getOrElse(Phrase(meta.title, meta.title))
-  }
-  lazy val startUrl: Option[String] = flow.get(Process.StartStanzaId).collect{case ps: PageStanza => ps.url}
-  lazy val startPageId: String = flow.get(SecuredProcess.PassPhrasePageId).fold(Process.StartStanzaId)(_ => SecuredProcess.PassPhrasePageId)
-  lazy val passPhrase: Option[String] =
-    flow.values
+  lazy val title: Phrase = meta.titlePhrase.fold(Phrase(meta.title, meta.title))(idx => phraseOption(idx).getOrElse(Phrase(meta.title, meta.title)))
+  lazy val startUrl: Option[String] = flow.get(StartStanzaId).collect{case ps: PageStanza => ps.url}
+  lazy val startPageId: String = flow.get(PassPhrasePageId).fold(StartStanzaId)(_ => PassPhrasePageId)
+  lazy val passPhraseResponse: Option[String] = flow.get(ResponseValueStanzaId).fold[Option[String]](None){
+        case v: ValueStanza => v.values.find(_.label == PassPhraseResponseLabelName).map(_.value)
+        case _ => None
+      }
+  lazy val passPhrase: Option[String] = flow.values
       .collect{case vs: ValueStanza => vs.values}.flatten
-      .collect{case Value(_, SecuredProcess.PassPhraseLabelName, phrase) => phrase}
-      .headOption
+      .collectFirst{case Value(_, PassPhraseLabelName, phrase) => phrase}
+  // true if no passphrase or passphrase page contains a value stanza with the passphrase response included and correct
+  lazy val secure: Boolean = passPhrase.fold(true)(phrase => passPhraseResponse.fold(false)(_ == phrase))
 }
 
 object Process {
