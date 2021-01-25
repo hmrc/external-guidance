@@ -18,8 +18,8 @@ package controllers
 
 import controllers.actions.FakeIdentifierAction
 import mocks.MockApprovalService
-import models.errors.{BadRequestError, DuplicateKeyError, Error, InternalServerError, NotFoundError, ProcessError, ValidationError}
-import models.ocelot.errors.DuplicatePageUrl
+import core.models.errors.{BadRequestError, DuplicateKeyError, Error, InternalServerError, NotFoundError, ProcessError, ValidationError}
+import core.models.ocelot.errors.DuplicatePageUrl
 import models.{ApprovalProcess, ApprovalProcessJson}
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -30,7 +30,7 @@ import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.formatters.ApprovalProcessFormatter
-import services.shared.toProcessErr
+import core.services.toProcessErr
 import models.Constants._
 
 import scala.concurrent.Future

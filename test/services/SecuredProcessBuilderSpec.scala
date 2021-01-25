@@ -16,10 +16,10 @@
 
 package services
 
-import services.shared.PageBuilder
+import core.services.PageBuilder
 import base.BaseSpec
-import models.ocelot._
-import models.ocelot.stanzas.Stanza
+import core.models.ocelot._
+import core.models.ocelot.stanzas.Stanza
 import play.api.libs.json._
 import mocks.MockAppConfig
 

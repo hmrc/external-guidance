@@ -20,8 +20,9 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 import javax.inject.{Inject, Singleton}
-import models.errors.{DatabaseError, NotFoundError}
-import models.{ApprovalProcessPageReview, ApprovalProcessReview, RequestOutcome}
+import core.models.errors.{DatabaseError, NotFoundError}
+import core.models.RequestOutcome
+import models.{ApprovalProcessPageReview, ApprovalProcessReview}
 import play.api.libs.json.{Format, JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.indexes.{Index, IndexType}

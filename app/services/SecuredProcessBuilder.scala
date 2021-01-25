@@ -18,8 +18,8 @@ package services
 
 import javax.inject.{Inject, Singleton}
 import config.AppConfig
-import models.ocelot.{Phrase, Process}
-import models.ocelot.stanzas.{Txt, Equals, Stanza, PageStanza, InputStanza, ChoiceStanza, ChoiceStanzaTest}
+import core.models.ocelot.{Phrase, Process}
+import core.models.ocelot.stanzas.{Txt, Equals, Stanza, PageStanza, InputStanza, ChoiceStanza, ChoiceStanzaTest}
 
 @Singleton
 class SecuredProcessBuilder @Inject()(appConfig: AppConfig) {

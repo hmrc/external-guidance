@@ -22,7 +22,7 @@ import base.BaseSpec
 import models.ScratchProcess
 import play.api.libs.json.{JsSuccess, Json}
 import java.time.{ZonedDateTime, Instant}
-import models.MongoDateTimeFormats
+import core.models.MongoDateTimeFormats
 
 class ScratchProcessFormatterSpec extends BaseSpec with MongoDateTimeFormats {
 

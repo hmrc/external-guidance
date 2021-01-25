@@ -23,7 +23,8 @@ import base.BaseSpec
 import data.ReviewData
 import mocks.{MockApprovalProcessReviewRepository, MockApprovalRepository, MockPublishedService}
 import models._
-import models.errors._
+import core.models._
+import core.models.errors._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.PrivateMethodTester
 import play.api.libs.json.Json

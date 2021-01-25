@@ -18,7 +18,6 @@ package models
 
 import java.time.LocalDate
 import java.util.UUID
-
 import play.api.libs.json.{Json, OFormat}
 
 case class ProcessReview(id: UUID, ocelotId: String, version: Int, reviewType: String, title: String, lastUpdated: LocalDate, pages: List[PageReview])

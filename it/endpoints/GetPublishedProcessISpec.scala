@@ -15,7 +15,7 @@
  */
 package endpoints
 
-import models.errors.NotFoundError
+import core.models.errors.NotFoundError
 import play.api.http.{ContentTypes, Status}
 import play.api.libs.json.{JsObject, JsValue}
 import play.api.libs.ws.{WSRequest, WSResponse}

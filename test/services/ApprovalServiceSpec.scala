@@ -18,16 +18,17 @@ package services
 
 import java.time.ZonedDateTime
 import java.util.UUID
-import services.shared.PageBuilder
+import core.services.PageBuilder
 import base.BaseSpec
 import mocks.{MockAppConfig, MockApprovalProcessReviewRepository, MockApprovalRepository, MockPublishedRepository}
 import models._
-import models.errors._
-import models.ocelot.ProcessJson
+import core.models._
+import core.models.errors._
+import core.models.ocelot.ProcessJson
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsArray, JsObject, Json}
 import models.Constants._
-
+import core.models.RequestOutcome
 import scala.concurrent.Future
 
 class ApprovalServiceSpec extends BaseSpec with MockFactory {

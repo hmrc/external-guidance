@@ -20,7 +20,7 @@ import controllers.actions.{FakeFactCheckerIdentifierAction, FakeTwoEyeReviewerI
 import data.ReviewData
 import mocks.MockReviewService
 import models._
-import models.errors._
+import core.models.errors._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}

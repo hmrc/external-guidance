@@ -17,7 +17,7 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-import models.errors.{BadRequestError, ValidationError, Error, InternalServerError => ServerError, NotFoundError}
+import core.models.errors.{BadRequestError, ValidationError, Error, InternalServerError => ServerError, NotFoundError}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.ScratchService

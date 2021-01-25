@@ -17,8 +17,8 @@
 package mocks
 
 import java.util.UUID
-
-import models.{ApprovalProcessPageReview, ApprovalProcessReview, RequestOutcome}
+import core.models.RequestOutcome
+import models.{ApprovalProcessPageReview, ApprovalProcessReview}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import repositories.ApprovalProcessReviewRepository

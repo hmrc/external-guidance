@@ -19,8 +19,9 @@ package testOnly.repositories
 import java.util.UUID
 
 import javax.inject.{Inject, Singleton}
-import models.errors.DatabaseError
-import models.{ApprovalProcessReview, RequestOutcome}
+import core.models.errors.DatabaseError
+import core.models.RequestOutcome
+import models.ApprovalProcessReview
 import play.api.libs.json.Format
 import play.modules.reactivemongo.ReactiveMongoComponent
 import repositories.formatters.ApprovalProcessReviewFormatter
