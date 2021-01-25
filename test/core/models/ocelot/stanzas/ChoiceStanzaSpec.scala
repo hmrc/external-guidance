@@ -144,7 +144,7 @@ class ChoiceStanzaSpec extends BaseSpec {
 
   "ChoiceStanza" must {
 
-    "deserialise from json" in {
+    "deserialize from json" in {
 
       val stanza: ChoiceStanza = validChoiceStanzaJson.as[ChoiceStanza]
 
@@ -170,7 +170,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       json shouldBe expectedJson
     }
 
-    "fail to parse if an unkown value type is found" in {
+    "fail to parse if an unknown value type is found" in {
       invalidChoiceStanzaJson.as[JsObject].validate[ChoiceStanza] match {
         case JsSuccess(_, _) => fail(s"Value objects must be of valid type")
         case JsError(_) => succeed
@@ -245,6 +245,53 @@ class ChoiceStanzaSpec extends BaseSpec {
       choice.eval(lc) shouldBe expectedResult
     }
 
+    "Evaluate to correct result when date test succeeds referencing labels" in {
+
+      val next: Seq[String] = Seq("1", "0")
+
+      val stanza: ChoiceStanza = ChoiceStanza(
+        next,
+        Seq(ChoiceStanzaTest("[label:date1]", LessThanOrEquals, "[label:date2]")),
+        stack = false)
+
+      val choice: Choice = Choice(stanza)
+
+      val labels: Map[String, Label] = Map(
+        "date1" -> Label("date1", Some("19/01/2021")),
+        "date2" -> Label("date2", Some("20/01/2021"))
+      )
+
+      val lc = LabelCache(labels)
+
+      val expectedResult = ("1", lc)
+
+      choice.eval(lc) shouldBe expectedResult
+    }
+
+    "Evaluate to correct result when date test fails referencing labels" in {
+
+      val next: Seq[String] = Seq("1,", "0")
+
+      val stanza: ChoiceStanza = ChoiceStanza(
+        next,
+        Seq(ChoiceStanzaTest("[label:date1]", MoreThanOrEquals, "[label:date2]")),
+        stack = false
+      )
+
+      val choice: Choice = Choice(stanza)
+
+      val labels: Map[String, Label] = Map(
+        "date1" -> Label("date1", Some("19/01/2021")),
+        "date2" -> Label("date2", Some("20/01/2021"))
+      )
+
+      val lc = LabelCache(labels)
+
+      val expectedResult = ("0", lc)
+
+      choice.eval(lc) shouldBe expectedResult
+    }
+
   }
 
   "ChoiceTest" must {
@@ -264,6 +311,10 @@ class ChoiceStanzaSpec extends BaseSpec {
       EqualsTest("hello", "hello").eval(LabelCache()) shouldBe true
 
       EqualsTest("4", "hello").eval(LabelCache()) shouldBe false
+
+      EqualsTest("20/01/2021", "20/01/2021").eval(LabelCache()) shouldBe true
+
+      EqualsTest("20/01/2021", "21/01/2021").eval(LabelCache()) shouldBe false
     }
 
     "provide support to NotEqualsTest" in {
@@ -278,6 +329,10 @@ class ChoiceStanzaSpec extends BaseSpec {
       NotEqualsTest("hello", "hello").eval(LabelCache()) shouldBe false
 
       NotEqualsTest("4", "hello").eval(LabelCache()) shouldBe true
+
+      NotEqualsTest("20/01/2021", "20/01/2021").eval(LabelCache()) shouldBe false
+
+      NotEqualsTest("20/01/2021", "21/01/2021").eval(LabelCache()) shouldBe true
     }
 
     "provide support to MoreThanTest" in {
@@ -294,6 +349,12 @@ class ChoiceStanzaSpec extends BaseSpec {
       MoreThanTest("hello", "hello").eval(LabelCache()) shouldBe false
 
       MoreThanTest("4", "hello").eval(LabelCache()) shouldBe false
+
+      MoreThanTest("20/01/2021", "21/01/2021").eval(LabelCache()) shouldBe false
+
+      MoreThanTest("21/01/2021", "21/01/2021").eval(LabelCache()) shouldBe false
+
+      MoreThanTest("21/01/2021", "20/01/2021").eval(LabelCache()) shouldBe true
     }
 
     "provide support to MoreThanOrEqualsTest" in {
@@ -308,6 +369,12 @@ class ChoiceStanzaSpec extends BaseSpec {
       MoreThanOrEqualsTest("hello", "hello").eval(LabelCache()) shouldBe true
 
       MoreThanOrEqualsTest("4", "hello").eval(LabelCache()) shouldBe false
+
+      MoreThanOrEqualsTest("20/01/2021", "21/01/2021").eval(LabelCache()) shouldBe false
+
+      MoreThanOrEqualsTest("21/01/2021", "21/01/2021").eval(LabelCache()) shouldBe true
+
+      MoreThanOrEqualsTest("21/01/2021", "20/01/2021").eval(LabelCache()) shouldBe true
     }
 
     "provide support to LessThanTest" in {
@@ -322,6 +389,12 @@ class ChoiceStanzaSpec extends BaseSpec {
       LessThanTest("hello", "hello").eval(LabelCache()) shouldBe false
 
       LessThanTest("4", "hello").eval(LabelCache()) shouldBe true
+
+      LessThanTest("20/01/2021", "21/01/2021").eval(LabelCache()) shouldBe true
+
+      LessThanTest("20/01/2021", "20/01/2021").eval(LabelCache()) shouldBe false
+
+      LessThanTest("21/01/2021", "20/01/2021").eval(LabelCache()) shouldBe false
     }
 
     "provide support to LessThanOrEqualsTest" in {
@@ -336,6 +409,12 @@ class ChoiceStanzaSpec extends BaseSpec {
       LessThanOrEqualsTest("hello", "hello").eval(LabelCache()) shouldBe true
 
       LessThanOrEqualsTest("4", "hello").eval(LabelCache()) shouldBe true
+
+      LessThanOrEqualsTest("20/01/2021", "21/01/2021").eval(LabelCache()) shouldBe true
+
+      LessThanOrEqualsTest("20/01/2021", "20/01/2021").eval(LabelCache()) shouldBe true
+
+      LessThanOrEqualsTest("21/01/2021", "20/01/2021").eval(LabelCache()) shouldBe false
     }
   }
 
@@ -443,7 +522,7 @@ class ChoiceStanzaSpec extends BaseSpec {
     }
   }
 
-  "Page buiding" must {
+  "Page building" must {
     "be able to detect UnknownTestType error" in {
       onePageJsonWithInvalidTestType.as[JsObject].validate[Process] match {
         case JsSuccess(_, _) => fail
