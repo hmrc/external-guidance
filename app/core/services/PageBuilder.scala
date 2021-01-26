@@ -95,7 +95,7 @@ class PageBuilder extends ProcessPopulation {
     )
 
   def fromPageDetails[A](pages: Seq[Page])(f: (String, String, String) => A): List[A] =
-    pages.toList.flatMap { page =>
+    pages.filterNot(_.url.equals(s"/${SecuredProcess.SecuredProcessStartUrl}")).toList.flatMap { page =>
       page.stanzas.collectFirst {
         case TitleCallout(text, _, _) =>
           f(page.id, page.url, text.english)
