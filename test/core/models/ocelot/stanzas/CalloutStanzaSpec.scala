@@ -231,7 +231,7 @@ class CalloutStanzaSpec extends BaseSpec {
     }
 
     "Create WarningCallout from Warning noteType" in {
-      Callout(expectedWarningCalloutStanza, models.ocelot.Phrase()) match {
+      Callout(expectedWarningCalloutStanza, core.models.ocelot.Phrase()) match {
         case _: WarningCallout => succeed
         case _ => fail
       }
