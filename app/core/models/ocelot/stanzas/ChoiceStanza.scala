@@ -70,8 +70,6 @@ sealed trait ChoiceTest {
   val right: String
   def eval(labels: Labels): Boolean
   def value(arg: String, labels: Labels): String = labelReference(arg).fold(arg)(ref => labels.value(ref).getOrElse(""))
-  def moreThanOrEquals(date: LocalDate, other: LocalDate): Boolean = date.compareTo(other) >= 0
-  def lessThanOrEquals(date: LocalDate, other: LocalDate): Boolean = date.compareTo(other) <= 0
 
   def op(f: (BigDecimal, BigDecimal) => Boolean, g: (String, String) => Boolean, h: (LocalDate, LocalDate) => Boolean, labels: Labels): Boolean = {
     val x = value(left, labels)
@@ -100,7 +98,7 @@ case class MoreThanTest(left: String, right: String) extends ChoiceTest {
 }
 
 case class MoreThanOrEqualsTest(left: String, right: String) extends ChoiceTest {
-  def eval(labels: Labels): Boolean = op(_ >= _, _ >= _, moreThanOrEquals, labels)
+  def eval(labels: Labels): Boolean = op(_ >= _, _ >= _, _.compareTo(_) >= 0, labels)
 }
 
 case class LessThanTest(left: String, right: String) extends ChoiceTest {
@@ -108,7 +106,7 @@ case class LessThanTest(left: String, right: String) extends ChoiceTest {
 }
 
 case class LessThanOrEqualsTest(left: String, right: String) extends ChoiceTest {
-  def eval(labels: Labels): Boolean = op(_ <= _, _ <= _, lessThanOrEquals, labels)
+  def eval(labels: Labels): Boolean = op(_ <= _, _ <= _, _.compareTo(_) <= 0, labels)
 }
 
 case class Choice(override val next: Seq[String], tests: Seq[ChoiceTest]) extends Stanza with Evaluate {
