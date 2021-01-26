@@ -36,14 +36,13 @@ class ApprovalService @Inject() (
     reviewRepository: ApprovalProcessReviewRepository,
     publishedRepository: PublishedRepository,
     pageBuilder: PageBuilder,
-    securedProcessBuilder: SecuredProcessBuilder,
     implicit val appConfig: AppConfig
 ) {
 
   val logger: Logger = Logger(this.getClass)
 
   def save(incomingJson: JsObject, reviewType: String, initialStatus: String): Future[RequestOutcome[String]] =
-    guidancePages(pageBuilder, incomingJson)(appConfig, securedProcessBuilder).fold(
+    guidancePages(pageBuilder, incomingJson).fold(
       err => Future.successful(Left(err)),
       t => {
         val (process, pages, json) = t
@@ -97,7 +96,7 @@ class ApprovalService @Inject() (
     repository.getById(id) map {
       case Left(NotFoundError) => Left(NotFoundError)
       case Left(_) => Left(InternalServerError)
-      case Right(result) => disableProcessPassPhrase(result.process)
+      case Right(result) => Right(result.process)
     }
 
   def getByProcessCode(processCode: String): Future[RequestOutcome[JsObject]] =

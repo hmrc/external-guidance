@@ -22,38 +22,18 @@ import core.models.RequestOutcome
 import core.models.ocelot.Process
 import play.api.libs.json._
 import config.AppConfig
-import core.models.ocelot.stanzas.{Value, ValueStanza}
 
 package object services {
   def guidancePages(pageBuilder: PageBuilder, jsObject: JsObject)
-                   (implicit c: AppConfig, spd: SecuredProcessBuilder): RequestOutcome[(Process, Seq[Page], JsObject)] =
+                   (implicit c: AppConfig): RequestOutcome[(Process, Seq[Page], JsObject)] =
     jsObject.validate[Process].fold(errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
       incomingProcess => {
-        // Transform process if fake welsh required and/or secured process is indicated
+        // Transform process if fake welsh and/or secured process is indicated
         val (p, js) = fakeWelshTextIfRequired _ tupled securedProcessIfRequired(incomingProcess, jsObject)
         pageBuilder.pagesWithValidation(p, p.startPageId).fold(
           errs => Left(Error(errs)),
           pages => Right((p, pages, js))
         )
-      }
-    )
-
-  // Disable passPhrase protection by providing the correct passphrase response value in page ValueStanza
-  private[services] def disableProcessPassPhrase(jsObject: JsObject): RequestOutcome[JsObject] =
-    jsObject.validate[Process].fold(errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
-      process => {
-        process.passPhrase.fold(Right(jsObject)){passphrase =>
-          process.flow.get(SecuredProcess.ResponseValueStanzaId).fold[Option[ValueStanza]](None){
-            case vs: ValueStanza =>
-              Some(vs.copy(values = vs.values.map{
-                case v: Value if v.label == SecuredProcess.PassPhraseResponseLabelName => v.copy(value = passphrase)
-                case v => v
-              }))
-            case _ => None
-          }
-          .map{vs => process.copy(flow = process.flow ++ Seq(SecuredProcess.ResponseValueStanzaId -> vs))}
-          .fold(Right(jsObject))(p => Right(Json.toJsObject(p)))
-        }
       }
     )
 
@@ -63,9 +43,10 @@ package object services {
       (fakedWelshProcess, Json.toJsObject(fakedWelshProcess))
     } else (process, jsObject)
 
-  private[services] def securedProcessIfRequired(process: Process, jsObject: JsObject)(implicit spb: SecuredProcessBuilder): (Process, JsObject) =
-    process.passPhrase.fold((process, jsObject)){_ =>
-      val securedProcess = spb.secure(process)
+  private[services] def securedProcessIfRequired(p: Process, jsObject: JsObject): (Process, JsObject) =
+    p.valueStanzaPassPhrase.fold((p, jsObject)){passPhrase =>
+      // Add optional passphrase to process meta section
+      val securedProcess = p.copy(meta = p.meta.copy(passPhrase = Some(passPhrase)))
       (securedProcess, Json.toJsObject(securedProcess))
     }
 }

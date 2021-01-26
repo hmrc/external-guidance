@@ -62,10 +62,10 @@ class MetaSpec extends BaseSpec {
 
   val validJsonWithOptionalProperties: JsObject = Json.parse(validJsonWithOptionalPropertiesAsString).as[JsObject]
 
-  val validModel: Meta = Meta(id, title, ocelotVersion, author, lastUpdate, version, filename, None, processCode)
+  val validModel: Meta = Meta(id, title, None, ocelotVersion, author, lastUpdate, version, filename, None, processCode)
 
   val validModelWithOptionalProperties: Meta = Meta(
-    id, title, ocelotVersion, author, lastUpdate, version, filename, Some(titlePhrase), processCode )
+    id, title, None, ocelotVersion, author, lastUpdate, version, filename, Some(titlePhrase), processCode )
 
   "Meta section" must {
 
