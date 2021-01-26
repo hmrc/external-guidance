@@ -87,6 +87,7 @@ trait ProcessJson {
       |{
       |  "meta": {
       |    "title": "Customer wants to make a cup of tea",
+      |    "passPhrase": "A not so memorable phrase",
       |    "id": "oct90001",
       |    "ocelot": 1,
       |    "lastAuthor": "000000",

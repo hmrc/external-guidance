@@ -21,6 +21,7 @@ import play.api.libs.functional.syntax._
 
 case class Meta(id: String,
                 title: String,
+                passPhrase: Option[String],
                 ocelot: Int,
                 lastAuthor: String,
                 lastUpdate: Long,
@@ -33,6 +34,7 @@ object Meta {
 
   def buildMetaSection(id: String,
                 title: String,
+                passPhrase: Option[String],
                 ocelot: Int,
                 lastAuthor: String,
                 lastUpdate: Long,
@@ -42,6 +44,7 @@ object Meta {
                 processCode: String): Meta =
     Meta(id,
          title,
+         passPhrase,
          ocelot,
          lastAuthor,
          lastUpdate,
@@ -54,6 +57,7 @@ object Meta {
   implicit val metaReads: Reads[Meta] = (
     (__ \ "id").read[String] and
       (__ \ "title").read[String] and
+      (__ \ "passPhrase").readNullable[String] and
       (__ \ "ocelot").read[Int] and
       (__ \ "lastAuthor").read[String] and
       (__ \ "lastUpdate").read[Long] and
@@ -66,6 +70,7 @@ object Meta {
   implicit val writes: Writes[Meta] = (
     (__ \ "id").write[String] and
       (__ \ "title").write[String] and
+      (__ \ "passPhrase").writeNullable[String] and
       (__ \ "ocelot").write[Int] and
       (__ \ "lastAuthor").write[String] and
       (__ \ "lastUpdate").write[Long] and
