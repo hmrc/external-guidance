@@ -23,7 +23,7 @@ import play.api.libs.json._
 
 class CalculationStanzaSpec extends BaseSpec {
 
-  def getMultipleCalcCalculationStanzaAsJsValue(): JsValue = Json.parse(
+  def getMultipleCalcCalculationStanzaAsJsValue: JsValue = Json.parse(
     s"""|{
         | "next": [ "21" ],
         | "stack": true,
@@ -54,7 +54,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
   )
 
-  val validCalculationStanzaAsJsObject: JsObject = getMultipleCalcCalculationStanzaAsJsValue().as[JsObject]
+  val validCalculationStanzaAsJsObject: JsObject = getMultipleCalcCalculationStanzaAsJsValue.as[JsObject]
 
   trait Test {
 
@@ -77,7 +77,7 @@ class CalculationStanzaSpec extends BaseSpec {
           |}""".stripMargin
     )
 
-    def getZeroCalcCalculationStanzaAsJsValue(): JsValue = Json.parse(
+    def getZeroCalcCalculationStanzaAsJsValue: JsValue = Json.parse(
       s"""|{
           | "type": "CalculationStanza",
           | "calcs": [],
@@ -208,7 +208,7 @@ class CalculationStanzaSpec extends BaseSpec {
       flowDef.replaceAll("<calcStanza>", calcStanzaDef)
     )
 
-    def getIntegerScaleFactorCalculationStanzaAsJsValue(): JsValue = Json.parse(
+    def getIntegerScaleFactorCalculationStanzaAsJsValue: JsValue = Json.parse(
       s"""|{
           | "next": [ "21" ],
           | "stack": true,
@@ -235,8 +235,8 @@ class CalculationStanzaSpec extends BaseSpec {
           | "type": "CalculationStanza",
           | "calcs": [
           |             {"left":"[label:inputE]",
-          |             "op":"${op}",
-          |             "right":"${scaleFactor}",
+          |             "op":"$op",
+          |             "right":"$scaleFactor",
           |             "label":"outputD"
           |             }
           |           ]
@@ -306,7 +306,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
     "deserialize calculation stanza with multiple calculation operations" in new Test {
 
-      val calcStanzaAsJsValue: JsValue = getMultipleCalcCalculationStanzaAsJsValue()
+      val calcStanzaAsJsValue: JsValue = getMultipleCalcCalculationStanzaAsJsValue
 
       calcStanzaAsJsValue.validate[CalculationStanza] match {
         case JsSuccess(calcStanza, _) => calcStanza shouldBe expectedMultipleCalcCalculationStanza
@@ -320,7 +320,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
     "Raise an error for a calculation stanza with an empty array of calculation operations" in new Test {
 
-      val invalidCalcStanzaAsJsValue: JsValue = getZeroCalcCalculationStanzaAsJsValue()
+      val invalidCalcStanzaAsJsValue: JsValue = getZeroCalcCalculationStanzaAsJsValue
 
       invalidCalcStanzaAsJsValue.validate[CalculationStanza] match {
         case e: JsError => succeed
@@ -389,7 +389,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
     "serialize a calculation stanza with multiple operations" in new Test {
 
-      val expectedResult: String = getMultipleCalcCalculationStanzaAsJsValue().toString()
+      val expectedResult: String = getMultipleCalcCalculationStanzaAsJsValue.toString()
 
       val stanza: Stanza = expectedMultipleCalcCalculationStanza
       val actualResult: String = Json.toJson(stanza).toString()
@@ -409,8 +409,8 @@ class CalculationStanzaSpec extends BaseSpec {
         case JsSuccess(_, _) => fail("A process should not be created from invalid JSON")
         case JsError(errs) => GuidanceError.fromJsonValidationErrors(errs) match {
             case Nil => fail("Nothing to match from guidance error conversion")
-            case UnknownCalcOperationType("3", sqrt) :: _ => succeed
-            case errs => fail("An error occurred processing Json validation errors")
+            case UnknownCalcOperationType("3", sqrt) +: _ => succeed
+            case _ => fail("An error occurred processing Json validation errors")
           }
       }
     }
@@ -422,14 +422,13 @@ class CalculationStanzaSpec extends BaseSpec {
         calculationStanzaWithIncorrectType
       ).as[JsObject].validate[Process] match {
         case JsSuccess(_,_) => fail("A process should not be created from invalid JSON")
-        case JsError(errs) => {
+        case JsError(errs) =>
           val error = GuidanceError.fromJsonValidationErrors(errs)
           error match {
             case Nil => fail("Nothing to match from guidance error conversion")
-            case UnknownCalcOperationType("3", "false") :: _ => succeed
+            case UnknownCalcOperationType("3", "false") +: _ => succeed
             case errs => fail("An error occurred processing Json validation errors")
           }
-        }
       }
     }
   }

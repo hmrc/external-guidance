@@ -49,7 +49,7 @@ case class ValueStanza(values: List[Value], override val next: Seq[String], stac
     def assignValtoLabels(vs: List[Value], labels: Labels): Labels =
       vs match {
         case Nil => labels
-        case x :: xs => assignValtoLabels(xs, labels.update(x.label, x.value))
+        case x +: xs => assignValtoLabels(xs, labels.update(x.label, x.value))
       }
     (next.head, assignValtoLabels(values, originalLabels))
   }
