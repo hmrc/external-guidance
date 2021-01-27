@@ -51,7 +51,7 @@ class CalloutStanzaSpec extends BaseSpec {
   val oldNumberedList: String = "NumberedList"
   val oldNumberedCircleList: String = "NumberedCircleList"
   val noteType: String = "Note"  // note is defined in parent class
-  val warningType: String = "Warning"  // note is defined in parent class
+  val warningType: String = "Important"  // note is defined in parent class
   val end: String = "end"
 
   val stackFalse: Boolean = false
