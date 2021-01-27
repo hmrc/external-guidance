@@ -24,7 +24,7 @@ import play.api.libs.json._
 import config.AppConfig
 
 package object services {
-  def guidancePages(pageBuilder: PageBuilder, jsObject: JsObject)
+  def guidancePagesAndProcess(pageBuilder: PageBuilder, jsObject: JsObject)
                    (implicit c: AppConfig): RequestOutcome[(Process, Seq[Page], JsObject)] =
     jsObject.validate[Process].fold(errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
       incomingProcess => {
