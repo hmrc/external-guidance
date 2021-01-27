@@ -21,7 +21,7 @@ import core.models.errors.{InternalServerError => ServerError}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import testOnly.repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

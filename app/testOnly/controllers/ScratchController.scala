@@ -20,7 +20,7 @@ import javax.inject.{Inject, Singleton}
 import core.models.errors.{InternalServerError => ServerError}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import testOnly.repositories.ScratchRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
