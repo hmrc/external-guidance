@@ -32,12 +32,11 @@ case object ValueError extends CalloutType
 case object TypeError extends CalloutType
 
 case object Lede extends CalloutType
-case object Important extends CalloutType
+case object Important extends CalloutType // Used to display Warning Text
 case object YourCall extends CalloutType  // "Your Decision" stanza in Ocelot editor
 case object NumListItem extends CalloutType
 case object NumCircListItem extends CalloutType
 case object Note extends CalloutType // Used to display Inset Text
-case object Warning extends CalloutType // Used to display Warning Text
 
 
 
