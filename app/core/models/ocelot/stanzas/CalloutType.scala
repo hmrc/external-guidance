@@ -32,12 +32,11 @@ case object ValueError extends CalloutType
 case object TypeError extends CalloutType
 
 case object Lede extends CalloutType
-case object Important extends CalloutType
+case object Important extends CalloutType // Used to display Warning Text
 case object YourCall extends CalloutType  // "Your Decision" stanza in Ocelot editor
 case object NumListItem extends CalloutType
 case object NumCircListItem extends CalloutType
 case object Note extends CalloutType // Used to display Inset Text
-case object Warning extends CalloutType // Used to display Warning Text
 
 
 
@@ -59,7 +58,6 @@ object CalloutType {
     case JsString("NumberedListItem") => JsSuccess(NumListItem, __)
     case JsString("NumberedCircleListItem") => JsSuccess(NumCircListItem, __)
     case JsString("Note") => JsSuccess(Note, __)
-    case JsString("Warning") => JsSuccess(Warning, __)
     case typeName: JsString => JsError(JsonValidationError(Seq("CalloutType"), typeName.value))
     case unknown => JsError(JsonValidationError(Seq("CalloutType"), unknown.toString))
   }
@@ -78,7 +76,6 @@ object CalloutType {
     case NumListItem => Json.toJson("NumberedListItem")
     case NumCircListItem => Json.toJson("NumberedCircleListItem")
     case Note => Json.toJson("Note")
-    case Warning => Json.toJson("Warning")
 
   }
 
