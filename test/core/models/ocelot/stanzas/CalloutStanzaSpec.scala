@@ -97,7 +97,6 @@ class CalloutStanzaSpec extends BaseSpec {
   val expectedNoteCalloutStanza: CalloutStanza = buildCalloutStanza(Note)
   val expectedWarningCalloutStanza: CalloutStanza = buildCalloutStanza(Warning)
 
-
   val jsonToStanzaMappings: Map[JsValue, CalloutStanza] = Map(
     titleCalloutStanzaInputJson -> expectedTitleCalloutStanza,
     subTitleCalloutStanzaInputJson -> expectedSubTitleCalloutStanza,
@@ -337,6 +336,7 @@ class CalloutStanzaSpec extends BaseSpec {
     val stanza: Stanza = expectedWarningCalloutStanza
     Json.toJson(stanza).toString shouldBe """{"next":["1"],"noteType":"Warning","stack":false,"text":0,"type":"CalloutStanza"}"""
   }
+
   /** Test for missing properties in Json object representing instruction stanzas */
   missingJsObjectAttrTests[CalloutStanza](validCalloutStanzaAsJsObject, List("type"))
 
