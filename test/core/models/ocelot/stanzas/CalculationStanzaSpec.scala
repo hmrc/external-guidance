@@ -732,6 +732,108 @@ class CalculationStanzaSpec extends BaseSpec {
       updatedLabels shouldBe labelCache
     }
 
+    "evaluate a set of date subtraction operations using constants" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("10/01/2020", Subtraction, "08/01/2020", "result1"),
+        CalcOperation("8/1/2020", Subtraction, "10/1/2020", "result2"),
+        CalcOperation("8/1/2020", Subtraction, "08/01/2020", "result3")
+      )
+
+      val next: Seq[String] = Seq("16")
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, next, stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val labelCache = LabelCache()
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "16"
+
+      updatedLabels.value("result1") shouldBe Some("2")
+      updatedLabels.value("result2") shouldBe Some("-2")
+      updatedLabels.value("result3") shouldBe Some("0")
+
+    }
+
+    "evaluate a set of date subtraction operations using values from the label cache" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("[label:date1]", Subtraction, "[label:date2]", "result1"),
+        CalcOperation("[label:date3]", Subtraction, "[label:date4]", "result2"),
+        CalcOperation("[label:date5]", Subtraction, "[label:date6]", "result3"),
+        CalcOperation("[label:date7]", Subtraction, "[label:date8]", "result4")
+      )
+
+      val next: Seq[String] = Seq("44")
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, next, stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val date1: Label = Label("date1", Some("6/3/2019"))
+      val date2: Label = Label("date2", Some("2/2/2019"))
+      val date3: Label = Label("date3", Some("06/03/2020"))
+      val date4: Label = Label("date4", Some("02/02/2020"))
+      val date5: Label = Label("date5", Some("01/01/2016"))
+      val date6: Label = Label("date6", Some("01/01/2015"))
+      val date7: Label = Label("date7", Some("10/5/2015"))
+      val date8: Label = Label("date8", Some("8/9/2007"))
+
+      val labelMap: Map[String, Label] = Map(
+        date1.name -> date1,
+        date2.name -> date2,
+        date3.name -> date3,
+        date4.name -> date4,
+        date5.name -> date5,
+        date6.name -> date6,
+        date7.name -> date7,
+        date8.name -> date8
+      )
+
+      val labelCache = LabelCache(labelMap)
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "44"
+
+      updatedLabels.value("result1") shouldBe Some("32")
+      updatedLabels.value("result2") shouldBe Some("33")
+      updatedLabels.value("result3") shouldBe Some("365")
+      updatedLabels.value("result4") shouldBe Some("2801")
+    }
+
+    "not support addition of date values" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("[label:date1]", Addition, "[label:date2]", "result")
+      )
+
+      val next: Seq[String] = Seq("202")
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, next, stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val date1: Label = Label("date1", Some("07/10/2019"))
+      val date2: Label = Label("date2", Some("20/04/2021"))
+
+      val labelMap: Map[String, Label] = Map(
+        date1.name -> date1,
+        date2.name -> date2
+      )
+
+      val labelCache = LabelCache(labelMap)
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "202"
+
+      updatedLabels shouldBe labelCache
+    }
+
     "support ceiling operations where operands are defined by constants and the scale is zero" in {
 
       val calcOperations: Seq[CalcOperation] = Seq(

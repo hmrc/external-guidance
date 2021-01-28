@@ -16,13 +16,17 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot.{asAnyInt, asCurrency, labelReference, labelReferences, Label, Labels}
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
+
+import core.models.ocelot.{asAnyInt, asCurrency, asDate, labelReference, labelReferences, Label, Labels}
 import play.api.Logger
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 
 import scala.math.BigDecimal.RoundingMode
+import scala.util.Try
 
 case class CalculationStanza(calcs: Seq[CalcOperation], override val next: Seq[String], stack: Boolean) extends Stanza {
   override val labels: List[Label] = calcs.map(op => Label(op.label)).toList
@@ -43,7 +47,7 @@ object CalculationStanza {
       (JsPath \ "calcs").write[Seq[CalcOperation]] and
         (JsPath \ "next").write[Seq[String]] and
         (JsPath \ "stack").write[Boolean]
-      )(unlift(CalculationStanza.unapply))
+    )(unlift(CalculationStanza.unapply))
 }
 
 sealed trait Operation {
@@ -54,63 +58,73 @@ sealed trait Operation {
   val right: String
   val label: String
 
-  def eval(labels: Labels) : Labels
+  def eval(labels: Labels): Labels
 
-  def value(arg: String, labels: Labels): String = labelReference(arg).fold(arg){ref => labels.value(ref).getOrElse("")}
+  def value(arg: String, labels: Labels): String = labelReference(arg).fold(arg) { ref =>
+    labels.value(ref).getOrElse("")
+  }
 
   def toPlainString(value: BigDecimal): String = value.bigDecimal.toPlainString
 
-  def addString(s1: String, s2: String) : Option[String] = Option(s1 + s2)
+  def addString(s1: String, s2: String): Option[String] = Option(s1 + s2)
 
-  def unsupportedOperation(s1: String, s2: String) : Option[String] = {
+  def unsupportedOperation(arg1: Any, arg2: Any): Option[String] = {
 
     logger.error("Unsupported " + getOperation.toLowerCase + " calculation stanza operation defined in guidance")
 
     None
   }
 
-  private def getOperation : String = this.getClass.getSimpleName.replace("Operation", "")
+  private def getOperation: String = this.getClass.getSimpleName.replace("Operation", "")
 
-  def op(f: (BigDecimal, BigDecimal) => BigDecimal, g: (String, String) => Option[String], labels: Labels) : Labels = {
+  def op(f: (BigDecimal, BigDecimal) => BigDecimal,
+         g: (String, String) => Option[String],
+         h: (LocalDate, LocalDate) => Option[String],
+         labels: Labels): Labels = {
 
     val x: String = value(left, labels)
     val y: String = value(right, labels)
 
-    (asCurrency(x), asCurrency(y)) match {
-      case (Some(bg1), Some(bg2)) => {
-
-        val bg3 = f(bg1, bg2)
-
-        labels.update(label, toPlainString(bg3))
-      }
-      case _ =>
-        // Treat both operands as strings
-        g(x,y) match {
+    (asDate(x), asDate(y)) match {
+      case (Some(ld1), Some(ld2)) =>
+        // Treat operands as instances of local date
+        h(ld1, ld2) match {
           case Some(value) => labels.update(label, value)
           case None => labels
-      }
+        }
+      case _ =>
+        (asCurrency(x), asCurrency(y)) match {
+          case (Some(bg1), Some(bg2)) =>
+            // Treat operands as instances of big decimal
+            val bg3 = f(bg1, bg2)
+            labels.update(label, toPlainString(bg3))
+          case _ =>
+            // Treat both operands as strings
+            g(x, y) match {
+              case Some(value) => labels.update(label, value)
+              case None => labels
+            }
+        }
     }
 
   }
 
-  def rounding(f: (BigDecimal, Int) => BigDecimal, labels: Labels ) : Labels = {
+  def rounding(f: (BigDecimal, Int) => BigDecimal, labels: Labels): Labels = {
 
     val x: String = value(left, labels)
     val y: String = value(right, labels)
 
     (asCurrency(x), asAnyInt(y)) match {
 
-      case (Some(value), Some(scale)) => {
+      case (Some(value), Some(scale)) =>
 
         val scaledValue = f(value, scale)
-
         labels.update(label, toPlainString(scaledValue))
-      }
-      case _ => {
-        unsupportedOperation(x, y)
 
+      case _ =>
+
+        unsupportedOperation(x, y)
         labels
-      }
 
     }
 
@@ -120,26 +134,33 @@ sealed trait Operation {
 
 case class AddOperation(left: String, right: String, label: String) extends Operation {
 
-  def eval(labels: Labels): Labels = op(_ + _, addString, labels)
+  def eval(labels: Labels): Labels = op(_ + _, addString, unsupportedOperation, labels)
 
 }
 
 case class SubtractOperation(left: String, right: String, label: String) extends Operation {
 
-  def eval(labels: Labels): Labels = op(_ - _, unsupportedOperation, labels)
+  def eval(labels: Labels): Labels = op(_ - _, unsupportedOperation, subtractDate, labels)
+
+  private def subtractDate(date: LocalDate, other: LocalDate) : Option[String] = {
+
+    val days: Long = other.until(date, ChronoUnit.DAYS)
+
+    Try(days.toString).map(s => s).toOption
+  }
 
 }
 
 case class CeilingOperation(left: String, right: String, label: String) extends Operation {
 
-  def eval(labels: Labels) : Labels = rounding(ceiling, labels)
+  def eval(labels: Labels): Labels = rounding(ceiling, labels)
 
   private def ceiling(value: BigDecimal, scale: Int): BigDecimal = value.setScale(scale, RoundingMode.CEILING)
 }
 
 case class FloorOperation(left: String, right: String, label: String) extends Operation {
 
-  def eval(labels: Labels) : Labels = rounding(floor, labels)
+  def eval(labels: Labels): Labels = rounding(floor, labels)
 
   private def floor(value: BigDecimal, scale: Int): BigDecimal = value.setScale(scale, RoundingMode.FLOOR)
 }
@@ -151,7 +172,7 @@ case class Calculation(override val next: Seq[String], calcs: Seq[Operation]) ex
 
   def eval(labels: Labels): (String, Labels) = {
 
-    val updatedLabels: Labels = calcs.foldLeft(labels){case(l, f) => f.eval(l)}
+    val updatedLabels: Labels = calcs.foldLeft(labels) { case (l, f) => f.eval(l) }
 
     (next.last, updatedLabels)
   }
@@ -161,10 +182,9 @@ case class Calculation(override val next: Seq[String], calcs: Seq[Operation]) ex
 object Calculation {
 
   def apply(stanza: CalculationStanza): Calculation =
-
     Calculation(
       stanza.next,
-      stanza.calcs.map{ c =>
+      stanza.calcs.map { c =>
         c.op match {
           case Addition => AddOperation(c.left, c.right, c.label)
           case Subtraction => SubtractOperation(c.left, c.right, c.label)
