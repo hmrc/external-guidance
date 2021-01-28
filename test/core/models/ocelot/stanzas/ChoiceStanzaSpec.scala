@@ -98,7 +98,7 @@ class ChoiceStanzaSpec extends BaseSpec {
   val validChoiceStanzaJson: JsObject = Json
     .parse(
       s"""{
-      |  "type": "${stanzaType}",
+      |  "type": "$stanzaType",
       |  "tests": [
       |    {
       |      "left": "VAL-1",
@@ -112,7 +112,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       |    }
       |  ],
       |  "next": [${next.map(x => s""""$x"""").mkString(",")}],
-      |  "stack": ${stack}
+      |  "stack": $stack
       |}
     """.stripMargin
     )
@@ -121,7 +121,7 @@ class ChoiceStanzaSpec extends BaseSpec {
   val invalidChoiceStanzaJson: JsObject = Json
     .parse(
       s"""{
-      |  "type": "${stanzaType}",
+      |  "type": "$stanzaType",
       |  "tests": [
       |    {
       |      "left": "VAL-1",
@@ -135,7 +135,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       |    }
       |  ],
       |  "next": [${next.map(x => s""""$x"""").mkString(",")}],
-      |  "stack": ${stack}
+      |  "stack": $stack
       |}
     """.stripMargin
     )
@@ -429,7 +429,7 @@ class ChoiceStanzaSpec extends BaseSpec {
     val ne = """{"left": "VAL-3","test": "notEquals","right": "VAL-4"}"""
     val m = """{"left": "VAL-3","test": "moreThan","right": "VAL-4"}"""
     val me = """{"left": "VAL-3","test": "moreThanOrEquals","right": "VAL-4"}"""
-    def choiceStanzaJson(t1: String, t2: String) = s"""{"type": "ChoiceStanza","tests": [${t1},${t2}],"next": ["1", "2", "3"],"stack": true}"""
+    def choiceStanzaJson(t1: String, t2: String) = s"""{"type": "ChoiceStanza","tests": [$t1,$t2],"next": ["1", "2", "3"],"stack": true}"""
 
     "DeSerialize EqualsTest" in {
       Json
@@ -553,7 +553,7 @@ class ChoiceStanzaSpec extends BaseSpec {
           GuidanceError.fromJsonValidationErrors(errs) match {
             case Nil => fail
             case UnknownTestType("3", "UnknownType") :: _ => succeed
-            case errs => fail
+            case _ => fail
           }
       }
 
