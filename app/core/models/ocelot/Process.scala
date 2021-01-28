@@ -40,7 +40,7 @@ case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase
   lazy val passPhrase: Option[String] = meta.passPhrase
   lazy val valueStanzaPassPhrase: Option[String] = flow.values
       .collect{case vs: ValueStanza => vs.values}.flatten
-      .collectFirst{case Value(_, PassPhraseLabelName, phrase) => phrase}
+      .collectFirst{case Value(_, PassPhraseLabelName, value) => value}
 }
 
 object Process {
