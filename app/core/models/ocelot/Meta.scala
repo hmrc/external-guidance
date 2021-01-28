@@ -16,6 +16,7 @@
 
 package core.models.ocelot
 
+import java.time.ZonedDateTime
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
@@ -26,7 +27,7 @@ case class Meta(id: String,
                 lastAuthor: String,
                 lastUpdate: Long,
                 version: Int,
-                fileName: String,
+                fileName: Option[String],
                 titlePhrase: Option[Int] = None,
                 processCode: String)
 
@@ -36,18 +37,18 @@ object Meta {
                 title: String,
                 passPhrase: Option[String],
                 ocelot: Int,
-                lastAuthor: String,
-                lastUpdate: Long,
+                lastAuthor: Option[String],
+                lastUpdate: Option[Long],
                 optionalVersion: Option[Int],
-                fileName: String,
+                fileName: Option[String],
                 titlePhrase: Option[Int] = None,
                 processCode: String): Meta =
     Meta(id,
          title,
          passPhrase,
          ocelot,
-         lastAuthor,
-         lastUpdate,
+         lastAuthor.getOrElse(""),
+         lastUpdate.getOrElse(ZonedDateTime.now.toInstant.toEpochMilli()),
          optionalVersion.getOrElse(1),
          fileName,
          titlePhrase,
@@ -59,10 +60,10 @@ object Meta {
       (__ \ "title").read[String] and
       (__ \ "passPhrase").readNullable[String] and
       (__ \ "ocelot").read[Int] and
-      (__ \ "lastAuthor").read[String] and
-      (__ \ "lastUpdate").read[Long] and
+      (__ \ "lastAuthor").readNullable[String] and
+      (__ \ "lastUpdate").readNullable[Long] and
       (__ \ "version").readNullable[Int] and
-      (__ \ "filename").read[String] and
+      (__ \ "filename").readNullable[String] and
       (__ \ "titlePhrase").readNullable[Int] and
       (__ \ "processCode").read[String]
   )(buildMetaSection _)
@@ -75,7 +76,7 @@ object Meta {
       (__ \ "lastAuthor").write[String] and
       (__ \ "lastUpdate").write[Long] and
       (__ \ "version").write[Int] and
-      (__ \ "filename").write[String] and
+      (__ \ "filename").writeNullable[String] and
       (__ \ "titlePhrase").writeNullable[Int] and
       (__ \ "processCode").write[String]
   )(unlift(Meta.unapply))
