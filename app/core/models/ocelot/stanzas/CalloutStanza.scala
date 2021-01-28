@@ -62,8 +62,6 @@ object Callout {
       case NumListItem => NumberedListItemCallout(text, stanza.next, stanza.stack)
       case NumCircListItem => NumberedCircleListItemCallout(text, stanza.next, stanza.stack)
       case Note => NoteCallout(text, stanza.next, stanza.stack)
-      case Warning => WarningCallout(text, stanza.next, stanza.stack)
-
     }
 }
 
@@ -80,5 +78,4 @@ case class YourCallCallout(text: Phrase, override val next: Seq[String], stack: 
 case class NumberedListItemCallout(text: Phrase, override val next: Seq[String], stack: Boolean) extends Callout
 case class NumberedCircleListItemCallout(text: Phrase, override val next: Seq[String], stack: Boolean) extends Callout
 case class NoteCallout(text: Phrase, override val next: Seq[String], stack: Boolean) extends Callout
-case class WarningCallout(text: Phrase, override val next: Seq[String], stack: Boolean) extends Callout
 
