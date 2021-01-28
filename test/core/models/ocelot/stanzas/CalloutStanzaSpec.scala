@@ -51,7 +51,6 @@ class CalloutStanzaSpec extends BaseSpec {
   val oldNumberedList: String = "NumberedList"
   val oldNumberedCircleList: String = "NumberedCircleList"
   val noteType: String = "Note"  // note is defined in parent class
-  val warningType: String = "Warning"  // note is defined in parent class
   val end: String = "end"
 
   val stackFalse: Boolean = false
@@ -71,7 +70,6 @@ class CalloutStanzaSpec extends BaseSpec {
   val oldNumberedListCalloutStanzaInputJson: JsValue = getStanzaJson(oldNumberedList)
   val oldNumberedCircleListCalloutStanzaInputJson: JsValue = getStanzaJson(oldNumberedCircleList)
   val noteCalloutStanzaInputJson: JsValue = getStanzaJson(noteType)
-  val warningCalloutStanzaInputJson: JsValue = getStanzaJson(warningType)
 
 
   val invalidCalloutStanzaInputJson: JsValue = getStanzaJson(invalid)
@@ -95,7 +93,6 @@ class CalloutStanzaSpec extends BaseSpec {
   val expectedTypeErrorCalloutStatus: CalloutStanza = CalloutStanza(TypeError, ten, Seq(end), stackFalse)
   val expectedValueErrorCalloutStatus: CalloutStanza = CalloutStanza(ValueError, ten, Seq(end), stackFalse)
   val expectedNoteCalloutStanza: CalloutStanza = buildCalloutStanza(Note)
-  val expectedWarningCalloutStanza: CalloutStanza = buildCalloutStanza(Warning)
 
   val jsonToStanzaMappings: Map[JsValue, CalloutStanza] = Map(
     titleCalloutStanzaInputJson -> expectedTitleCalloutStanza,
@@ -113,7 +110,6 @@ class CalloutStanzaSpec extends BaseSpec {
     oldNumberedListCalloutStanzaInputJson -> expectedNumberedListItemCalloutStanza,
     oldNumberedCircleListCalloutStanzaInputJson -> expectedNumberedCircleListItemCalloutStanza,
     noteCalloutStanzaInputJson -> expectedNoteCalloutStanza,
-    warningCalloutStanzaInputJson -> expectedWarningCalloutStanza
   )
 
   jsonToStanzaMappings foreach { mapping =>
@@ -228,13 +224,6 @@ class CalloutStanzaSpec extends BaseSpec {
         case _ => fail
       }
     }
-
-    "Create WarningCallout from Warning noteType" in {
-      Callout(expectedWarningCalloutStanza, core.models.ocelot.Phrase()) match {
-        case _: WarningCallout => succeed
-        case _ => fail
-      }
-    }
   }
 
   "serialise to json with noteType Title" in {
@@ -330,11 +319,6 @@ class CalloutStanzaSpec extends BaseSpec {
   "serialise to json noteType Note from a Stanza reference" in {
     val stanza: Stanza = expectedNoteCalloutStanza
     Json.toJson(stanza).toString shouldBe """{"next":["1"],"noteType":"Note","stack":false,"text":0,"type":"CalloutStanza"}"""
-  }
-
-  "serialise to json noteType Warning from a Stanza reference" in {
-    val stanza: Stanza = expectedWarningCalloutStanza
-    Json.toJson(stanza).toString shouldBe """{"next":["1"],"noteType":"Warning","stack":false,"text":0,"type":"CalloutStanza"}"""
   }
 
   /** Test for missing properties in Json object representing instruction stanzas */

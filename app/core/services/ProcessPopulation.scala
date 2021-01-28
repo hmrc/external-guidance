@@ -82,7 +82,7 @@ trait ProcessPopulation {
 
   private def phrase(phraseIndex: Int, stanzaId: String, process: Process): Either[GuidanceError, Phrase] =
     process.phraseOption(phraseIndex).fold[Either[GuidanceError, Phrase]](Left(PhraseNotFound(stanzaId, phraseIndex))){
-      case Phrase(english, welsh) if welsh.isEmpty && !english.isEmpty => Left(MissingWelshText(stanzaId, phraseIndex.toString, english))
+      case Phrase(english, welsh) if welsh.isEmpty && english.nonEmpty => Left(MissingWelshText(stanzaId, phraseIndex.toString, english))
       case p: Phrase => Right(p)
     }
 
@@ -90,11 +90,10 @@ trait ProcessPopulation {
   private def phrases(indexes: Seq[Int], acc: Seq[Phrase], stanzaId: String, process: Process): Either[GuidanceError, Seq[Phrase]] =
     indexes match {
       case Nil => Right(acc)
-      case index :: xs =>
+      case index +: xs =>
         phrase(index, stanzaId, process) match {
           case Right(phrase) => phrases(xs, acc :+ phrase, stanzaId, process)
           case Left(err) => Left(err)
         }
     }
-
 }
