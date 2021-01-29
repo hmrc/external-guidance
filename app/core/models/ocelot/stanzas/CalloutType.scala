@@ -39,7 +39,6 @@ case object NumCircListItem extends CalloutType
 case object Note extends CalloutType // Used to display Inset Text
 
 
-
 object CalloutType {
 
   implicit val reads: Reads[CalloutType] = {

@@ -21,14 +21,14 @@ import core.models.errors.{BadRequestError, ValidationError, Error, InternalServ
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.ScratchService
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton()
 class ScratchController @Inject() (scratchService: ScratchService, cc: ControllerComponents) extends BackendController(cc) {
 
-  val logger = Logger(getClass)
+  val logger: Logger = Logger(getClass)
 
   def save(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     val process = request.body.as[JsObject]

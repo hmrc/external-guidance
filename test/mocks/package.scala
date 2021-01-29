@@ -22,7 +22,6 @@
     MockAppConfig.designerRole,
     MockAppConfig.factCheckerRole,
     MockAppConfig.twoEyeReviewerRole,
-    MockAppConfig.fakeWelshInUnauthenticatedGuidance,
-    MockAppConfig.passPhrasePagePrompt,
+    MockAppConfig.fakeWelshInUnauthenticatedGuidance
   )
  }

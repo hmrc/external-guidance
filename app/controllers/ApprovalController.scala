@@ -22,7 +22,7 @@ import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ApprovalService
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import models.Constants._
 import core.models.errors.{BadRequestError, DuplicateKeyError, Error, NotFoundError, ValidationError, InternalServerError => ServerError}
 import play.api.libs.json.Json.toJson
@@ -33,7 +33,7 @@ import scala.concurrent.Future
 @Singleton
 class ApprovalController @Inject() (identify: IdentifierAction, approvalService: ApprovalService, cc: ControllerComponents) extends BackendController(cc) {
 
-  val logger = Logger(getClass)
+  val logger: Logger = Logger(getClass)
 
   def saveFor2iReview: Action[JsValue] = Action.async(parse.json) { implicit request =>
     saveProcess(request.body.as[JsObject], ReviewType2i)

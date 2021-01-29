@@ -37,8 +37,8 @@ class PageBuilder extends ProcessPopulation {
                        next: Seq[String] = Nil): Either[GuidanceError, (Option[PageStanza], Seq[String], Seq[Stanza], Seq[String])] =
       keys match {
         case Nil => Right((pageStanza, ids, stanzas, next))                                                  // End Page
-        case key :: xs if ids.contains(key) => collectStanzas(xs, pageStanza, ids, stanzas, next)            // Already encountered, but potentially more paths
-        case key :: xs =>
+        case key +: xs if ids.contains(key) => collectStanzas(xs, pageStanza, ids, stanzas, next)            // Already encountered, but potentially more paths
+        case key +: xs =>
           (stanza(key, process), xs ) match {
             case (Right(s: PageStanza), _) if ids.nonEmpty => collectStanzas(xs, pageStanza, ids, stanzas, key +: next) // End page but potentially more paths
             case (Right(s: PageStanza), _) => collectStanzas(xs ++ s.next, Some(s), ids :+ key, stanzas :+ s, next)     // Beginning of page
@@ -63,7 +63,7 @@ class PageBuilder extends ProcessPopulation {
     def pagesByKeys(keys: Seq[String], acc: Seq[Page]): Either[GuidanceError, Seq[Page]] =
       keys match {
         case Nil => Right(acc)
-        case key :: xs if !acc.exists(_.id == key) =>
+        case key +: xs if !acc.exists(_.id == key) =>
           buildPage(key, process) match {
             case Right(page) =>
               pagesByKeys(page.next ++ xs ++ page.linked, acc :+ page)
@@ -71,7 +71,7 @@ class PageBuilder extends ProcessPopulation {
               logger.error(s"Page building failed with error - $err")
               Left(err)
           }
-        case _ :: xs => pagesByKeys(xs, acc)
+        case _ +: xs => pagesByKeys(xs, acc)
       }
 
     pagesByKeys(List(start), Nil) match {
@@ -83,10 +83,10 @@ class PageBuilder extends ProcessPopulation {
   def pagesWithValidation(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] =
     pages(process, start).fold[Either[List[GuidanceError], Seq[Page]]](Left(_),
       pages => {
-        (checkQuestionPages(pages, Nil) ++
-         duplicateUrlErrors(pages.reverse, Nil) ++
-         detectSharedStanzaUsage(pages) ++
-         detectUnsupportedPageRedirect(pages)) match {
+        checkQuestionPages(pages, Nil) ++
+        duplicateUrlErrors(pages.reverse, Nil) ++
+        detectSharedStanzaUsage(pages) ++
+        detectUnsupportedPageRedirect(pages) match {
           case Nil => Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
           case errors =>
             Left(errors)
@@ -124,9 +124,9 @@ class PageBuilder extends ProcessPopulation {
     def traverse(keys: Seq[String], page: Map[String, Stanza]): Option[String] =
       keys match {
         case Nil => None
-        case x :: xs => page.get(x) match {
+        case x +: xs => page.get(x) match {
           case None => traverse(xs, page)
-          case Some(s: DataInput) => traverse(xs, page)
+          case Some(_: DataInput) => traverse(xs, page)
           case Some(s: Choice) if s.next.exists(n => pageIds.contains(n)) => Some(x)
           case Some(s: Stanza) => traverse(s.next ++ xs, page)
         }
@@ -141,25 +141,25 @@ class PageBuilder extends ProcessPopulation {
   private def duplicateUrlErrors(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] =
     pages match {
       case Nil => errors
-      case x :: xs if xs.exists(_.url == x.url) => duplicateUrlErrors(xs, DuplicatePageUrl(x.id, x.url) :: errors)
-      case x :: xs => duplicateUrlErrors(xs, errors)
+      case x +: xs if xs.exists(_.url == x.url) => duplicateUrlErrors(xs, DuplicatePageUrl(x.id, x.url) :: errors)
+      case _ +: xs => duplicateUrlErrors(xs, errors)
     }
 
   @tailrec
   private def checkQuestionFollowers(p: Seq[String], keyedStanzas: Map[String, Stanza], seen: Seq[String]): List[GuidanceError] =
     p match {
       case Nil => Nil
-      case x :: xs if seen.contains(x) => checkQuestionFollowers(xs, keyedStanzas, seen)
-      case x :: xs if !keyedStanzas.contains(x) => checkQuestionFollowers(xs, keyedStanzas, x +: seen)
-      case x :: xs if keyedStanzas.contains(x) && keyedStanzas(x).visual => List(VisualStanzasAfterQuestion(x))
-      case x :: xs => checkQuestionFollowers(keyedStanzas(x).next ++ xs, keyedStanzas, x +: seen)
+      case x +: xs if seen.contains(x) => checkQuestionFollowers(xs, keyedStanzas, seen)
+      case x +: xs if !keyedStanzas.contains(x) => checkQuestionFollowers(xs, keyedStanzas, x +: seen)
+      case x +: _ if keyedStanzas.contains(x) && keyedStanzas(x).visual => List(VisualStanzasAfterQuestion(x))
+      case x +: xs => checkQuestionFollowers(keyedStanzas(x).next ++ xs, keyedStanzas, x +: seen)
     }
 
   @tailrec
   private def checkQuestionPages(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] =
     pages match {
       case Nil => errors
-      case x :: xs =>
+      case x +: xs =>
         x.keyedStanzas.find(
           _.stanza match {
             case q: Question => true

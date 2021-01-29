@@ -20,28 +20,31 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.{Reads, OWrites, __}
 import core.models.ocelot.stanzas._
 
-case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase], links: Vector[Link]) {
-  lazy val phraseOption: Int => Option[Phrase] = phrases.lift
-  lazy val linkOption: Int => Option[Link] = links.lift
-  lazy val title: Phrase = meta.titlePhrase.fold(Phrase(meta.title, meta.title)){
-    titleIndex => phraseOption(titleIndex).getOrElse(Phrase(meta.title, meta.title))
-  }
-  lazy val startUrl: Option[String] = flow.get(Process.StartStanzaId).collect{case ps: PageStanza => ps.url}
-  lazy val startPageId: String = flow.get(Process.PassPhrasePageId).fold(Process.StartStanzaId)(_ => Process.PassPhrasePageId)
-  lazy val passPhrase: Option[String] =
-    flow.values
-      .collect{case vs: ValueStanza => vs.values}.flatten
-      .collect{case Value(_, Process.PassPhraseLabelName, phrase) => phrase}
-      .headOption
-}
-
-object Process {
-  val StartStanzaId = "start"
-  // Secured process constants
+object SecuredProcess {
+  val InputId: String = "passinput"
+  val ChoiceId: String = "passchoice"
   val SecuredProcessStartUrl = "authenticate"
   val PassPhrasePageId = "passphrasepage"
   val PassPhraseLabelName = "_GuidancePassPhrase"
   val PassPhraseResponseLabelName = "_GuidancePassPhraseResponse"
+}
+
+case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase], links: Vector[Link]) {
+  import SecuredProcess._
+  import Process._
+  lazy val phraseOption: Int => Option[Phrase] = phrases.lift
+  lazy val linkOption: Int => Option[Link] = links.lift
+  lazy val title: Phrase = meta.titlePhrase.fold(Phrase(meta.title, meta.title))(idx => phraseOption(idx).getOrElse(Phrase(meta.title, meta.title)))
+  lazy val startUrl: Option[String] = flow.get(StartStanzaId).collect{case ps: PageStanza => ps.url}
+  lazy val startPageId: String = flow.get(PassPhrasePageId).fold(StartStanzaId)(_ => PassPhrasePageId)
+  lazy val passPhrase: Option[String] = meta.passPhrase
+  lazy val valueStanzaPassPhrase: Option[String] = flow.values
+      .collect{case vs: ValueStanza => vs.values}.flatten
+      .collectFirst{case Value(_, PassPhraseLabelName, value) => value}
+}
+
+object Process {
+  val StartStanzaId = "start"
 
   implicit val reads: Reads[Process] = (
     (__ \ "meta").read[Meta] and
