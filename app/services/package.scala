@@ -24,11 +24,11 @@ import play.api.libs.json._
 import config.AppConfig
 
 package object services {
-  def guidancePages(pageBuilder: PageBuilder, jsObject: JsObject)
-                   (implicit c: AppConfig, spd: SecuredProcessBuilder): RequestOutcome[(Process, Seq[Page], JsObject)] =
+  def guidancePagesAndProcess(pageBuilder: PageBuilder, jsObject: JsObject)
+                   (implicit c: AppConfig): RequestOutcome[(Process, Seq[Page], JsObject)] =
     jsObject.validate[Process].fold(errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
       incomingProcess => {
-        // Transform process if fake welsh required and/or secured process is indicated
+        // Transform process if fake welsh and/or secured process is indicated
         val (p, js) = fakeWelshTextIfRequired _ tupled securedProcessIfRequired(incomingProcess, jsObject)
         pageBuilder.pagesWithValidation(p, p.startPageId).fold(
           errs => Left(Error(errs)),
@@ -43,9 +43,10 @@ package object services {
       (fakedWelshProcess, Json.toJsObject(fakedWelshProcess))
     } else (process, jsObject)
 
-  private[services] def securedProcessIfRequired(process: Process, jsObject: JsObject)(implicit spb: SecuredProcessBuilder): (Process, JsObject) =
-    process.passPhrase.fold((process, jsObject)){_ =>
-      val securedProcess = spb.secure(process)
+  private[services] def securedProcessIfRequired(p: Process, jsObject: JsObject): (Process, JsObject) =
+    p.valueStanzaPassPhrase.fold((p, jsObject)){passPhrase =>
+      // Add optional passphrase to process meta section
+      val securedProcess = p.copy(meta = p.meta.copy(passPhrase = Some(passPhrase)))
       (securedProcess, Json.toJsObject(securedProcess))
     }
 }

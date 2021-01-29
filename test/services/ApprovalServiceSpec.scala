@@ -48,7 +48,6 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
                           mockApprovalProcessReviewRepository,
                           mockPublishedRepository,
                           new PageBuilder(),
-                          new SecuredProcessBuilder(MockAppConfig),
                           MockAppConfig)
 
     val processReview: ApprovalProcessReview =
@@ -72,8 +71,8 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
     "the ID identifies a valid process" should {
       "return a JSON representing the submitted ocelot process" in new Test {
 
-        val returnFromRepo: RequestOutcome[ApprovalProcess] = Right(approvalProcess)
-        val expected: RequestOutcome[JsObject] = Right(approvalProcess.process)
+        val returnFromRepo: RequestOutcome[ApprovalProcess] = Right(approvalProcessWithValidProcess)
+        val expected: RequestOutcome[JsObject] = Right(approvalProcessWithValidProcess.process)
 
         MockApprovalRepository
           .getById(validId)

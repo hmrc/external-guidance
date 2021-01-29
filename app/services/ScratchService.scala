@@ -31,12 +31,11 @@ import config.AppConfig
 @Singleton
 class ScratchService @Inject() (repository: ScratchRepository,
                                 pageBuilder: PageBuilder,
-                                implicit val spb: SecuredProcessBuilder,
                                 implicit val c: AppConfig) {
   val logger = Logger(getClass)
 
   def save(json: JsObject): Future[RequestOutcome[UUID]] =
-    guidancePages(pageBuilder, json).fold(
+    guidancePagesAndProcess(pageBuilder, json).fold(
       err => Future.successful(Left(err)),
       result => {
         val (_, _, process) = result

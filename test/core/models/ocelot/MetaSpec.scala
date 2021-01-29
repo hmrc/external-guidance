@@ -62,10 +62,10 @@ class MetaSpec extends BaseSpec {
 
   val validJsonWithOptionalProperties: JsObject = Json.parse(validJsonWithOptionalPropertiesAsString).as[JsObject]
 
-  val validModel: Meta = Meta(id, title, ocelotVersion, author, lastUpdate, version, filename, None, processCode)
+  val validModel: Meta = Meta(id, title, None, ocelotVersion, author, lastUpdate, version, Some(filename), None, processCode)
 
   val validModelWithOptionalProperties: Meta = Meta(
-    id, title, ocelotVersion, author, lastUpdate, version, filename, Some(titlePhrase), processCode )
+    id, title, None, ocelotVersion, author, lastUpdate, version, Some(filename), Some(titlePhrase), processCode )
 
   "Meta section" must {
 
@@ -79,7 +79,7 @@ class MetaSpec extends BaseSpec {
       result shouldBe validModelWithOptionalProperties
     }
 
-    missingJsObjectAttrTests[Meta](validJsonWithOptionalProperties, List("titlePhrase", "processCode", "version"))
+    missingJsObjectAttrTests[Meta](validJsonWithOptionalProperties, List("titlePhrase", "processCode", "version", "lastAuthor", "lastUpdate", "filename"))
 
     "serialise JSON representation of instance of class Meta" in {
       Json.toJson(validModel).toString() shouldBe removeSpacesAndNewLines(validJsonAsString)

@@ -32,17 +32,17 @@ class PublishedController @Inject() (publishedRepo: PublishedRepository, testRep
 
   def post(): Action[JsValue] = Action.async(parse.json) { request =>
     def save(process: Process): Future[Result] = {
-      publishedRepo.save(process.meta.id, "system", process.meta.processCode, request.body.as[JsObject]).map {
+      publishedRepo.save(process.meta.id, "system", process.meta.processCode, Json.toJson(process).as[JsObject]).map {
         case Right(id) => Created(id)
         case Left(err) => InternalServerError(Json.toJson(err))
       }
     }
 
     request.body.validate[Process] match {
-      case JsSuccess(process, _) => save(process)
+      case JsSuccess(p, _) =>
+        p.valueStanzaPassPhrase.fold(save(p))(passPhrase => save(p.copy(meta = p.meta.copy(passPhrase = Some(passPhrase)))))
       case errors: JsError => Future.successful(BadRequest(JsError.toJson(errors)))
     }
-
   }
 
   def delete(id: String): Action[AnyContent] = Action.async {
