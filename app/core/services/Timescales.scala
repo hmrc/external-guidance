@@ -35,17 +35,16 @@ class Timescales {
 
   def long(date: LocalDate): Int = date.getYear
   def short(date: LocalDate): Int = long(date) % 100
-  def CY(offset: Int): LocalDate = {
-    val today: LocalDate = LocalDate.now()
-    val candidateStartDate = today.withMonth(TaxYearStartMonth).withDayOfMonth(TaxYearStartDay)
-    candidateStartDate.minusYears(-offset + (if (today.isAfter(candidateStartDate)) 0 else 1))
+  def CY(offset: Int, when: LocalDate): LocalDate = {
+    val candidateStartDate = when.withMonth(TaxYearStartMonth).withDayOfMonth(TaxYearStartDay)
+    candidateStartDate.minusYears(-offset + (if (when.isAfter(candidateStartDate)) 0 else 1))
   }
 
   private val TodayOrCyGroup: Int = 1
   private val CyOffsetGroup: Int = 2
   private val LongOrShortGroup: Int = 4
 
-  def translate(str: String): String = {
+  def translate(str: String, now: LocalDate = LocalDate.now): String = {
     def longOrShort(m: Match, when: LocalDate): String = Option(m.group(LongOrShortGroup)).fold(stringFromDate(when)){
       case "long" => long(when).toString
       case "short" => short(when).toString
@@ -53,8 +52,8 @@ class Timescales {
 
     timescaleRegex.replaceAllIn(str,{m =>
       Option(m.group(TodayOrCyGroup)) match {
-        case Some("today") => longOrShort(m, LocalDate.now)
-        case Some(_) => longOrShort(m, Option(m.group(CyOffsetGroup)).fold(CY(0))(offset => CY(offset.toInt)))
+        case Some("today") => longOrShort(m, now)
+        case Some(_) => longOrShort(m, Option(m.group(CyOffsetGroup)).fold(CY(0, now))(offset => CY(offset.toInt, now)))
         case _ => Option(m.matched).getOrElse("") // Should never occur, however group() can return null!!
       }
     })

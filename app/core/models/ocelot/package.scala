@@ -21,7 +21,6 @@ import java.time.format.{DateTimeFormatter, ResolverStyle}
 
 import scala.util.Try
 import scala.util.matching.Regex
-import Regex._
 
 package object ocelot {
   val labelPattern = "\\[label:([A-Za-z0-9\\s\\-_]+)(:(currency|currencyPoundsOnly|date|number))?\\]"
@@ -60,18 +59,4 @@ package object ocelot {
   val boldOnlyPattern: String = s"^${boldPattern}$$"
   def isLinkOnlyPhrase(phrase: Phrase): Boolean =phrase.english.matches(pageLinkOnlyPattern)
   def isBoldOnlyPhrase(phrase: Phrase): Boolean =phrase.english.matches(boldOnlyPattern)
-
-  object Placeholders {
-    val plregex: Regex = s"$labelPattern|$boldPattern|$linkPattern".r
-    def labelNameOpt(m: Match): Option[String] = Option(m.group(1))
-    def labelFormatOpt(m: Match): Option[String] = Option(m.group(3))
-    def boldTextOpt(m: Match): Option[String] = Option(m.group(4))
-    def boldLabelNameOpt(m: Match): Option[String] = Option(m.group(5))
-    def boldLabelFormatOpt(m: Match): Option[String] = Option(m.group(7))
-    def buttonOrLink(m: Match): Option[String] = Option(m.group(8))
-    def linkTypeOpt(m: Match): Option[String] = Option(m.group(9))
-    def linkText(m: Match): String = m.group(10)
-    def linkTextOpt(m: Match): Option[String] = Option(linkText(m))
-    def linkDest(m: Match): String = m.group(11)
-  }
 }
