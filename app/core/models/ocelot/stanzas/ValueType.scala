@@ -20,18 +20,21 @@ import play.api.libs.json._
 
 sealed trait ValueType
 
-case object Scalar extends ValueType
+case object ScalarType extends ValueType
+case object ListType extends ValueType
 
 object ValueType {
 
   implicit val reads: Reads[ValueType] = {
-    case JsString("scalar") => JsSuccess(Scalar, __)
+    case JsString("scalar") => JsSuccess(ScalarType, __)
+    case JsString("list") => JsSuccess(ListType, __)
     case typeName: JsString => JsError(JsonValidationError(Seq("ValueType"), typeName.value))
     case unknown => JsError(JsonValidationError(Seq("ValueType"), unknown.toString))
   }
 
   implicit val writes: Writes[ValueType] = {
-    case Scalar => Json.toJson("scalar")
+    case ScalarType => Json.toJson("scalar")
+    case ListType => Json.toJson("list")
   }
 
 }
