@@ -35,9 +35,9 @@ class Placeholders {
 
   def long(date: LocalDate): Int = date.getYear
   def short(date: LocalDate): Int = long(date) % 100
-  def CY(offset: Int, when: LocalDate): LocalDate = {
+  def cy(offset: Int, when: LocalDate): LocalDate = {
     val candidateStartDate = when.withMonth(TaxYearStartMonth).withDayOfMonth(TaxYearStartDay)
-    candidateStartDate.minusYears(-offset + (if (when.isAfter(candidateStartDate)) 0 else 1))
+    candidateStartDate.minusYears(-offset + (if (when.isBefore(candidateStartDate)) 1 else 0))
   }
 
   private val TodayOrCyGroup: Int = 1
@@ -53,7 +53,7 @@ class Placeholders {
     timescaleRegex.replaceAllIn(str,{m =>
       Option(m.group(TodayOrCyGroup)) match {
         case Some("today") => longOrShort(m, now)
-        case Some(_) => longOrShort(m, Option(m.group(CyOffsetGroup)).fold(CY(0, now))(offset => CY(offset.toInt, now)))
+        case Some(_) => longOrShort(m, Option(m.group(CyOffsetGroup)).fold(cy(0, now))(offset => cy(offset.toInt, now)))
         case None => Option(m.matched).getOrElse("") // Should never occur, however group() can return null!!
       }
     })

@@ -48,14 +48,18 @@ class PlaceholdersSpec extends BaseSpec {
     }
 
     "determine tax year start date from a current date" in {
-      pls.CY(0, today) shouldBe taxStartForNow
+      pls.cy(0, today) shouldBe taxStartForNow
     }
 
     "determine previous and future tax year from a current date" in {
       for(i <- Range(0, 10)) {
-        pls.CY(i, today).getYear shouldBe taxYearForNow + i
-        pls.CY(-i, today).getYear shouldBe taxYearForNow -i
+        pls.cy(i, today).getYear shouldBe taxYearForNow + i
+        pls.cy(-i, today).getYear shouldBe taxYearForNow -i
       }
+    }
+
+    "determine start of current tax year when today is first day of tax year" in {
+      pls.cy(0, taxStartForNow) shouldBe taxStartForNow
     }
 
     "translate today" in {
