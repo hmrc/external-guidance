@@ -30,6 +30,7 @@ import play.api.libs.json.{JsArray, JsObject, Json}
 import models.Constants._
 import core.models.RequestOutcome
 import scala.concurrent.Future
+import core.services.DefaultTodayProvider
 
 class ApprovalServiceSpec extends BaseSpec with MockFactory {
 
@@ -47,7 +48,7 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
       new ApprovalService(mockApprovalRepository,
                           mockApprovalProcessReviewRepository,
                           mockPublishedRepository,
-                          new PageBuilder(new Placeholders),
+                          new PageBuilder(new Placeholders(new DefaultTodayProvider)),
                           MockAppConfig)
 
     val processReview: ApprovalProcessReview =

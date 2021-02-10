@@ -36,10 +36,11 @@ import base.BaseSpec
 import java.time.LocalDate
 
 class PlaceholdersSpec extends BaseSpec {
-  val pls: Placeholders = new Placeholders
   val today: LocalDate = LocalDate.of(2020, 6, 24)
+  val earlyYearToday: LocalDate = LocalDate.of(2018, 2, 12)
   val taxStartForNow = LocalDate.of(2020, 4, 6)
   val taxYearForNow = taxStartForNow.getYear
+  val pls: Placeholders = new Placeholders(new DefaultTodayProvider)
 
   "Placeholders" must {
     "determine long and short year from a date" in {
@@ -91,6 +92,33 @@ class PlaceholdersSpec extends BaseSpec {
 
     "translate CY:short" in {
       pls.translate("Tax year start: [timescale:CY:short]", today) shouldBe s"Tax year start: 20"
+    }
+  }
+
+  "Placeholders with overridden TodayProvider" must {
+    val pls: Placeholders = new Placeholders(new TodayProvider {def now: LocalDate = earlyYearToday})
+
+    "translate today" in {
+      pls.translate("Today is [timescale:today]") shouldBe s"Today is 12/2/2018"
+    }
+
+    "translate today:long" in {
+      pls.translate("Today is [timescale:today:long]") shouldBe s"Today is 2018"
+    }
+
+    "translate today:short" in {
+      pls.translate("Today is [timescale:today:short]") shouldBe s"Today is 18"
+    }
+
+    "translate CY" in {
+      pls.translate("Tax year start date: [timescale:CY]") shouldBe s"Tax year start date: 6/4/2017"
+    }
+
+    "translate CY with -/- offsets" in {
+      pls.translate("Tax year start date: [timescale:CY-1]") shouldBe s"Tax year start date: 6/4/2016"
+      pls.translate("Tax year start date: [timescale:CY-2]") shouldBe s"Tax year start date: 6/4/2015"
+      pls.translate("Tax year start date: [timescale:CY+1]") shouldBe s"Tax year start date: 6/4/2018"
+      pls.translate("Tax year start date: [timescale:CY+2]") shouldBe s"Tax year start date: 6/4/2019"
     }
 
   }

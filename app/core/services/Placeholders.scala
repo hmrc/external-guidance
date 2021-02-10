@@ -16,7 +16,7 @@
 
 package core.services
 
-import javax.inject.Singleton
+import javax.inject.{Inject, Singleton}
 import core.models.ocelot._
 import java.time.LocalDate
 import scala.util.matching.Regex
@@ -26,8 +26,17 @@ trait PlaceholderProvider {
   val placeholders: Placeholders
 }
 
+trait TodayProvider {
+  def now: LocalDate
+}
+
 @Singleton
-class Placeholders {
+class DefaultTodayProvider extends TodayProvider {
+  def now: LocalDate = LocalDate.now
+}
+
+@Singleton
+class Placeholders @Inject() (tp: TodayProvider) {
   val TaxYearStartDay: Int = 6
   val TaxYearStartMonth: Int = 4
   val timescalePattern = "\\[timescale:(today|CY([\\-+]\\d+)?)(:(long|short))?\\]"
@@ -44,7 +53,7 @@ class Placeholders {
   private val CyOffsetGroup: Int = 2
   private val LongOrShortGroup: Int = 4
 
-  def translate(str: String, now: LocalDate = LocalDate.now): String = {
+  def translate(str: String, todaysDate: LocalDate = tp.now): String = {
     def longOrShort(m: Match, when: LocalDate): String = Option(m.group(LongOrShortGroup)).fold(stringFromDate(when)){
       case "long" => long(when).toString
       case "short" => short(when).toString
@@ -52,8 +61,8 @@ class Placeholders {
 
     timescaleRegex.replaceAllIn(str,{m =>
       Option(m.group(TodayOrCyGroup)) match {
-        case Some("today") => longOrShort(m, now)
-        case Some(_) => longOrShort(m, Option(m.group(CyOffsetGroup)).fold(cy(0, now))(offset => cy(offset.toInt, now)))
+        case Some("today") => longOrShort(m, todaysDate)
+        case Some(_) => longOrShort(m, Option(m.group(CyOffsetGroup)).fold(cy(0, todaysDate))(offset => cy(offset.toInt, todaysDate)))
         case None => Option(m.matched).getOrElse("") // Should never occur, however group() can return null!!
       }
     })
