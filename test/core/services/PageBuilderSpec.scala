@@ -27,7 +27,7 @@ import core.models.StanzaHelper
 class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
   // Define instance of class used in testing
-  val pageBuilder: PageBuilder = new PageBuilder(new Timescales)
+  val pageBuilder: PageBuilder = new PageBuilder(new Placeholders)
 
   val meta: Meta = Json.parse(prototypeMetaSection).as[Meta]
 

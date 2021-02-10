@@ -22,12 +22,12 @@ import java.time.LocalDate
 import scala.util.matching.Regex
 import Regex._
 
-trait TimescaleProvider {
-  val timescales: Timescales
+trait PlaceholderProvider {
+  val placeholders: Placeholders
 }
 
 @Singleton
-class Timescales {
+class Placeholders {
   val TaxYearStartDay: Int = 6
   val TaxYearStartMonth: Int = 4
   val timescalePattern = "\\[timescale:(today|CY([\\-+]\\d+)?)(:(long|short))?\\]"
@@ -54,7 +54,7 @@ class Timescales {
       Option(m.group(TodayOrCyGroup)) match {
         case Some("today") => longOrShort(m, now)
         case Some(_) => longOrShort(m, Option(m.group(CyOffsetGroup)).fold(CY(0, now))(offset => CY(offset.toInt, now)))
-        case _ => Option(m.matched).getOrElse("") // Should never occur, however group() can return null!!
+        case None => Option(m.matched).getOrElse("") // Should never occur, however group() can return null!!
       }
     })
   }

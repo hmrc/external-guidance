@@ -24,7 +24,7 @@ import play.api.Logger
 import scala.annotation.tailrec
 
 @Singleton
-class PageBuilder @Inject() (val timescales: Timescales) extends ProcessPopulation with TimescaleProvider {
+class PageBuilder @Inject() (val placeholders: Placeholders) extends ProcessPopulation with PlaceholderProvider {
   val logger: Logger = Logger(this.getClass)
 
   def buildPage(key: String, process: Process): Either[GuidanceError, Page] = {

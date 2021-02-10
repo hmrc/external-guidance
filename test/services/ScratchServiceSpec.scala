@@ -31,7 +31,7 @@ import scala.concurrent.Future
 class ScratchServiceSpec extends BaseSpec {
 
   private trait Test extends MockScratchRepository {
-    val pageBuilder = new PageBuilder(new Timescales)
+    val pageBuilder = new PageBuilder(new Placeholders)
     lazy val target: ScratchService = new ScratchService(mockScratchRepository,
                                                          pageBuilder,
                                                          MockAppConfig)

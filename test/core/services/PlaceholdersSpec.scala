@@ -35,58 +35,58 @@ package core.services
 import base.BaseSpec
 import java.time.LocalDate
 
-class TimescalesSpec extends BaseSpec {
-  val ts: Timescales = new Timescales
+class PlaceholdersSpec extends BaseSpec {
+  val pls: Placeholders = new Placeholders
   val today: LocalDate = LocalDate.of(2020, 6, 24)
   val taxStartForNow = LocalDate.of(2020, 4, 6)
   val taxYearForNow = taxStartForNow.getYear
 
-  "Timescales" must {
+  "Placeholders" must {
     "determine long and short year from a date" in {
-      ts.long(today) shouldBe 2020
-      ts.short(today) shouldBe 20
+      pls.long(today) shouldBe 2020
+      pls.short(today) shouldBe 20
     }
 
     "determine tax year start date from a current date" in {
-      ts.CY(0, today) shouldBe taxStartForNow
+      pls.CY(0, today) shouldBe taxStartForNow
     }
 
     "determine previous and future tax year from a current date" in {
       for(i <- Range(0, 10)) {
-        ts.CY(i, today).getYear shouldBe taxYearForNow + i
-        ts.CY(-i, today).getYear shouldBe taxYearForNow -i
+        pls.CY(i, today).getYear shouldBe taxYearForNow + i
+        pls.CY(-i, today).getYear shouldBe taxYearForNow -i
       }
     }
 
     "translate today" in {
-      ts.translate("Today is [timescale:today]", today) shouldBe s"Today is 24/6/2020"
+      pls.translate("Today is [timescale:today]", today) shouldBe s"Today is 24/6/2020"
     }
 
     "translate today:long" in {
-      ts.translate("Today is [timescale:today:long]", today) shouldBe s"Today is 2020"
+      pls.translate("Today is [timescale:today:long]", today) shouldBe s"Today is 2020"
     }
 
     "translate today:short" in {
-      ts.translate("Today is [timescale:today:short]", today) shouldBe s"Today is 20"
+      pls.translate("Today is [timescale:today:short]", today) shouldBe s"Today is 20"
     }
 
     "translate CY" in {
-      ts.translate("Tax year start date: [timescale:CY]", today) shouldBe s"Tax year start date: 6/4/2020"
+      pls.translate("Tax year start date: [timescale:CY]", today) shouldBe s"Tax year start date: 6/4/2020"
     }
 
     "translate CY with -/- offsets" in {
-      ts.translate("Tax year start date: [timescale:CY-1]", today) shouldBe s"Tax year start date: 6/4/2019"
-      ts.translate("Tax year start date: [timescale:CY-2]", today) shouldBe s"Tax year start date: 6/4/2018"
-      ts.translate("Tax year start date: [timescale:CY+1]", today) shouldBe s"Tax year start date: 6/4/2021"
-      ts.translate("Tax year start date: [timescale:CY+2]", today) shouldBe s"Tax year start date: 6/4/2022"
+      pls.translate("Tax year start date: [timescale:CY-1]", today) shouldBe s"Tax year start date: 6/4/2019"
+      pls.translate("Tax year start date: [timescale:CY-2]", today) shouldBe s"Tax year start date: 6/4/2018"
+      pls.translate("Tax year start date: [timescale:CY+1]", today) shouldBe s"Tax year start date: 6/4/2021"
+      pls.translate("Tax year start date: [timescale:CY+2]", today) shouldBe s"Tax year start date: 6/4/2022"
     }
 
     "translate CY:long" in {
-      ts.translate("Tax year start: [timescale:CY:long]", today) shouldBe s"Tax year start: 2020"
+      pls.translate("Tax year start: [timescale:CY:long]", today) shouldBe s"Tax year start: 2020"
     }
 
     "translate CY:short" in {
-      ts.translate("Tax year start: [timescale:CY:short]", today) shouldBe s"Tax year start: 20"
+      pls.translate("Tax year start: [timescale:CY:short]", today) shouldBe s"Tax year start: 20"
     }
 
   }
