@@ -56,7 +56,7 @@ class GraphPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       "8" -> QuestionStanza(1, Seq(2, 3), Seq(pageId4, pageId6), None, false),
       pageId4 -> PageStanza("/this9", Seq("16"), false),
       "16" -> InstructionStanza(3, Seq("161"), None, false),
-      "161"-> ValueStanza(List(Value(Scalar, "error", "0")), Seq("10"), false),
+      "161"-> ValueStanza(List(Value(ScalarType, "error", "0")), Seq("10"), false),
       "10" -> InstructionStanza(2, Seq("100"), None, false),
       "100" -> ChoiceStanza(Seq("161", pageId6, pageId5),Seq(choiceTest), false),
       pageId5 -> PageStanza("/this11", Seq("12"), false),

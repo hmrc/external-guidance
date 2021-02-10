@@ -82,7 +82,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
   "PageBuilder error handling" must {
 
     val flow = Map(
-      Process.StartStanzaId -> ValueStanza(List(Value(Scalar, "PageUrl", "/blah")), Seq("1"), false),
+      Process.StartStanzaId -> ValueStanza(List(Value(ScalarType, "PageUrl", "/blah")), Seq("1"), false),
       "1" -> InstructionStanza(0, Seq("2"), None, false),
       "2" -> DummyStanza
     )
@@ -185,7 +185,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         "1" -> InstructionStanza(0, Seq("2"), None, false),
         "2" -> QuestionStanza(1, Seq(2, 3, 4, 5), Seq("4", "5", "6", "7"), None, false),
         "4" -> Choice(ChoiceStanza(Seq("5","6"), Seq(ChoiceStanzaTest("[label:X]", LessThanOrEquals, "8")), false)),
-        "5" -> ValueStanza(List(Value(Scalar, "PageUrl", "/blah")), Seq("4"), false),
+        "5" -> ValueStanza(List(Value(ScalarType, "PageUrl", "/blah")), Seq("4"), false),
         "6" -> InstructionStanza(0, Seq("end"), None, false),
         "7" -> InstructionStanza(0, Seq("end"), None, false),
         "end" -> EndStanza
@@ -536,25 +536,25 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
   "services" must {
     "determine unique set of case sensitive labels from a collection of pages" in new IhtTest {
-      val labels = Seq(Label("Properties",None),
-        Label("Money",None),
-        Label("Household",None),
-        Label("Motor Vehicles",None),
-        Label("Private pension",None),
-        Label("Trust",None),
-        Label("Foreign assets",None),
-        Label("Other assets",None),
-        Label("Mortgage_debt",None),
-        Label("funeral_expenses",None),
-        Label("other_debts",None),
-        Label("left to spouse",None),
-        Label("registered charity",None),
-        Label("nil rate band",None),
-        Label("more than 100k",None, None),
-        Label("Value of Assets",None),
-        Label("Value of Debts",None),
-        Label("Additional Info",None),
-        Label("IHT result",None))
+      val labels = Seq(ScalarLabel("Properties",None),
+        ScalarLabel("Money",None),
+        ScalarLabel("Household",None),
+        ScalarLabel("Motor Vehicles",None),
+        ScalarLabel("Private pension",None),
+        ScalarLabel("Trust",None),
+        ScalarLabel("Foreign assets",None),
+        ScalarLabel("Other assets",None),
+        ScalarLabel("Mortgage_debt",None),
+        ScalarLabel("funeral_expenses",None),
+        ScalarLabel("other_debts",None),
+        ScalarLabel("left to spouse",None),
+        ScalarLabel("registered charity",None),
+        ScalarLabel("nil rate band",None),
+        ScalarLabel("more than 100k",None, None),
+        ScalarLabel("Value of Assets",None),
+        ScalarLabel("Value of Debts",None),
+        ScalarLabel("Additional Info",None),
+        ScalarLabel("IHT result",None))
 
       pageBuilder.pagesWithValidation(ihtProcess, "start") match {
         case Right(pages) => uniqueLabels(pages) shouldBe labels

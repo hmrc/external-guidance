@@ -16,10 +16,11 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot.{labelReferences, Label, Labels}
+import core.models.ocelot.{Label, Labels, ListLabel, ScalarLabel, labelReferences}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
+
 import scala.annotation.tailrec
 
 case class Value(valueType: ValueType, label: String, value: String)
@@ -41,7 +42,12 @@ object Value {
 }
 
 case class ValueStanza(values: List[Value], override val next: Seq[String], stack: Boolean) extends Stanza with Evaluate {
-  override val labels: List[Label] = values.map(v => Label(v.label, None))
+  override val labels: List[Label] = values.map(v =>
+  v.valueType match {
+      case ScalarType => ScalarLabel(v.label, None)
+      case ListType => ListLabel(v.label, None)
+    }
+  )
   override val labelRefs: List[String] = values.flatMap(v => labelReferences(v.value))
 
   def eval(originalLabels: Labels): (String, Labels) = {

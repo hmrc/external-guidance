@@ -19,14 +19,19 @@ package core.models.ocelot.stanzas
 import base.BaseSpec
 import play.api.libs.json._
 
+import core.models.ocelot.{ListLabel, ScalarLabel}
+
 class ValueStanzaSpec extends BaseSpec {
 
   val stanzaType = "ValueStanza"
-  val valueType = "scalar"
+  val scalarType = "scalar"
+  val listType = "list"
   val pageNameLabel = "PageName"
   val pageName = "Telling HMRC about extra income"
   val pageUrlLabel = "PageUrl"
   val pageUrl = "/rent/less-than-1000/do-you-want-to-use-the-rent-a-room-scheme"
+  val listLabel = "monthsInSpring"
+  val listValue = "March,April,May"
   val next = "40"
   val stack = "false"
 
@@ -36,12 +41,12 @@ class ValueStanzaSpec extends BaseSpec {
       |  "type": "${stanzaType}",
       |  "values": [
       |    {
-      |      "type": "${valueType}",
+      |      "type": "${scalarType}",
       |      "label": "${pageNameLabel}",
       |      "value": "${pageName}"
       |    },
       |    {
-      |      "type": "${valueType}",
+      |      "type": "${scalarType}",
       |      "label": "${pageUrlLabel}",
       |      "value": "${pageUrl}"
       |    }
@@ -64,7 +69,7 @@ class ValueStanzaSpec extends BaseSpec {
       |      "value": "${pageName}"
       |    },
       |    {
-      |      "type": "${valueType}",
+      |      "type": "${scalarType}",
       |      "label": "${pageUrlLabel}",
       |      "value": "${pageUrl}"
       |    }
@@ -87,7 +92,7 @@ class ValueStanzaSpec extends BaseSpec {
          |      "value": "${pageName}"
          |    },
          |    {
-         |      "type": "${valueType}",
+         |      "type": "${scalarType}",
          |      "label": "${pageUrlLabel}",
          |      "value": "${pageUrl}"
          |    }
@@ -99,29 +104,70 @@ class ValueStanzaSpec extends BaseSpec {
     )
     .as[JsObject]
 
+  val validValueStanzaWithListJson: JsObject = Json
+    .parse(
+      s"""{
+         |  "type": "${stanzaType}",
+         |  "values": [
+         |    {
+         |      "type": "${listType}",
+         |      "label": "${listLabel}",
+         |      "value": "${listValue}"
+         |    }
+         |  ],
+         |  "next": ["${next}"],
+         |  "stack": ${stack}
+         |}
+    """.stripMargin
+    )
+    .as[JsObject]
+
+  val validValueStanzaWithMixedValueTypesJson: JsObject = Json
+    .parse(
+      s"""{
+         |  "type": "${stanzaType}",
+         |  "values": [
+         |  {
+         |      "type": "${scalarType}",
+         |      "label": "${pageNameLabel}",
+         |      "value": "${pageName}"
+         |    },
+         |    {
+         |      "type": "${listType}",
+         |      "label": "${listLabel}",
+         |      "value": "${listValue}"
+         |    }
+         |  ],
+         |  "next": ["${next}"],
+         |  "stack": ${stack}
+         |}
+    """.stripMargin
+    )
+    .as[JsObject]
+
   "ValueStanza" must {
 
-    "deserialise from json" in {
+    "deserialize scalar label from json" in {
 
       val stanza: ValueStanza = validValueStanzaJson.as[ValueStanza]
 
       stanza.stack shouldBe false
       stanza.next.length shouldBe 1
-      stanza.next(0) shouldBe next
+      stanza.next.head shouldBe next
       stanza.values.length shouldBe 2
-      stanza.values(0) shouldBe Value(Scalar, pageNameLabel, pageName)
-      stanza.values(1) shouldBe Value(Scalar, pageUrlLabel, pageUrl)
+      stanza.values.head shouldBe Value(ScalarType, pageNameLabel, pageName)
+      stanza.values(1) shouldBe Value(ScalarType, pageUrlLabel, pageUrl)
     }
 
-    "serialise to json" in {
-      val stanza: ValueStanza = ValueStanza(List(Value(Scalar, "LabelName", "/")), Seq("4"), true)
+    "serialize scalar label to json" in {
+      val stanza: ValueStanza = ValueStanza(List(Value(ScalarType, "LabelName", "/")), Seq("4"), true)
       val expectedJson: String = """{"values":[{"type":"scalar","label":"LabelName","value":"/"}],"next":["4"],"stack":true}"""
       val json: String = Json.toJson(stanza).toString
       json shouldBe expectedJson
     }
 
-    "serialise to json from a Stanza reference" in {
-      val stanza: Stanza = ValueStanza(List(Value(Scalar, "LabelName", "/")), Seq("4"), true)
+    "serialize scalar label to json from a Stanza reference" in {
+      val stanza: Stanza = ValueStanza(List(Value(ScalarType, "LabelName", "/")), Seq("4"), true)
       val expectedJson: String = """{"next":["4"],"stack":true,"values":[{"type":"scalar","label":"LabelName","value":"/"}],"type":"ValueStanza"}"""
       val json: String = Json.toJson(stanza).toString
       json shouldBe expectedJson
@@ -145,8 +191,56 @@ class ValueStanzaSpec extends BaseSpec {
       validValueStanzaJson.as[ValueStanza].values.length should be > 0
     }
 
+    "deserialize value stanza with list from json" in {
+
+      val valueStanza: ValueStanza = validValueStanzaWithListJson.as[ValueStanza]
+
+      valueStanza.stack shouldBe false
+      valueStanza.next.length shouldBe 1
+      valueStanza.next.head shouldBe next
+      valueStanza.values.length shouldBe 1
+      valueStanza.values.head shouldBe Value(ListType, listLabel, listValue)
+    }
+
+    "serialize a value stanza with list to json" in {
+
+      val valueStanza: ValueStanza = ValueStanza(
+        List(Value(ListType, listLabel, listValue)),
+          Seq("5"),
+          stack = true
+      )
+
+      val expectedJson: String = s"""{"values":[{"type":"$listType","label":"$listLabel","value":"$listValue"}],"next":["5"],"stack":true}"""
+      val json: String = Json.toJson(valueStanza).toString
+
+      json shouldBe expectedJson
+    }
+
+    "serialize a value stanza with list referenced by stanza to json" in {
+
+      val stanza: Stanza = ValueStanza(
+        List(Value(ListType, listLabel, listValue)),
+        Seq("2"),
+        stack = false
+      )
+
+      val expectedJson: String =
+        s"""{"next":["2"],"stack":false,"values":[{"type":"$listType","label":"$listLabel","value":"$listValue"}],"type":"ValueStanza"}"""
+
+      val json: String = Json.toJson(stanza).toString
+
+      json shouldBe expectedJson
+
+    }
+
     missingJsObjectAttrTests[ValueStanza](validValueStanzaJson, List("type"))
 
+    "define a list of the labels in a deserialized value stanza" in {
+
+      val stanza: ValueStanza = validValueStanzaWithMixedValueTypesJson.as[ValueStanza]
+
+      stanza.labels shouldBe List(ScalarLabel(pageNameLabel, None), ListLabel(listLabel, None))
+    }
   }
 
 }

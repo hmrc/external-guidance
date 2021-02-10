@@ -20,31 +20,48 @@ import play.api.i18n.Lang
 
 trait Labels {
   def value(name: String): Option[String]
+  def valueAsList(name: String): Option[List[String]]
   def displayValue(name: String)(implicit lang: Lang): Option[String]
   def update(name: String, english: String): Labels
   def update(name: String, english: String, welsh: String): Labels
+  def updateList(name: String, english: List[String]): Labels
+  def updateList(name: String, english: List[String], welsh: List[String]): Labels
   def updatedLabels: Map[String, Label]
   def labelMap:Map[String, Label]
   def flush(): Labels
 }
 
 private class LabelCacheImpl(labels: Map[String, Label] = Map(), cache: Map[String, Label] = Map()) extends Labels {
-  def value(name: String): Option[String] = label(name).map(_.english.getOrElse(""))
+  def value(name: String): Option[String] = label(name).map{l => l.english.fold("")(c => if(c.nonEmpty) c.head else "")}
+  def valueAsList(name: String): Option[List[String]] = label(name).map{lbl => lbl.english.getOrElse(Nil)}
   def displayValue(name: String)(implicit lang: Lang): Option[String] = label(name).map{lbl =>
     lang.code match {
-      case "en" => lbl.english.getOrElse("")
-      case "cy" => lbl.welsh.fold(lbl.english.getOrElse(""))(cy => cy)
+      case "en" => lbl.english.getOrElse(Nil).mkString(",")
+      case "cy" => if(lbl.welsh.isDefined) lbl.welsh.getOrElse(Nil).mkString(",") else lbl.english.getOrElse(Nil).mkString(",")
     }
   }
-  def update(name: String, english: String): Labels = new LabelCacheImpl(labels, updateOrAddLabel(name, english))
-  def update(name: String, english: String, welsh: String): Labels = new LabelCacheImpl(labels, updateOrAddLabel(name, english, Some(welsh)))
+  def update(name: String, english: String): Labels = new LabelCacheImpl(labels, updateOrAddScalarLabel(name, english))
+  def update(name: String, english: String, welsh: String): Labels = new LabelCacheImpl(labels, updateOrAddScalarLabel(name, english, Some(welsh)))
+  def updateList(name: String, english: List[String]): Labels = new LabelCacheImpl(labels, updateOrAddListLabel(name, english))
+  def updateList(name: String, english: List[String], welsh: List[String]): Labels =
+    new LabelCacheImpl(labels, updateOrAddListLabel(name, english, Some(welsh)))
   def updatedLabels: Map[String, Label] = cache
   def labelMap:Map[String, Label] = labels
   def flush(): Labels = new LabelCacheImpl(labels ++ cache.toList, Map())
 
   private def label(name: String): Option[Label] = cache.get(name).fold(labels.get(name))(Some(_))
-  private def updateOrAddLabel(name: String, english: String, welsh: Option[String] = None): Map[String, Label] =
-    cache + (name -> cache.get(name).fold[Label](Label(name, Some(english), welsh))(l => Label(l.name, Some(english), welsh)))
+
+  private def updateOrAddScalarLabel(name: String, english: String, welsh: Option[String] = None): Map[String, Label] = {
+    cache + (name -> cache.get(name).fold[Label]
+      (createScalarLabel(name, english, welsh))
+      (l => createScalarLabel(l.name, english, welsh)))
+  }
+  private def createScalarLabel(name: String, english: String, welsh: Option[String]): ScalarLabel = {
+    ScalarLabel(name, Some(List(english)), welsh.map(w => List(w)))
+  }
+
+  private def updateOrAddListLabel(name: String, english: List[String], welsh: Option[List[String]] = None): Map[String, Label] =
+    cache + (name -> cache.get(name).fold[Label](ListLabel(name, Some(english), welsh))(l => ListLabel(l.name, Some(english), welsh)))
 }
 
 object LabelCache {
