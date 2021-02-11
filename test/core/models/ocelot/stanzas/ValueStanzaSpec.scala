@@ -206,8 +206,8 @@ class ValueStanzaSpec extends BaseSpec {
 
       val valueStanza: ValueStanza = ValueStanza(
         List(Value(ListType, listLabel, listValue)),
-          Seq("5"),
-          stack = true
+        Seq("5"),
+        stack = true
       )
 
       val expectedJson: String = s"""{"values":[{"type":"$listType","label":"$listLabel","value":"$listValue"}],"next":["5"],"stack":true}"""
@@ -233,14 +233,14 @@ class ValueStanzaSpec extends BaseSpec {
 
     }
 
-    missingJsObjectAttrTests[ValueStanza](validValueStanzaJson, List("type"))
-
     "define a list of the labels in a deserialized value stanza" in {
 
       val stanza: ValueStanza = validValueStanzaWithMixedValueTypesJson.as[ValueStanza]
 
       stanza.labels shouldBe List(ScalarLabel(pageNameLabel, None), ListLabel(listLabel, None))
     }
+
+    missingJsObjectAttrTests[ValueStanza](validValueStanzaJson, List("type"))
   }
 
 }

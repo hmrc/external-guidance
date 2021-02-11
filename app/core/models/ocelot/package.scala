@@ -23,16 +23,22 @@ import scala.util.Try
 import scala.util.matching.Regex
 
 package object ocelot {
-  val ignoredCurrencyChars: Seq[Char] = Seq(' ','£', ',')
-  val hintRegex: Regex = "\\[hint:([^\\]])+\\]".r
-  val pageLinkOnlyPattern: String = s"^\\[link:(.+?):(\\d+|${Process.StartStanzaId})\\]$$"
-  val boldOnlyPattern: String = s"^\\[bold:(.+?)\\]$$"
-  val pageLinkRegex: Regex = s"\\[(button|link)(-same|-tab)?:([^\\]]+?):(\\d+|${Process.StartStanzaId})\\]".r
+  val labelPattern = "\\[label:([A-Za-z0-9\\s\\-_]+)(:(currency|currencyPoundsOnly|date|number))?\\]"
+  val boldPattern = s"\\[bold:($labelPattern|[^\\]]+)\\]"
+  val linkToPageOnlyPattern = s"\\[link:(.+?):(\\d+|${Process.StartStanzaId})\\]"
+  val toPageLinkPattern = s"\\[(button|link)(-same|-tab)?:([^\\]]+?):(\\d+|${Process.StartStanzaId})\\]"
+  val linkPattern = s"\\[(button|link)(-same|-tab)?:(.+?):(\\d+|${Process.StartStanzaId}|https?:[a-zA-Z0-9\\/\\.\\-\\?_\\.=&]+)\\]"
+
+  val hintRegex: Regex = "\\[hint:([^\\]]+)\\]".r
+  val pageLinkRegex: Regex = s"${toPageLinkPattern}".r
   val labelRefRegex: Regex = s"\\[label:([A-Za-z0-9\\s\\-_]+)(:(currency))?\\]".r
   val inputCurrencyRegex: Regex = "^-?£?(\\d{1,3}(,\\d{3})*|\\d+)(\\.(\\d{1,2})?)?$".r
   val inputCurrencyPoundsRegex: Regex = "^-?£?(\\d{1,3}(,\\d{3})*|\\d+)$".r
   val integerRegex: Regex = "^\\d+$".r
   val anyIntegerRegex: Regex = "^[\\-]?\\d+$".r
+
+  val DateOutputFormat = "d MMMM uuuu"
+  val ignoredCurrencyChars: Seq[Char] = Seq(' ','£', ',')
   val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d/M/uuuu", java.util.Locale.UK).withResolverStyle(ResolverStyle.STRICT)
   def plSingleGroupCaptures(regex: Regex, str: String, index: Int = 1): List[String] = regex.findAllMatchIn(str).map(_.group(index)).toList
   def pageLinkIds(str: String): List[String] = plSingleGroupCaptures(pageLinkRegex, str, 4)
@@ -49,6 +55,8 @@ package object ocelot {
   def asInt(value: String): Option[Int] = integerRegex.findFirstIn(value).map(_.toInt)
   def asAnyInt(value: String): Option[Int] = anyIntegerRegex.findFirstIn(value).map(_.toInt)
 
+  val pageLinkOnlyPattern: String = s"^${linkToPageOnlyPattern}$$"
+  val boldOnlyPattern: String = s"^${boldPattern}$$"
   def isLinkOnlyPhrase(phrase: Phrase): Boolean =phrase.english.matches(pageLinkOnlyPattern)
   def isBoldOnlyPhrase(phrase: Phrase): Boolean =phrase.english.matches(boldOnlyPattern)
 }

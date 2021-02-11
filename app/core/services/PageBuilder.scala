@@ -16,7 +16,7 @@
 
 package core.services
 
-import javax.inject.Singleton
+import javax.inject.{Inject, Singleton}
 import core.models.ocelot._
 import core.models.ocelot.stanzas._
 import core.models.ocelot.errors._
@@ -24,7 +24,7 @@ import play.api.Logger
 import scala.annotation.tailrec
 
 @Singleton
-class PageBuilder extends ProcessPopulation {
+class PageBuilder @Inject() (val placeholders: Placeholders) extends ProcessPopulation with PlaceholderProvider {
   val logger: Logger = Logger(this.getClass)
 
   def buildPage(key: String, process: Process): Either[GuidanceError, Page] = {
