@@ -21,12 +21,12 @@ import play.api.libs.json._
 
 trait Label {
   val name: String
-  val english: Option[List[String]]
-  val welsh: Option[List[String]]
+  val english: List[String]
+  val welsh: List[String]
 }
 
-case class ScalarLabel(name: String, english: Option[List[String]] = None, welsh: Option[List[String]] = None) extends Label
-case class ListLabel(name: String, english: Option[List[String]] = None, welsh: Option[List[String]] = None) extends Label
+case class ScalarLabel(name: String, english: List[String] = Nil, welsh: List[String] = Nil) extends Label
+case class ListLabel(name: String, english: List[String] = Nil, welsh: List[String] = Nil) extends Label
 
 object Label {
 
@@ -51,14 +51,14 @@ object ScalarLabel {
 
   implicit val reads: Reads[ScalarLabel] = (
     (__ \ "name").read[String] and
-      (__ \ "english").readNullable[List[String]] and
-      (__ \ "welsh").readNullable[List[String]]
+      (__ \ "english").read[List[String]] and
+      (__ \ "welsh").read[List[String]]
   )(ScalarLabel.apply _)
 
   implicit val owrites: OWrites[ScalarLabel] = (
     (__ \ "name").write[String] and
-      (__ \ "english").writeNullable[List[String]] and
-      (__ \ "welsh").writeNullable[List[String]]
+      (__ \ "english").write[List[String]] and
+      (__ \ "welsh").write[List[String]]
   )(unlift(ScalarLabel.unapply))
 }
 
@@ -66,14 +66,14 @@ object ListLabel {
 
   implicit val reads: Reads[ListLabel] = (
     (__ \ "name").read[String] and
-      (__ \ "english").readNullable[List[String]] and
-      (__ \ "welsh").readNullable[List[String]]
+      (__ \ "english").read[List[String]] and
+      (__ \ "welsh").read[List[String]]
   )(ListLabel.apply _)
 
   implicit val owrites: OWrites[ListLabel] = (
     (__ \ "name").write[String] and
-      (__ \ "english").writeNullable[List[String]] and
-      (__ \ "welsh").writeNullable[List[String]]
+      (__ \ "english").write[List[String]] and
+      (__ \ "welsh").write[List[String]]
   )(unlift(ListLabel.unapply))
 
 }

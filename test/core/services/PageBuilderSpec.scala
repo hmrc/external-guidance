@@ -536,25 +536,25 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
   "services" must {
     "determine unique set of case sensitive labels from a collection of pages" in new IhtTest {
-      val labels = Seq(ScalarLabel("Properties",None),
-        ScalarLabel("Money",None),
-        ScalarLabel("Household",None),
-        ScalarLabel("Motor Vehicles",None),
-        ScalarLabel("Private pension",None),
-        ScalarLabel("Trust",None),
-        ScalarLabel("Foreign assets",None),
-        ScalarLabel("Other assets",None),
-        ScalarLabel("Mortgage_debt",None),
-        ScalarLabel("funeral_expenses",None),
-        ScalarLabel("other_debts",None),
-        ScalarLabel("left to spouse",None),
-        ScalarLabel("registered charity",None),
-        ScalarLabel("nil rate band",None),
-        ScalarLabel("more than 100k",None, None),
-        ScalarLabel("Value of Assets",None),
-        ScalarLabel("Value of Debts",None),
-        ScalarLabel("Additional Info",None),
-        ScalarLabel("IHT result",None))
+      val labels = Seq(ScalarLabel("Properties"),
+        ScalarLabel("Money"),
+        ScalarLabel("Household"),
+        ScalarLabel("Motor Vehicles"),
+        ScalarLabel("Private pension"),
+        ScalarLabel("Trust"),
+        ScalarLabel("Foreign assets"),
+        ScalarLabel("Other assets"),
+        ScalarLabel("Mortgage_debt"),
+        ScalarLabel("funeral_expenses"),
+        ScalarLabel("other_debts"),
+        ScalarLabel("left to spouse"),
+        ScalarLabel("registered charity"),
+        ScalarLabel("nil rate band"),
+        ScalarLabel("more than 100k"),
+        ScalarLabel("Value of Assets"),
+        ScalarLabel("Value of Debts"),
+        ScalarLabel("Additional Info"),
+        ScalarLabel("IHT result"))
 
       pageBuilder.pagesWithValidation(ihtProcess, "start") match {
         case Right(pages) => uniqueLabels(pages) shouldBe labels

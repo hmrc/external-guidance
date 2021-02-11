@@ -30,7 +30,7 @@ case class InputStanza(
   placeholder: Option[Int],
   stack: Boolean
 ) extends VisualStanza {
-  override val labels = List(ScalarLabel(label, None))
+  override val labels = List(ScalarLabel(label))
 }
 
 object InputStanza {
