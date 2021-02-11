@@ -19,6 +19,8 @@ package core.models.ocelot.stanzas
 import base.BaseSpec
 import play.api.libs.json._
 
+import core.models.ocelot.{ListLabel, ScalarLabel}
+
 class ValueStanzaSpec extends BaseSpec {
 
   val stanzaType = "ValueStanza"
@@ -120,6 +122,29 @@ class ValueStanzaSpec extends BaseSpec {
     )
     .as[JsObject]
 
+  val validValueStanzaWithMixedValueTypesJson: JsObject = Json
+    .parse(
+      s"""{
+         |  "type": "${stanzaType}",
+         |  "values": [
+         |  {
+         |      "type": "${scalarType}",
+         |      "label": "${pageNameLabel}",
+         |      "value": "${pageName}"
+         |    },
+         |    {
+         |      "type": "${listType}",
+         |      "label": "${listLabel}",
+         |      "value": "${listValue}"
+         |    }
+         |  ],
+         |  "next": ["${next}"],
+         |  "stack": ${stack}
+         |}
+    """.stripMargin
+    )
+    .as[JsObject]
+
   "ValueStanza" must {
 
     "deserialize scalar label from json" in {
@@ -181,8 +206,8 @@ class ValueStanzaSpec extends BaseSpec {
 
       val valueStanza: ValueStanza = ValueStanza(
         List(Value(ListType, listLabel, listValue)),
-          Seq("5"),
-          stack = true
+        Seq("5"),
+        stack = true
       )
 
       val expectedJson: String = s"""{"values":[{"type":"$listType","label":"$listLabel","value":"$listValue"}],"next":["5"],"stack":true}"""
@@ -206,6 +231,13 @@ class ValueStanzaSpec extends BaseSpec {
 
       json shouldBe expectedJson
 
+    }
+
+    "define a list of the labels in a deserialized value stanza" in {
+
+      val stanza: ValueStanza = validValueStanzaWithMixedValueTypesJson.as[ValueStanza]
+
+      stanza.labels shouldBe List(ScalarLabel(pageNameLabel), ListLabel(listLabel))
     }
 
     missingJsObjectAttrTests[ValueStanza](validValueStanzaJson, List("type"))

@@ -536,25 +536,25 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
   "services" must {
     "determine unique set of case sensitive labels from a collection of pages" in new IhtTest {
-      val labels = Seq(Label("Properties",None),
-        Label("Money",None),
-        Label("Household",None),
-        Label("Motor Vehicles",None),
-        Label("Private pension",None),
-        Label("Trust",None),
-        Label("Foreign assets",None),
-        Label("Other assets",None),
-        Label("Mortgage_debt",None),
-        Label("funeral_expenses",None),
-        Label("other_debts",None),
-        Label("left to spouse",None),
-        Label("registered charity",None),
-        Label("nil rate band",None),
-        Label("more than 100k",None, None),
-        Label("Value of Assets",None),
-        Label("Value of Debts",None),
-        Label("Additional Info",None),
-        Label("IHT result",None))
+      val labels = Seq(ScalarLabel("Properties"),
+        ScalarLabel("Money"),
+        ScalarLabel("Household"),
+        ScalarLabel("Motor Vehicles"),
+        ScalarLabel("Private pension"),
+        ScalarLabel("Trust"),
+        ScalarLabel("Foreign assets"),
+        ScalarLabel("Other assets"),
+        ScalarLabel("Mortgage_debt"),
+        ScalarLabel("funeral_expenses"),
+        ScalarLabel("other_debts"),
+        ScalarLabel("left to spouse"),
+        ScalarLabel("registered charity"),
+        ScalarLabel("nil rate band"),
+        ScalarLabel("more than 100k"),
+        ScalarLabel("Value of Assets"),
+        ScalarLabel("Value of Debts"),
+        ScalarLabel("Additional Info"),
+        ScalarLabel("IHT result"))
 
       pageBuilder.pagesWithValidation(ihtProcess, "start") match {
         case Right(pages) => uniqueLabels(pages) shouldBe labels
