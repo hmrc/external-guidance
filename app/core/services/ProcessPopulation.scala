@@ -22,6 +22,7 @@ import core.models.ocelot.errors._
 import scala.annotation.tailrec
 
 trait ProcessPopulation {
+  this: PlaceholderProvider =>
 
   def stanza(id: String, process: Process): Either[GuidanceError, Stanza] =
     process.flow.get(id) match {
@@ -71,8 +72,12 @@ trait ProcessPopulation {
       case i: InstructionStanza => populateInstruction(i)
       case i: InputStanza => populateInput(i)
       case c: CalloutStanza => phrase(c.text, id, process).fold(Left(_), text => Right(Callout(c, text)))
-      case c: ChoiceStanza => Right(Choice(c))
-      case c: CalculationStanza => Right(Calculation(c))
+      case c: ChoiceStanza =>
+        Right(Choice(c.copy(tests = c.tests.map(t => t.copy(left = placeholders.translate(t.left), right = placeholders.translate(t.right))))))
+      case c: CalculationStanza =>
+        Right(Calculation(c.copy(calcs = c.calcs.map(op => op.copy(left = placeholders.translate(op.left), right = placeholders.translate(op.right))))))
+      case vs: ValueStanza =>
+        Right(vs.copy(values = vs.values.map(v => v.copy(value = placeholders.translate(v.value)))))
       case s: Stanza => Right(s)
     }
   }
@@ -83,7 +88,7 @@ trait ProcessPopulation {
   private def phrase(phraseIndex: Int, stanzaId: String, process: Process): Either[GuidanceError, Phrase] =
     process.phraseOption(phraseIndex).fold[Either[GuidanceError, Phrase]](Left(PhraseNotFound(stanzaId, phraseIndex))){
       case Phrase(english, welsh) if welsh.isEmpty && english.nonEmpty => Left(MissingWelshText(stanzaId, phraseIndex.toString, english))
-      case p: Phrase => Right(p)
+      case p: Phrase => Right(Phrase(placeholders.translate(p.english), placeholders.translate(p.welsh)))
     }
 
   @tailrec

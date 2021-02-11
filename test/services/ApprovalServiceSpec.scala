@@ -18,7 +18,7 @@ package services
 
 import java.time.ZonedDateTime
 import java.util.UUID
-import core.services.PageBuilder
+import core.services.{Placeholders, PageBuilder}
 import base.BaseSpec
 import mocks.{MockAppConfig, MockApprovalProcessReviewRepository, MockApprovalRepository, MockPublishedRepository}
 import models._
@@ -30,6 +30,7 @@ import play.api.libs.json.{JsArray, JsObject, Json}
 import models.Constants._
 import core.models.RequestOutcome
 import scala.concurrent.Future
+import core.services.DefaultTodayProvider
 
 class ApprovalServiceSpec extends BaseSpec with MockFactory {
 
@@ -47,7 +48,7 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
       new ApprovalService(mockApprovalRepository,
                           mockApprovalProcessReviewRepository,
                           mockPublishedRepository,
-                          new PageBuilder(),
+                          new PageBuilder(new Placeholders(new DefaultTodayProvider)),
                           MockAppConfig)
 
     val processReview: ApprovalProcessReview =

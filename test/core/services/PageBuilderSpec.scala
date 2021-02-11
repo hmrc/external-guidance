@@ -27,7 +27,7 @@ import core.models.StanzaHelper
 class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
   // Define instance of class used in testing
-  val pageBuilder: PageBuilder = new PageBuilder()
+  val pageBuilder: PageBuilder = new PageBuilder(new Placeholders(new DefaultTodayProvider))
 
   val meta: Meta = Json.parse(prototypeMetaSection).as[Meta]
 
@@ -82,7 +82,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
   "PageBuilder error handling" must {
 
     val flow = Map(
-      Process.StartStanzaId -> ValueStanza(List(Value(Scalar, "PageUrl", "/blah")), Seq("1"), false),
+      Process.StartStanzaId -> ValueStanza(List(Value(ScalarType, "PageUrl", "/blah")), Seq("1"), false),
       "1" -> InstructionStanza(0, Seq("2"), None, false),
       "2" -> DummyStanza
     )
@@ -185,7 +185,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         "1" -> InstructionStanza(0, Seq("2"), None, false),
         "2" -> QuestionStanza(1, Seq(2, 3, 4, 5), Seq("4", "5", "6", "7"), None, false),
         "4" -> Choice(ChoiceStanza(Seq("5","6"), Seq(ChoiceStanzaTest("[label:X]", LessThanOrEquals, "8")), false)),
-        "5" -> ValueStanza(List(Value(Scalar, "PageUrl", "/blah")), Seq("4"), false),
+        "5" -> ValueStanza(List(Value(ScalarType, "PageUrl", "/blah")), Seq("4"), false),
         "6" -> InstructionStanza(0, Seq("end"), None, false),
         "7" -> InstructionStanza(0, Seq("end"), None, false),
         "end" -> EndStanza

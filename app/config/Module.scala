@@ -16,6 +16,7 @@
 
 package config
 
+import core.services.{DefaultTodayProvider, TodayProvider}
 import com.google.inject.AbstractModule
 import controllers.actions._
 import repositories._
@@ -31,5 +32,6 @@ class Module extends AbstractModule {
     bind(classOf[IdentifierAction]).to(classOf[AuthenticatedIdentifierAction])
     bind(classOf[FactCheckerIdentifierAction]).to(classOf[FactCheckerAuthenticatedIdentifierAction])
     bind(classOf[TwoEyeReviewerIdentifierAction]).to(classOf[TwoEyeReviewerAuthenticatedIdentifierAction])
+    bind(classOf[TodayProvider]).to(classOf[DefaultTodayProvider])
   }
 }
