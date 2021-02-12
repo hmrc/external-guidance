@@ -32,7 +32,7 @@ trait Labels {
 }
 
 private class LabelCacheImpl(labels: Map[String, Label] = Map(), cache: Map[String, Label] = Map()) extends Labels {
-    def value(name: String): Option[String] = label(name).collect{case s:ScalarLabel => s.english.headOption.getOrElse("")}
+  def value(name: String): Option[String] = label(name).collect{case s:ScalarLabel => s.english.headOption.getOrElse("")}
   def valueAsList(name: String): Option[List[String]] = label(name).collect{case l:ListLabel => l.english}
   def displayValue(name: String)(implicit lang: Lang): Option[String] = label(name).map{lbl =>
     lang.code match {
