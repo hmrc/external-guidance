@@ -231,7 +231,7 @@ class ChoiceStanzaSpec extends BaseSpec {
         false
       )
       val choice = Choice(stanza)
-      val labels = Map("X" -> Label("X", Some("33.5")), "Y" -> Label("Y", Some("44")))
+      val labels = Map("X" -> ScalarLabel("X", List("33.5")), "Y" -> ScalarLabel("Y", List("44")))
       val lc = LabelCache(labels)
       val expectedResult = ("40", lc)
       choice.eval(lc) shouldBe expectedResult
@@ -245,7 +245,7 @@ class ChoiceStanzaSpec extends BaseSpec {
         false
       )
       val choice = Choice(stanza)
-      val labels = Map("X" -> Label("X", Some("33.5")), "Y" -> Label("Y", Some("4")))
+      val labels = Map("X" -> ScalarLabel("X", List("33.5")), "Y" -> ScalarLabel("Y", List("4")))
       val lc = LabelCache(labels)
       val expectedResult = ("51", lc)
       choice.eval(lc) shouldBe expectedResult
@@ -260,8 +260,8 @@ class ChoiceStanzaSpec extends BaseSpec {
       val choice: Choice = Choice(stanza)
 
       val labels: Map[String, Label] = Map(
-        "date1" -> Label("date1", Some("19/01/2021")),
-        "date2" -> Label("date2", Some("20/01/2021"))
+        "date1" -> ScalarLabel("date1", List("19/01/2021")),
+        "date2" -> ScalarLabel("date2", List("20/01/2021"))
       )
 
       val lc = LabelCache(labels)
@@ -284,8 +284,8 @@ class ChoiceStanzaSpec extends BaseSpec {
       val choice: Choice = Choice(stanza)
 
       val labels: Map[String, Label] = Map(
-        "date1" -> Label("date1", Some("19/01/2021")),
-        "date2" -> Label("date2", Some("20/01/2021"))
+        "date1" -> ScalarLabel("date1", List("19/01/2021")),
+        "date2" -> ScalarLabel("date2", List("20/01/2021"))
       )
 
       val lc = LabelCache(labels)

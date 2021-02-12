@@ -459,10 +459,10 @@ class CalculationStanzaSpec extends BaseSpec {
       val calculation: Calculation = Calculation(exampleCalcStanza)
 
       // Define expected labels
-      val output1: Label = Label("output1")
-      val output2: Label = Label("output2")
-      val output3: Label = Label("output3")
-      val output4: Label = Label("output4")
+      val output1: Label = ScalarLabel("output1")
+      val output2: Label = ScalarLabel("output2")
+      val output3: Label = ScalarLabel("output3")
+      val output4: Label = ScalarLabel("output4")
 
       calculation.labels shouldBe List(output1, output2, output3, output4)
     }
@@ -533,8 +533,8 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val calculation: Calculation = Calculation(stanza)
 
-      val input1: Label = Label( "input1", Some("10.00"))
-      val input2: Label = Label( "input2", Some("25.00"))
+      val input1: Label = ScalarLabel( "input1", List("10.00"))
+      val input2: Label = ScalarLabel( "input2", List("25.00"))
 
       val labelMap: Map[String, Label] = Map(
         input1.name -> input1,
@@ -560,8 +560,8 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val calculation: Calculation = Calculation(stanza)
 
-      val input1: Label = Label( "input1", Some("64.00"))
-      val input2: Label = Label( "input2", Some("32.00"))
+      val input1: Label = ScalarLabel( "input1", List("64.00"))
+      val input2: Label = ScalarLabel( "input2", List("32.00"))
 
       val labelMap: Map[String, Label] = Map(
         input1.name -> input1,
@@ -592,11 +592,11 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val calculation: Calculation = Calculation(stanza)
 
-      val input1: Label = Label( "input1", Some("10.00"))
-      val input2: Label = Label( "input2", Some("22.00"))
-      val input3: Label = Label( "input3", Some("3.00"))
-      val input4: Label = Label( "input4", Some("4.00"))
-      val input5: Label = Label( "input5", Some("10.00"))
+      val input1: Label = ScalarLabel( "input1", List("10.00"))
+      val input2: Label = ScalarLabel( "input2", List("22.00"))
+      val input3: Label = ScalarLabel( "input3", List("3.00"))
+      val input4: Label = ScalarLabel( "input4", List("4.00"))
+      val input5: Label = ScalarLabel( "input5", List("10.00"))
 
       val labelMap: Map[String, Label] = Map(
         input1.name -> input1,
@@ -633,17 +633,17 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val calculation: Calculation = Calculation(stanza)
 
-      val input1: Label = Label( "input1", Some("10."))
-      val input2: Label = Label( "input2", Some("25.0"))
+      val input1: Label = ScalarLabel( "input1", List("10."))
+      val input2: Label = ScalarLabel( "input2", List("25.0"))
 
-      val input3: Label = Label( "input3", Some("10.0"))
-      val input4: Label = Label( "input4", Some("25.00"))
+      val input3: Label = ScalarLabel( "input3", List("10.0"))
+      val input4: Label = ScalarLabel( "input4", List("25.00"))
 
-      val input5: Label = Label( "input5", Some("25.0"))
-      val input6: Label = Label( "input6", Some("10"))
+      val input5: Label = ScalarLabel( "input5", List("25.0"))
+      val input6: Label = ScalarLabel( "input6", List("10"))
 
-      val input7: Label = Label( "input7", Some("25.00"))
-      val input8: Label = Label( "input8", Some("10"))
+      val input7: Label = ScalarLabel( "input7", List("25.00"))
+      val input8: Label = ScalarLabel( "input8", List("10"))
 
       val labelMap: Map[String, Label] = Map(
         input1.name -> input1,
@@ -682,10 +682,10 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val calculation: Calculation = Calculation(stanza)
 
-      val input1: Label = Label( "input1", Some("Hello"))
-      val input2: Label = Label( "input2", Some(" "))
-      val input3: Label = Label( "input3", Some("World"))
-      val input4: Label = Label( "input4", Some("!"))
+      val input1: Label = ScalarLabel( "input1", List("Hello"))
+      val input2: Label = ScalarLabel( "input2", List(" "))
+      val input3: Label = ScalarLabel( "input3", List("World"))
+      val input4: Label = ScalarLabel( "input4", List("!"))
 
       val labelMap: Map[String, Label] = Map(
         input1.name -> input1,
@@ -714,8 +714,8 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val calculation: Calculation = Calculation(stanza)
 
-      val input1: Label = Label( "input1", Some("Today"))
-      val input2: Label = Label( "input2", Some("Yesterday"))
+      val input1: Label = ScalarLabel( "input1", List("Today"))
+      val input2: Label = ScalarLabel( "input2", List("Yesterday"))
 
       val labelMap: Map[String, Label] = Map(
         input1.name -> input1,
@@ -772,14 +772,14 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val calculation: Calculation = Calculation(stanza)
 
-      val date1: Label = Label("date1", Some("6/3/2019"))
-      val date2: Label = Label("date2", Some("2/2/2019"))
-      val date3: Label = Label("date3", Some("06/03/2020"))
-      val date4: Label = Label("date4", Some("02/02/2020"))
-      val date5: Label = Label("date5", Some("01/01/2016"))
-      val date6: Label = Label("date6", Some("01/01/2015"))
-      val date7: Label = Label("date7", Some("10/5/2015"))
-      val date8: Label = Label("date8", Some("8/9/2007"))
+      val date1: Label = ScalarLabel("date1", List("6/3/2019"))
+      val date2: Label = ScalarLabel("date2", List("2/2/2019"))
+      val date3: Label = ScalarLabel("date3", List("06/03/2020"))
+      val date4: Label = ScalarLabel("date4", List("02/02/2020"))
+      val date5: Label = ScalarLabel("date5", List("01/01/2016"))
+      val date6: Label = ScalarLabel("date6", List("01/01/2015"))
+      val date7: Label = ScalarLabel("date7", List("10/5/2015"))
+      val date8: Label = ScalarLabel("date8", List("8/9/2007"))
 
       val labelMap: Map[String, Label] = Map(
         date1.name -> date1,
@@ -816,8 +816,8 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val calculation: Calculation = Calculation(stanza)
 
-      val date1: Label = Label("date1", Some("07/10/2019"))
-      val date2: Label = Label("date2", Some("20/04/2021"))
+      val date1: Label = ScalarLabel("date1", List("07/10/2019"))
+      val date2: Label = ScalarLabel("date2", List("20/04/2021"))
 
       val labelMap: Map[String, Label] = Map(
         date1.name -> date1,
@@ -1077,7 +1077,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val calculation: Calculation = Calculation(stanza)
 
-      val input1: Label = Label("input1", Some("10.5"))
+      val input1: Label = ScalarLabel("input1", List("10.5"))
 
       val labelMap: Map[String, Label] = Map(
         input1.name -> input1
@@ -1102,7 +1102,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val calculation: Calculation = Calculation(stanza)
 
-      val input1: Label = Label("input1", Some("1021.25"))
+      val input1: Label = ScalarLabel("input1", List("1021.25"))
 
       val labelMap: Map[String, Label] = Map(
         input1.name -> input1
@@ -1146,7 +1146,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val calculation: Calculation = Calculation(stanza)
 
-      val label: Label = Label("label", Some("data"))
+      val label: Label = ScalarLabel("label", List("data"))
 
       val labelMap: Map[String, Label] = Map(label.name -> label)
 

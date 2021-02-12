@@ -69,7 +69,7 @@ class InputStanzaSpec extends BaseSpec {
       val input = Input(expectedCurrencyStanza, Phrase("",""), None, None)
       val labels = LabelCache()
       val (_, updatedLabels) = input.eval("33", labels)
-      updatedLabels.updatedLabels(expectedCurrencyStanza.label).english shouldBe Some("33")
+      updatedLabels.updatedLabels(expectedCurrencyStanza.label).english shouldBe List("33")
     }
 
     "Determine invalid input to be incorrect" in {
@@ -111,7 +111,7 @@ class InputStanzaSpec extends BaseSpec {
       val input = Input(expectedCurrencyPoStanza, Phrase("",""), None, None)
       val labels = LabelCache()
       val (_, updatedLabels) = input.eval("33", labels)
-      updatedLabels.updatedLabels(expectedCurrencyPoStanza.label).english shouldBe Some("33")
+      updatedLabels.updatedLabels(expectedCurrencyPoStanza.label).english shouldBe List("33")
     }
 
     "Determine invalid input to be incorrect" in {
@@ -153,7 +153,7 @@ class InputStanzaSpec extends BaseSpec {
       val input = Input(expectedDateStanza, Phrase("",""), None, None)
       val labels = LabelCache()
       val (_, updatedLabels) = input.eval("33", labels)
-      updatedLabels.updatedLabels(expectedDateStanza.label).english shouldBe Some("33")
+      updatedLabels.updatedLabels(expectedDateStanza.label).english shouldBe List("33")
     }
 
     "Determine invalid input to be incorrect" in {
@@ -180,7 +180,7 @@ class InputStanzaSpec extends BaseSpec {
       val input = Input(expectedTextStanza, Phrase("",""), None, None)
       val labels = LabelCache()
       val (_, updatedLabels) = input.eval("hello", labels)
-      updatedLabels.updatedLabels(expectedTextStanza.label).english shouldBe Some("hello")
+      updatedLabels.updatedLabels(expectedTextStanza.label).english shouldBe List("hello")
     }
 
     "Determine invalid input to be incorrect" in {
@@ -200,7 +200,7 @@ class InputStanzaSpec extends BaseSpec {
       val input = Input(expectedNumberStanza, Phrase("",""), None, None)
       val labels = LabelCache()
       val (_, newLabels) = input.eval("33", labels)
-      newLabels.updatedLabels(expectedNumberStanza.label).english shouldBe Some("33")
+      newLabels.updatedLabels(expectedNumberStanza.label).english shouldBe List("33")
     }
 
     "Determine invalid input to be incorrect" in {
