@@ -69,6 +69,32 @@ class GraphPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       "end" -> EndStanza
     )
 
+    val calcOperations: Seq[CalcOperation] = Seq(
+      CalcOperation("[label:ThisYear]", Subtraction, "[label:index]", "FirstYear"),
+      CalcOperation("[label:FirstYear]", Addition, "1", "SecondYear"),
+      CalcOperation("[label:YearList]", Addition, "[label:FirstYear] to [label:SecondYear]", "YearList"),
+      CalcOperation("[label:index]", Addition, "1", "index")
+    )
+
+    val values: List[Value] = List(
+      Value(ListType, "YearList", ""),
+      Value(ScalarType, "ThisYear", "[timescale:CY:long]"),
+      Value(ScalarType, "index", "1")
+    )
+
+    val loopFlow = Map(
+      pageId1 -> PageStanza("/start", Seq("1000"), false),
+      "1000" -> CalloutStanza(Note, 3, Seq("1"), false),
+      "1" -> ValueStanza(values, Seq("2"), true),
+      "2" -> CalculationStanza(Seq(CalcOperation("[label:ThisYear]", Subtraction, "2013", "YearCount")), Seq("4"), stack = false),
+      "4" -> ChoiceStanza(Seq("5", "6"), Seq(ChoiceStanzaTest("[label:index]", LessThanOrEquals, "[label:YearCount]")), false),
+      "5" -> CalculationStanza(calcOperations, Seq("4"), stack = false),
+      "6" -> InstructionStanza(2, Seq("6000"), None, true),
+      "6000" -> PageStanza("/chooser2", Seq("7"), false),
+      "7" -> CalloutStanza(Title, 3, Seq("end"), false),
+      "end" -> EndStanza
+    )
+
     private val phrases = Vector[Phrase](
       Phrase(Vector("Some Text", "Welsh, Some Text")),
       Phrase(Vector(s"Some Text1 [link:Link to stanza 17:$pageId7]", s"Welsh, Some Text1 [link:Link to stanza 17:$pageId7]")),
@@ -130,6 +156,17 @@ class GraphPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
     }
 
+  }
+
+  "Process validation" must {
+    "follow each process patch only once" in new GraphTest {
+      override val process = Process(metaSection, loopFlow, phrases, links)
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Right(pages) => succeed
+        case Left(err) => fail
+      }
+    }
   }
 
   trait Test extends ProcessJson {
