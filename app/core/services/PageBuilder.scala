@@ -121,19 +121,20 @@ class PageBuilder @Inject() (val placeholders: Placeholders) extends ProcessPopu
     val pageIds = pages.map(_.id)
 
     @tailrec
-    def traverse(keys: Seq[String], page: Map[String, Stanza]): Option[String] =
+    def traverse(keys: Seq[String], page: Map[String, Stanza], seen: List[String]): Option[String] =
       keys match {
         case Nil => None
+        case x +: xs if seen.contains(x) => traverse(xs, page, seen)
         case x +: xs => page.get(x) match {
-          case None => traverse(xs, page)
-          case Some(_: DataInput) => traverse(xs, page)
+          case None => traverse(xs, page, x :: seen)
+          case Some(_: DataInput) => traverse(xs, page, x :: seen)
           case Some(s: Choice) if s.next.exists(n => pageIds.contains(n)) => Some(x)
-          case Some(s: Stanza) => traverse(s.next ++ xs, page)
+          case Some(s: Stanza) => traverse(s.next ++ xs, page, x :: seen)
         }
       }
 
     pages.flatMap{p =>
-      traverse(Seq(p.id), p.keyedStanzas.map(ks => (ks.key, ks.stanza)).toMap).map(id => PageRedirectNotSupported(id))
+      traverse(Seq(p.id), p.keyedStanzas.map(ks => (ks.key, ks.stanza)).toMap, Nil).map(id => PageRedirectNotSupported(id))
     }
   }
 
