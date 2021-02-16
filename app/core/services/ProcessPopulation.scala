@@ -76,8 +76,10 @@ trait ProcessPopulation {
         Right(Choice(c.copy(tests = c.tests.map(t => t.copy(left = placeholders.translate(t.left), right = placeholders.translate(t.right))))))
       case c: CalculationStanza =>
         Right(Calculation(c.copy(calcs = c.calcs.map(op => op.copy(left = placeholders.translate(op.left), right = placeholders.translate(op.right))))))
-      case vs: ValueStanza =>
-        Right(vs.copy(values = vs.values.map(v => v.copy(value = placeholders.translate(v.value)))))
+      case s: SequenceStanza => phrases(s.options, Nil, id, process).fold(Left(_), options =>
+          phrase(s.text, id, process).fold(Left(_), text => Right(Sequence(s, text, options)))
+        )
+      case vs: ValueStanza => Right(vs.copy(values = vs.values.map(v => v.copy(value = placeholders.translate(v.value)))))
       case s: Stanza => Right(s)
     }
   }
