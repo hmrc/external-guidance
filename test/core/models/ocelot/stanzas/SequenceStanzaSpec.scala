@@ -72,7 +72,7 @@ class SequenceStanzaSpec extends BaseSpec {
     Json.toJson(stanza) shouldBe json
   }
 
-  "SequenceStanza " should {
+  "Sequence " should {
 
     "Determine invalid input to be incorrect" in {
       val sequence = Sequence(expectedStanza, Phrase("",""), Seq(Phrase("",""),Phrase("",""),Phrase("",""),Phrase("","")))

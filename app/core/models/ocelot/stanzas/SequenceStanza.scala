@@ -30,7 +30,7 @@ case class SequenceStanza(text: Int,
 object SequenceStanza {
   implicit val reads: Reads[SequenceStanza] = (js: JsValue) =>
     ((js \ "text").validate[Int] and
-      (js \ "next").validate[Seq[String]](minLength[Seq[String]](1)) and
+      (js \ "next").validate[Seq[String]](minLength[Seq[String]](2)) and
       (js \ "options").validate[Seq[Int]] and
       (js \ "label").validateOpt[String] and
       (js \ "stack").validate[Boolean]).tupled match {
