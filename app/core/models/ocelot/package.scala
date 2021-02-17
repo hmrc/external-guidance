@@ -28,13 +28,14 @@ package object ocelot {
   val linkToPageOnlyPattern = s"\\[link:(.+?):(\\d+|${Process.StartStanzaId})\\]"
   val toPageLinkPattern = s"\\[(button|link)(-same|-tab)?:([^\\]]+?):(\\d+|${Process.StartStanzaId})\\]"
   val linkPattern = s"\\[(button|link)(-same|-tab)?:(.+?):(\\d+|${Process.StartStanzaId}|https?:[a-zA-Z0-9\\/\\.\\-\\?_\\.=&]+)\\]"
-
+  val commaSeparatedIntsPattern = "^\\d+\\s*(?:,\\s*\\d+\\s*)*$"
   val hintRegex: Regex = "\\[hint:([^\\]]+)\\]".r
   val pageLinkRegex: Regex = s"${toPageLinkPattern}".r
   val labelRefRegex: Regex = s"\\[label:([A-Za-z0-9\\s\\-_]+)(:(currency))?\\]".r
   val inputCurrencyRegex: Regex = "^-?£?(\\d{1,3}(,\\d{3})*|\\d+)(\\.(\\d{1,2})?)?$".r
   val inputCurrencyPoundsRegex: Regex = "^-?£?(\\d{1,3}(,\\d{3})*|\\d+)$".r
   val integerRegex: Regex = "^\\d+$".r
+  val listOfintegerRegex: Regex = s"$commaSeparatedIntsPattern".r
   val anyIntegerRegex: Regex = "^[\\-]?\\d+$".r
 
   val DateOutputFormat = "d MMMM uuuu"
@@ -53,6 +54,7 @@ package object ocelot {
   def asDate(value: String): Option[LocalDate] = Try(LocalDate.parse(value.trim, dateFormatter)).map(d => d).toOption
   def stringFromDate(when: LocalDate): String = when.format(dateFormatter)
   def asInt(value: String): Option[Int] = integerRegex.findFirstIn(value).map(_.toInt)
+  def asListOfInt(value: String): Option[List[Int]] = listOfintegerRegex.findFirstIn(value).map(s => s.split(",").toList.map(el => el.toInt))
   def asAnyInt(value: String): Option[Int] = anyIntegerRegex.findFirstIn(value).map(_.toInt)
 
   val pageLinkOnlyPattern: String = s"^${linkToPageOnlyPattern}$$"
