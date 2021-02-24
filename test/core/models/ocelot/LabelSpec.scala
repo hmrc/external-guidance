@@ -483,15 +483,15 @@ class LabelSpec extends BaseSpec with ProcessJson {
       val labels = LabelCache().pushFlows(Seq("1","2"), "3", Some("loop"), Seq("One", "Two", "Three"), Nil)
 
       labels.takeFlow.map{t =>
-        val(n0, stanzas, l0) = t
+        val(n0, _, l0) = t
         n0 shouldBe "1"
         l0.stackList.length shouldBe 2
         l0.takeFlow.map{t =>
-          val(n1, stanzas, l1) = t
+          val(n1, _, l1) = t
           n1 shouldBe "2"
           l1.stackList.length shouldBe 1
           l1.takeFlow.map{t =>
-            val(n2, stanzas, l2) = t
+            val(n2, _, l2) = t
             n2 shouldBe "3"
             l2.stackList.length shouldBe 0
 
@@ -505,15 +505,15 @@ class LabelSpec extends BaseSpec with ProcessJson {
       val labels = LabelCache().pushFlows(Seq("1","2"), "3", None, Seq("One", "Two", "Three"), Nil)
 
       labels.takeFlow.map{t =>
-        val(n0, stanzas, l0) = t
+        val(n0, _, l0) = t
         n0 shouldBe "1"
         l0.stackList.length shouldBe 2
         l0.takeFlow.map{t =>
-          val(n1, stanzas, l1) = t
+          val(n1, _, l1) = t
           n1 shouldBe "2"
           l1.stackList.length shouldBe 1
           l1.takeFlow.map{t =>
-            val(n2, stanzas, l2) = t
+            val(n2, _, l2) = t
             n2 shouldBe "3"
             l2.stackList.length shouldBe 0
 
@@ -523,7 +523,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       }
     }
 
-    "Return None when the stakc is empty" in {
+    "Return None when the stack is empty" in {
       LabelCache().takeFlow shouldBe None
     }
 
