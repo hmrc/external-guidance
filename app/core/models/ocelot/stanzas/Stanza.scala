@@ -17,7 +17,7 @@
 package core.models.ocelot.stanzas
 
 import play.api.libs.json._
-import core.models.ocelot.{Labels, Label}
+import core.models.ocelot.{Labels, Label, Page}
 
 trait Stanza {
   val visual: Boolean = false
@@ -39,7 +39,7 @@ trait Evaluate {
 }
 
 trait DataInput {
-  def eval(value: String, labels: Labels): (Option[String], Labels)
+  def eval(value: String, page: Page, labels: Labels): (Option[String], Labels)
   def validInput(value: String): Option[String]
 }
 

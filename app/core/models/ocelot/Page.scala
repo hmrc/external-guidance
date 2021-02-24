@@ -17,8 +17,22 @@
 package core.models.ocelot
 
 import core.models.ocelot.stanzas.Stanza
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
 case class KeyedStanza(key: String, stanza: Stanza)
+
+object KeyedStanza {
+  implicit val reads: Reads[KeyedStanza] = (
+    (__ \ "key").read[String] and
+      (__ \ "stanza").read[Stanza]
+  )(KeyedStanza.apply _)
+
+  implicit val writes: Writes[KeyedStanza] = (
+    (__ \ "key").write[String] and
+      (__ \ "stanza").write[Stanza]
+  )(unlift(KeyedStanza.unapply))
+}
 
 case class Page(id: String, url: String, keyedStanzas: Seq[KeyedStanza], next: Seq[String]) {
   val stanzas: Seq[Stanza] = keyedStanzas.map(_.stanza)

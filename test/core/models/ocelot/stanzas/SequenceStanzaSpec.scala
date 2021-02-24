@@ -18,7 +18,7 @@ package core.models.ocelot.stanzas
 
 import base.BaseSpec
 import play.api.libs.json._
-import core.models.ocelot.Phrase
+import core.models.ocelot.{Page, Phrase, LabelCache, Labels}
 
 class SequenceStanzaSpec extends BaseSpec {
 
@@ -72,7 +72,7 @@ class SequenceStanzaSpec extends BaseSpec {
     Json.toJson(stanza) shouldBe json
   }
 
-  "Sequence " should {
+  "Sequence" should {
 
     "Determine invalid input to be incorrect" in {
       val sequence = Sequence(expectedStanza, Phrase("",""), Seq(Phrase("",""),Phrase("",""),Phrase("",""),Phrase("","")))
@@ -85,6 +85,28 @@ class SequenceStanzaSpec extends BaseSpec {
       sequence.validInput("1,2") shouldBe Some("1,2")
       sequence.validInput("2,3") shouldBe Some("2,3")
       sequence.validInput("0") shouldBe Some("0")
+    }
+
+    "assign Nil to labels property when no label is used" in {
+      val seq = Sequence(expectedStanza.copy(label = None), Phrase("",""), Seq(Phrase("",""),Phrase("",""),Phrase("",""),Phrase("","")))
+      seq.labels shouldBe Nil
+    }
+
+    "Evaluate invalid input to error return" in {
+      val labels = LabelCache()
+      val blankPage: Page = Page("any", "/url", Seq.empty, Nil)
+      val sequence = Sequence(expectedStanza, Phrase("",""), Seq(Phrase("",""),Phrase("",""),Phrase("",""),Phrase("","")))
+      val noopReturn: (Option[String], Labels) = (None, labels)
+      sequence.eval("hello", blankPage, labels) shouldBe noopReturn
+    }
+
+    "Ignore input indexes which dont exist in the options list" in {
+      val labels = LabelCache()
+      val blankPage: Page = Page("any", "/url", Seq.empty, Nil)
+      val sequence = Sequence(expectedStanza, Phrase("",""), Seq(Phrase("",""),Phrase("",""),Phrase("",""),Phrase("","")))
+      val noopReturn: (Option[String], Labels) = (None, labels)
+      sequence.eval("24", blankPage, labels) shouldBe noopReturn
+      labels.stackList shouldBe Nil
     }
   }
 

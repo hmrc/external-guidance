@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot.{ScalarLabel, Labels, Phrase, asAnyInt, asCurrency, asCurrencyPounds, asDate, asTextString, labelReferences, stringFromDate}
+import core.models.ocelot.{ScalarLabel, Page, Labels, Phrase, asAnyInt, asCurrency, asCurrencyPounds, asDate, asTextString, labelReferences, stringFromDate}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -65,7 +65,7 @@ sealed trait Input extends VisualStanza with Populated with DataInput {
   val stack: Boolean
 
   override val labelRefs: List[String] = labelReferences(name.english) ++ help.fold[List[String]](Nil)(h => labelReferences(h.english))
-  def eval(value: String, labels: Labels): (Option[String], Labels) = (Some(next(0)), labels.update(label, value))
+  def eval(value: String, page: Page, labels: Labels): (Option[String], Labels) = (Some(next(0)), labels.update(label, value))
 }
 
 case class NumberInput(

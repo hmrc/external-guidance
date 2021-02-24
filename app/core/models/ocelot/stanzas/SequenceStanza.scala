@@ -16,10 +16,11 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot.{labelReferences, ScalarLabel, Labels, Label, Phrase, asListOfInt}
+import core.models.ocelot.{labelReferences, ScalarLabel, Page, Labels, Label, Phrase, asListOfInt}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json.{JsSuccess, JsError, JsValue, JsonValidationError, JsPath, OWrites, Reads}
+import core.models.ocelot.KeyedStanza
 
 case class SequenceStanza(text: Int,
                           override val next: Seq[String],
@@ -59,7 +60,19 @@ case class Sequence(text: Phrase,
   override val labelRefs: List[String] = labelReferences(text.english) ++ options.flatMap(a => labelReferences(a.english))
   override val labels: List[Label] = label.fold[List[Label]](Nil)(l => List(ScalarLabel(l)))
 
-  def eval(value: String, labels: Labels): (Option[String], Labels) = (None, labels) // TODO EG-1265
+  def eval(value: String, page: Page, labels: Labels): (Option[String], Labels) =
+    asListOfInt(value).fold[(Option[String], Labels)]((None, labels)){checked => {
+      // Collect any Evaluate stanzas following this Sequence for use when the Continuation is followed
+      val continuationStanzas: List[KeyedStanza] = page.keyedStanzas.toList.collect{case ks @ KeyedStanza(_, s: Stanza with Evaluate) => ks}
+      val chosenOptions: List[String] = checked.flatMap(idx => options.lift(idx).fold[List[String]](Nil)(p => List(p.english)))
+      // push the flows and Continuation corresponding to the checked items, then
+      // takeFlow and redirect to the first flow (setting list and first flow label)
+      label.fold(labels)(l => labels.updateList(s"${l}_seq", chosenOptions))
+           .pushFlows(checked.flatMap(idx => next.lift(idx).fold[List[String]](Nil)(List(_))), next.last, label, chosenOptions, continuationStanzas)
+           .takeFlow.fold[(Option[String], Labels)]((None, labels))(t => (Some(t._1), t._3)) // Inital flow will never be a Continuation
+      }
+    }
+
   def validInput(value: String): Option[String] =
     asListOfInt(value).fold[Option[String]](None)(l => if (l.forall(options.indices.contains(_))) Some(value) else None)
 }
