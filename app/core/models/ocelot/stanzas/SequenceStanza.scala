@@ -69,7 +69,7 @@ case class Sequence(text: Phrase,
       // takeFlow and redirect to the first flow (setting list and first flow label)
       label.fold(labels)(l => labels.updateList(s"${l}_seq", chosenOptions))
            .pushFlows(checked.flatMap(idx => next.lift(idx).fold[List[String]](Nil)(List(_))), next.last, label, chosenOptions, continuationStanzas)
-           .takeFlow.fold[(Option[String], Labels)]((None, labels))(t => (Some(t._1), t._3)) // Inital flow will never be a Continuation
+           .takeFlow.fold[(Option[String], Labels)]((None, labels))(t => (Some(t._1), t._3)) // Initial flow will never be a Continuation
       }
     }
 
