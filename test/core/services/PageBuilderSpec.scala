@@ -867,6 +867,59 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       }
     }
 
+    "when processing a simple sequence page" must {
+
+      val process: Process = Process(meta, simpleSequencePage, phrases, links)
+
+      pageBuilder.pagesWithValidation(process) match {
+
+        case Right(pages) =>
+
+          "Determine the correct number of pages to be displayed" in {
+
+            pages shouldNot be(Nil)
+
+            pages.length shouldBe 3
+          }
+
+          val indexedSequenceOfPages = pages.toIndexedSeq
+
+          // Test content of page containing sequence input component
+          testSimpleSequencePage(indexedSequenceOfPages.head)
+
+        case Left(err) => fail(s"Flow error $err")
+      }
+    }
+
+    "when processing a sequence with a missing title phrase" must {
+
+      val process: Process = Process(meta, sequenceWithMissingTitlePage, phrases, links)
+
+      "return a phrase not found error" in {
+
+        pageBuilder.pagesWithValidation(process) match {
+          case Right(_) => fail("A sequence should not be created when the title phrase is undefined")
+          case Left(err) => err shouldBe List(PhraseNotFound("2", oneHundred))
+        }
+
+      }
+    }
+
+    "when processing a sequence with a missing option phrase" must {
+
+      val process: Process = Process(meta, sequenceWithMissingOptionPage, phrases, links)
+
+      "return a phrase not found error" in {
+
+        pageBuilder.pagesWithValidation(process) match {
+          case Right(_) => fail("A sequence should not be created when one, or more, option phrases are undefined")
+          case Left(err) => err shouldBe List(PhraseNotFound("2", oneHundred))
+        }
+
+      }
+
+    }
+
   }
 
   "When processing guidance containing zero or more row stanzas" must {
@@ -1402,6 +1455,26 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpTextInput)
 
       page.next shouldBe Seq("4")
+    }
+
+  }
+
+  /**
+    *
+    * Test input page in simple sequence page test
+    *
+    * @param page
+    */
+  def testSimpleSequencePage(page: Page): Unit = {
+
+    "define the input page correctly" in {
+
+      page.id shouldBe Process.StartStanzaId
+      page.stanzas.size shouldBe 3
+
+      page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpSequence)
+
+      page.next shouldBe Seq("6", "4")
     }
 
   }
