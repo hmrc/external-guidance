@@ -266,6 +266,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
     "Return a language specific value of a multi-lingual scalar label" in {
       val labelsMap = Map(
         "Empty"-> ScalarLabel("Empty"),
+        "EnglishOnly" -> ScalarLabel("EnglishOnly", List("Welcome")),
         "Door"-> ScalarLabel("Door", List("Open"), List("Drws")),
         "Name" -> ScalarLabel("Name",List("Coltrane"), List("Coltrane")))
 
@@ -273,6 +274,8 @@ class LabelSpec extends BaseSpec with ProcessJson {
 
       labels.displayValue("Empty")(englishLang) shouldBe Some("")
       labels.displayValue("Empty")(welshLang) shouldBe Some("")
+      labels.displayValue("EnglishOnly")(englishLang) shouldBe Some("Welcome")
+      labels.displayValue("EnglishOnly")(welshLang) shouldBe Some("Welcome")
       labels.displayValue("Door")(englishLang) shouldBe Some("Open")
       labels.displayValue("Door")(welshLang) shouldBe Some("Drws")
       labels.displayValue("Name")(englishLang) shouldBe Some("Coltrane")
@@ -338,7 +341,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
 
       val stack = List(
         Flow("1", Some(LabelValue("loop", Some("One")))),
-        Flow("2", Some(LabelValue("loop", Some("One")))),
+        Flow("2", Some(LabelValue("loop", Some("Two")))),
         Flow("3", None)
       )
 
@@ -471,29 +474,29 @@ class LabelSpec extends BaseSpec with ProcessJson {
 
   "Labels Flow stack" must {
     "Allow adding a Flow to top of stack" in {
-      val labels = LabelCache().pushFlows(Seq("1","2"), "3", Some("loop"), Seq("One", "Two", "Three"), Nil)
+      val labels = LabelCache().pushFlows(Seq("1","2"), "3", Some("loop"), Seq("One", "Two", "Three"), Map())
 
-      labels.stackList.length shouldBe 3
-      labels.stackList.head shouldBe Flow("1", Some(LabelValue("loop", Some("One"))))
-      labels.stackList(1) shouldBe Flow("2", Some(LabelValue("loop", Some("Two"))))
-      labels.stackList(2) shouldBe Continuation("3", Nil)
+      labels.flowStack.length shouldBe 3
+      labels.flowStack.head shouldBe Flow("1", Some(LabelValue("loop", Some("One"))))
+      labels.flowStack(1) shouldBe Flow("2", Some(LabelValue("loop", Some("Two"))))
+      labels.flowStack(2) shouldBe Continuation("3", Map())
     }
 
     "Allow removal of Flow from top of stack" in {
-      val labels = LabelCache().pushFlows(Seq("1","2"), "3", Some("loop"), Seq("One", "Two", "Three"), Nil)
+      val labels = LabelCache().pushFlows(Seq("1","2"), "3", Some("loop"), Seq("One", "Two", "Three"), Map())
 
       labels.takeFlow.map{t =>
         val(n0, _, l0) = t
         n0 shouldBe "1"
-        l0.stackList.length shouldBe 2
+        l0.flowStack.length shouldBe 2
         l0.takeFlow.map{t =>
           val(n1, _, l1) = t
           n1 shouldBe "2"
-          l1.stackList.length shouldBe 1
+          l1.flowStack.length shouldBe 1
           l1.takeFlow.map{t =>
             val(n2, _, l2) = t
             n2 shouldBe "3"
-            l2.stackList.length shouldBe 0
+            l2.flowStack.length shouldBe 0
 
             l2.takeFlow shouldBe None
           }
@@ -502,20 +505,20 @@ class LabelSpec extends BaseSpec with ProcessJson {
     }
 
     "Allow removal of Flow from top of stack when no label is in use" in {
-      val labels = LabelCache().pushFlows(Seq("1","2"), "3", None, Seq("One", "Two", "Three"), Nil)
+      val labels = LabelCache().pushFlows(Seq("1","2"), "3", None, Seq("One", "Two", "Three"), Map())
 
       labels.takeFlow.map{t =>
         val(n0, _, l0) = t
         n0 shouldBe "1"
-        l0.stackList.length shouldBe 2
+        l0.flowStack.length shouldBe 2
         l0.takeFlow.map{t =>
           val(n1, _, l1) = t
           n1 shouldBe "2"
-          l1.stackList.length shouldBe 1
+          l1.flowStack.length shouldBe 1
           l1.takeFlow.map{t =>
             val(n2, _, l2) = t
             n2 shouldBe "3"
-            l2.stackList.length shouldBe 0
+            l2.flowStack.length shouldBe 0
 
             l2.takeFlow shouldBe None
           }
