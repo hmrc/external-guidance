@@ -21,7 +21,6 @@ import play.api.libs.json._
 import core.models.ocelot.stanzas.Stanza
 
 class ProcessSpec extends BaseSpec with ProcessJson {
-
   val meta: Meta = Json.parse(prototypeMetaSection).as[Meta]
   val flow: Map[String, Stanza] = Json.parse(prototypeFlowSection).as[Map[String, Stanza]]
   val phrases: Vector[Phrase] = Json.parse(prototypePhrasesSection).as[Vector[Phrase]]

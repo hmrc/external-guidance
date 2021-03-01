@@ -45,6 +45,7 @@ case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase
 
 object Process {
   val StartStanzaId = "start"
+  val EndStanzaId = "end"
 
   implicit val reads: Reads[Process] = (
     (__ \ "meta").read[Meta] and

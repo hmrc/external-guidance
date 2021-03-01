@@ -18,7 +18,6 @@ package core.models
 
 import java.time.LocalDate
 import java.time.format.{DateTimeFormatter, ResolverStyle}
-
 import scala.util.Try
 import scala.util.matching.Regex
 
@@ -54,7 +53,7 @@ package object ocelot {
   def asDate(value: String): Option[LocalDate] = Try(LocalDate.parse(value.trim, dateFormatter)).map(d => d).toOption
   def stringFromDate(when: LocalDate): String = when.format(dateFormatter)
   def asInt(value: String): Option[Int] = integerRegex.findFirstIn(value).map(_.toInt)
-  def asListOfInt(value: String): Option[List[Int]] = listOfintegerRegex.findFirstIn(value).map(s => s.split(",").toList.map(el => el.toInt))
+  def asListOfInt(value: String): Option[List[Int]] = listOfintegerRegex.findFirstIn(value).map(s => s.split(",").toList.map(el => el.trim.toInt))
   def asAnyInt(value: String): Option[Int] = anyIntegerRegex.findFirstIn(value).map(_.toInt)
 
   val pageLinkOnlyPattern: String = s"^${linkToPageOnlyPattern}$$"

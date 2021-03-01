@@ -327,7 +327,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       updatedLabels1.displayValue("Door")(welshLang) shouldBe Some("Drws")
     }
 
-    "Construct a LabelCache from a label map and a cache of updated labels" in {
+    "Construct a LabelCache from a label map a cache of updated labels and a Flow stack" in {
       val labelsMap = Map(
         "X"->ScalarLabel("X", List("33.5")),
         "Y"->ScalarLabel("Y"),
@@ -339,9 +339,22 @@ class LabelSpec extends BaseSpec with ProcessJson {
         "Colours"->ListLabel("Colours", List("Yellow", "Violet"))
       )
 
-      val labels = LabelCache(labelsMap, cacheMap)
+      val stack = List(
+        Flow("1", Some(LabelValue("loop", Some("One")))),
+        Flow("2", Some(LabelValue("loop", Some("Two")))),
+        Flow("3", None)
+      )
+
+      val labels = LabelCache(labelsMap, cacheMap, stack)
       labels.value("X") shouldBe Some("46.5")
       labels.valueAsList("Colours") shouldBe Some(List("Yellow", "Violet"))
+
+      labels.takeFlow.fold(fail("Stack should not be empty")){t =>
+        val (nxt, stanzas, updatedLabels) = t
+        nxt shouldBe "1"
+        updatedLabels.value("loop") shouldBe Some("One")
+
+      }
     }
 
     "Return an empty string if label has no assigned value" in {
@@ -457,5 +470,65 @@ class LabelSpec extends BaseSpec with ProcessJson {
       labels3.value("X") shouldBe Some("49.5")
       labels3.value("Location") shouldBe Some("Here")
     }
+  }
+
+  "Labels Flow stack" must {
+    "Allow adding a Flow to top of stack" in {
+      val labels = LabelCache().pushFlows(Seq("1","2"), "3", Some("loop"), Seq("One", "Two", "Three"), Map())
+
+      labels.flowStack.length shouldBe 3
+      labels.flowStack.head shouldBe Flow("1", Some(LabelValue("loop", Some("One"))))
+      labels.flowStack(1) shouldBe Flow("2", Some(LabelValue("loop", Some("Two"))))
+      labels.flowStack(2) shouldBe Continuation("3", Map())
+    }
+
+    "Allow removal of Flow from top of stack" in {
+      val labels = LabelCache().pushFlows(Seq("1","2"), "3", Some("loop"), Seq("One", "Two", "Three"), Map())
+
+      labels.takeFlow.map{t =>
+        val(n0, _, l0) = t
+        n0 shouldBe "1"
+        l0.flowStack.length shouldBe 2
+        l0.takeFlow.map{t =>
+          val(n1, _, l1) = t
+          n1 shouldBe "2"
+          l1.flowStack.length shouldBe 1
+          l1.takeFlow.map{t =>
+            val(n2, _, l2) = t
+            n2 shouldBe "3"
+            l2.flowStack.length shouldBe 0
+
+            l2.takeFlow shouldBe None
+          }
+        }
+      }
+    }
+
+    "Allow removal of Flow from top of stack when no label is in use" in {
+      val labels = LabelCache().pushFlows(Seq("1","2"), "3", None, Seq("One", "Two", "Three"), Map())
+
+      labels.takeFlow.map{t =>
+        val(n0, _, l0) = t
+        n0 shouldBe "1"
+        l0.flowStack.length shouldBe 2
+        l0.takeFlow.map{t =>
+          val(n1, _, l1) = t
+          n1 shouldBe "2"
+          l1.flowStack.length shouldBe 1
+          l1.takeFlow.map{t =>
+            val(n2, _, l2) = t
+            n2 shouldBe "3"
+            l2.flowStack.length shouldBe 0
+
+            l2.takeFlow shouldBe None
+          }
+        }
+      }
+    }
+
+    "Return None when the stack is empty" in {
+      LabelCache().takeFlow shouldBe None
+    }
+
   }
 }
