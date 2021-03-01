@@ -36,8 +36,8 @@ private class LabelCacheImpl(labels: Map[String, Label] = Map(), cache: Map[Stri
   def valueAsList(name: String): Option[List[String]] = label(name).collect{case l:ListLabel => l.english}
   def displayValue(name: String)(implicit lang: Lang): Option[String] = label(name).map{lbl =>
     lang.code match {
-      case "en" => lbl.english.mkString(",")
-      case "cy" => lbl.welsh.mkString(",")
+      case "cy" if(lbl.welsh.nonEmpty) => lbl.welsh.mkString(",")
+      case _ => lbl.english.mkString(",")
     }
   }
   def update(name: String, english: String): Labels = new LabelCacheImpl(labels, updateOrAddScalarLabel(name, english, None))

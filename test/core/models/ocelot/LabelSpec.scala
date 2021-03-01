@@ -266,6 +266,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
     "Return a language specific value of a multi-lingual scalar label" in {
       val labelsMap = Map(
         "Empty"-> ScalarLabel("Empty"),
+        "EnglishOnly" -> ScalarLabel("EnglishOnly", List("Welcome")),
         "Door"-> ScalarLabel("Door", List("Open"), List("Drws")),
         "Name" -> ScalarLabel("Name",List("Coltrane"), List("Coltrane")))
 
@@ -273,6 +274,8 @@ class LabelSpec extends BaseSpec with ProcessJson {
 
       labels.displayValue("Empty")(englishLang) shouldBe Some("")
       labels.displayValue("Empty")(welshLang) shouldBe Some("")
+      labels.displayValue("EnglishOnly")(englishLang) shouldBe Some("Welcome")
+      labels.displayValue("EnglishOnly")(welshLang) shouldBe Some("Welcome")
       labels.displayValue("Door")(englishLang) shouldBe Some("Open")
       labels.displayValue("Door")(welshLang) shouldBe Some("Drws")
       labels.displayValue("Name")(englishLang) shouldBe Some("Coltrane")
