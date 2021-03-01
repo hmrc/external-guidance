@@ -48,6 +48,7 @@ trait TestConstants {
   val fourteen = 14
   val fifteen = 15
 
+  val oneHundred: Int = 100
 }
 
 trait BaseSpec extends WordSpec with Matchers with ScalaFutures with TestConstants {
