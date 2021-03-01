@@ -27,17 +27,16 @@ trait Labels {
   def updateList(name: String, english: List[String]): Labels
   def updateList(name: String, english: List[String], welsh: List[String]): Labels
   def updatedLabels: Map[String, Label]
-  def labelMap: Map[String, Label]
+  def labelMap:Map[String, Label]
   def flush(): Labels
 }
 
 private class LabelCacheImpl(labels: Map[String, Label] = Map(), cache: Map[String, Label] = Map()) extends Labels {
-  def value(name: String): Option[String] = label(name).collect { case s: ScalarLabel => s.english.headOption.getOrElse("") }
-  def valueAsList(name: String): Option[List[String]] = label(name).collect { case l: ListLabel => l.english }
-
-  def displayValue(name: String)(implicit lang: Lang): Option[String] = label(name).map { lbl =>
+  def value(name: String): Option[String] = label(name).collect{case s:ScalarLabel => s.english.headOption.getOrElse("")}
+  def valueAsList(name: String): Option[List[String]] = label(name).collect{case l:ListLabel => l.english}
+  def displayValue(name: String)(implicit lang: Lang): Option[String] = label(name).map{lbl =>
     lang.code match {
-      case "cy" if (lbl.welsh.nonEmpty) => lbl.welsh.mkString(",")
+      case "cy" if(lbl.welsh.nonEmpty) => lbl.welsh.mkString(",")
       case _ => lbl.english.mkString(",")
     }
   }
@@ -46,17 +45,15 @@ private class LabelCacheImpl(labels: Map[String, Label] = Map(), cache: Map[Stri
   def updateList(name: String, english: List[String]): Labels = new LabelCacheImpl(labels, updateOrAddListLabel(name, english))
   def updateList(name: String, english: List[String], welsh: List[String]): Labels = new LabelCacheImpl(labels, updateOrAddListLabel(name, english, welsh))
   def updatedLabels: Map[String, Label] = cache
-  def labelMap: Map[String, Label] = labels
+  def labelMap:Map[String, Label] = labels
   def flush(): Labels = new LabelCacheImpl(labels ++ cache.toList, Map())
 
   private def label(name: String): Option[Label] = cache.get(name).fold(labels.get(name))(Some(_))
 
   private def updateOrAddScalarLabel(name: String, english: String, welsh: Option[String]): Map[String, Label] = {
-    cache + (name -> cache
-      .get(name)
-      .fold[Label](ScalarLabel(name, List(english), welsh.fold[List[String]](Nil)(w => List(w))))(l =>
-        ScalarLabel(l.name, List(english), welsh.fold[List[String]](Nil)(w => List(w)))
-      ))
+    cache + (name -> cache.get(name).fold[Label]
+      (ScalarLabel(name, List(english), welsh.fold[List[String]](Nil)(w => List(w))))
+      (l => ScalarLabel(l.name, List(english), welsh.fold[List[String]](Nil)(w => List(w)))))
   }
 
   private def updateOrAddListLabel(name: String, english: List[String], welsh: List[String] = Nil): Map[String, Label] =
