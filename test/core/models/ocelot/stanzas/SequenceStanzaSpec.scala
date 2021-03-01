@@ -18,7 +18,7 @@ package core.models.ocelot.stanzas
 
 import base.BaseSpec
 import play.api.libs.json._
-import core.models.ocelot.{Page, Phrase, LabelCache, Labels}
+import core.models.ocelot.{Page, Phrase, LabelCache, Labels, Process, Continuation}
 
 class SequenceStanzaSpec extends BaseSpec {
 
@@ -46,6 +46,8 @@ class SequenceStanzaSpec extends BaseSpec {
 
   val expectedStanza: SequenceStanza =
     SequenceStanza(0, Seq("1","2","3","4","end"), Seq(1,2,3,4), Some("Items"), stack = false)
+  val expectedSequence: Sequence =
+    Sequence(expectedStanza, Phrase("Select","Select"), Seq(Phrase("One","One"),Phrase("Two","Two"),Phrase("Three","Three"),Phrase("Four","Four")))
 
 
   "Reading valid JSON" should {
@@ -75,38 +77,42 @@ class SequenceStanzaSpec extends BaseSpec {
   "Sequence" should {
 
     "Determine invalid input to be incorrect" in {
-      val sequence = Sequence(expectedStanza, Phrase("",""), Seq(Phrase("",""),Phrase("",""),Phrase("",""),Phrase("","")))
-      sequence.validInput("a,b,c") shouldBe None
-      sequence.validInput("5,6,7") shouldBe None
+      expectedSequence.validInput("a,b,c") shouldBe None
+      expectedSequence.validInput("5,6,7") shouldBe None
     }
 
     "Determine valid input to be correct" in {
-      val sequence = Sequence(expectedStanza, Phrase("",""), Seq(Phrase("",""),Phrase("",""),Phrase("",""),Phrase("","")))
-      sequence.validInput("1,2") shouldBe Some("1,2")
-      sequence.validInput("2,3") shouldBe Some("2,3")
-      sequence.validInput("0") shouldBe Some("0")
+      expectedSequence.validInput("1,2") shouldBe Some("1,2")
+      expectedSequence.validInput("2,3") shouldBe Some("2,3")
+      expectedSequence.validInput("0") shouldBe Some("0")
     }
 
     "assign Nil to labels property when no label is used" in {
-      val seq = Sequence(expectedStanza.copy(label = None), Phrase("",""), Seq(Phrase("",""),Phrase("",""),Phrase("",""),Phrase("","")))
-      seq.labels shouldBe Nil
+      expectedSequence.copy(label = None).labels shouldBe Nil
+    }
+
+    "Evaluate valid input and return with next of first flow in sequence" in {
+      val labels = LabelCache()
+      val blankPage: Page = Page("any", "/url", Seq.empty, Nil)
+      val (next, updatedLabels) = expectedSequence.eval("0", blankPage, labels)
+      next shouldBe Some("1")
+      updatedLabels.flowStack shouldBe List(Continuation(Process.EndStanzaId, Map()))
+      updatedLabels.value("Items") shouldBe Some("One")
     }
 
     "Evaluate invalid input to error return" in {
       val labels = LabelCache()
       val blankPage: Page = Page("any", "/url", Seq.empty, Nil)
-      val sequence = Sequence(expectedStanza, Phrase("",""), Seq(Phrase("",""),Phrase("",""),Phrase("",""),Phrase("","")))
       val noopReturn: (Option[String], Labels) = (None, labels)
-      sequence.eval("hello", blankPage, labels) shouldBe noopReturn
+      expectedSequence.eval("hello", blankPage, labels) shouldBe noopReturn
     }
 
-    "Ignore input indexes which dont exist in the options list" in {
+    "Evaluate indexes which dont exist in the options list to error return" in {
       val labels = LabelCache()
       val blankPage: Page = Page("any", "/url", Seq.empty, Nil)
-      val sequence = Sequence(expectedStanza, Phrase("",""), Seq(Phrase("",""),Phrase("",""),Phrase("",""),Phrase("","")))
       val noopReturn: (Option[String], Labels) = (None, labels)
-      sequence.eval("24", blankPage, labels) shouldBe noopReturn
-      labels.stackList shouldBe Nil
+      expectedSequence.eval("24", blankPage, labels) shouldBe noopReturn
+      labels.flowStack shouldBe Nil
     }
   }
 
@@ -115,5 +121,4 @@ class SequenceStanzaSpec extends BaseSpec {
 
   /** Test for properties of the wrong type in json object representing instruction stanzas */
   incorrectPropertyTypeJsObjectAttrTests[SequenceStanza](json.as[JsObject], List("type", "label"))
-
 }

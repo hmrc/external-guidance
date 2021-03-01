@@ -18,7 +18,6 @@ package core.models
 
 import java.time.LocalDate
 import java.time.format.{DateTimeFormatter, ResolverStyle}
-
 import scala.util.Try
 import scala.util.matching.Regex
 

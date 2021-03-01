@@ -31,10 +31,12 @@ trait StanzaHelper extends TestConstants {
     Phrase(Vector("Text 3", "Welsh, Text 3")),
     Phrase(Vector("Text 4", "Welsh, Text 4")),
     Phrase(Vector("Text 5", "Welsh, Text 5")),
-    Phrase(Vector("Text 6", "Welsh, Text 6"))
+    Phrase(Vector("Text 6", "Welsh, Text 6")),
+    Phrase(Vector("Text 7", "Welsh, Text 7")),
+    Phrase(Vector("Text 8", "Welsh, Text 8"))
   )
 
-  val links: Vector[Link] = Vector(Link(0, "http://my.com/news", "MyCOM Daily News", true))
+  val links: Vector[Link] = Vector(Link(0, "http://my.com/news", "MyCOM Daily News", window = true))
 
   // Define stanzas used in simple question page test
   val sqpQpValue = "/page/1"
@@ -42,15 +44,18 @@ trait StanzaHelper extends TestConstants {
   val sqpSapValue = "/page/3"
 
   // Question page - BEFORE
-  val sqpQpPageStanza = PageStanza(sqpQpValue, Seq("1"), false)
-  val sqpQpInstructionStanza = InstructionStanza(0, Seq("2"), None, false)
-  val sqpQpCalloutStanza = CalloutStanza(SubTitle, 1, Seq("3"), false)
-  val sqpQpQuestionStanza = QuestionStanza(two, Seq(three, four), Seq("4", "6"), None, false)
+  val sqpQpPageStanza: PageStanza = PageStanza(sqpQpValue, Seq("1"), stack = false)
+  val sqpQpInstructionStanza: InstructionStanza = InstructionStanza(0, Seq("2"), None, stack = false)
+  val sqpQpCalloutStanza: CalloutStanza = CalloutStanza(SubTitle, 1, Seq("3"), stack = false)
+  val sqpQpQuestionStanza: QuestionStanza = QuestionStanza(two, Seq(three, four), Seq("4", "6"), None, stack = false)
 
   val sqpQpInputStanza = InputStanza(Currency, Seq("4"), two, Some(three), "label", None, false)
   val sqpQpDateInputStanza = InputStanza(Date, Seq("4"), two, Some(three), "label", None, false)
   val sqpQpNumberInputStanza = InputStanza(Number, Seq("4"), two, Some(three), "label", None, false)
   val sqpQpTextInputStanza = InputStanza(Txt, Seq("4"), two, Some(three), "label", None, false)
+  val sqpQpSequenceStanza = SequenceStanza(seven, Seq("4", "6"), Seq(eight), None, stack = false )
+  val sqpQpSequenceStanzaMissingTitle = SequenceStanza(oneHundred, Seq("4", "6"), Seq(eight), None, stack = false)
+  val sqpQpSequenceStanzaMissingOption = SequenceStanza(seven, Seq("4", "6"), Seq(oneHundred), None, stack = false)
 
   // Question page - After
   val sqpQpInstruction = Instruction(phrases(0), Seq("2"), None, false)
@@ -60,6 +65,7 @@ trait StanzaHelper extends TestConstants {
   val sqpQpDateInput = DateInput(Seq("4"), phrases(two), Some(phrases(three)), "label", None, false)
   val sqpQpNumberInput = NumberInput(Seq("4"), phrases(two), Some(phrases(three)), "label", None, false)
   val sqpQpTextInput = TextInput(Seq("4"), phrases(two), Some(phrases(three)), "label", None, false)
+  val sqpQpSequence = Sequence(phrases(seven), Seq("4", "6"), Seq(phrases(eight)), None, stack = false)
 
   // First answer page BEFORE
   val sqpFapPageStanza = PageStanza(sqpFapValue, Seq("5"), false)
@@ -186,5 +192,41 @@ trait StanzaHelper extends TestConstants {
     )
 
   }
+
+  def simpleSequencePage: Map[String, Stanza] =  Map(
+    Process.StartStanzaId -> sqpQpPageStanza,
+    "1" -> sqpQpInstructionStanza,
+    "2" -> sqpQpSequenceStanza,
+    "4" -> sqpFapPageStanza,
+    "5" -> sqpFapInstructionStanza,
+    "6" -> sqpSapPageStanza,
+    "7" -> sqpSapInstructionStanza,
+    "8" -> sqpSapCalloutStanza,
+    "end" -> EndStanza
+  )
+
+  def sequenceWithMissingTitlePage: Map[String, Stanza] =  Map(
+    Process.StartStanzaId -> sqpQpPageStanza,
+    "1" -> sqpQpInstructionStanza,
+    "2" -> sqpQpSequenceStanzaMissingTitle,
+    "4" -> sqpFapPageStanza,
+    "5" -> sqpFapInstructionStanza,
+    "6" -> sqpSapPageStanza,
+    "7" -> sqpSapInstructionStanza,
+    "8" -> sqpSapCalloutStanza,
+    "end" -> EndStanza
+  )
+
+  def sequenceWithMissingOptionPage: Map[String, Stanza] =  Map(
+    Process.StartStanzaId -> sqpQpPageStanza,
+    "1" -> sqpQpInstructionStanza,
+    "2" -> sqpQpSequenceStanzaMissingOption,
+    "4" -> sqpFapPageStanza,
+    "5" -> sqpFapInstructionStanza,
+    "6" -> sqpSapPageStanza,
+    "7" -> sqpSapInstructionStanza,
+    "8" -> sqpSapCalloutStanza,
+    "end" -> EndStanza
+  )
 
 }

@@ -120,9 +120,7 @@ sealed trait Operation {
         labels
 
     }
-
   }
-
 }
 
 case class AddOperation(left: String, right: String, label: String) extends Operation {
@@ -151,21 +149,74 @@ case class FloorOperation(left: String, right: String, label: String) extends Op
 
 }
 
-case class Calculation(override val next: Seq[String], calcs: Seq[Operation]) extends Stanza with Evaluate {
+object Operation {
+  implicit val reads: Reads[Operation] = (js: JsValue) => {
+    (js \ "type").validate[String] match {
+      case err @ JsError(_) => err
+      case JsSuccess(typ, _) => typ match {
+        case "add" => js.validate[AddOperation]
+        case "sub" => js.validate[SubtractOperation]
+        case "ceil" => js.validate[CeilingOperation]
+        case "flr" => js.validate[FloorOperation]
+        case typeName => JsError(JsonValidationError(Seq("Operation"), typeName))
+      }
+    }
+  }
 
+  implicit val writes: Writes[Operation] = {
+    case o: AddOperation => Json.obj("type" -> "add") ++ Json.toJsObject[AddOperation](o)
+    case o: SubtractOperation => Json.obj("type" -> "sub") ++ Json.toJsObject[SubtractOperation](o)
+    case o: CeilingOperation => Json.obj("type" -> "ceil") ++ Json.toJsObject[CeilingOperation](o)
+    case o: FloorOperation => Json.obj("type" -> "flr") ++ Json.toJsObject[FloorOperation](o)
+  }
+}
+
+object AddOperation{
+  implicit val reads: Reads[AddOperation] =
+    ((JsPath \ "left").read[String] and (JsPath \ "right").read[String] and (JsPath \ "label").read[String])(AddOperation.apply _)
+  implicit val writes: OWrites[AddOperation] =
+    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String])(unlift(AddOperation.unapply))
+}
+
+object SubtractOperation{
+  implicit val reads: Reads[SubtractOperation] =
+    ((JsPath \ "left").read[String] and (JsPath \ "right").read[String] and (JsPath \ "label").read[String])(SubtractOperation.apply _)
+  implicit val writes: OWrites[SubtractOperation] =
+    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String])(unlift(SubtractOperation.unapply))
+
+}
+object CeilingOperation{
+  implicit val reads: Reads[CeilingOperation] =
+    ((JsPath \ "left").read[String] and (JsPath \ "right").read[String] and (JsPath \ "label").read[String])(CeilingOperation.apply _)
+  implicit val writes: OWrites[CeilingOperation] =
+    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String])(unlift(CeilingOperation.unapply))
+}
+object FloorOperation{
+  implicit val reads: Reads[FloorOperation] =
+    ((JsPath \ "left").read[String] and (JsPath \ "right").read[String] and (JsPath \ "label").read[String])(FloorOperation.apply _)
+  implicit val writes: OWrites[FloorOperation] =
+    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String])(unlift(FloorOperation.unapply))
+}
+
+
+case class Calculation(override val next: Seq[String], calcs: Seq[Operation]) extends Stanza with Evaluate {
   override val labels: List[Label] = calcs.map(op => ScalarLabel(op.label)).toList
   override val labelRefs: List[String] = calcs.flatMap(op => labelReferences(op.left) ++ labelReferences(op.right)).toList
 
   def eval(labels: Labels): (String, Labels) = {
-
     val updatedLabels: Labels = calcs.foldLeft(labels) { case (l, f) => f.eval(l) }
-
     (next.last, updatedLabels)
   }
-
 }
 
 object Calculation {
+  def buildCalculation(next: Seq[String], calcs: Seq[Operation]): Calculation = Calculation(next, calcs)
+  implicit val reads: Reads[Calculation] =
+    ((JsPath \ "next").read[Seq[String]](minLength[Seq[String]](1)) and (JsPath \ "calcs").read[Seq[Operation]])(buildCalculation _)
+
+  implicit val writes: OWrites[Calculation] =
+    ((JsPath \ "next").write[Seq[String]] and (JsPath \ "calcs").write[Seq[Operation]])(unlift(Calculation.unapply))
+
 
   def apply(stanza: CalculationStanza): Calculation =
     Calculation(

@@ -61,6 +61,8 @@ object Stanza {
         case "ChoiceStanza" => js.validate[ChoiceStanza]
         case "InputStanza" => js.validate[InputStanza]
         case "RowStanza" => js.validate[RowStanza]
+        case "Choice" => js.validate[Choice]
+        case "Calculation" => js.validate[Calculation]
         case "EndStanza" => JsSuccess(EndStanza)
         case typeName => JsError(JsonValidationError(Seq("Stanza"), typeName))
       }
@@ -78,6 +80,8 @@ object Stanza {
     case c: ChoiceStanza => Json.obj("type" -> "ChoiceStanza") ++ Json.toJsObject[ChoiceStanza](c)
     case i: InputStanza => Json.obj("type" -> "InputStanza") ++ Json.toJsObject[InputStanza](i)
     case r: RowStanza => Json.obj( "type" -> "RowStanza") ++ Json.toJsObject[RowStanza](r)
+    case c: Choice => Json.obj("type" -> "Choice") ++ Json.toJsObject[Choice](c)
+    case c: Calculation => Json.obj( "type" -> "Calculation") ++ Json.toJsObject[Calculation](c)
     case EndStanza => Json.obj("type" -> "EndStanza")
     case s => Json.toJson("")
   }

@@ -25,15 +25,13 @@ package core.models.ocelot
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import core.models.ocelot.stanzas.Stanza
 
 case class LabelValue(name: String, value: Option[String])
 
-sealed trait FlowStage {
-  val next: String
-}
+sealed trait FlowStage { val next: String }
 final case class Flow(next: String, labelValue: Option[LabelValue]) extends FlowStage
-final case class Continuation(next: String, stanzas: List[KeyedStanza]) extends FlowStage
-
+final case class Continuation(next: String, stanzas: Map[String, Stanza]) extends FlowStage
 
 object LabelValue {
   implicit val reads: Reads[LabelValue] = (
@@ -62,12 +60,12 @@ object Flow {
 object Continuation {
   implicit val reads: Reads[Continuation] = (
     (__ \ "next").read[String] and
-      (__ \ "stanzas").read[List[KeyedStanza]]
+      (__ \ "stanzas").read[Map[String, Stanza]]
   )(Continuation.apply _)
 
   implicit val writes: OWrites[Continuation] = (
     (__ \ "next").write[String] and
-      (__ \ "stanzas").write[List[KeyedStanza]]
+      (__ \ "stanzas").write[Map[String, Stanza]]
   )(unlift(Continuation.unapply))
 }
 
