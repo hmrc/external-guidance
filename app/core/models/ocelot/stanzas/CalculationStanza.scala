@@ -198,7 +198,6 @@ object FloorOperation{
     ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String])(unlift(FloorOperation.unapply))
 }
 
-
 case class Calculation(override val next: Seq[String], calcs: Seq[Operation]) extends Stanza with Evaluate {
   override val labels: List[Label] = calcs.map(op => ScalarLabel(op.label)).toList
   override val labelRefs: List[String] = calcs.flatMap(op => labelReferences(op.left) ++ labelReferences(op.right)).toList

@@ -36,7 +36,7 @@ object SequenceStanza {
       (js \ "label").validateOpt[String] and
       (js \ "stack").validate[Boolean]).tupled match {
       case err: JsError => err
-      case JsSuccess((text: Int, next: Seq[String], options: Seq[Int], label: Option[String], stack: Boolean), _) if next.length != (options.length+1) =>
+      case JsSuccess((text: Int, next: Seq[String], options: Seq[Int], label: Option[String], stack: Boolean), _) if next.length != (options.length + 1) =>
         JsError(Seq(JsPath \ "right" -> Seq(JsonValidationError(Seq("error", "error.listlengths.inconsistent")))))
       case JsSuccess((text: Int, next: Seq[String], options: Seq[Int], label: Option[String], stack: Boolean), _) =>
         JsSuccess(SequenceStanza(text, next, options, label, stack))
@@ -77,7 +77,7 @@ case class Sequence(text: Phrase,
       // takeFlow and redirect to the first flow (setting list and first flow label)
       label.fold(labels)(l => labels.updateList(s"${l}_seq", chosenOptions))
            .pushFlows(checked.flatMap(idx => next.lift(idx).fold[List[String]](Nil)(List(_))), next.last, label, chosenOptions, continuationStanzas)
-           .takeFlow.fold[(Option[String], Labels)]((None, labels))(t => (Some(t._1), t._3)) // Initial flow will never be a Continuation
+           .takeFlow.fold[(Option[String], Labels)]((None, labels))(t => (Some(t._1), t._2)) // Initial flow will never be a Continuation
       }
     }
 

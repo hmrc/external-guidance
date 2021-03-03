@@ -18,7 +18,6 @@ package core.models.ocelot
 
 import base.BaseSpec
 import play.api.libs.json._
-import core.models.ocelot.stanzas.{ValueStanza, Value, ScalarType}
 
 class FlowSpec extends BaseSpec {
 
@@ -91,77 +90,27 @@ class FlowSpec extends BaseSpec {
 
   val continuationJson: JsValue = Json.parse(
     s"""{
-        |  "next": "1",
-        |  "stanzas": {
-        |    "1": {
-        |        "next": [
-        |          "11"
-        |        ],
-        |        "stack": false,
-        |        "values": [
-        |          {
-        |            "type": "scalar",
-        |            "label": "labelName",
-        |            "value": "23"
-        |          }
-        |        ],
-        |        "type": "ValueStanza"
-        |      }
-        |   }
+        |  "next": "1"
         }""".stripMargin
   )
 
   val flowStageContinuationJson: JsValue = Json.parse(
     s"""{
-        |  "next": "1",
-        |  "stanzas": {
-        |    "1": {
-        |        "next": [
-        |          "11"
-        |        ],
-        |        "stack": false,
-        |        "values": [
-        |          {
-        |            "type": "scalar",
-        |            "label": "labelName",
-        |            "value": "23"
-        |          }
-        |        ],
-        |        "type": "ValueStanza"
-        |      }
-        |   },
+        | "next": "1",
         | "type": "cont"
         }""".stripMargin
   )
 
   val invalidContinuationJson: JsValue = Json.parse(
     s"""{
-        |  "nextf": "1",
-        |  "stanzas": [
-        |    {
-        |      "key": "1",
-        |      "stanza": {
-        |        "type": "ValueStanza",
-        |        "values": [
-        |          {
-        |            "type": "scalar",
-        |            "label": "labelName",
-        |            "value": "23"
-        |          }
-        |        ],
-        |        "next": [
-        |          "11"
-        |        ],
-        |        "stack": false
-        |      }
-        |    }
-        |  ]
+        | "nextf": "1"
         }""".stripMargin
   )
 
   val expectedLabelValue: LabelValue = LabelValue("LabelName", Some("A value"))
   val expectedFlow: Flow = Flow("1", Some(expectedLabelValue))
-  val expectedContinuation: Continuation = Continuation("1", Map("1" -> ValueStanza(List(Value(ScalarType, "labelName", "23")), Seq("11"), false)))
+  val expectedContinuation: Continuation = Continuation("1")
+
 
   "Reading an invalid FlowStage" should {
     "Generate a JsonValidationError" in {
