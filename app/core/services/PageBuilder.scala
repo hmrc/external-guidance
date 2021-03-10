@@ -85,7 +85,7 @@ class PageBuilder @Inject() (val placeholders: Placeholders) extends ProcessPopu
       pages => {
         checkQuestionPages(pages, Nil) ++
         duplicateUrlErrors(pages.reverse, Nil) ++
-        detectSharedStanzaUsage(pages) ++
+        //detectSharedStanzaUsage(pages) ++
         detectUnsupportedPageRedirect(pages) match {
           case Nil => Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
           case errors =>
