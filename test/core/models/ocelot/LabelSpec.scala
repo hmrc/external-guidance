@@ -350,7 +350,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       labels.valueAsList("Colours") shouldBe Some(List("Yellow", "Violet"))
 
       labels.takeFlow.fold(fail("Stack should not be empty")){t =>
-        val (nxt, stanzas, updatedLabels) = t
+        val (nxt, updatedLabels) = t
         nxt shouldBe "1"
         updatedLabels.value("loop") shouldBe Some("One")
 
@@ -479,22 +479,22 @@ class LabelSpec extends BaseSpec with ProcessJson {
       labels.flowStack.length shouldBe 3
       labels.flowStack.head shouldBe Flow("1", Some(LabelValue("loop", Some("One"))))
       labels.flowStack(1) shouldBe Flow("2", Some(LabelValue("loop", Some("Two"))))
-      labels.flowStack(2) shouldBe Continuation("3", Map())
+      labels.flowStack(2) shouldBe Continuation("3")
     }
 
     "Allow removal of Flow from top of stack" in {
       val labels = LabelCache().pushFlows(Seq("1","2"), "3", Some("loop"), Seq("One", "Two", "Three"), Map())
 
       labels.takeFlow.map{t =>
-        val(n0, _, l0) = t
+        val(n0, l0) = t
         n0 shouldBe "1"
         l0.flowStack.length shouldBe 2
         l0.takeFlow.map{t =>
-          val(n1, _, l1) = t
+          val(n1, l1) = t
           n1 shouldBe "2"
           l1.flowStack.length shouldBe 1
           l1.takeFlow.map{t =>
-            val(n2, _, l2) = t
+            val(n2, l2) = t
             n2 shouldBe "3"
             l2.flowStack.length shouldBe 0
 
@@ -508,15 +508,15 @@ class LabelSpec extends BaseSpec with ProcessJson {
       val labels = LabelCache().pushFlows(Seq("1","2"), "3", None, Seq("One", "Two", "Three"), Map())
 
       labels.takeFlow.map{t =>
-        val(n0, _, l0) = t
+        val(n0, l0) = t
         n0 shouldBe "1"
         l0.flowStack.length shouldBe 2
         l0.takeFlow.map{t =>
-          val(n1, _, l1) = t
+          val(n1, l1) = t
           n1 shouldBe "2"
           l1.flowStack.length shouldBe 1
           l1.takeFlow.map{t =>
-            val(n2, _, l2) = t
+            val(n2, l2) = t
             n2 shouldBe "3"
             l2.flowStack.length shouldBe 0
 
