@@ -110,15 +110,19 @@ class PageBuilder @Inject() (val placeholders: Placeholders) extends ProcessPopu
 
   @tailrec
   private def checkDateInputErrorCallouts(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
-    def checkCalloutSufficiency(p: Page): List[GuidanceError] =
-      p.keyedStanzas
-       .map(_.stanza)
-       .collect{case e: ErrorCallout => EmbeddedParameterRegex.findAllIn(e.text.english).length}
-       .distinct
+    // Sufficient: 3 stacked callouts with messages containing 0,1 and 2 embedded parameters
+    def checkCalloutSufficiency(p: Page): List[GuidanceError] = {
+      val callouts: Seq[ErrorCallout] = p.keyedStanzas
+                                         .map(_.stanza)
+                                         .collect{case e: ErrorCallout => e}
+
+      callouts
+       .map(co => EmbeddedParameterRegex.findAllIn(co.text.english).length)
        .sorted match {
-          case List(0,1,2) => Nil
+          case List(0,1,2) if callouts(1).stack && callouts(2).stack => Nil
           case _ => List(IncompleteDateInputPage(p.id))
        }
+    }
 
     pages match {
       case Nil => errors
