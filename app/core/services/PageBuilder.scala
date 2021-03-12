@@ -85,7 +85,7 @@ class PageBuilder @Inject() (val placeholders: Placeholders) extends ProcessPopu
       pages => {
         checkQuestionPages(pages, Nil) ++
         duplicateUrlErrors(pages.reverse, Nil) ++
-        detectSharedStanzaUsage(pages) ++
+        checkDateInputErrorCallouts(pages, Nil) ++
         detectUnsupportedPageRedirect(pages) match {
           case Nil => Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
           case errors =>
@@ -108,13 +108,33 @@ class PageBuilder @Inject() (val placeholders: Placeholders) extends ProcessPopu
       }
     }
 
-  private def detectSharedStanzaUsage(pages: Seq[Page]): Seq[GuidanceError] = {
-    val dataInputByPage: Seq[(String, Seq[String])] = pages.map(p => (p.id, p.keyedStanzas.collect{case KeyedStanza(id, _: DataInput) => id}))
-    dataInputByPage.flatMap(_._2).distinct.flatMap{ id =>
-      dataInputByPage.collect{case(pId, stanzas) if stanzas.contains(id) => (id, pId)}
-    }.groupBy(t => t._1)
-     .collect{case (k, p) if p.length > 1 => SharedDataInputStanza(k, p.map(_._2))}
-     .toSeq
+  @tailrec
+  private def checkDateInputErrorCallouts(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
+    // Sufficient: 3 stacked callouts with messages containing 0,1 and 2 embedded parameters
+    def checkCalloutSufficiency(p: Page): List[GuidanceError] = {
+      val callouts: Seq[ErrorCallout] = p.keyedStanzas
+                                         .map(_.stanza)
+                                         .collect{case e: ErrorCallout => e}
+
+      callouts
+       .map(co => EmbeddedParameterRegex.findAllIn(co.text.english).length)
+       .sorted match {
+          case List(0,1,2) if callouts(1).stack && callouts(2).stack => Nil
+          case _ => List(IncompleteDateInputPage(p.id))
+       }
+    }
+
+    pages match {
+      case Nil => errors
+      case p +: xs => p.keyedStanzas.find(
+          _.stanza match {
+            case i: DateInput => true
+            case _ => false
+        }) match {
+        case Some(_) => checkDateInputErrorCallouts(xs, checkCalloutSufficiency(p) ++ errors)
+        case None => checkDateInputErrorCallouts(xs, errors)
+      }
+    }
   }
 
   private def detectUnsupportedPageRedirect(pages: Seq[Page]): Seq[GuidanceError] = {
