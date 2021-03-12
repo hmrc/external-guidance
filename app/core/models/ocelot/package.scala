@@ -26,7 +26,7 @@ package object ocelot {
   val boldPattern = s"\\[bold:($labelPattern|[^\\]]+)\\]"
   val linkToPageOnlyPattern = s"\\[link:(.+?):(\\d+|${Process.StartStanzaId})\\]"
   val toPageLinkPattern = s"\\[(button|link)(-same|-tab)?:([^\\]]+?):(\\d+|${Process.StartStanzaId})\\]"
-  val linkPattern = s"\\[(button|link)(-same|-tab)?:(.+?):(\\d+|${Process.StartStanzaId}|https?:[a-zA-Z0-9\\/\\.\\-\\?_\\.=&]+)\\]"
+  val linkPattern = s"\\[(button|link)(-same|-tab)?:(.+?):(\\d+|${Process.StartStanzaId}|https?:[a-zA-Z0-9\\/\\.\\-\\?_\\.=&#]+)\\]"
   val commaSeparatedIntsPattern = "^\\d+\\s*(?:,\\s*\\d+\\s*)*$"
   val hintRegex: Regex = "\\[hint:([^\\]]+)\\]".r
   val pageLinkRegex: Regex = s"${toPageLinkPattern}".r
