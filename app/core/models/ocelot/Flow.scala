@@ -26,7 +26,7 @@ package core.models.ocelot
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
-case class LabelValue(name: String, value: Option[String])
+case class LabelValue(name: String, value: String)
 
 sealed trait FlowStage { val next: String }
 final case class Flow(next: String, labelValue: Option[LabelValue]) extends FlowStage
@@ -35,12 +35,12 @@ final case class Continuation(next: String) extends FlowStage
 object LabelValue {
   implicit val reads: Reads[LabelValue] = (
     (__ \ "name").read[String] and
-      (__ \ "value").readNullable[String]
+      (__ \ "value").read[String]
   )(LabelValue.apply _)
 
   implicit val writes: Writes[LabelValue] = (
     (__ \ "name").write[String] and
-      (__ \ "value").writeNullable[String]
+      (__ \ "value").write[String]
   )(unlift(LabelValue.unapply))
 }
 

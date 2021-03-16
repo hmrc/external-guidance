@@ -18,7 +18,7 @@ package core.models.ocelot.stanzas
 
 import base.BaseSpec
 import play.api.libs.json._
-import core.models.ocelot.{Page, Phrase, LabelCache, Labels, Process, Continuation}
+import core.models.ocelot.{Page, Phrase, LabelCache, Labels, Process, Flow, LabelValue, Continuation}
 
 class SequenceStanzaSpec extends BaseSpec {
 
@@ -96,7 +96,7 @@ class SequenceStanzaSpec extends BaseSpec {
       val blankPage: Page = Page("any", "/url", Seq.empty, Nil)
       val (next, updatedLabels) = expectedSequence.eval("0", blankPage, labels)
       next shouldBe Some("1")
-      updatedLabels.flowStack shouldBe List(Continuation(Process.EndStanzaId))
+      updatedLabels.flowStack shouldBe List(Flow("1", Some(LabelValue("Items", "One"))), Continuation(Process.EndStanzaId))
       updatedLabels.value("Items") shouldBe Some("One")
     }
 
