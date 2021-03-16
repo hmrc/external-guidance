@@ -1159,6 +1159,413 @@ class CalculationStanzaSpec extends BaseSpec {
       updatedLabels shouldBe labelCache
     }
 
+    "ignore floor operations where the value to be rounded is not defined" in {
+
+      val calcOperation: Seq[CalcOperation] = Seq(CalcOperation("[label:missing]", Floor, "0", "output"))
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperation, Seq("28"), stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val labelCache: Labels = LabelCache()
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "28"
+
+      updatedLabels shouldBe labelCache
+    }
+
+    "ignore ceiling operations where the scale value is not defined" in {
+
+      val calcOperation: Seq[CalcOperation] = Seq(CalcOperation("[label:value]", Ceiling, "[label:missing]", "output"))
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperation, Seq("28"), stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val value: ScalarLabel = ScalarLabel("value", List("10.4"))
+
+      val labelMap: Map[String, Label] = Map(
+        value.name -> value
+      )
+
+      val labelCache: Labels = LabelCache(labelMap)
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "28"
+
+      updatedLabels shouldBe labelCache
+    }
+
+    "evaluate addition to a list using a constant" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(CalcOperation("[label:list]", Addition, "four", "result"))
+
+      val next: Seq[String] = Seq("20")
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, next, stack = true)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val list: ListLabel = ListLabel("list", List("one", "two", "three"))
+
+      val labelMap: Map[String, Label] = Map(list.name -> list)
+
+      val labelCache: Labels = LabelCache(labelMap)
+
+      val (_, updatedLabels) = calculation.eval(labelCache)
+
+      updatedLabels.valueAsList("result") shouldBe Some(List("one", "two", "three", "four"))
+    }
+
+    "evaluate addition to a list using a label value" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(CalcOperation("[label:list]", Addition, "[label:scalar]", "result"))
+
+      val next: Seq[String] = Seq("1")
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, next, stack = true)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val list: ListLabel = ListLabel("list", List("five", "six"))
+      val scalar: ScalarLabel = ScalarLabel("scalar", List("seven"))
+
+      val labelMap: Map[String, Label] = Map(
+        list.name -> list,
+        scalar.name -> scalar
+      )
+
+      val labelCache: Labels = LabelCache(labelMap)
+
+      val (_, updatedLabels) = calculation.eval(labelCache)
+
+      updatedLabels.valueAsList("result") shouldBe Some(List("five", "six", "seven"))
+    }
+
+    "evaluate addition to an empty list" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(CalcOperation("[label:emptyList]", Addition, "one", "result"))
+
+      val next: Seq[String] = Seq("16")
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, next, stack = true)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val emptyList: ListLabel = ListLabel("emptyList")
+
+      val labelMap: Map[String, Label] = Map(emptyList.name -> emptyList)
+
+      val labelCache: Labels = LabelCache(labelMap)
+
+      val (_, updatedLabels) = calculation.eval(labelCache)
+
+      updatedLabels.valueAsList("result") shouldBe Some(List("one"))
+    }
+
+    "evaluate addition of multiple values to a list" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("[label:initialList]", Addition, "two", "result1"),
+        CalcOperation("[label:result1]", Addition, "[label:three]", "result2"),
+        CalcOperation("four", Addition, "[label:result2]", "result3")
+      )
+
+      val next: Seq[String] = Seq("45")
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, next, stack = true)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val initialList: ListLabel = ListLabel("initialList", List("one"))
+      val three: ScalarLabel = ScalarLabel("three", List("three"))
+
+      val labelMap: Map[String, Label] = Map(
+        initialList.name -> initialList,
+        three.name -> three
+      )
+
+      val labelCache: Labels = LabelCache(labelMap)
+
+      val (_, updatedLabels) = calculation.eval(labelCache)
+
+      updatedLabels.valueAsList("result3") shouldBe Some(List("four", "one", "two", "three"))
+    }
+
+    "not apply addition if one of the operands does not exist" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(CalcOperation("[label:missingList]", Addition, "10", "result"))
+
+      val calculation: Calculation = createCalculation(calcOperations, Seq("22"))
+
+      val labelCache: Labels = LabelCache()
+
+      val (_, updatedLabels) = calculation.eval(labelCache)
+
+      updatedLabels shouldBe labelCache
+    }
+
+    "evaluate subtraction of a constant from a list" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(CalcOperation("[label:initialList]", Subtraction, "one", "result"))
+
+      val calculation: Calculation = createCalculation(calcOperations, Seq("4"))
+
+      val initialList: ListLabel = ListLabel("initialList", List("one", "two", "three", "four", "five"))
+
+      val labelMap: Map[String, Label] = Map(initialList.name -> initialList)
+
+      val labelCache: Labels = LabelCache(labelMap)
+
+      val (_, updatedLabels) = calculation.eval(labelCache)
+
+      updatedLabels.valueAsList("result") shouldBe Some(List("two", "three", "four", "five"))
+    }
+
+    "evaluate subtraction of value that appears multiple times in a list" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(CalcOperation("[label:initialList]", Subtraction, "c", "result"))
+
+      val calculation: Calculation = createCalculation(calcOperations, Seq("52"))
+
+      val initialList: ListLabel = ListLabel("initialList", List("a", "b", "c", "c", "d"))
+
+      val labelMap: Map[String, Label] = Map(initialList.name -> initialList)
+
+      val labelCache: Labels = LabelCache(labelMap)
+
+      val (_, updatedLabels) = calculation.eval(labelCache)
+
+      updatedLabels.valueAsList("result") shouldBe Some(List("a", "b", "d"))
+    }
+
+    "evaluate subtraction of a label value from a list" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(CalcOperation("[label:initialList]", Subtraction, "[label:minus]", "result"))
+
+      val calculation: Calculation = createCalculation(calcOperations, Seq("7"))
+
+      val initialList: ListLabel = ListLabel("initialList", List("January", "February", "March", "April", "May"))
+
+      val minus: ScalarLabel = ScalarLabel("minus", List("April"))
+
+      val labelMap: Map[String, Label] = Map(
+        initialList.name -> initialList,
+        minus.name -> minus
+      )
+
+      val labelCache: Labels = LabelCache(labelMap)
+
+      val (_, updatedLabels) = calculation.eval(labelCache)
+
+      updatedLabels.valueAsList("result") shouldBe Some(List("January", "February", "March", "May"))
+    }
+
+    "not evaluate subtraction of a list from a scalar label as this operation is not supported" in {
+
+      val calcOperation: Seq[CalcOperation] = Seq(CalcOperation("[label:a]", Subtraction, "[label:list]", "result1"))
+
+      val calculation: Calculation = createCalculation(calcOperation, Seq("8"))
+
+      val a: ScalarLabel = ScalarLabel("a", List("A"))
+
+      val list: ListLabel = ListLabel("list", List("A", "B", "C"))
+
+      val labelMap: Map[String, Label] = Map(
+        a.name -> a,
+        list.name -> list
+      )
+
+      val labels: Labels = LabelCache(labelMap)
+
+      val (_, updatedLabels) = calculation.eval(labels)
+
+      updatedLabels shouldBe labels
+    }
+
+    "successfully handle subtraction from an empty list" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(CalcOperation("[label:emptyList]", Subtraction, "[label:minus]", "result"))
+
+      val calculation: Calculation = createCalculation(calcOperations, Seq("2"))
+
+      val emptyList: ListLabel = ListLabel("emptyList")
+
+      val minus: ScalarLabel = ScalarLabel("minus", List("Something"))
+
+      val labelMap: Map[String, Label] = Map(
+        emptyList.name -> emptyList,
+        minus.name -> minus
+      )
+
+      val labelCache: Labels = LabelCache(labelMap)
+
+      val (_, updatedLabels) = calculation.eval(labelCache)
+
+      updatedLabels.valueAsList("result") shouldBe Some(Nil)
+    }
+
+    "successfully remove multiple entries from a list" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("[label:initialList]", Subtraction, "June", "result1"),
+        CalcOperation("[label:result1]", Subtraction, "[label:may]", "result2"),
+        CalcOperation("[label:result2]", Subtraction, "[label:september]", "result3"),
+        CalcOperation("[label:result3]", Subtraction, "April", "result4")
+      )
+
+      val calculation: Calculation = createCalculation(calcOperations, Seq("88"))
+
+      val initialList: ListLabel = ListLabel(
+        "initialList",
+        List("January", "February", "March", "April", "May", "June", "July", "August", "September", "October")
+      )
+
+      val may: ScalarLabel = ScalarLabel("may", List("May"))
+      val september: ScalarLabel = ScalarLabel("september", List("September"))
+
+      val labelMap: Map[String, Label] = Map(
+        initialList.name -> initialList,
+        may.name -> may,
+        september.name -> september
+      )
+
+      val labelCache: Labels = LabelCache(labelMap)
+
+      val (_, updatedLabels) = calculation.eval(labelCache)
+
+      updatedLabels.valueAsList("result4") shouldBe Some(List("January", "February", "March", "July", "August", "October"))
+    }
+
+    "not apply subtraction when one of the operands does not exist" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(CalcOperation("[label:list]", Subtraction, "[label:missing]", "result"))
+
+      val calculation: Calculation = createCalculation(calcOperations, Seq("9"))
+
+      val list: ListLabel = ListLabel("list", List("202"))
+
+      val labelMap: Map[String, Label] = Map(list.name -> list)
+
+      val labelCache: Labels = LabelCache(labelMap)
+
+      val (_, updatedLabels) = calculation.eval(labelCache)
+
+      updatedLabels shouldBe labelCache
+    }
+
+    "evaluate both adding values to and removing values from a list" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("[label:initialList]", Addition, "English", "result1"),
+        CalcOperation("[label:result1]", Subtraction, "Geography", "result2")
+      )
+
+      val calculation: Calculation = createCalculation(calcOperations, Seq("83"))
+
+      val initialList: ListLabel = ListLabel("initialList", List("French", "Geography", "History"))
+
+      val labelMap: Map[String, Label] = Map(initialList.name -> initialList)
+
+      val labelCache: Labels = LabelCache(labelMap)
+
+      val (_, updatedLabels) = calculation.eval(labelCache)
+
+      updatedLabels.valueAsList("result2") shouldBe Some(List("French", "History", "English"))
+    }
+
+    "evaluate adding two lists together" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("[label:list1]", Addition, "[label:list2]", "result1"),
+        CalcOperation("[label:list1]", Addition, "[label:emptyList1]", "result2"),
+        CalcOperation("[label:emptyList1]", Addition, "[label:list2]", "result3"),
+        CalcOperation("[label:emptyList1]", Addition, "[label:emptyList2]", "result4")
+      )
+
+      val calculation: Calculation = createCalculation(calcOperations, Seq("2"))
+
+      val list1: ListLabel = ListLabel("list1", List("a", "b", "c"))
+      val list2: ListLabel = ListLabel("list2", List("x", "y", "z"))
+      val emptyList1: ListLabel = ListLabel("emptyList1")
+      val emptyList2: ListLabel = ListLabel("emptyList2")
+
+      val labelMap: Map[String, Label] = Map(
+        list1.name -> list1,
+        list2.name -> list2,
+        emptyList1.name -> emptyList1,
+        emptyList2.name -> emptyList2
+      )
+
+      val labelCache: Labels = LabelCache(labelMap)
+
+      val (_, updatedLabels) = calculation.eval(labelCache)
+
+      updatedLabels.valueAsList("result1") shouldBe Some(List("a", "b", "c", "x", "y", "z"))
+      updatedLabels.valueAsList("result2") shouldBe Some(list1.english)
+      updatedLabels.valueAsList("result3") shouldBe Some(list2.english)
+      updatedLabels.valueAsList("result4") shouldBe Some(Nil)
+    }
+
+    "evaluate subtracting one list from another" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq(
+        CalcOperation("[label:list1]", Subtraction, "[label:list2]", "result1"),
+        CalcOperation("[label:list3]", Subtraction, "[label:list4]", "result2"),
+        CalcOperation("[label:list5]", Subtraction, "[label:list6]", "result3"),
+        CalcOperation("[label:list7]", Subtraction, "[label:emptyList1]", "result4"),
+        CalcOperation("[label:emptyList1]", Subtraction, "[label:list8]", "result5"),
+        CalcOperation("[label:emptyList1]", Subtraction, "[label:emptyList2]", "result6")
+      )
+
+      val calculation: Calculation = createCalculation(calcOperations, Seq("14"))
+
+      val list1: ListLabel = ListLabel("list1", List("a", "b", "c", "d"))
+      val list2: ListLabel = ListLabel("list2", List("c", "d", "e", "f"))
+      val list3: ListLabel = ListLabel("list3", List("a", "b", "c", "d", "e"))
+      val list4: ListLabel = ListLabel("list4", List("b", "c", "d"))
+      val list5: ListLabel = ListLabel("list5", List("a", "b", "b", "b", "c", "d"))
+      val list6: ListLabel = ListLabel("list6", List("a", "b", "b"))
+      val list7: ListLabel = ListLabel("list7", List("a", "b"))
+      val list8: ListLabel = ListLabel("list8", List("c", "d"))
+      val emptyList1: ListLabel = ListLabel("emptyList1")
+      val emptyList2: ListLabel = ListLabel("emptyList2")
+
+      val labelMap: Map[String, Label] = Map(
+        list1.name -> list1,
+        list2.name -> list2,
+        list3.name -> list3,
+        list4.name -> list4,
+        list5.name -> list5,
+        list6.name -> list6,
+        list7.name -> list7,
+        list8.name -> list8,
+        emptyList1.name -> emptyList1,
+        emptyList2.name -> emptyList2
+      )
+
+      val labelCache: Labels = LabelCache(labelMap)
+
+      val (_, updatedLabels) = calculation.eval(labelCache)
+
+      updatedLabels.valueAsList("result1") shouldBe Some(List("a", "b"))
+      updatedLabels.valueAsList("result2") shouldBe Some(List("a", "e"))
+      updatedLabels.valueAsList("result3") shouldBe Some(List("c", "d"))
+      updatedLabels.valueAsList("result4") shouldBe Some(List("a", "b"))
+      updatedLabels.valueAsList("result5") shouldBe Some(Nil)
+      updatedLabels.valueAsList("result6") shouldBe Some(Nil)
+    }
+
+  }
+
+  private def createCalculation(calcs: Seq[CalcOperation], next: Seq[String]): Calculation = {
+
+    val stanza: CalculationStanza = CalculationStanza(calcs, next, stack = false)
+
+    Calculation(stanza)
   }
 
 }

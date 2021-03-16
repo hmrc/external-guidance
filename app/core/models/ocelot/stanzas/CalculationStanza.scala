@@ -27,6 +27,8 @@ import play.api.libs.json.Reads._
 
 import scala.math.BigDecimal.RoundingMode
 
+import scala.annotation.tailrec
+
 case class CalculationStanza(calcs: Seq[CalcOperation], override val next: Seq[String], stack: Boolean) extends Stanza {
   override val labels: List[Label] = calcs.map(op => ScalarLabel(op.label)).toList
   override val labelRefs: List[String] = calcs.flatMap(op => labelReferences(op.left) ++ labelReferences(op.right)).toList
@@ -59,24 +61,42 @@ sealed trait Operation {
 
   def eval(labels: Labels): Labels
 
-  def value(arg: String, labels: Labels): String = labelReference(arg).fold(arg) { ref =>
-    labels.value(ref).getOrElse("")
+  def value(arg: String, labels: Labels): Option[String] = labelReference(arg).fold[Option[String]](Some(arg)){ref =>
+    labels.value(ref)
   }
 
-  def unsupportedOperation(operationName: String)(arg1: Any, arg2: Any): Option[String] = {
+  def listValue(arg: String, labels: Labels): Option[List[String]] = {
+    labelReference(arg).fold[Option[List[String]]](None){ref => labels.valueAsList(ref)}
+  }
+
+  def operands(labels: Labels): (Option[String], Option[List[String]], Option[String], Option[List[String]]) = {
+
+    val xScalar: Option[String] = value(left, labels)
+    val yScalar: Option[String] = value(right, labels)
+
+    (xScalar, yScalar) match {
+      case (Some(_), Some(_)) => (xScalar, None, yScalar, None) // Optimize for scalar on scalar as these are the most common operations
+      case _ =>
+        val xList: Option[List[String]] = listValue(left, labels)
+        val yList: Option[List[String]] = listValue(right, labels)
+
+        (xScalar, xList, yScalar, yList)
+    }
+  }
+
+  def unsupportedOperation[A](operationName: String)(arg1: Any, arg2: Any ): Option[A] = {
 
     logger.error("Unsupported \"" + operationName + "\" calculation stanza operation defined in guidance")
 
     None
   }
 
-  def op(f: (BigDecimal, BigDecimal) => BigDecimal,
+  def op(x : String,
+         y: String,
+         f: (BigDecimal, BigDecimal) => BigDecimal,
          g: (String, String) => Option[String],
          h: (LocalDate, LocalDate) => Option[String],
          labels: Labels): Labels = {
-
-    val x: String = value(left, labels)
-    val y: String = value(right, labels)
 
     (asDate(x), asDate(y)) match {
       case (Some(ld1), Some(ld2)) =>
@@ -102,39 +122,77 @@ sealed trait Operation {
 
   }
 
+  def listAndValueOp(list: List[String], scalar: String, f:(List[String], String) => Option[List[String]], labels: Labels): Labels =
+  f(list, scalar) match {case Some(value) => labels.updateList(label, value) case None => labels}
+
+  def listOp(list1: List[String], list2: List[String], f:(List[String], List[String]) => List[String], labels: Labels): Labels =
+    labels.updateList(label, f(list1, list2))
+
   def rounding(f: (BigDecimal, Int) => BigDecimal, labels: Labels): Labels = {
 
-    val x: String = value(left, labels)
-    val y: String = value(right, labels)
+    value(left, labels).fold(labels)(x => value(right, labels).fold(labels)(y =>
 
-    (asCurrency(x), asAnyInt(y)) match {
+      (asCurrency(x), asAnyInt(y)) match {
 
-      case (Some(value), Some(scale)) =>
+        case (Some(value), Some(scale)) =>
 
-        val scaledValue = f(value, scale)
-        labels.update(label, scaledValue.bigDecimal.toPlainString)
+          val scaledValue = f(value, scale)
+          labels.update(label, scaledValue.bigDecimal.toPlainString)
 
-      case _ =>
+        case _ =>
 
-        unsupportedOperation("Rounding")(x, y)
-        labels
+          unsupportedOperation("Rounding")(x, y)
+          labels
 
-    }
+      }))
+
   }
 }
 
 case class AddOperation(left: String, right: String, label: String) extends Operation {
 
-  def eval(labels: Labels): Labels = op(_ + _, (s1:String, s2:String) => Some(s1 + s2), unsupportedOperation("Add"), labels)
+  def eval(labels: Labels): Labels =
+    operands(labels) match {
+      case (Some(x), None, Some(y), None) => op(x, y, _ + _, (s1: String, s2: String) => Some(s1 + s2), unsupportedOperation("Add"), labels)
+      case (None, Some(xList), Some(y), None) => listAndValueOp(xList, y, appendStringToList, labels)
+      case (Some(x), None, None, Some(yList)) => listAndValueOp(yList, x, prependStringToList, labels)
+      case (None, Some(xList), None, Some(yList)) => listOp(xList, yList, addListToList, labels)
+      case _ => unsupportedOperation("Add")(None, None)
+        labels
+    }
 
+  private def appendStringToList(l: List[String], s: String): Option[List[String]] = Some((s :: l.reverse).reverse)
+
+  private def prependStringToList(l: List[String], s: String): Option[List[String]] = Some(s :: l)
+
+  private def addListToList(list1: List[String], list2: List[String]): List[String] = list1 ::: list2
 }
 
 case class SubtractOperation(left: String, right: String, label: String) extends Operation {
 
-  def eval(labels: Labels): Labels = op(_ - _, unsupportedOperation("Subtract"), subtractDate, labels)
+  def eval(labels: Labels): Labels =
+
+    operands(labels) match {
+      case (Some(x), None, Some(y), None) => op(x, y, _ - _, unsupportedOperation("Subtract"), subtractDate, labels)
+      case (None, Some(xList), Some(y), None) => listAndValueOp(xList, y, subtractStringFromList, labels)
+      case (Some(x), None, None, Some(yList)) => listAndValueOp(yList, x, unsupportedOperation("Subtract list from string"), labels)
+      case (None, Some(xList), None, Some(yList)) => listOp(xList, yList, subtractListFromList, labels)
+      case _ => unsupportedOperation("Subtract")(None, None)
+        labels
+    }
 
   private def subtractDate(date: LocalDate, other: LocalDate) : Option[String] =
     Some(other.until(date, ChronoUnit.DAYS).toString)
+
+  private def subtractStringFromList(l: List[String], s: String): Option[List[String]] = Some(l.filter(_ != s))
+
+  @tailrec
+  private def subtractListFromList(list1: List[String], list2: List[String]): List[String] =
+    list2 match {
+      case Nil => list1
+      case x :: xs => subtractListFromList(list1.filter(_ != x), xs)
+    }
+
 }
 
 case class CeilingOperation(left: String, right: String, label: String) extends Operation {

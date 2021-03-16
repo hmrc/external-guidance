@@ -85,9 +85,9 @@ class ProcessErrorSpec extends BaseSpec {
       val details: ProcessError = ParseError(JsPath(Nil), Seq(JsonValidationError(Seq("err message"))))
       details shouldBe ProcessError("Unknown parse error err message at location ", "")
     }
-    "from SharedDataInputStanza" in {
-      val details: ProcessError = SharedDataInputStanza("stanzaId", Seq("page1"))
-      details shouldBe ProcessError("Input/Question Stanza stanzaId used on multiple pages List(page1)", "stanzaId")
+    "from IncompleteDateInputPage" in {
+      val details: ProcessError = IncompleteDateInputPage("stanzaId")
+      details shouldBe ProcessError("Incomplete Error callout group associated with date input page stanzaId", "stanzaId")
     }
     "from PageRedirectNotSupported" in {
       val details: ProcessError = PageRedirectNotSupported("stanzaId")

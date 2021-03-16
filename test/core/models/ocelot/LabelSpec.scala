@@ -286,7 +286,8 @@ class LabelSpec extends BaseSpec with ProcessJson {
       val labelsMap = Map(
         "one" -> ListLabel("one", Nil, Nil),
         "two" -> ListLabel("two", List("Home"), List("Hafan")),
-        "three" -> ListLabel("three", List("Hello", "World"), List("Helo","Byd"))
+        "three" -> ListLabel("three", List("Hello", "World"), List("Helo","Byd")),
+        "four" -> ListLabel("four", List("Welcome"))
       )
 
       val labels = LabelCache(labelsMap)
@@ -297,6 +298,8 @@ class LabelSpec extends BaseSpec with ProcessJson {
       labels.displayValue("two")(welshLang) shouldBe Some("Hafan")
       labels.displayValue("three")(englishLang) shouldBe Some("Hello,World")
       labels.displayValue("three")(welshLang) shouldBe Some("Helo,Byd")
+      labels.displayValue("four")(englishLang) shouldBe Some("Welcome")
+      labels.displayValue("four")(welshLang) shouldBe Some("Welcome")
     }
 
     "Allow access to the main label map" in {
