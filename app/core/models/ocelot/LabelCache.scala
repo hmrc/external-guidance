@@ -20,7 +20,7 @@ import core.models.ocelot.stanzas.Stanza
 import play.api.i18n.Lang
 
 trait Flows {
-  def pushFlows(flowNext: Seq[String], continue: String, labelName: Option[String], labelValues: Seq[String], stanzas: Map[String, Stanza]): (Option[String], Labels)
+  def pushFlows(flowNext: List[String], continue: String, labelName: Option[String], labelValues: List[String], stanzas: Map[String, Stanza]): (Option[String], Labels)
   def nextFlow: Option[(String, Labels)]
   def activeFlow: Option[FlowStage]
   def continuationPool: Map[String, Stanza]
@@ -86,7 +86,7 @@ private class LabelCacheImpl(labels: Map[String, Label] = Map(),
     cache + (name -> cache.get(name).fold[Label](ListLabel(name, english, welsh))(l => ListLabel(l.name, english, welsh)))
 
   // Flows
-  def pushFlows(flowNext: Seq[String], continue: String, labelName: Option[String], labelValues: Seq[String], stanzas: Map[String, Stanza]): (Option[String], Labels) =
+  def pushFlows(flowNext: List[String], continue: String, labelName: Option[String], labelValues: List[String], stanzas: Map[String, Stanza]): (Option[String], Labels) =
     flowNext.zipWithIndex.map{
       case (nxt, idx) => Flow(nxt, labelName.map(LabelValue(_, labelValues(idx))))
     } match {

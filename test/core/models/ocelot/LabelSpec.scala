@@ -346,7 +346,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
 
       labels.value("X") shouldBe Some("46.5")
       labels.valueAsList("Colours") shouldBe Some(List("Yellow", "Violet"))
-      val (next, labels0) = labels.pushFlows(Seq("1", "2"), "3", Some("loop"), Seq("One", "Two"), Map())
+      val (next, labels0) = labels.pushFlows(List("1", "2"), "3", Some("loop"), List("One", "Two"), Map())
 
       next shouldBe Some("1")
       labels0.value("loop") shouldBe Some("One")
@@ -475,7 +475,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
 
   "Labels Flow stack" must {
     "Allow adding a Flow to top of stack" in {
-      val (nxt, labels) = LabelCache().pushFlows(Seq("1","2"), "3", Some("loop"), Seq("One", "Two", "Three"), Map())
+      val (nxt, labels) = LabelCache().pushFlows(List("1","2"), "3", Some("loop"), List("One", "Two", "Three"), Map())
 
       nxt shouldBe Some("1")
 
@@ -486,7 +486,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
     }
 
     "Allow removal of Flow from top of stack" in {
-      val (nxt, labels) = LabelCache().pushFlows(Seq("1","2"), "3", Some("loop"), Seq("One", "Two", "Three"), Map())
+      val (nxt, labels) = LabelCache().pushFlows(List("1","2"), "3", Some("loop"), List("One", "Two", "Three"), Map())
 
       nxt shouldBe Some("1")
       labels.activeFlow shouldBe Some(Flow("1", Some(LabelValue("loop", "One"))))
@@ -508,7 +508,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
     }
 
     "Allow removal of Flow from top of stack when no label is in use" in {
-      val (nxt, labels) = LabelCache().pushFlows(Seq("1","2"), "3", None, Seq("One", "Two", "Three"), Map())
+      val (nxt, labels) = LabelCache().pushFlows(List("1","2"), "3", None, List("One", "Two", "Three"), Map())
 
       labels.activeFlow shouldBe Some(Flow("1", None))
       nxt shouldBe Some("1")

@@ -24,7 +24,7 @@ import core.models.ocelot._
 import play.api.libs.json._
 import core.models.StanzaHelper
 
-class PageBuilderSpec extends BaseSpec with ProcessJson with SequenceJson with StanzaHelper {
+class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
   // Define instance of class used in testing
   val pageBuilder: PageBuilder = new PageBuilder(new Placeholders(new DefaultTodayProvider))
