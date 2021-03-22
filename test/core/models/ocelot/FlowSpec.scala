@@ -107,7 +107,7 @@ class FlowSpec extends BaseSpec {
         }""".stripMargin
   )
 
-  val expectedLabelValue: LabelValue = LabelValue("LabelName", Some("A value"))
+  val expectedLabelValue: LabelValue = LabelValue("LabelName", "A value")
   val expectedFlow: Flow = Flow("1", Some(expectedLabelValue))
   val expectedContinuation: Continuation = Continuation("1")
 

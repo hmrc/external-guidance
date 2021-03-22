@@ -61,23 +61,24 @@ case class Sequence(text: Phrase,
   override val labels: List[Label] = label.fold[List[Label]](Nil)(l => List(ScalarLabel(l)))
 
   def eval(value: String, page: Page, labels: Labels): (Option[String], Labels) =
-    asListOfInt(value).fold[(Option[String], Labels)]((None, labels)){checked => {
-      val chosenOptions: List[String] = checked.flatMap(idx => options.lift(idx).fold[List[String]](Nil)(p => List(p.english)))
-      // Collect any Evaluate stanzas following this Sequence for use when the Continuation is followed
-      val continuationStanzas: Map[String, Stanza] = page.keyedStanzas
-        .dropWhile{ks => ks.stanza match {
-             case s: Sequence => false
-             case _ => true
-           }
+    validInput(value).fold[(Option[String], Labels)]((None, labels)){checkedItems =>
+      asListOfInt(checkedItems).fold[(Option[String], Labels)]((None, labels)){checked => {
+        val chosenOptions: List[String] = checked.flatMap(idx => options.lift(idx).fold[List[String]](Nil)(p => List(p.english)))
+        // Collect any Evaluate stanzas following this Sequence for use when the Continuation is followed
+        val continuationStanzas: Map[String, Stanza] = page.keyedStanzas
+          .dropWhile{ks => ks.stanza match {
+               case s: Sequence => false
+               case _ => true
+             }
+          }
+          .drop(1)  // Drop the Sequence
+          .collect{case ks @ KeyedStanza(_, s: Stanza with Evaluate) => (ks.key, ks.stanza)}
+          .toMap
+        // push the flows and Continuation corresponding to the checked items, then
+        // nextFlow and redirect to the first flow (setting list and first flow label)
+        label.fold(labels)(l => labels.updateList(s"${l}_seq", chosenOptions))
+             .pushFlows(checked.flatMap(idx => next.lift(idx).fold[List[String]](Nil)(List(_))), next.last, label, chosenOptions, continuationStanzas)
         }
-        .drop(1)  // Drop the Sequence
-        .collect{case ks @ KeyedStanza(_, s: Stanza with Evaluate) => (ks.key, ks.stanza)}
-        .toMap
-      // push the flows and Continuation corresponding to the checked items, then
-      // takeFlow and redirect to the first flow (setting list and first flow label)
-      label.fold(labels)(l => labels.updateList(s"${l}_seq", chosenOptions))
-           .pushFlows(checked.flatMap(idx => next.lift(idx).fold[List[String]](Nil)(List(_))), next.last, label, chosenOptions, continuationStanzas)
-           .takeFlow.fold[(Option[String], Labels)]((None, labels))(t => (Some(t._1), t._2)) // Initial flow will never be a Continuation
       }
     }
 

@@ -20,8 +20,9 @@ import core.models.ocelot.stanzas.Stanza
 import play.api.i18n.Lang
 
 trait Flows {
-  def pushFlows(flowNext: Seq[String], continue: String, labelName: Option[String], labelValues: Seq[String], stanzas: Map[String, Stanza]): Labels
-  def takeFlow: Option[(String, Labels)]
+  def pushFlows(flowNext: List[String], continue: String, labelName: Option[String], labelValues: List[String], stanzas: Map[String, Stanza]): (Option[String], Labels)
+  def nextFlow: Option[(String, Labels)]
+  def activeFlow: Option[FlowStage]
   def continuationPool: Map[String, Stanza]
 
   // Persistence access
@@ -85,23 +86,32 @@ private class LabelCacheImpl(labels: Map[String, Label] = Map(),
     cache + (name -> cache.get(name).fold[Label](ListLabel(name, english, welsh))(l => ListLabel(l.name, english, welsh)))
 
   // Flows
-  def pushFlows(flowNext: Seq[String], continue: String, labelName: Option[String], labelValues: Seq[String], stanzas: Map[String, Stanza]): Labels =
+  def pushFlows(flowNext: List[String], continue: String, labelName: Option[String], labelValues: List[String], stanzas: Map[String, Stanza]): (Option[String], Labels) =
     flowNext.zipWithIndex.map{
-      case (nxt, idx) => Flow(nxt, labelName.map(LabelValue(_, labelValues.lift(idx).fold[Option[String]](None)(v => Some(v)))))
+      case (nxt, idx) => Flow(nxt, labelName.map(LabelValue(_, labelValues(idx))))
     } match {
-      case Nil => this
-      case flows => new LabelCacheImpl(labels, cache, flows.toList ++ (Continuation(continue) :: stack), pool, poolCache ++ stanzas)
+      case Nil => (Some(continue), this)
+      case x :: xs =>
+        (Some(x.next),
+         x.labelValue.fold(new LabelCacheImpl(labels, cache, x :: xs ++ (Continuation(continue) :: stack), pool, poolCache ++ stanzas))
+                          (lv => new LabelCacheImpl(labels, updateOrAddScalarLabel(lv.name, lv.value, None), x :: xs ++ (Continuation(continue) :: stack), pool, poolCache ++ stanzas))
+        )
     }
 
-  def takeFlow: Option[(String, Labels)] = // Remove head of flow stack and update flow label if required
-    stack.headOption.map{
-      case f: Flow =>
-      (f.next,
-       f.labelValue.flatMap(lv => lv.value.map(v => new LabelCacheImpl(labels, updateOrAddScalarLabel(lv.name, v, None), stack.tail, pool, poolCache)))
-        .getOrElse(new LabelCacheImpl(labels, cache, stack.tail, pool, poolCache))
-      )
-      case c: Continuation => (c.next, new LabelCacheImpl(labels, cache, stack.tail, pool, poolCache))
+  def nextFlow: Option[(String, Labels)] = // Remove head of flow stack and update flow label if required
+    stack match {
+      case Nil => None
+      case x :: Nil => None
+      case x :: (y: Flow) :: xs =>
+        Some(
+          (y.next,
+           y.labelValue.fold(new LabelCacheImpl(labels, cache, stack.tail, pool, poolCache))
+                               (lv => new LabelCacheImpl(labels, updateOrAddScalarLabel(lv.name, lv.value, None), y :: xs, pool, poolCache)))
+        )
+      case x :: (c: Continuation) :: xs => Some((c.next, new LabelCacheImpl(labels, cache, xs, pool, poolCache)))
     }
+
+  def activeFlow: Option[FlowStage] = stack.headOption
 
   def continuationPool: Map[String, Stanza] = pool ++ poolCache
 
