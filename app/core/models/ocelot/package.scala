@@ -37,6 +37,7 @@ package object ocelot {
   val listOfintegerRegex: Regex = s"$commaSeparatedIntsPattern".r
   val anyIntegerRegex: Regex = "^[\\-]?\\d+$".r
   val EmbeddedParameterRegex: Regex = """\{(\d)\}""".r
+  val exclusiveOptionRegex: Regex = """\[exclusive\]""".r
 
   val DateOutputFormat = "d MMMM uuuu"
   val ignoredCurrencyChars: Seq[Char] = Seq(' ','£', ',')

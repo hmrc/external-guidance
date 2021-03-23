@@ -922,6 +922,52 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
   }
 
+  "when processing an exclusive sequence page" must {
+
+    val process: Process = Process(meta, simpleExclusiveSequencePage, exclusiveSequencePhrases, links)
+
+    pageBuilder.pagesWithValidation(process) match {
+
+      case Right(pages) =>
+
+        "Determine the correct number of pages to be displayed" in {
+
+          pages shouldNot be(Nil)
+
+          pages.length shouldBe 3
+        }
+
+        val indexedSequenceOfPages = pages.toIndexedSeq
+
+        // Test content of page containing sequence input component
+        testExclusiveSequencePage(indexedSequenceOfPages.head)
+
+      case Left(err) => fail(s"Flow error $err")
+    }
+  }
+
+  "raise an error when processing an exclusive sequence page where multiple exclusive options are defined" in {
+
+    val process: Process = Process(meta, simpleExclusiveSequencePage, multipleExclusiveSequencePhrases, links)
+
+    pageBuilder.pagesWithValidation(process) match {
+      case Right(_) => fail("An exclusive sequence should not be created if there are multiple options marked as exclusive")
+      case Left(err) => err shouldBe List(MultipleExclusiveOptionsError("2"))
+    }
+
+  }
+
+  "raise an error when processing an exclusive sequence page where no non-exclusive options are present" in {
+
+    val process: Process = Process(meta, missingNonExclusiveSequencePage, missingNonExclusiveSequencePhrases, links)
+
+    pageBuilder.pagesWithValidation(process) match {
+      case Right(_) => fail("An exclusive sequence should not be created if there are no non-exclusive options")
+      case Left(err) => err shouldBe List(MissingNonExclusiveOptionError("2"))
+    }
+
+  }
+
   "When processing guidance containing zero or more row stanzas" must {
 
     "successfully create an instance of Row from a RowStanza with a single data cell" in new Test {
@@ -1467,7 +1513,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     */
   def testSimpleSequencePage(page: Page): Unit = {
 
-    "define the input page correctly" in {
+    "define the simple sequence page correctly" in {
 
       page.id shouldBe Process.StartStanzaId
       page.stanzas.size shouldBe 3
@@ -1475,6 +1521,18 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpSequence)
 
       page.next shouldBe Seq("6", "4")
+    }
+
+  }
+
+  def testExclusiveSequencePage(page: Page): Unit = {
+
+    "define an exclusive sequence page correctly" in {
+
+      page.id shouldBe Process.StartStanzaId
+      page.stanzas.size shouldBe 3
+
+      page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpExclusiveSequence)
     }
 
   }

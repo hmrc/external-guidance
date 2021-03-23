@@ -93,6 +93,13 @@ class ProcessErrorSpec extends BaseSpec {
       val details: ProcessError = PageRedirectNotSupported("stanzaId")
       details shouldBe ProcessError("Use of ChoiceStanza stanzaId as a page redirect not supported", "stanzaId")
     }
-
+    "from MultipleExclusiveOptionsError" in {
+      val details: ProcessError = MultipleExclusiveOptionsError("stanzaId")
+      details shouldBe ProcessError("Sequence stanza stanzaId defines multiple exclusive options", "stanzaId")
+    }
+    "from MissingNonExclusiveOptionError" in {
+      val details: ProcessError = MissingNonExclusiveOptionError("stanzaId")
+      details shouldBe ProcessError("Non-exclusive options have not been defined for the sequence stanza stanzaId", "stanzaId")
+    }
   }
 }

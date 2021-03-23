@@ -55,6 +55,7 @@ object SequenceStanza {
 case class Sequence(text: Phrase,
                     override val next: Seq[String],
                     options: Seq[Phrase],
+                    exclusive: Boolean,
                     label: Option[String],
                     stack: Boolean) extends VisualStanza with Populated with DataInput {
   override val labelRefs: List[String] = labelReferences(text.english) ++ options.flatMap(a => labelReferences(a.english))
@@ -87,5 +88,5 @@ case class Sequence(text: Phrase,
 }
 
 object Sequence {
-  def apply(s: SequenceStanza, text: Phrase, options: Seq[Phrase]): Sequence = Sequence(text, s.next, options, s.label, s.stack)
+  def apply(s: SequenceStanza, text: Phrase, options: Seq[Phrase], exclusive: Boolean): Sequence = Sequence(text, s.next, options, exclusive, s.label, s.stack)
 }

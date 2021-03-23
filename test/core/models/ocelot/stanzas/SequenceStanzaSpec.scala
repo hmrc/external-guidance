@@ -47,7 +47,12 @@ class SequenceStanzaSpec extends BaseSpec {
   val expectedStanza: SequenceStanza =
     SequenceStanza(0, Seq("1","2","3","4","end"), Seq(1,2,3,4), Some("Items"), stack = false)
   val expectedSequence: Sequence =
-    Sequence(expectedStanza, Phrase("Select","Select"), Seq(Phrase("One","One"),Phrase("Two","Two"),Phrase("Three","Three"),Phrase("Four","Four")))
+    Sequence(
+      expectedStanza,
+      Phrase("Select","Select"),
+      Seq(Phrase("One","One"),Phrase("Two","Two"),Phrase("Three","Three"),Phrase("Four","Four")),
+      exclusive = false
+    )
 
 
   "Reading valid JSON" should {
