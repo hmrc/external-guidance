@@ -456,7 +456,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       pageBuilder.pagesWithValidation(process) match {
         case Left(List(UseOfReservedUrl("4"), UseOfReservedUrl("5"))) => succeed
         case Left(err) => fail(s"UseOfReservedUrl error not detected, failed with $err")
-        case res => fail(s"UseOfReservedUrl not detected $res")
+        case Right(res) => fail(s"UseOfReservedUrl not detected $res")
       }
     }
 
