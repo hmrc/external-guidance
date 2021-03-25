@@ -26,6 +26,7 @@ import scala.annotation.tailrec
 @Singleton
 class PageBuilder @Inject() (val placeholders: Placeholders) extends ProcessPopulation with PlaceholderProvider {
   val logger: Logger = Logger(this.getClass)
+  val ReservedUrls: List[String] = List("/session-timeout", "/session-restart")
 
   def buildPage(key: String, process: Process): Either[GuidanceError, Page] = {
 
@@ -86,6 +87,7 @@ class PageBuilder @Inject() (val placeholders: Placeholders) extends ProcessPopu
         checkQuestionPages(pages, Nil) ++
         duplicateUrlErrors(pages.reverse, Nil) ++
         checkDateInputErrorCallouts(pages, Nil) ++
+        checkForUseOfReservedUrls(pages, Nil) ++
         detectUnsupportedPageRedirect(pages) match {
           case Nil => Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
           case errors =>
@@ -178,6 +180,14 @@ class PageBuilder @Inject() (val placeholders: Placeholders) extends ProcessPopu
       case x +: xs => checkQuestionFollowers(keyedStanzas(x).next ++ xs, keyedStanzas, x +: seen)
     }
 
+  @tailrec
+  private def checkForUseOfReservedUrls(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] =
+    pages match {
+      case Nil => errors
+      case x :: xs if ReservedUrls.contains(x.url) => checkForUseOfReservedUrls(xs, UseOfReservedUrl(x.id) :: errors)
+      case _ :: xs => checkForUseOfReservedUrls(xs, errors)
+    }
+    
   @tailrec
   private def checkQuestionPages(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] =
     pages match {
