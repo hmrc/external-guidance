@@ -39,7 +39,7 @@ package object services {
 
   private[services] def fakeWelshTextIfRequired(process: Process, jsObject: JsObject)(implicit c: AppConfig): (Process, JsObject) =
     if (process.passPhrase.isDefined || c.fakeWelshInUnauthenticatedGuidance) {
-      val fakedWelshProcess = process.copy(phrases = process.phrases.map(p => if (p.welsh.trim.isEmpty) Phrase(p.english, s"Welsh, ${p.english}") else p))
+      val fakedWelshProcess = process.copy(phrases = process.phrases.map(p => if (p.welsh.trim.isEmpty) Phrase(p.english, s"Welsh: ${p.english}") else p))
       (fakedWelshProcess, Json.toJsObject(fakedWelshProcess))
     } else (process, jsObject)
 
