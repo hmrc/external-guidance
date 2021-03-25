@@ -93,6 +93,10 @@ class ProcessErrorSpec extends BaseSpec {
       val details: ProcessError = PageRedirectNotSupported("stanzaId")
       details shouldBe ProcessError("Use of ChoiceStanza stanzaId as a page redirect not supported", "stanzaId")
     }
+    "from UseOfReservedUrl" in {
+      val details: ProcessError = UseOfReservedUrl("stanzaId")
+      details shouldBe ProcessError("Use of reserved URL on PageStanza stanzaId", "stanzaId")
+    }
 
   }
 }

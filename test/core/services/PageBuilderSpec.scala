@@ -432,6 +432,34 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       }
     }
 
+    "detect UseOfReservedUrl" in {
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/this", Seq("1"), false),
+        "1" -> InstructionStanza(0, Seq("2"), None, false),
+        "2" -> QuestionStanza(1, Seq(2, 3), Seq("4", "5"), None, false),
+        "4" -> PageStanza("/session-restart", Seq("5"), false),
+        "5" -> PageStanza("/session-timeout", Seq("end"), false),
+        "end" -> EndStanza
+      )
+      val process = Process(
+        metaSection,
+        flow,
+        Vector[Phrase](
+          Phrase(Vector("Some Text", "Welsh, Some Text")),
+          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
+        ),
+        Vector[Link]()
+      )
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Left(List(UseOfReservedUrl("4"), UseOfReservedUrl("5"))) => succeed
+        case Left(err) => fail(s"UseOfReservedUrl error not detected, failed with $err")
+        case Right(res) => fail(s"UseOfReservedUrl not detected $res")
+      }
+    }
+
     "detect multiple DuplicatePageUrl" in {
       duplicateUrlsJson.validate[Process] match {
         case JsSuccess(process, _) =>
