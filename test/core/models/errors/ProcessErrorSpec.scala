@@ -101,5 +101,10 @@ class ProcessErrorSpec extends BaseSpec {
       val details: ProcessError = MissingNonExclusiveOptionError("stanzaId")
       details shouldBe ProcessError("Non-exclusive options have not been defined for the sequence stanza stanzaId", "stanzaId")
     }
+    "from UseOfReservedUrl" in {
+      val details: ProcessError = UseOfReservedUrl("stanzaId")
+      details shouldBe ProcessError("Use of reserved URL on PageStanza stanzaId", "stanzaId")
+    }
+    
   }
 }
