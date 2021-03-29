@@ -556,6 +556,74 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
           case errs => fail(s"Failed with errors: $errs")
         }, _ => fail)
     }
+
+    "pass as valid exclusive sequence with a single exclusive option" in {
+
+      val flow: Map[String, Stanza] = Map(
+        Process.StartStanzaId -> PageStanza("/start", Seq("1"), stack = false),
+        "1" -> InstructionStanza(0, Seq("2"), None, stack = false),
+        "2" -> SequenceStanza(1, Seq("3", "5", "7"), Seq(2, 3), None, stack = false),
+        "3" -> PageStanza("/page-1", Seq("4"), stack = false),
+        "4" -> InstructionStanza(0, Seq("end"), None, stack = false),
+        "5" -> PageStanza("/page-2", Seq("6"), stack = false),
+        "6" -> InstructionStanza(0, Seq("end"), None, stack = false),
+        "7" -> PageStanza("/page-3", Seq("8"), stack = false),
+        "8" -> InstructionStanza(0, Seq("end"), None, stack = false),
+        "end" -> EndStanza
+      )
+
+      val process = Process(
+        metaSection,
+        flow,
+        Vector[Phrase](
+          Phrase(Vector("Some Text", "Welsh, Some Text")),
+          Phrase(Vector("Exclusive sequence stanza", "Welsh, Exclusive sequence stanza")),
+          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
+          Phrase(Vector("Some Text3 [exclusive]", "Welsh, Some Text3"))
+        ),
+        Vector[Link]()
+      )
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Right(_) => succeed
+        case Left(err) => fail(s"Valid sequence stanza definition should pass validation, but failed with error $err")
+      }
+
+    }
+
+    "detect multiple exclusive options in a sequence stanza" in {
+
+      val flow: Map[String, Stanza] = Map(
+        Process.StartStanzaId -> PageStanza("/start", Seq("1"), stack = false),
+        "1" -> InstructionStanza(0, Seq("2"), None, stack = false),
+        "2" -> SequenceStanza(1, Seq("3", "5", "7"), Seq(2, 3), None, stack = false),
+        "3" -> PageStanza("/page-1", Seq("4"), stack = false),
+        "4" -> InstructionStanza(0, Seq("end"), None, stack = false),
+        "5" -> PageStanza("/page-2", Seq("6"), stack = false),
+        "6" -> InstructionStanza(0, Seq("end"), None, stack = false),
+        "7" -> PageStanza("/page-3", Seq("8"), stack = false),
+        "8" -> InstructionStanza(0, Seq("end"), None, stack = false),
+        "end" -> EndStanza
+      )
+
+      val process = Process(
+        metaSection,
+        flow,
+        Vector[Phrase](
+          Phrase(Vector("Some Text", "Welsh, Some Text")),
+          Phrase(Vector("Exclusive sequence stanza", "Welsh, Exclusive sequence stanza")),
+          Phrase(Vector("Some Text2 [exclusive]", "Welsh, Some Text2")),
+          Phrase(Vector("Some Text3 [exclusive]", "Welsh, Some Text3"))
+        ),
+        Vector[Link]()
+      )
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Left(List(MultipleExclusiveOptionsError("2"))) => succeed
+        case Left(err) => fail(s"Failed to detect multiple exclusive options. Instead failed with error $err")
+        case _ => fail("Failed to detect multiple exclusive options")
+      }
+    }
   }
 
   trait IhtTest extends Test with IhtJson {
@@ -948,7 +1016,87 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
     }
 
-  }
+    "correctly determine the page title for a non-exclusive sequence page" in {
+
+      case class Dummy(id: String, pageUrl: String, pageTitle: String)
+
+      val process: Process = Process(meta, simpleSequencePage, phrases, links)
+
+      pageBuilder.pagesWithValidation(process) match {
+
+        case Right(pages) =>
+
+            val pageInfo = pageBuilder.fromPageDetails(pages)(Dummy)
+
+            pageInfo.length shouldBe 1
+
+            pageInfo.head.id shouldBe "start"
+            pageInfo.head.pageUrl shouldBe "/page/1"
+            pageInfo.head.pageTitle shouldBe "Text 7"
+
+        case Left(err) => fail(s"Flow error $err")
+      }
+    }
+
+    "when processing an exclusive sequence page" must {
+
+      val process: Process = Process(meta, simpleExclusiveSequencePage, exclusiveSequencePhrases, links)
+
+      pageBuilder.pagesWithValidation(process) match {
+
+        case Right(pages) =>
+
+          "Determine the correct number of pages to be displayed" in {
+
+            pages shouldNot be(Nil)
+
+            pages.length shouldBe 3
+          }
+
+          val indexedSequenceOfPages = pages.toIndexedSeq
+
+          // Test content of page containing sequence input component
+          testExclusiveSequencePage(indexedSequenceOfPages.head)
+
+        case Left(err) => fail(s"Flow error $err")
+      }
+    }
+
+    "raise an error when processing an exclusive sequence page where multiple exclusive options are defined" in {
+
+      val process: Process = Process(meta, simpleExclusiveSequencePage, multipleExclusiveSequencePhrases, links)
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Right(_) => fail("An exclusive sequence should not be created if there are multiple options marked as exclusive")
+        case Left(err) => err shouldBe List(MultipleExclusiveOptionsError("2"))
+      }
+
+    }
+
+    "correctly determine the page title for an exclusive sequence page" in {
+
+      case class Dummy(id: String, pageUrl: String, pageTitle: String)
+
+      val process: Process = Process(meta, simpleExclusiveSequencePage, exclusiveSequencePhrases, links)
+
+      pageBuilder.pagesWithValidation(process) match {
+
+        case Right(pages) =>
+
+            val pageInfo = pageBuilder.fromPageDetails(pages)(Dummy)
+
+            pageInfo.length shouldBe 1
+
+            pageInfo.head.id shouldBe "start"
+            pageInfo.head.pageUrl shouldBe "/page/1"
+            pageInfo.head.pageTitle shouldBe "What kind of fruit do you like?"
+
+        case Left(err) => fail(s"Flow error $err")
+      }
+
+    }
+
+  } // End of PageBuilder must
 
   "When processing guidance containing zero or more row stanzas" must {
 
@@ -1495,14 +1643,26 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     */
   def testSimpleSequencePage(page: Page): Unit = {
 
-    "define the input page correctly" in {
+    "define the simple sequence page correctly" in {
 
       page.id shouldBe Process.StartStanzaId
       page.stanzas.size shouldBe 3
 
-      page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpSequence)
+      page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpNonExclusiveSequence)
 
       page.next shouldBe Seq("6", "4")
+    }
+
+  }
+
+  def testExclusiveSequencePage(page: Page): Unit = {
+
+    "define an exclusive sequence page correctly" in {
+
+      page.id shouldBe Process.StartStanzaId
+      page.stanzas.size shouldBe 3
+
+      page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpExclusiveSequence)
     }
 
   }
