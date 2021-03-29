@@ -53,7 +53,6 @@ package object services {
     case e: IncompleteDateInputPage => ProcessError(s"Incomplete Error callout group associated with date input page ${e.id}", e.id)
     case e: PageRedirectNotSupported => ProcessError(s"Use of ChoiceStanza ${e.id} as a page redirect not supported", e.id)
     case e: MultipleExclusiveOptionsError => ProcessError(s"Sequence stanza ${e.id} defines multiple exclusive options", e.id)
-    case e: MissingNonExclusiveOptionError => ProcessError(s"Non-exclusive options have not been defined for the sequence stanza ${e.id}", e.id)
     case e: UseOfReservedUrl => ProcessError(s"Use of reserved URL on PageStanza ${e.id}", e.id)
   }
 

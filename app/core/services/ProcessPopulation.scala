@@ -17,7 +17,7 @@
 package core.services
 
 import core.models.ocelot.stanzas._
-import core.models.ocelot.{Link, Phrase, Process, exclusiveOptionRegex, pageLinkIds}
+import core.models.ocelot.{Link, Phrase, Process, pageLinkIds}
 import core.models.ocelot.errors._
 
 import scala.annotation.tailrec
@@ -64,19 +64,10 @@ trait ProcessPopulation {
         case Left(err) => Left(err)
       }
 
-    def populateSequence(id: String, s: SequenceStanza): Either[GuidanceError, Sequence] = {
-
-      phrases(s.options, Nil, id, process).fold(Left(_),
-        options => {
-          processSequenceOptions(id, options) match {
-            case Right((orderedOptions, exclusive)) =>
-              phrase(s.text, id, process).fold(Left(_),
-                text => Right(Sequence(s, text, orderedOptions, exclusive)))
-            case Left(err) => Left(err)
-          }
-        })
-
-    }
+    def populateSequence(id: String, s: SequenceStanza): Either[GuidanceError, Sequence] =
+      phrases(s.options, Nil, id, process).fold(Left(_), options =>
+        phrase(s.text, id, process).fold(Left(_), text => Right(Sequence(s, text, options)))
+      )
 
     def link(linkIndex: Int): Either[LinkNotFound, Link] =
       process.linkOption(linkIndex).map(Right(_)).getOrElse(Left(LinkNotFound(id, linkIndex)))
@@ -116,27 +107,4 @@ trait ProcessPopulation {
           case Left(err) => Left(err)
         }
     }
-
-  private def processSequenceOptions(id: String, options: Seq[Phrase]): Either[GuidanceError,(Seq[Phrase], Boolean)] = {
-
-    val exclusiveOptions: Seq[Phrase] = options.filter{p => exclusiveOptionRegex.findAllMatchIn(p.english).nonEmpty}
-
-    exclusiveOptions.size match {
-      case size if size == 0 => Right((options, false))
-      case size if size == 1 =>
-        val nonExclusiveOptions: Seq[Phrase] = options.filter{p => exclusiveOptionRegex.findAllMatchIn(p.english).isEmpty}
-        nonExclusiveOptions.size match {
-          case nonExOpsSize if nonExOpsSize > 0 =>
-            val exclusiveOption: Phrase = Phrase(
-              exclusiveOptionRegex.replaceAllIn(exclusiveOptions.head.english,"").trim,
-              exclusiveOptionRegex.replaceAllIn(exclusiveOptions.head.welsh,"").trim
-            )
-            Right(((exclusiveOption +: nonExclusiveOptions.reverse).reverse, true))
-          case _ => Left(MissingNonExclusiveOptionError(id))
-        }
-      case size if size > 1 => Left(MultipleExclusiveOptionsError(id))
-    }
-
-  }
-
 }

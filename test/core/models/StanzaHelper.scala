@@ -52,11 +52,6 @@ trait StanzaHelper extends TestConstants {
     Phrase(Vector("Oranges", "Welsh, Oranges"))
   )
 
-  val missingNonExclusiveSequencePhrases: Vector[Phrase] = phrases ++ Vector(
-    Phrase(Vector("What kind of fruit do you like?", "Welsh, What kind of fruit do you like?")),
-    Phrase(Vector("Other [exclusive]", "Welsh, Other [exclusive]"))
-  )
-
   val links: Vector[Link] = Vector(Link(0, "http://my.com/news", "MyCOM Daily News", window = true))
 
   // Define stanzas used in simple question page test
@@ -85,14 +80,6 @@ trait StanzaHelper extends TestConstants {
     None,
     stack = false)
 
-  val sqpQpMissingNonExclusiveSequenceStanza: SequenceStanza = SequenceStanza(
-    nine,
-    Seq("4", "6"),
-    Seq(ten),
-    None,
-    stack = false
-  )
-
   // Question page - After
   val sqpQpInstruction: Instruction = Instruction(phrases(0), Seq("2"), None, stack = false)
   val sqpQpCallout: SubTitleCallout = SubTitleCallout(phrases(1), Seq("3"), stack = false)
@@ -101,18 +88,22 @@ trait StanzaHelper extends TestConstants {
   val sqpQpDateInput: DateInput = DateInput(Seq("4"), phrases(two), Some(phrases(three)), "label", None, stack = false)
   val sqpQpNumberInput: NumberInput = NumberInput(Seq("4"), phrases(two), Some(phrases(three)), "label", None, stack = false)
   val sqpQpTextInput: TextInput = TextInput(Seq("4"), phrases(two), Some(phrases(three)), "label", None, stack = false)
-  val sqpQpSequence: Sequence = Sequence(phrases(seven), Seq("4", "6"), Seq(phrases(eight)), exclusive = false, None, stack = false)
+  val sqpQpNonExclusiveSequence: NonExclusiveSequence = NonExclusiveSequence(
+    phrases(seven),
+    Seq("4", "6"),
+    Seq(phrases(eight)),
+    None,
+    stack = false)
 
-  val sqpQpExclusiveSequence: Sequence = Sequence(
+  val sqpQpExclusiveSequence: ExclusiveSequence = ExclusiveSequence(
     exclusiveSequencePhrases(nine),
     Seq("4", "4", "4", "4", "6"),
     Seq(
+      Phrase("Other [exclusive]", "Welsh, Other [exclusive]"),
       exclusiveSequencePhrases(eleven),
       exclusiveSequencePhrases(twelve),
-      exclusiveSequencePhrases(thirteen),
-      Phrase("Other", "Welsh, Other")
+      exclusiveSequencePhrases(thirteen)
     ),
-    exclusive = true,
     None,
     stack = false
   )
@@ -283,18 +274,6 @@ trait StanzaHelper extends TestConstants {
     Process.StartStanzaId -> sqpQpPageStanza,
     "1" -> sqpQpInstructionStanza,
     "2" -> sqpQpExclusiveSequenceStanza,
-    "4" -> sqpFapPageStanza,
-    "5" -> sqpFapInstructionStanza,
-    "6" -> sqpSapPageStanza,
-    "7" -> sqpSapInstructionStanza,
-    "8" -> sqpSapCalloutStanza,
-    "end" -> EndStanza
-  )
-
-  def missingNonExclusiveSequencePage: Map[String, Stanza] =  Map(
-    Process.StartStanzaId -> sqpQpPageStanza,
-    "1" -> sqpQpInstructionStanza,
-    "2" -> sqpQpMissingNonExclusiveSequenceStanza,
     "4" -> sqpFapPageStanza,
     "5" -> sqpFapInstructionStanza,
     "6" -> sqpSapPageStanza,
