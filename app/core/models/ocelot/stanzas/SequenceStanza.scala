@@ -105,5 +105,5 @@ case class ExclusiveSequence(text: Phrase,
                              label: Option[String],
                              stack: Boolean) extends Sequence {
   lazy val exclusiveOptions: Seq[Phrase] = options.filter{p => exclusiveOptionRegex.findFirstMatchIn(p.english).nonEmpty}
-  lazy val nonExclusiveOptions: Seq[Phrase] = options.filterNot{p => exclusiveOptionRegex.findFirstMatchIn(p.english).nonEmpty}
+  val nonExclusiveOptions: Seq[Phrase] = options.filterNot{p => exclusiveOptionRegex.findFirstMatchIn(p.english).nonEmpty}
 }

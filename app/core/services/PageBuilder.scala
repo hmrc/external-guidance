@@ -106,9 +106,7 @@ class PageBuilder @Inject() (val placeholders: Placeholders) extends ProcessPopu
           f(page.id, page.url, text.english)
         case i: Question =>
           f(page.id, page.url, hintRegex.replaceAllIn(i.text.english, ""))
-        case i: NonExclusiveSequence =>
-          f(page.id, page.url, hintRegex.replaceAllIn(i.text.english, ""))
-        case i: ExclusiveSequence =>
+        case i: Sequence =>
           f(page.id, page.url, hintRegex.replaceAllIn(i.text.english, ""))
         case i: Input =>
           f(page.id, page.url, hintRegex.replaceAllIn(i.name.english, ""))
