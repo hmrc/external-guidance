@@ -101,6 +101,9 @@ class ProcessErrorSpec extends BaseSpec {
       val details: ProcessError = UseOfReservedUrl("stanzaId")
       details shouldBe ProcessError("Use of reserved URL on PageStanza stanzaId", "stanzaId")
     }
-
+    "from IncompleteExclusiveSequencePage" in {
+      val details: ProcessError = IncompleteExclusiveSequencePage("stanzaId")
+      details shouldBe ProcessError("Exclusive sequence page stanzaId is missing a TypeError callout definition", "stanzaId")
+    }
   }
 }

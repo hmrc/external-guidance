@@ -87,7 +87,8 @@ class PageBuilder @Inject() (val placeholders: Placeholders) extends ProcessPopu
         checkQuestionPages(pages, Nil) ++
         duplicateUrlErrors(pages.reverse, Nil) ++
         checkDateInputErrorCallouts(pages, Nil) ++
-          checkExclusiveSequencePages(pages, Nil) ++
+        checkExclusiveSequenceTypeError(pages, Nil) ++
+        checkExclusiveSequencePages(pages, Nil) ++
         checkForUseOfReservedUrls(pages, Nil) ++
         detectUnsupportedPageRedirect(pages) match {
           case Nil => Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
@@ -188,7 +189,7 @@ class PageBuilder @Inject() (val placeholders: Placeholders) extends ProcessPopu
       case x :: xs if ReservedUrls.contains(x.url) => checkForUseOfReservedUrls(xs, UseOfReservedUrl(x.id) :: errors)
       case _ :: xs => checkForUseOfReservedUrls(xs, errors)
     }
-    
+
   @tailrec
   private def checkQuestionPages(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] =
     pages match {
@@ -207,20 +208,30 @@ class PageBuilder @Inject() (val placeholders: Placeholders) extends ProcessPopu
     }
 
   @tailrec
-  private def checkExclusiveSequencePages(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
+  private def checkExclusiveSequenceTypeError(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] =
+    pages match {
+      case Nil => errors
+      case p :: xs if p.stanzas.collectFirst{case _: ExclusiveSequence => Unit}.fold(false)(_ => true) &&
+                      p.stanzas.collectFirst{case _: TypeErrorCallout => Unit}.fold(true)(_ => false) =>
+        checkExclusiveSequenceTypeError(xs, IncompleteExclusiveSequencePage(p.id) :: errors)
+      case _ :: xs =>
+        checkExclusiveSequenceTypeError(xs, errors)
+    }
+
+  @tailrec
+  private def checkExclusiveSequencePages(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] =
     pages match {
       case Nil => errors
       case x +: xs => x.keyedStanzas.collectFirst{case KeyedStanza(key, exSeq: ExclusiveSequence) => (key, exSeq)}
       match {
           case Some((key, exclusiveSequence)) =>
             if(exclusiveSequence.exclusiveOptions.size > 1) {
-              checkExclusiveSequencePages(xs, MultipleExclusiveOptionsError(key) +: errors)
+              checkExclusiveSequencePages(xs, MultipleExclusiveOptionsError(key) :: errors)
             } else {
               checkExclusiveSequencePages(xs, errors)
             }
           case None => checkExclusiveSequencePages(xs, errors)
         }
     }
-  }
 
 }

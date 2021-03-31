@@ -73,6 +73,8 @@ trait StanzaHelper extends TestConstants {
   val sqpQpSequenceStanzaMissingTitle: SequenceStanza = SequenceStanza(oneHundred, Seq("4", "6"), Seq(eight), None, stack = false)
   val sqpQpSequenceStanzaMissingOption: SequenceStanza = SequenceStanza(seven, Seq("4", "6"), Seq(oneHundred), None, stack = false)
 
+  val sqpQpPageStanzaAlternate: PageStanza = PageStanza(sqpQpValue, Seq("9"), stack = false)
+  val sqpQpTypeErrorCallout: TypeErrorCallout = TypeErrorCallout(Phrase("Invalid selection", "Invalid selection"), Seq("1"), false)
   val sqpQpExclusiveSequenceStanza: SequenceStanza = SequenceStanza(
     nine,
     Seq("4", "4", "4", "4", "6"),
@@ -271,7 +273,8 @@ trait StanzaHelper extends TestConstants {
   )
 
   def simpleExclusiveSequencePage: Map[String, Stanza] =  Map(
-    Process.StartStanzaId -> sqpQpPageStanza,
+    Process.StartStanzaId -> sqpQpPageStanzaAlternate,
+    "9" -> sqpQpTypeErrorCallout,
     "1" -> sqpQpInstructionStanza,
     "2" -> sqpQpExclusiveSequenceStanza,
     "4" -> sqpFapPageStanza,
