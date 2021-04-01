@@ -101,6 +101,5 @@ class ProcessErrorSpec extends BaseSpec {
       val details: ProcessError = UseOfReservedUrl("stanzaId")
       details shouldBe ProcessError("Use of reserved URL on PageStanza stanzaId", "stanzaId")
     }
-
   }
 }
