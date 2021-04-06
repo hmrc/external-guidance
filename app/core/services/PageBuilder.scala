@@ -211,8 +211,8 @@ class PageBuilder @Inject() (val placeholders: Placeholders) extends ProcessPopu
   private def checkExclusiveSequenceTypeError(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] =
     pages match {
       case Nil => errors
-      case p :: xs if p.stanzas.collectFirst{case _: ExclusiveSequence => Unit}.fold(false)(_ => true) &&
-                      p.stanzas.collectFirst{case _: TypeErrorCallout => Unit}.fold(true)(_ => false) =>
+      case p :: xs if p.stanzas.collectFirst{case _: ExclusiveSequence => ()}.fold(false)(_ => true) &&
+                      p.stanzas.collectFirst{case _: TypeErrorCallout => ()}.fold(true)(_ => false) =>
         checkExclusiveSequenceTypeError(xs, IncompleteExclusiveSequencePage(p.id) :: errors)
       case _ :: xs =>
         checkExclusiveSequenceTypeError(xs, errors)
