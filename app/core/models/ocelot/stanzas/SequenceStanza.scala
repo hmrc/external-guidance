@@ -106,4 +106,10 @@ case class ExclusiveSequence(text: Phrase,
                              stack: Boolean) extends Sequence {
   lazy val (exclusiveOptions: Seq[Phrase], nonExclusiveOptions: Seq[Phrase]) =
     options.partition{p => exclusiveOptionRegex.findFirstMatchIn(p.english).nonEmpty}
+
+  override def validInput(value: String): Option[String] =
+    asListOfInt(value).fold[Option[String]](None){l =>
+      if (l.forall(nonExclusiveOptions.indices.contains(_)) ||
+         (l.length == 1 && l.head == nonExclusiveOptions.length)) Some(value) else None
+    }
 }
