@@ -18,7 +18,7 @@ package core.models.ocelot.stanzas
 
 import java.time.LocalDate
 
-import core.models.ocelot.{asCurrency, asDate, Labels}
+import core.models.ocelot.{asDecimal, asDate, Labels}
 import core.models.ocelot.{labelReference, labelReferences}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
@@ -77,7 +77,7 @@ sealed trait ChoiceTest {
     (asDate(x), asDate(y)) match {
       case (Some(ld1), Some(ld2)) => h(ld1, ld2)
       case _ =>
-        (asCurrency(x), asCurrency(y)) match {
+        (asDecimal(x), asDecimal(y)) match {
           case (Some(bd1), Some(bd2)) => f(bd1, bd2)
           case _ => g(x, y)
         }
