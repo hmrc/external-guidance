@@ -30,7 +30,7 @@ package object ocelot {
   val commaSeparatedIntsPattern = "^\\d+\\s*(?:,\\s*\\d+\\s*)*$"
   val hintRegex: Regex = "\\[hint:([^\\]]+)\\]".r
   val pageLinkRegex: Regex = s"${toPageLinkPattern}".r
-  val labelRefRegex: Regex = s"\\[label:([A-Za-z0-9\\s\\-_]+)(:(currency))?\\]".r
+  val labelRefRegex: Regex = labelPattern.r
   val inputCurrencyRegex: Regex = "^-?£?(\\d{1,3}(,\\d{3})*|\\d+)(\\.(\\d{1,2})?)?$".r
   val inputCurrencyPoundsRegex: Regex = "^-?£?(\\d{1,3}(,\\d{3})*|\\d+)$".r
   val integerRegex: Regex = "^\\d+$".r
