@@ -34,6 +34,7 @@ class ChoiceSpec extends BaseSpec {
   val MTE = "mte"
   val LT = "lt"
   val LTE = "lte"
+  val CNTNS = "cntns"
 
   "EqualsTest" should {
     "serialise to json" in {
@@ -167,30 +168,56 @@ class ChoiceSpec extends BaseSpec {
     }
   }
 
+  "ContainsTest" should {
+    "serialise to json" in {
+      Json.toJson(ContainsTest("[label:X]", "[label:Y]")).toString shouldBe testTypeJson("[label:X]", "[label:Y]")
+    }
+
+    "serialise to json from ChoiceTest ref" in {
+      val cntns: ChoiceTest = ContainsTest("[label:X]", "[label:Y]")
+      Json.toJson(cntns).toString shouldBe testJson("[label:X]", "[label:Y]", CNTNS)
+    }
+
+    "Construct from valid Json" in {
+      Json.parse(testJson("[label:X]", "[label:Y]", CNTNS)).as[ChoiceTest] shouldBe ContainsTest("[label:X]", "[label:Y]")
+    }
+
+    "Fail to contruct from invalid Json" in {
+      Json.parse(testJson("[label:X]", "[label:Y]", "e")).validate[ChoiceTest] match {
+        case _: JsError => succeed
+        case _ => fail
+      }
+    }
+  }
+
   "Choice" should {
     val choice = Choice(Seq("1"),Seq(EqualsTest("[label:X]", "[label:Y]"),
                                      NotEqualsTest("[label:X]", "[label:Y]"),
                                      MoreThanTest("[label:X]", "[label:Y]"),
                                      MoreThanOrEqualsTest("[label:X]", "[label:Y]"),
                                      LessThanTest("[label:X]", "[label:Y]"),
-                                     LessThanOrEqualsTest("[label:X]", "[label:Y]")))
+                                     LessThanOrEqualsTest("[label:X]", "[label:Y]"),
+                                     ContainsTest("[label:X]", "[label:Y]")))
     val json = choiceJson(Seq("1"),Seq(testJson("[label:X]", "[label:Y]", EQ),
                                        testJson("[label:X]", "[label:Y]", NEQ),
                                        testJson("[label:X]", "[label:Y]", MT),
                                        testJson("[label:X]", "[label:Y]", MTE),
                                        testJson("[label:X]", "[label:Y]", LT),
-                                       testJson("[label:X]", "[label:Y]", LTE)))
+                                       testJson("[label:X]", "[label:Y]", LTE),
+                                       testJson("[label:X]", "[label:Y]", CNTNS)))
     val stanzaJson = choiceJson(Seq("1"),Seq(testJson("[label:X]", "[label:Y]", EQ),
                                        testJson("[label:X]", "[label:Y]", NEQ),
                                        testJson("[label:X]", "[label:Y]", MT),
                                        testJson("[label:X]", "[label:Y]", MTE),
                                        testJson("[label:X]", "[label:Y]", LT),
-                                       testJson("[label:X]", "[label:Y]", LTE)), ""","type":"Choice"""")
+                                       testJson("[label:X]", "[label:Y]", LTE),
+                                       testJson("[label:X]", "[label:Y]", CNTNS)), ""","type":"Choice"""")
     val invalidJson = choiceJson(Seq("1"),Seq(testJson("[label:X]", "[label:Y]", "ad"),
                                               testJson("[label:X]", "[label:Y]", MT),
                                               testJson("[label:X]", "[label:Y]", MTE),
                                               testJson("[label:X]", "[label:Y]", MTE),
-                                              testJson("[label:X]", "[label:Y]", LTE)))
+                                              testJson("[label:X]", "[label:Y]", LTE),
+                                              testJson("[label:X]", "[label:Y]", CNTNS)))
 
     "serialise to json" in {
       Json.toJson(choice).toString shouldBe json
