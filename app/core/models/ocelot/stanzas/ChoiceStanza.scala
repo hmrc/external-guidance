@@ -109,6 +109,13 @@ case class LessThanOrEqualsTest(left: String, right: String) extends ChoiceTest 
   def eval(labels: Labels): Boolean = op(_ <= _, _ <= _, _.compareTo(_) <= 0, labels)
 }
 
+case class ContainsTest(left: String, right: String) extends ChoiceTest {
+  def contains(l: BigDecimal, r: BigDecimal): Boolean = l.toString.toLowerCase().contains(r.toString.toLowerCase())
+  def contains(l: String, r: String): Boolean = l.toLowerCase().contains(r.toLowerCase())
+  def contains(l: LocalDate, r: LocalDate): Boolean = l.toString.toLowerCase().contains(r.toString.toLowerCase())
+  def eval(labels: Labels): Boolean = op(contains(_, _), contains(_, _), contains(_, _), labels)
+}
+
 object ChoiceTest {
   implicit val reads: Reads[ChoiceTest] = (js: JsValue) => {
     (js \ "type").validate[String] match {
@@ -120,6 +127,7 @@ object ChoiceTest {
         case "mte" => js.validate[MoreThanOrEqualsTest]
         case "lt" => js.validate[LessThanTest]
         case "lte" => js.validate[LessThanOrEqualsTest]
+        case "cntns" => js.validate[ContainsTest]
         case typeName => JsError(JsonValidationError(Seq("ChoiceTest"), typeName))
       }
     }
@@ -132,6 +140,7 @@ object ChoiceTest {
     case t: MoreThanOrEqualsTest => Json.obj("type" -> "mte") ++ Json.toJsObject[MoreThanOrEqualsTest](t)
     case t: LessThanTest => Json.obj("type" -> "lt") ++ Json.toJsObject[LessThanTest](t)
     case t: LessThanOrEqualsTest => Json.obj( "type" -> "lte") ++ Json.toJsObject[LessThanOrEqualsTest](t)
+    case t: ContainsTest => Json.obj( "type" -> "cntns") ++ Json.toJsObject[ContainsTest](t)
   }
 }
 
@@ -177,6 +186,13 @@ object LessThanOrEqualsTest {
     ((JsPath \ "left").write[String] and (JsPath \ "right").write[String])(unlift(LessThanOrEqualsTest.unapply))
 }
 
+object ContainsTest {
+  implicit val reads: Reads[ContainsTest] =
+    ((JsPath \ "left").read[String] and (JsPath \ "right").read[String])(ContainsTest.apply _)
+  implicit val writes: OWrites[ContainsTest] =
+    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String])(unlift(ContainsTest.unapply))
+}
+
 case class Choice(override val next: Seq[String], tests: Seq[ChoiceTest]) extends Stanza with Evaluate {
   def eval(labels: Labels): (String, Labels) =
     tests.zipWithIndex
@@ -204,6 +220,7 @@ object Choice {
           case MoreThanOrEquals => MoreThanOrEqualsTest(t.left, t.right)
           case LessThan => LessThanTest(t.left, t.right)
           case LessThanOrEquals => LessThanOrEqualsTest(t.left, t.right)
+          case Contains => ContainsTest(t.left, t.right)
         }
       }
     )
