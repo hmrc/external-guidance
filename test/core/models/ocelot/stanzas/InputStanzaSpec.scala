@@ -101,6 +101,7 @@ class InputStanzaSpec extends BaseSpec {
       input.validInput("33.") shouldBe Some("33")
       input.validInput("3,334") shouldBe Some("3334")
       input.validInput("1,234,567") shouldBe Some("1234567")
+      input.validInput("1  234 567") shouldBe Some("1234567")
       input.validInput("1,234,567.89") shouldBe Some("1234567.89")
       input.validInput("1,234,567.8") shouldBe Some("1234567.8")
     }
@@ -142,6 +143,7 @@ class InputStanzaSpec extends BaseSpec {
       input.validInput("33.9") shouldBe None
       input.validInput("33.") shouldBe None
       input.validInput("3,334") shouldBe Some("3334")
+      input.validInput("3 334") shouldBe Some("3334")
       input.validInput("1,234,567") shouldBe Some("1234567")
       input.validInput("1,234,567.89") shouldBe None
       input.validInput("1,234,567.8") shouldBe None
@@ -171,6 +173,7 @@ class InputStanzaSpec extends BaseSpec {
       val input = Input(expectedDateStanza, Phrase("",""), None, None)
       input.validInput("5/6/1989") shouldBe Some("5/6/1989")
       input.validInput("28/2/1999") shouldBe Some("28/2/1999")
+      input.validInput("28 /2/19 99") shouldBe Some("28/2/1999")
       input.validInput("29/2/2000") shouldBe Some("29/2/2000")
     }
   }
@@ -222,6 +225,7 @@ class InputStanzaSpec extends BaseSpec {
 
       val input = Input(expectedNumberStanza, Phrase("",""), None, None)
       input.validInput("33") shouldBe Some("33")
+      input.validInput("3 3 ") shouldBe Some("33")
     }
   }
 
