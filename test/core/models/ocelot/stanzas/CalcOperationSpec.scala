@@ -64,6 +64,24 @@ class CalcOperationSpec extends BaseSpec {
       }
     }
 
+    "deserialize a valid JSON representation of multiply operation" in {
+      val multiplyOperation: JsValue = getCalcOperationAsJsValue("multiply", rightOperand)
+
+      multiplyOperation.validate[CalcOperation] match {
+        case JsSuccess(calcOperation, _) => calcOperation shouldBe CalcOperation( "[label:inputA]", Multiply, "[label:inputB]", "result")
+        case e: JsError => fail("Unable to parse valid subtraction operation")
+      }
+    }
+
+    "deserialize a valid JSON representation of divide operation" in {
+      val divideOperation: JsValue = getCalcOperationAsJsValue("divide", rightOperand)
+
+      divideOperation.validate[CalcOperation] match {
+        case JsSuccess(calcOperation, _) => calcOperation shouldBe CalcOperation( "[label:inputA]", Divide, "[label:inputB]", "result")
+        case e: JsError => fail("Unable to parse valid subtraction operation")
+      }
+    }
+
     "deserialize a valid JSON representation of ceiling operation" in {
       val ceilingOperation: JsValue = getCalcOperationAsJsValue("ceiling", "0")
 
@@ -155,6 +173,18 @@ class CalcOperationSpec extends BaseSpec {
 
       Json.toJson(CalcOperation("[label:inputA]", Subtraction, "[label:inputB]", "result")).toString shouldBe
       """{"left":"[label:inputA]","op":"subtract","right":"[label:inputB]","label":"result"}"""
+    }
+
+    "serialize multiply operation" in {
+
+      Json.toJson(CalcOperation("[label:inputA]", Multiply, "[label:inputB]", "result")).toString shouldBe
+      """{"left":"[label:inputA]","op":"multiply","right":"[label:inputB]","label":"result"}"""
+    }
+
+    "serialize divide operation" in {
+
+      Json.toJson(CalcOperation("[label:inputA]", Divide, "[label:inputB]", "result")).toString shouldBe
+      """{"left":"[label:inputA]","op":"divide","right":"[label:inputB]","label":"result"}"""
     }
 
     "serialize ceiling operation" in {

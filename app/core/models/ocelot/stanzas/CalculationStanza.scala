@@ -19,7 +19,7 @@ package core.models.ocelot.stanzas
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
-import core.models.ocelot.{asAnyInt, asCurrency, asDate, labelReference, labelReferences, Label, ScalarLabel, Labels}
+import core.models.ocelot.{asAnyInt, asDecimal, asDate, labelReference, labelReferences, Label, ScalarLabel, Labels}
 import play.api.Logger
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
@@ -106,11 +106,8 @@ sealed trait Operation {
           case None => labels
         }
       case _ =>
-        (asCurrency(x), asCurrency(y)) match {
-          case (Some(bg1), Some(bg2)) =>
-            // Treat operands as instances of big decimal
-            val bg3 = f(bg1, bg2)
-            labels.update(label, bg3.bigDecimal.toPlainString)
+        (asDecimal(x), asDecimal(y)) match {
+          case (Some(bg1), Some(bg2)) => decimalOp(bg1, bg2, f, labels)
           case _ =>
             // Treat both operands as strings
             g(x, y) match {
@@ -119,8 +116,11 @@ sealed trait Operation {
             }
         }
     }
-
   }
+
+  // Treat operands as instances of big decimal
+  def decimalOp(x : BigDecimal, y: BigDecimal, f: (BigDecimal, BigDecimal) => BigDecimal, labels: Labels): Labels =
+    labels.update(label, f(x, y).bigDecimal.toPlainString)
 
   def listAndValueOp(list: List[String], scalar: String, f:(List[String], String) => Option[List[String]], labels: Labels): Labels =
   f(list, scalar) match {case Some(value) => labels.updateList(label, value) case None => labels}
@@ -132,7 +132,7 @@ sealed trait Operation {
 
     value(left, labels).fold(labels)(x => value(right, labels).fold(labels)(y =>
 
-      (asCurrency(x), asAnyInt(y)) match {
+      (asDecimal(x), asAnyInt(y)) match {
 
         case (Some(value), Some(scale)) =>
 
@@ -192,7 +192,29 @@ case class SubtractOperation(left: String, right: String, label: String) extends
       case Nil => list1
       case x :: xs => subtractListFromList(list1.filter(_ != x), xs)
     }
+}
 
+case class MultiplyOperation(left: String, right: String, label: String) extends Operation {
+  def eval(labels: Labels): Labels =
+    operands(labels) match {
+      case (Some(x), None, Some(y), None) => op(x, y, _ * _, unsupportedOperation("Multiply"), unsupportedOperation("Multiply"), labels)
+      case _ =>
+        unsupportedOperation("Multiply")(None, None)
+        labels
+    }
+}
+
+case class DivideOperation(left: String, right: String, label: String) extends Operation {
+  def eval(labels: Labels): Labels =
+    operands(labels) match {
+      case (Some(x), None, Some(y), None) => op(x, y, _ / _, unsupportedOperation("Divide"), unsupportedOperation("Divide"), labels)
+      case _ =>
+        unsupportedOperation("Divide")(None, None)
+        labels
+    }
+
+  override def decimalOp(x : BigDecimal, y: BigDecimal, f: (BigDecimal, BigDecimal) => BigDecimal, labels: Labels): Labels =
+    if (y.equals(0.0)) labels.update(label, "Infinity") else super.decimalOp(x, y, f, labels)
 }
 
 case class CeilingOperation(left: String, right: String, label: String) extends Operation {
@@ -214,6 +236,8 @@ object Operation {
       case JsSuccess(typ, _) => typ match {
         case "add" => js.validate[AddOperation]
         case "sub" => js.validate[SubtractOperation]
+        case "mult" => js.validate[MultiplyOperation]
+        case "div" => js.validate[DivideOperation]
         case "ceil" => js.validate[CeilingOperation]
         case "flr" => js.validate[FloorOperation]
         case typeName => JsError(JsonValidationError(Seq("Operation"), typeName))
@@ -224,6 +248,8 @@ object Operation {
   implicit val writes: Writes[Operation] = {
     case o: AddOperation => Json.obj("type" -> "add") ++ Json.toJsObject[AddOperation](o)
     case o: SubtractOperation => Json.obj("type" -> "sub") ++ Json.toJsObject[SubtractOperation](o)
+    case o: MultiplyOperation => Json.obj("type" -> "mult") ++ Json.toJsObject[MultiplyOperation](o)
+    case o: DivideOperation => Json.obj("type" -> "div") ++ Json.toJsObject[DivideOperation](o)
     case o: CeilingOperation => Json.obj("type" -> "ceil") ++ Json.toJsObject[CeilingOperation](o)
     case o: FloorOperation => Json.obj("type" -> "flr") ++ Json.toJsObject[FloorOperation](o)
   }
@@ -241,7 +267,18 @@ object SubtractOperation{
     ((JsPath \ "left").read[String] and (JsPath \ "right").read[String] and (JsPath \ "label").read[String])(SubtractOperation.apply _)
   implicit val writes: OWrites[SubtractOperation] =
     ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String])(unlift(SubtractOperation.unapply))
-
+}
+object MultiplyOperation{
+  implicit val reads: Reads[MultiplyOperation] =
+    ((JsPath \ "left").read[String] and (JsPath \ "right").read[String] and (JsPath \ "label").read[String])(MultiplyOperation.apply _)
+  implicit val writes: OWrites[MultiplyOperation] =
+    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String])(unlift(MultiplyOperation.unapply))
+}
+object DivideOperation{
+  implicit val reads: Reads[DivideOperation] =
+    ((JsPath \ "left").read[String] and (JsPath \ "right").read[String] and (JsPath \ "label").read[String])(DivideOperation.apply _)
+  implicit val writes: OWrites[DivideOperation] =
+    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String])(unlift(DivideOperation.unapply))
 }
 object CeilingOperation{
   implicit val reads: Reads[CeilingOperation] =
@@ -282,6 +319,8 @@ object Calculation {
         c.op match {
           case Addition => AddOperation(c.left, c.right, c.label)
           case Subtraction => SubtractOperation(c.left, c.right, c.label)
+          case Multiply => MultiplyOperation(c.left, c.right, c.label)
+          case Divide => DivideOperation(c.left, c.right, c.label)
           case Ceiling => CeilingOperation(c.left, c.right, c.label)
           case Floor => FloorOperation(c.left, c.right, c.label)
         }

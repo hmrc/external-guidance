@@ -39,6 +39,16 @@ class CalculationStanzaSpec extends BaseSpec {
         |             "right":"[label:inputC]",
         |             "label":"outputB"
         |             },
+        |             {"left":"[label:outputA]",
+        |             "op":"multiply",
+        |             "right":"[label:inputC]",
+        |             "label":"outputE"
+        |             },
+        |             {"left":"[label:outputA]",
+        |             "op":"divide",
+        |             "right":"[label:inputC]",
+        |             "label":"outputF"
+        |             },
         |             {"left":"[label:inputC]",
         |             "op":"ceiling",
         |             "right":"0",
@@ -97,6 +107,8 @@ class CalculationStanzaSpec extends BaseSpec {
 
     val c1CalcAdd: CalcOperation = CalcOperation(c1Left, Addition, c1Right, c1Label)
     val c1CalcSub: CalcOperation = CalcOperation(c1Left, Subtraction, c1Right, c1Label)
+    val c1CalcMult: CalcOperation = CalcOperation(c1Left, Multiply, c1Right, c1Label)
+    val c1CalcDiv: CalcOperation = CalcOperation(c1Left, Divide, c1Right, c1Label)
     val c1CalcCeiling: CalcOperation = CalcOperation(c1Left, Ceiling, c1CeilingRight, c1Label)
     val c1CalcFloor: CalcOperation = CalcOperation(c1Left, Floor, c1FloorRight, c1Label)
 
@@ -105,6 +117,12 @@ class CalculationStanzaSpec extends BaseSpec {
 
     val expectedSingleSubtractionCalcCalculationStanza: CalculationStanza =
       CalculationStanza(Seq(c1CalcSub), Seq("1"), stack = false)
+
+    val expectedSingleMultiplyCalcCalculationStanza: CalculationStanza =
+      CalculationStanza(Seq(c1CalcMult), Seq("1"), stack = false)
+
+    val expectedSingleDivideCalcCalculationStanza: CalculationStanza =
+      CalculationStanza(Seq(c1CalcDiv), Seq("1"), stack = false)
 
     val expectedSingleCeilingCalcCalculationStanza: CalculationStanza =
       CalculationStanza(Seq(c1CalcCeiling), Seq("1"), stack = false)
@@ -116,6 +134,8 @@ class CalculationStanzaSpec extends BaseSpec {
       CalculationStanza(
         Seq(CalcOperation("[label:inputA]", Addition, "[label:inputB]", "outputA"),
           CalcOperation("[label:outputA]", Subtraction, "[label:inputC]", "outputB"),
+          CalcOperation("[label:outputA]", Multiply, "[label:inputC]", "outputE"),
+          CalcOperation("[label:outputA]", Divide, "[label:inputC]", "outputF"),
           CalcOperation("[label:inputC]", Ceiling, "0", "outputC"),
           CalcOperation("[label:inputD]", Floor, "2", "outputD")
         ),
@@ -284,6 +304,26 @@ class CalculationStanzaSpec extends BaseSpec {
       }
     }
 
+    "deserialize calculation stanza with single multiply operation" in new Test {
+
+      val calcStanzaAsJsValue: JsValue = getSingleCalcCalculationStanzaAsJsValue(c1Left, "multiply", c1Right, c1Label)
+
+      calcStanzaAsJsValue.validate[CalculationStanza] match {
+        case JsSuccess(calcStanza, _) => calcStanza shouldBe expectedSingleMultiplyCalcCalculationStanza
+        case e:JsError => fail( "Unable to parse single multiply calculation stanza")
+      }
+    }
+
+    "deserialize calculation stanza with single divide operation" in new Test {
+
+      val calcStanzaAsJsValue: JsValue = getSingleCalcCalculationStanzaAsJsValue(c1Left, "divide", c1Right, c1Label)
+
+      calcStanzaAsJsValue.validate[CalculationStanza] match {
+        case JsSuccess(calcStanza, _) => calcStanza shouldBe expectedSingleDivideCalcCalculationStanza
+        case e:JsError => fail( "Unable to parse single divide calculation stanza")
+      }
+    }
+
     "deserialize calculation stanza with single ceiling operation" in new Test {
 
       val calcStanzaAsJsValue: JsValue = getSingleCalcCalculationStanzaAsJsValue(c1Left, "ceiling", c1CeilingRight, c1Label)
@@ -367,6 +407,26 @@ class CalculationStanzaSpec extends BaseSpec {
       actualResult shouldBe expectedResult
     }
 
+    "serialize a calculation stanza with a single multiply operation" in new Test {
+
+      val expectedResult: String = getSingleCalcCalculationStanzaAsJsValue(c1Left, "multiply", c1Right, c1Label).toString()
+
+      val stanza: Stanza = expectedSingleMultiplyCalcCalculationStanza
+      val actualResult: String = Json.toJson(stanza).toString()
+
+      actualResult shouldBe expectedResult
+    }
+
+    "serialize a calculation stanza with a single divide operation" in new Test {
+
+      val expectedResult: String = getSingleCalcCalculationStanzaAsJsValue(c1Left, "divide", c1Right, c1Label).toString()
+
+      val stanza: Stanza = expectedSingleDivideCalcCalculationStanza
+      val actualResult: String = Json.toJson(stanza).toString()
+
+      actualResult shouldBe expectedResult
+    }
+
     "serialize a calculation stanza with a single ceiling operation" in new Test {
 
       val expectedResult: String = getSingleCalcCalculationStanzaAsJsValue(c1Left, "ceiling", c1CeilingRight, c1Label).toString()
@@ -439,14 +499,18 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val operations: Seq[CalcOperation] = Seq(
         CalcOperation(labelX, Addition, tenAsString, result1),
-        CalcOperation(twentyAsString, Subtraction, labelY, result2)
+        CalcOperation(twentyAsString, Subtraction, labelY, result2),
+        CalcOperation(twentyAsString, Multiply, labelY, result2),
+        CalcOperation(twentyAsString, Divide, labelY, result2)
       )
 
       val calculationStanza: CalculationStanza = CalculationStanza(operations, next, stack = false)
 
       val expectedOperations: Seq[Operation] = Seq(
         AddOperation(labelX, tenAsString, result1),
-        SubtractOperation(twentyAsString, labelY, result2)
+        SubtractOperation(twentyAsString, labelY, result2),
+        MultiplyOperation(twentyAsString, labelY, result2),
+        DivideOperation(twentyAsString, labelY, result2)
       )
 
       val expectedCalculation: Calculation = Calculation(next, expectedOperations)
@@ -521,6 +585,44 @@ class CalculationStanzaSpec extends BaseSpec {
       nextStanza shouldBe "16"
 
       updatedLabels.value("result") shouldBe Some("-15")
+    }
+
+    "evaluate a simple multiply using constants" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq( CalcOperation("10", Multiply, "25", "result"))
+
+      val next: Seq[String] = Seq("16")
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, next, stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val labelCache = LabelCache()
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "16"
+
+      updatedLabels.value("result") shouldBe Some("250")
+    }
+
+    "evaluate a simple divide using constants" in {
+
+      val calcOperations: Seq[CalcOperation] = Seq( CalcOperation("10", Divide, "25", "result"))
+
+      val next: Seq[String] = Seq("16")
+
+      val stanza: CalculationStanza = CalculationStanza(calcOperations, next, stack = false)
+
+      val calculation: Calculation = Calculation(stanza)
+
+      val labelCache = LabelCache()
+
+      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+
+      nextStanza shouldBe "16"
+
+      updatedLabels.value("result") shouldBe Some("0.4")
     }
 
     "evaluate a simple addition using label values from the label cache" in {
@@ -1557,6 +1659,94 @@ class CalculationStanzaSpec extends BaseSpec {
       updatedLabels.valueAsList("result4") shouldBe Some(List("a", "b"))
       updatedLabels.valueAsList("result5") shouldBe Some(Nil)
       updatedLabels.valueAsList("result6") shouldBe Some(Nil)
+    }
+
+  }
+
+  trait ListTest extends Test {
+    val listA: ListLabel = ListLabel("listA", List("1"))
+    val listB: ListLabel = ListLabel("listB", List("33"))
+    val three: ScalarLabel = ScalarLabel("three", List("3"))
+
+    val labelMap: Map[String, Label] = Map(
+      listA.name -> listA,
+      listB.name -> listB,
+      three.name -> three
+    )
+
+  }
+  "Multiply operation" must {
+    "Not produce a result when applied to 2 lists" in new ListTest {
+      val ops: Seq[CalcOperation] = Seq( CalcOperation("[label:listA]", Multiply, "[label:listB]", "result"))
+      val calculation: Calculation = Calculation(CalculationStanza(ops, Seq("16"), stack = false))
+
+      val (nextStanza, updatedLabels) = calculation.eval(LabelCache())
+
+      nextStanza shouldBe "16"
+      updatedLabels.value("result") shouldBe None
+    }
+
+    "Not produce a result when applied to a scalar and list" in new ListTest {
+      val ops: Seq[CalcOperation] = Seq( CalcOperation("34", Multiply, "[label:listB]", "result"))
+      val calculation: Calculation = Calculation(CalculationStanza(ops, Seq("16"), stack = false))
+
+      val (nextStanza, updatedLabels) = calculation.eval(LabelCache())
+
+      nextStanza shouldBe "16"
+      updatedLabels.value("result") shouldBe None
+    }
+
+    "Not produce a result when applied to a list and scalar" in new ListTest {
+      val ops: Seq[CalcOperation] = Seq( CalcOperation("[label:listA]", Multiply, "34", "result"))
+      val calculation: Calculation = Calculation(CalculationStanza(ops, Seq("16"), stack = false))
+
+      val (nextStanza, updatedLabels) = calculation.eval(LabelCache())
+
+      nextStanza shouldBe "16"
+      updatedLabels.value("result") shouldBe None
+    }
+
+  }
+
+  "Divide operation" must {
+    "Not produce a result when applied to 2 lists" in new ListTest {
+      val ops: Seq[CalcOperation] = Seq( CalcOperation("[label:listA]", Divide, "[label:listB]", "result"))
+      val calculation: Calculation = Calculation(CalculationStanza(ops, Seq("16"), stack = false))
+
+      val (nextStanza, updatedLabels) = calculation.eval(LabelCache())
+
+      nextStanza shouldBe "16"
+      updatedLabels.value("result") shouldBe None
+    }
+
+    "Not produce a result when applied to a scalar and list" in new ListTest {
+      val ops: Seq[CalcOperation] = Seq( CalcOperation("34", Divide, "[label:listB]", "result"))
+      val calculation: Calculation = Calculation(CalculationStanza(ops, Seq("16"), stack = false))
+
+      val (nextStanza, updatedLabels) = calculation.eval(LabelCache())
+
+      nextStanza shouldBe "16"
+      updatedLabels.value("result") shouldBe None
+    }
+
+    "Not produce a result when applied to a list and scalar" in new ListTest {
+      val ops: Seq[CalcOperation] = Seq( CalcOperation("[label:listA]", Divide, "34", "result"))
+      val calculation: Calculation = Calculation(CalculationStanza(ops, Seq("16"), stack = false))
+
+      val (nextStanza, updatedLabels) = calculation.eval(LabelCache())
+
+      nextStanza shouldBe "16"
+      updatedLabels.value("result") shouldBe None
+    }
+
+    "Return a result of Infinity for division by zero" in new ListTest {
+      val ops: Seq[CalcOperation] = Seq( CalcOperation("34", Divide, "0", "result"))
+      val calculation: Calculation = Calculation(CalculationStanza(ops, Seq("16"), stack = false))
+
+      val (nextStanza, updatedLabels) = calculation.eval(LabelCache())
+
+      nextStanza shouldBe "16"
+      updatedLabels.value("result") shouldBe Some("Infinity")
     }
 
   }
