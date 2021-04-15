@@ -25,31 +25,31 @@ import base.TestConstants
 trait StanzaHelper extends TestConstants {
 
   val phrases: Vector[Phrase] = Vector(
-    Phrase(Vector("Text 0", "Welsh, Text 0")),
-    Phrase(Vector("Text 1", "Welsh, Text 1")),
-    Phrase(Vector("Text 2", "Welsh, Text 2")),
-    Phrase(Vector("Text 3", "Welsh, Text 3")),
-    Phrase(Vector("Text 4", "Welsh, Text 4")),
-    Phrase(Vector("Text 5", "Welsh, Text 5")),
-    Phrase(Vector("Text 6", "Welsh, Text 6")),
-    Phrase(Vector("Text 7", "Welsh, Text 7")),
-    Phrase(Vector("Text 8", "Welsh, Text 8"))
+    Phrase(Vector("Text 0", "Welsh: Text 0")),
+    Phrase(Vector("Text 1", "Welsh: Text 1")),
+    Phrase(Vector("Text 2", "Welsh: Text 2")),
+    Phrase(Vector("Text 3", "Welsh: Text 3")),
+    Phrase(Vector("Text 4", "Welsh: Text 4")),
+    Phrase(Vector("Text 5", "Welsh: Text 5")),
+    Phrase(Vector("Text 6", "Welsh: Text 6")),
+    Phrase(Vector("Text 7", "Welsh: Text 7")),
+    Phrase(Vector("Text 8", "Welsh: Text 8"))
   )
 
   val exclusiveSequencePhrases: Vector[Phrase] = phrases ++ Vector(
-    Phrase(Vector("What kind of fruit do you like?", "Welsh, What kind of fruit do you like?")),
-    Phrase(Vector("Other [exclusive]", "Welsh, Other [exclusive]")),
-    Phrase(Vector("Apples", "Welsh, Apples")),
-    Phrase(Vector("Bananas", "Welsh, Bananas")),
-    Phrase(Vector("Oranges", "Welsh, Oranges"))
+    Phrase(Vector("What kind of fruit do you like?", "Welsh: What kind of fruit do you like?")),
+    Phrase(Vector("Other [exclusive]", "Welsh: Other [exclusive]")),
+    Phrase(Vector("Apples", "Welsh: Apples")),
+    Phrase(Vector("Bananas", "Welsh: Bananas")),
+    Phrase(Vector("Oranges", "Welsh: Oranges"))
   )
 
   val multipleExclusiveSequencePhrases: Vector[Phrase] = phrases ++ Vector(
-    Phrase(Vector("What kind of fruit do you like?", "Welsh, What kind of fruit do you like?")),
-    Phrase(Vector("Other [exclusive]", "Welsh, Other [exclusive]")),
-    Phrase(Vector("Apples", "Welsh, Apples")),
-    Phrase(Vector("Bananas [exclusive]", "Welsh, Bananas")),
-    Phrase(Vector("Oranges", "Welsh, Oranges"))
+    Phrase(Vector("What kind of fruit do you like?", "Welsh: What kind of fruit do you like?")),
+    Phrase(Vector("Other [exclusive]", "Welsh: Other [exclusive]")),
+    Phrase(Vector("Apples", "Welsh: Apples")),
+    Phrase(Vector("Bananas [exclusive]", "Welsh: Bananas")),
+    Phrase(Vector("Oranges", "Welsh: Oranges"))
   )
 
   val links: Vector[Link] = Vector(Link(0, "http://my.com/news", "MyCOM Daily News", window = true))
@@ -101,7 +101,7 @@ trait StanzaHelper extends TestConstants {
     exclusiveSequencePhrases(nine),
     Seq("4", "4", "4", "4", "6"),
     Seq(
-      Phrase("Other [exclusive]", "Welsh, Other [exclusive]"),
+      Phrase("Other [exclusive]", "Welsh: Other [exclusive]"),
       exclusiveSequencePhrases(eleven),
       exclusiveSequencePhrases(twelve),
       exclusiveSequencePhrases(thirteen)

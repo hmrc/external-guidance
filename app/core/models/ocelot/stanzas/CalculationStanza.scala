@@ -19,7 +19,7 @@ package core.models.ocelot.stanzas
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
-import core.models.ocelot.{asAnyInt, asDecimal, asDate, labelReference, labelReferences, Label, ScalarLabel, Labels}
+import core.models.ocelot.{asAnyInt, asDecimal, asDate, labelReference, labelScalarReference, labelReferences, Label, ScalarLabel, Labels}
 import play.api.Logger
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
@@ -61,9 +61,7 @@ sealed trait Operation {
 
   def eval(labels: Labels): Labels
 
-  def value(arg: String, labels: Labels): Option[String] = labelReference(arg).fold[Option[String]](Some(arg)){ref =>
-    labels.value(ref)
-  }
+  def value(arg: String, labels: Labels): Option[String] = labelScalarReference(arg)(labels)
 
   def listValue(arg: String, labels: Labels): Option[List[String]] = {
     labelReference(arg).fold[Option[List[String]]](None){ref => labels.valueAsList(ref)}

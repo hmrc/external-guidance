@@ -67,10 +67,10 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     )
 
     private val phrases = Vector[Phrase](
-      Phrase(Vector("Some Text", "Welsh, Some Text")),
+      Phrase(Vector("Some Text", "Welsh: Some Text")),
       Phrase(Vector(s"Some Text1 [link:Link to stanza 17:$pageId7]", s"Welsh, Some Text1 [link:Link to stanza 17:$pageId7]")),
-      Phrase(Vector(s"Some [link:PageId3:$pageId3] Text2", s"Welsh, Some [link:PageId3:$pageId3] Text2")),
-      Phrase(Vector(s"Some [link:Link to stanza 11:$pageId5] Text3", s"Welsh, Some [link:Link to stanza 11:$pageId5] Text3"))
+      Phrase(Vector(s"Some [link:PageId3:$pageId3] Text2", s"Welsh: Some [link:PageId3:$pageId3] Text2")),
+      Phrase(Vector(s"Some [link:Link to stanza 11:$pageId5] Text3", s"Welsh: Some [link:Link to stanza 11:$pageId5] Text3"))
     )
 
     private val links = Vector(Link(0, pageId3, "", false), Link(1, pageId6, "", false), Link(2, Process.StartStanzaId, "Back to the start", false))
@@ -258,7 +258,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         val process: Process = Process(
           meta,
           onePage,
-          Vector[Phrase](Phrase(Vector("Some Text", "Welsh, Some Text")), Phrase(Vector("Some Text1", "Welsh, Some Text1"))),
+          Vector[Phrase](Phrase(Vector("Some Text", "Welsh: Some Text")), Phrase(Vector("Some Text1", "Welsh: Some Text1"))),
           Vector[Link]()
         )
 
@@ -554,7 +554,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
     "successfully create an instance of Row from a RowStanza with a single data cell" in new Test {
 
-      val cellDataContent: Phrase = Phrase( Vector( "Text for single data cell", "Welsh, Text for single data cell"))
+      val cellDataContent: Phrase = Phrase( Vector( "Text for single data cell", "Welsh: Text for single data cell"))
 
       val expectedRow: Row =  new Row(Seq(cellDataContent), Seq("end"), stack = false)
 
@@ -569,7 +569,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Single cell row stanza", "Welsh, Single cell row stanza")),
+          Phrase(Vector("Single cell row stanza", "Welsh: Single cell row stanza")),
           cellDataContent
         ),
         Vector[Link]()
@@ -583,9 +583,9 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
     "successfully create an instance of a Row from a RowStanza with multiple data cells" in new Test {
 
-      val cellDataContent1: Phrase = Phrase(Vector("Text for first data cell", "Welsh, Text for first data cell"))
-      val cellDataContent2: Phrase = Phrase(Vector("Text for second data cell", "Welsh, Text for second data cell"))
-      val cellDataContent3: Phrase = Phrase(Vector("Text for third data cell","Welsh, Text for third data cell"))
+      val cellDataContent1: Phrase = Phrase(Vector("Text for first data cell", "Welsh: Text for first data cell"))
+      val cellDataContent2: Phrase = Phrase(Vector("Text for second data cell", "Welsh: Text for second data cell"))
+      val cellDataContent3: Phrase = Phrase(Vector("Text for third data cell","Welsh: Text for third data cell"))
 
       val expectedRow: Row = new Row(
         Seq(cellDataContent1, cellDataContent2, cellDataContent3),
@@ -605,11 +605,11 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Multiple cell row stanza", "Welsh, Multiple cell row stanza")),
+          Phrase(Vector("Multiple cell row stanza", "Welsh: Multiple cell row stanza")),
           cellDataContent1,
           cellDataContent2,
           cellDataContent3,
-          Phrase(Vector("End of page","Welsh, End of page"))
+          Phrase(Vector("End of page","Welsh: End of page"))
         ),
         Vector[Link]()
       )
@@ -640,8 +640,8 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Multiple cell row stanza", "Welsh, Multiple cell row stanza")),
-          Phrase(Vector("End of page","Welsh, End of page"))
+          Phrase(Vector("Multiple cell row stanza", "Welsh: Multiple cell row stanza")),
+          Phrase(Vector("End of page","Welsh: End of page"))
         ),
         Vector[Link]()
       )
@@ -655,8 +655,8 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
     "create an instance of Row with linked page ids when links to pages are defined in cell data" in new Test {
 
-      val cellDataContent1: Phrase = Phrase(Vector("Cell data 1 link [link:PageId2:20]", "Welsh, Cell data 1 link [link:PageId2:20]"))
-      val cellDataContent2: Phrase = Phrase(Vector("Cell data 2 link [link:PageId5:64]", "Welsh, Cell data 2 link [link:PageId5:64]"))
+      val cellDataContent1: Phrase = Phrase(Vector("Cell data 1 link [link:PageId2:20]", "Welsh: Cell data 1 link [link:PageId2:20]"))
+      val cellDataContent2: Phrase = Phrase(Vector("Cell data 2 link [link:PageId5:64]", "Welsh: Cell data 2 link [link:PageId5:64]"))
 
       val expectedRow: Row = new Row(
         Seq(cellDataContent1, cellDataContent2),
@@ -681,13 +681,13 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Multiple cell row stanza", "Welsh, Multiple cell row stanza")),
+          Phrase(Vector("Multiple cell row stanza", "Welsh: Multiple cell row stanza")),
           cellDataContent1,
           cellDataContent2,
-          Phrase(Vector("End of page","Welsh, End of page")),
-          Phrase(Vector("Link to page 2", "Welsh, link to page 2")),
-          Phrase(Vector("Link to page 3", "Welsh, link to page 3")),
-          Phrase(Vector("End of test", "Welsh, End of test"))
+          Phrase(Vector("End of page","Welsh: End of page")),
+          Phrase(Vector("Link to page 2", "Welsh: link to page 2")),
+          Phrase(Vector("Link to page 3", "Welsh: link to page 3")),
+          Phrase(Vector("End of test", "Welsh: End of test"))
         ),
         Vector[Link](
           Link(four, "20", "Link 4 title", window = false),
@@ -703,9 +703,9 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
     "successfully detect an invalid phrase identifier in the definition of a row stanza" in new Test {
 
-      val cellDataContent1: Phrase = Phrase(Vector("Text for first data cell", "Welsh, Text for first data cell"))
-      val cellDataContent2: Phrase = Phrase(Vector("Text for second data cell", "Welsh, Text for second data cell"))
-      val cellDataContent3: Phrase = Phrase(Vector("Text for third data cell","Welsh, Text for third data cell"))
+      val cellDataContent1: Phrase = Phrase(Vector("Text for first data cell", "Welsh: Text for first data cell"))
+      val cellDataContent2: Phrase = Phrase(Vector("Text for second data cell", "Welsh: Text for second data cell"))
+      val cellDataContent3: Phrase = Phrase(Vector("Text for third data cell","Welsh: Text for third data cell"))
 
       val flow = Map(
         Process.StartStanzaId -> PageStanza("/rowStanzaTest", Seq("1"), stack = false),
@@ -719,11 +719,11 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Multiple cell row stanza", "Welsh, Multiple cell row stanza")),
+          Phrase(Vector("Multiple cell row stanza", "Welsh: Multiple cell row stanza")),
           cellDataContent1,
           cellDataContent2,
           cellDataContent3,
-          Phrase(Vector("End of page","Welsh, End of page"))
+          Phrase(Vector("End of page","Welsh: End of page"))
         ),
         Vector[Link]()
       )
@@ -741,15 +741,15 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       val process: Process = simpleRowStanzaProcessAsJson.as[Process]
 
       // Define expected single cell row
-      val singleCellText: Phrase = Phrase(Vector("Text for single cell row stanza","Welsh, Text for single cell row stanza"))
+      val singleCellText: Phrase = Phrase(Vector("Text for single cell row stanza","Welsh: Text for single cell row stanza"))
 
       val expectedSingleCellRow: Row = new Row(Seq(singleCellText), Seq("3"), stack = false)
 
       // Define expected multiple cell row
-      val cellOneText: Phrase = Phrase(Vector("Cell one text", "Welsh, Cell one text"))
-      val cellTwoText: Phrase = Phrase(Vector("Cell two text", "Welsh, Cell two text"))
-      val cellThreeText: Phrase = Phrase(Vector("Cell three text", "Welsh, Cell three text"))
-      val cellFourText: Phrase = Phrase(Vector("Cell four text", "Welsh, Cell four text"))
+      val cellOneText: Phrase = Phrase(Vector("Cell one text", "Welsh: Cell one text"))
+      val cellTwoText: Phrase = Phrase(Vector("Cell two text", "Welsh: Cell two text"))
+      val cellThreeText: Phrase = Phrase(Vector("Cell three text", "Welsh: Cell three text"))
+      val cellFourText: Phrase = Phrase(Vector("Cell four text", "Welsh: Cell four text"))
 
       val expectedMultipleCellRow: Row = new Row(
         Seq(cellOneText, cellTwoText, cellThreeText, cellFourText),
@@ -775,7 +775,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     val process: Process = Process(
       meta,
       twoPagesSeperatedByValueStanza,
-      Vector(Phrase(Vector("Some Text", "Welsh, Some Text")), Phrase(Vector("Some Text1", "Welsh, Some Text1"))),
+      Vector(Phrase(Vector("Some Text", "Welsh: Some Text")), Phrase(Vector("Some Text1", "Welsh: Some Text1"))),
       Vector[Link]()
     )
     "result in 2 pages" in {
@@ -852,10 +852,10 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh, Some Text")),
-          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
-          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
+          Phrase(Vector("Some Text", "Welsh: Some Text")),
+          Phrase(Vector("Some Text1", "Welsh: Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh: Some Text3"))
         ),
         Vector[Link]()
       )
@@ -887,10 +887,10 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh, Some Text")),
-          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
-          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
+          Phrase(Vector("Some Text", "Welsh: Some Text")),
+          Phrase(Vector("Some Text1", "Welsh: Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh: Some Text3"))
         ),
         Vector[Link]()
       )

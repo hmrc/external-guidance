@@ -22,12 +22,17 @@ import scala.util.Try
 import scala.util.matching.Regex
 
 package object ocelot {
-  val labelPattern = "\\[label:([A-Za-z0-9\\s\\-_]+)(:(currency|currencyPoundsOnly|date|number))?\\]"
-  val boldPattern = s"\\[bold:($labelPattern|[^\\]]+)\\]"
-  val linkToPageOnlyPattern = s"\\[link:(.+?):(\\d+|${Process.StartStanzaId})\\]"
-  val toPageLinkPattern = s"\\[(button|link)(-same|-tab)?:([^\\]]+?):(\\d+|${Process.StartStanzaId})\\]"
-  val linkPattern = s"\\[(button|link)(-same|-tab)?:(.+?):(\\d+|${Process.StartStanzaId}|https?:[a-zA-Z0-9\\/\\.\\-\\?_\\.=&#]+)\\]"
-  val commaSeparatedIntsPattern = "^\\d+\\s*(?:,\\s*\\d+\\s*)*$"
+  val labelPattern: String = "\\[label:([A-Za-z0-9\\s\\-_]+)(:(currency|currencyPoundsOnly|date|number))?\\]"
+  val boldPattern: String = s"\\[bold:($labelPattern|[^\\]]+)\\]"
+  val linkToPageOnlyPattern: String = s"\\[link:(.+?):(\\d+|${Process.StartStanzaId})\\]"
+  val toPageLinkPattern: String = s"\\[(button|link)(-same|-tab)?:([^\\]]+?):(\\d+|${Process.StartStanzaId})\\]"
+  val linkPattern: String = s"\\[(button|link)(-same|-tab)?:(.+?):(\\d+|${Process.StartStanzaId}|https?:[a-zA-Z0-9\\/\\.\\-\\?_\\.=&#]+)\\]"
+  val commaSeparatedIntsPattern: String = "^\\d+\\s*(?:,\\s*\\d+\\s*)*$"
+  val listPattern: String = "\\[list:([A-Za-z0-9\\s\\-_]+):length\\]"
+  val singleLabelOrListPattern: String = s"^$labelPattern|$listPattern$$"
+  val singleLabelOrListRegex: Regex = singleLabelOrListPattern.r
+  val labelAndListPattern: String = s"$labelPattern|$listPattern"
+  val labelAndListRegex: Regex = labelAndListPattern.r
   val hintRegex: Regex = "\\[hint:([^\\]]+)\\]".r
   val pageLinkRegex: Regex = s"${toPageLinkPattern}".r
   val labelRefRegex: Regex = labelPattern.r
@@ -47,11 +52,19 @@ package object ocelot {
   def pageLinkIds(phrases: Seq[Phrase]): List[String] = phrases.flatMap(phrase => pageLinkIds(phrase.english)).toList
   def labelReferences(str: String): List[String] = plSingleGroupCaptures(labelRefRegex, str)
   def labelReference(str: String): Option[String] = plSingleGroupCaptures(labelRefRegex, str).headOption
+  def labelScalarMatch(m: Regex.Match, labels: Labels, lbl: String => Option[String]): Option[String] =
+    Option(m.group(1)).fold[Option[String]]{
+      Option(m.group(4)).fold[Option[String]](None){list =>
+        labels.valueAsList(list).fold[Option[String]](None){l => Some(l.length.toString)}
+      }
+    }{label => lbl(label)}
+  def labelScalarReference(str: String)(implicit labels: Labels): Option[String] =
+    singleLabelOrListRegex.findFirstMatchIn(str).fold[Option[String]](Some(str)){labelScalarMatch(_, labels, labels.value)}
   def asTextString(value: String): Option[String] = value.trim.headOption.fold[Option[String]](None)(_ => Some(value.trim))
-  def asDecimal(value: String): Option[BigDecimal] = inputCurrencyRegex.findFirstIn(value.filterNot(c => c==' '))
-                                                                        .map(s => BigDecimal(s.filterNot(ignoredCurrencyChars.contains(_))))
-  def asCurrencyPounds(value: String): Option[BigDecimal] = inputCurrencyPoundsRegex.findFirstIn(value.filterNot(c => c==' '))
-                                                                        .map(s => BigDecimal(s.filterNot(ignoredCurrencyChars.contains(_))))
+  def asDecimal(value: String): Option[BigDecimal] =
+    inputCurrencyRegex.findFirstIn(value.filterNot(c => c==' ')).map(s => BigDecimal(s.filterNot(ignoredCurrencyChars.contains(_))))
+  def asCurrencyPounds(value: String): Option[BigDecimal] =
+    inputCurrencyPoundsRegex.findFirstIn(value.filterNot(c => c==' ')).map(s => BigDecimal(s.filterNot(ignoredCurrencyChars.contains(_))))
   def asDate(value: String): Option[LocalDate] = Try(LocalDate.parse(value.filterNot(_.equals(' ')), dateFormatter)).map(d => d).toOption
   def stringFromDate(when: LocalDate): String = when.format(dateFormatter)
   def asInt(value: String): Option[Int] = integerRegex.findFirstIn(value).map(_.toInt)

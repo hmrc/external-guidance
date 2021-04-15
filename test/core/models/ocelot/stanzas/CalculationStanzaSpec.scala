@@ -183,15 +183,15 @@ class CalculationStanzaSpec extends BaseSpec {
          |    }
          |  },
          |  "phrases": [
-         |    ["Ask the customer if they have a tea bag", "Welsh, Ask the customer if they have a tea bag"],
-         |    ["Do you have a tea bag?", "Welsh, Do you have a tea bag?"],
-         |    ["Yes - they do have a tea bag", "Welsh, Yes - they do have a tea bag"],
-         |    ["No - they do not have a tea bag", "Welsh, No - they do not have a tea bag"],
-         |    ["Ask the customer if they have a cup", "Welsh, Ask the customer if they have a cup"],
-         |    ["Do you have a cup?", "Welsh, Do you have a cup?"],
-         |    ["yes - they do have a cup ", "Welsh, yes - they do have a cup "],
-         |    ["no - they don’t have a cup", "Welsh, no - they don’t have a cup"],
-         |    ["Customer wants to make a cup of tea", "Welsh, Customer wants to make a cup of tea"]
+         |    ["Ask the customer if they have a tea bag", "Welsh: Ask the customer if they have a tea bag"],
+         |    ["Do you have a tea bag?", "Welsh: Do you have a tea bag?"],
+         |    ["Yes - they do have a tea bag", "Welsh: Yes - they do have a tea bag"],
+         |    ["No - they do not have a tea bag", "Welsh: No - they do not have a tea bag"],
+         |    ["Ask the customer if they have a cup", "Welsh: Ask the customer if they have a cup"],
+         |    ["Do you have a cup?", "Welsh: Do you have a cup?"],
+         |    ["yes - they do have a cup ", "Welsh: yes - they do have a cup "],
+         |    ["no - they don’t have a cup", "Welsh: no - they don’t have a cup"],
+         |    ["Customer wants to make a cup of tea", "Welsh: Customer wants to make a cup of tea"]
          |  ]
          |}
     """.stripMargin
@@ -1659,6 +1659,22 @@ class CalculationStanzaSpec extends BaseSpec {
       updatedLabels.valueAsList("result4") shouldBe Some(List("a", "b"))
       updatedLabels.valueAsList("result5") shouldBe Some(Nil)
       updatedLabels.valueAsList("result6") shouldBe Some(Nil)
+    }
+
+    "evaluate addition of the lengths of two lists" in {
+
+      val list1: ListLabel = ListLabel("list1", List("one", "two", "three", "four", "five"))
+      val list2: ListLabel = ListLabel("list2", List("six", "seven", "eight"))
+      val labelMap: Map[String, Label] = Map(list1.name -> list1, list2.name -> list2)
+      val labelCache: Labels = LabelCache(labelMap)
+
+      val calcOperations: Seq[CalcOperation] = Seq(CalcOperation("[list:list1:length]", Addition, "[list:list2:length]", "result"))
+
+      val calculation: Calculation = createCalculation(calcOperations, Seq("4"))
+
+      val (_, updatedLabels) = calculation.eval(labelCache)
+
+      updatedLabels.value("result") shouldBe Some("8")
     }
 
   }
