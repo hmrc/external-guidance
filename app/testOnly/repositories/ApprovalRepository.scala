@@ -16,32 +16,33 @@
 
 package testOnly.repositories
 
-import javax.inject.{Inject, Singleton}
-import core.models.errors.DatabaseError
 import core.models.RequestOutcome
+import core.models.errors.DatabaseError
 import models.ApprovalProcess
-import play.api.libs.json.Format
-import play.modules.reactivemongo.ReactiveMongoComponent
+import org.mongodb.scala.model.Filters.equal
+import play.api.Logger.logger
 import repositories.formatters.ApprovalProcessFormatter
-import uk.gov.hmrc.mongo.ReactiveRepository
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ApprovalRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-    extends ReactiveRepository[ApprovalProcess, String](
+class ApprovalRepository @Inject() (mongoComponent: MongoComponent)
+    extends PlayMongoRepository[ApprovalProcess](
       collectionName = "approvalProcesses",
-      mongo = mongoComponent.mongoConnector.db,
+      mongoComponent = mongoComponent,
       domainFormat = ApprovalProcessFormatter.mongoFormat,
-      idFormat = implicitly[Format[String]]
+      indexes = Seq()
     ) {
 
   def delete(id: String): Future[RequestOutcome[String]] = {
 
     logger.info(s"[test-only] Deleting approval process with the ID $id")
 
-    removeById(id)
+    collection.deleteOne(equal("_id", id)).toFuture()
       .map { _ =>
         Right(id)
       }

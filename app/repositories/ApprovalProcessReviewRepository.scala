@@ -16,20 +16,22 @@
 
 package repositories
 
+import core.models.RequestOutcome
+import core.models.errors.{DatabaseError, NotFoundError}
+import models.{ApprovalProcessPageReview, ApprovalProcessReview}
+import org.mongodb.scala.model.Filters.{and, equal}
+import org.mongodb.scala.model.Indexes.ascending
+import org.mongodb.scala.model.Updates.{combine, set}
+import org.mongodb.scala.model.{IndexModel, IndexOptions}
+import play.api.Logger.logger
+import play.api.libs.json.Json
+import repositories.formatters.ApprovalProcessReviewFormatter
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+
 import java.time.ZonedDateTime
 import java.util.UUID
-
 import javax.inject.{Inject, Singleton}
-import core.models.errors.{DatabaseError, NotFoundError}
-import core.models.RequestOutcome
-import models.{ApprovalProcessPageReview, ApprovalProcessReview}
-import play.api.libs.json.{Format, JsObject, Json}
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import repositories.formatters.ApprovalProcessReviewFormatter
-import uk.gov.hmrc.mongo.ReactiveRepository
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -41,29 +43,23 @@ trait ApprovalProcessReviewRepository {
 }
 
 @Singleton
-class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoComponent)
-    extends ReactiveRepository[ApprovalProcessReview, UUID](
+class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: MongoComponent)
+    extends PlayMongoRepository[ApprovalProcessReview](
       collectionName = "approvalProcessReviews",
-      mongo = mongoComponent.mongoConnector.db,
+      mongoComponent = mongoComponent,
       domainFormat = ApprovalProcessReviewFormatter.mongoFormat,
-      idFormat = implicitly[Format[UUID]]
+      indexes = Seq(IndexModel(
+        ascending("ocelotId", "version", "reviewType"),
+        IndexOptions().name("review-secondary-Index").unique(true))
+      ),
+      replaceIndexes = false
     )
     with ApprovalProcessReviewRepository {
 
-  override def indexes: Seq[Index] = Seq(
-    Index(
-      key = Seq("ocelotId" -> IndexType.Ascending, "version" -> IndexType.Ascending, "reviewType" -> IndexType.Ascending),
-      name = Some("review-secondary-Index"),
-      unique = true
-    )
-  )
-
   def save(review: ApprovalProcessReview): Future[RequestOutcome[UUID]] = {
 
-    insert(review)
-      .map { _ =>
-        Right(review.id)
-      }
+    collection.insertOne(review).toFuture()
+      .map ( _ => Right(review.id) )
       //$COVERAGE-OFF$
       .recover {
         case error =>
@@ -75,11 +71,10 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
 
   def getByIdVersionAndType(id: String, version: Int, reviewType: String): Future[RequestOutcome[ApprovalProcessReview]] = {
 
-    val selector = Json.obj("ocelotId" -> id, "version" -> version, "reviewType" -> reviewType)
-
     collection
-      .find[JsObject, JsObject](selector)
-      .one[ApprovalProcessReview]
+      .find(and(equal("ocelotId", id), equal("version", version), equal("reviewType", reviewType)))
+      .first()
+      .toFutureOption()
       .map {
         case Some(review) => Right(review)
         case None => Left(NotFoundError)
@@ -90,58 +85,52 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
           logger.error(s"Attempt to retrieve review $id and version $version from collection $collectionName failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
-    //$COVERAGE-ON$
+      //$COVERAGE-ON$
   }
 
   def updatePageReview(id: String, version: Int, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] = {
 
-    val selector = Json.obj("ocelotId" -> id, "version" -> version, "reviewType" -> reviewType, "pages.pageUrl" -> pageUrl)
-    val modifier =
-      Json.obj(
-        "$set" -> Json.obj(
-          "pages.$.result" -> reviewInfo.result,
-          "pages.$.status" -> reviewInfo.status,
-          "pages.$.comment" -> reviewInfo.comment,
-          "pages.$.updateUser" -> reviewInfo.updateUser,
-          "pages.$.updateDate" -> Json.obj("$date" -> ZonedDateTime.now.toInstant.toEpochMilli)
+    collection.findOneAndUpdate(
+      filter = and(
+        equal("ocelotId", id), equal("version", version), equal("reviewType", reviewType), equal("pages.pageUrl", pageUrl)
+      ),
+      update = combine(
+          set("pages.$.result", reviewInfo.result),
+          set("pages.$.status", reviewInfo.status),
+          set("pages.$.comment", reviewInfo.comment),
+          set("pages.$.updateUser", reviewInfo.updateUser),
+          set("pages.$.updateDate", Json.obj("$date" -> ZonedDateTime.now.toInstant.toEpochMilli))
         )
-      )
-
-    findAndUpdate(selector, modifier)
-      .map { _ =>
-        Right(())
-      }
+      ).toFutureOption()
+      .map(_ => Right(()))
       //$COVERAGE-OFF$
       .recover {
         case error =>
           logger.error(s"Attempt to update page review $id and pageUrl $pageUrl from collection $collectionName failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
-    //$COVERAGE-ON$
+      //$COVERAGE-ON$
   }
 
   def updateReview(id: String, version: Int, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]] = {
 
-    val selector = Json.obj("ocelotId" -> id, "version" -> version, "reviewType" -> reviewType)
-    val modifier =
-      Json.obj(
-        "$set" -> Json.obj(
-          "result" -> result,
-          "completionUser" -> updateUser,
-          "completionDate" -> Json.obj("$date" -> ZonedDateTime.now.toInstant.toEpochMilli)
-        )
+    collection.findOneAndUpdate(
+      filter = and(
+        equal("ocelotId", id), equal("version", version), equal("reviewType", reviewType)
+      ),
+      update = combine(
+        set("result", result),
+        set("completionUser", updateUser),
+        set("completionDate", Json.obj("$date" -> ZonedDateTime.now.toInstant.toEpochMilli))
       )
-
-    findAndUpdate(selector, modifier)
-      .map { _ =>
-        Right(())
-      }
-      //$COVERAGE-OFF$
-      .recover {
-        case error =>
-          logger.error(s"Attempt to update review $id from collection $collectionName failed with error : ${error.getMessage}")
-          Left(DatabaseError)
-      }
+    ).toFutureOption()
+    .map(_ => Right(()))
+    //$COVERAGE-OFF$
+    .recover {
+      case error =>
+        logger.error(s"Attempt to update review $id from collection $collectionName failed with error : ${error.getMessage}")
+        Left(DatabaseError)
+    }
     //$COVERAGE-ON$
   }
 }

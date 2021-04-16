@@ -16,22 +16,25 @@
 
 package repositories
 
-import java.util.UUID
-import java.time.ZonedDateTime
-import javax.inject.{Inject, Singleton}
-import core.models.errors.{DatabaseError, NotFoundError}
-import core.models.RequestOutcome
-import models.ScratchProcess
-import play.api.libs.json.{Format, JsObject}
-import play.modules.reactivemongo.ReactiveMongoComponent
-import repositories.formatters.ScratchProcessFormatter
-import uk.gov.hmrc.mongo.ReactiveRepository
-import reactivemongo.bson.BSONDocument
 import config.AppConfig
+import core.models.RequestOutcome
+import core.models.errors.{DatabaseError, NotFoundError}
+import models.ScratchProcess
+import org.mongodb.scala.model.Filters.equal
+import org.mongodb.scala.model.Indexes.ascending
+import org.mongodb.scala.model.{IndexModel, IndexOptions}
+import play.api.Logger.logger
+import play.api.libs.json.JsObject
+import repositories.formatters.ScratchProcessFormatter
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+
+import java.time.ZonedDateTime
+import java.util.UUID
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import reactivemongo.api.indexes.IndexType
-import reactivemongo.api.indexes.Index
+import scala.concurrent.duration.SECONDS
 
 trait ScratchRepository {
   def save(process: JsObject): Future[RequestOutcome[UUID]]
@@ -39,38 +42,36 @@ trait ScratchRepository {
 }
 
 @Singleton
-class ScratchRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent, appConfig: AppConfig)
-    extends ReactiveRepository[ScratchProcess, UUID](
+class ScratchRepositoryImpl @Inject() (mongoComponent: MongoComponent, appConfig: AppConfig)
+    extends PlayMongoRepository[ScratchProcess](
       collectionName = "scratchProcesses",
-      mongo = mongoComponent.mongoConnector.db,
+      mongoComponent = mongoComponent,
       domainFormat = ScratchProcessFormatter.mongoFormat,
-      idFormat = implicitly[Format[UUID]]
+      indexes = Seq(IndexModel(ascending("expireAt"), IndexOptions().name("expiryIndex").expireAfter(0, SECONDS))),
+      replaceIndexes = false
     )
     with ScratchRepository {
-
-  override def indexes: Seq[Index] = Seq(
-    Index(Seq("expireAt" -> IndexType.Ascending), name = Some("expiryIndex"), options = BSONDocument("expireAfterSeconds" -> 0))
-  )
 
   def save(process: JsObject): Future[RequestOutcome[UUID]] = {
     val expiryTime = ZonedDateTime.now.withHour(appConfig.scratchExpiryHour).withMinute(appConfig.scratchExpiryMinutes).withSecond(0)
     val document = ScratchProcess(UUID.randomUUID(), process, expiryTime)
 
-    insert(document)
-      .map { _ =>
-        Right(document.id)
-      }
+    collection.insertOne(document)
+      .toFuture()
+      .map ( _ => Right(document.id) )
       //$COVERAGE-OFF$
       .recover {
         case e =>
           logger.warn(e.getMessage)
           Left(DatabaseError)
       }
-    //$COVERAGE-ON$
+      //$COVERAGE-ON$
   }
 
   def getById(id: UUID): Future[RequestOutcome[JsObject]] = {
-    findById(id)
+    collection.find(equal("_id", id))
+      .first()
+      .toFutureOption()
       .map {
         case Some(data) => Right(data.process)
         case None => Left(NotFoundError)
@@ -81,7 +82,7 @@ class ScratchRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent, a
           logger.warn(e.getMessage)
           Left(DatabaseError)
       }
-    //$COVERAGE-ON$
+      //$COVERAGE-ON$
   }
 
 }

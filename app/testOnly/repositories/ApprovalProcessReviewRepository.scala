@@ -16,34 +16,33 @@
 
 package testOnly.repositories
 
-import java.util.UUID
+import core.models.RequestOutcome
+import core.models.errors.DatabaseError
+import models.ApprovalProcessReview
+import org.mongodb.scala.model.Filters.equal
+import play.api.Logger.logger
+import repositories.formatters.ApprovalProcessReviewFormatter
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import javax.inject.{Inject, Singleton}
-import core.models.errors.DatabaseError
-import core.models.RequestOutcome
-import models.ApprovalProcessReview
-import play.api.libs.json.Format
-import play.modules.reactivemongo.ReactiveMongoComponent
-import repositories.formatters.ApprovalProcessReviewFormatter
-import uk.gov.hmrc.mongo.ReactiveRepository
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ApprovalProcessReviewRepository @Inject() (implicit mongoComponent: ReactiveMongoComponent)
-    extends ReactiveRepository[ApprovalProcessReview, UUID](
+class ApprovalProcessReviewRepository @Inject() (implicit mongoComponent: MongoComponent)
+    extends PlayMongoRepository[ApprovalProcessReview](
       collectionName = "approvalProcessReviews",
-      mongo = mongoComponent.mongoConnector.db,
+      mongoComponent = mongoComponent,
       domainFormat = ApprovalProcessReviewFormatter.mongoFormat,
-      idFormat = implicitly[Format[UUID]]
+      indexes = Seq()
     ) {
 
   def delete(id: String): Future[RequestOutcome[String]] = {
 
     logger.info(s"[test-only] Deleting approval reviews with the Ocelot ID $id")
 
-    remove("ocelotId" -> id)
+    collection.deleteOne(equal("ocelotId", id)).toFuture()
       .map { _ =>
         Right(id)
       }
