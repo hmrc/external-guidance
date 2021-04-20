@@ -23,11 +23,11 @@ import play.api.i18n.Lang
 class PhraseSpec extends BaseSpec with ProcessJson {
 
   val p1 = "Ask the customer if they have a tea bag"
-  val p1w = "Welsh, Ask the customer if they have a tea bag"
+  val p1w = "Welsh: Ask the customer if they have a tea bag"
   val p2 = "Do you have a tea bag?"
-  val p2w = "Welsh, Do you have a tea bag?"
+  val p2w = "Welsh: Do you have a tea bag?"
   val p3 = "Yes - they do have a tea bag"
-  val p3w = "Welsh, Yes - they do have a tea bag"
+  val p3w = "Welsh: Yes - they do have a tea bag"
 
   val phrase1 = s"""["$p1", "$p1w"]"""
   val phrase2 = s"""["$p2", "$p2w"]"""
@@ -62,8 +62,8 @@ class PhraseSpec extends BaseSpec with ProcessJson {
     }
 
     "serialise from Phrase to json" in {
-      val phrase = Phrase(Vector("Hello World", "Welsh, Hello World"))
-      Json.toJson(phrase).toString shouldBe """["Hello World","Welsh, Hello World"]"""
+      val phrase = Phrase(Vector("Hello World", "Welsh: Hello World"))
+      Json.toJson(phrase).toString shouldBe """["Hello World","Welsh: Hello World"]"""
     }
 
     "allow access to Phrase language strings" in {

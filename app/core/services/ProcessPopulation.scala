@@ -19,11 +19,13 @@ package core.services
 import core.models.ocelot.stanzas._
 import core.models.ocelot.{Link, Phrase, Process, pageLinkIds}
 import core.models.ocelot.errors._
-
+import play.api.Logger
 import scala.annotation.tailrec
 
 trait ProcessPopulation {
   this: PlaceholderProvider =>
+
+  val logger: Logger
 
   def stanza(id: String, process: Process): Either[GuidanceError, Stanza] =
     process.flow.get(id) match {
@@ -93,8 +95,13 @@ trait ProcessPopulation {
 
   private def phrase(phraseIndex: Int, stanzaId: String, process: Process): Either[GuidanceError, Phrase] =
     process.phraseOption(phraseIndex).fold[Either[GuidanceError, Phrase]](Left(PhraseNotFound(stanzaId, phraseIndex))){
-      case Phrase(english, welsh) if welsh.isEmpty && english.nonEmpty => Left(MissingWelshText(stanzaId, phraseIndex.toString, english))
-      case p: Phrase => Right(Phrase(placeholders.translate(p.english), placeholders.translate(p.welsh)))
+      case Phrase(english, welsh) if welsh.trim.isEmpty && english.trim.nonEmpty => Left(MissingWelshText(stanzaId, phraseIndex.toString, english))
+      case Phrase(english, welsh) if welsh.trim.startsWith("Welsh,") =>
+        logger.warn(s"Found obsolete faked Welsh prefix on phrase $english -- $welsh")
+        val updatedWelsh = s"Welsh: ${welsh.trim.drop("Welsh, ".length)}"
+        Right(Phrase(placeholders.translate(english), placeholders.translate(updatedWelsh)))
+      case p: Phrase =>
+        Right(Phrase(placeholders.translate(p.english), placeholders.translate(p.welsh)))
     }
 
   @tailrec

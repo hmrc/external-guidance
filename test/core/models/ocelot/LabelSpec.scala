@@ -28,7 +28,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
   val welshLang: Lang = Lang("cy")
   val label = """{"name":"BLAH","english":[],"type":"scalar","welsh":[]}"""
   val labelWithSingleValue = """{"name":"BLAH","english":["39.99"],"type":"scalar","welsh":[]}"""
-  val labelWithValues = """{"name":"BLAH","english":["Hello"],"type":"scalar","welsh":["Welsh, Hello"]}"""
+  val labelWithValues = """{"name":"BLAH","english":["Hello"],"type":"scalar","welsh":["Welsh: Hello"]}"""
   val listLabelWithEmptyLists = """{"name":"BLAH","english":[],"type":"list","welsh":[]}"""
   val listLabelWithSingleEntryLists = """{"name":"BLAH","english":["March"],"type":"list","welsh":["Mawrth"]}"""
   val listLabelWithSingleList = """{"name":"BLAH","english":["March,April,May,June"],"type":"list","welsh":[]}"""
@@ -47,11 +47,11 @@ class LabelSpec extends BaseSpec with ProcessJson {
     }
 
     "deserialise label with both english and welsh values" in {
-      Json.parse(labelWithValues).as[Label] shouldBe ScalarLabel("BLAH", List("Hello"), List("Welsh, Hello"))
+      Json.parse(labelWithValues).as[Label] shouldBe ScalarLabel("BLAH", List("Hello"), List("Welsh: Hello"))
     }
 
     "serialise from Label with both english and welsh values to json" in {
-      val dLabelWithValues: Label = ScalarLabel("BLAH", List("Hello"), List("Welsh, Hello"))
+      val dLabelWithValues: Label = ScalarLabel("BLAH", List("Hello"), List("Welsh: Hello"))
       Json.toJson(dLabelWithValues).toString shouldBe labelWithValues
     }
 

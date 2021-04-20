@@ -29,12 +29,12 @@ class InstructionSpec extends WordSpec with Matchers {
     val linkDest = "4"
     val link = Link(linkId, linkDest, "", false)
     val pageLinkedStanzaId = "6"
-    val phrase0 = Phrase(Vector(s"hello [link:Blah:${pageLinkedStanzaId}] ;lasdk ", s"Welsh, hello [link:Blah:${pageLinkedStanzaId}] ;lasdk "))
+    val phrase0 = Phrase(Vector(s"hello [link:Blah:${pageLinkedStanzaId}] ;lasdk ", s"Welsh: hello [link:Blah:${pageLinkedStanzaId}] ;lasdk "))
 
     val phrase1 = Phrase(
       Vector(
         s"hello [link:Blah:${linkDest}] ;lasdk [link:Blah:${pageLinkedStanzaId}]",
-        s"Welsh, hello [link:Blah:${linkDest}] ;lasdk [link:Blah:${pageLinkedStanzaId}]"
+        s"Welsh: hello [link:Blah:${linkDest}] ;lasdk [link:Blah:${pageLinkedStanzaId}]"
       )
     )
     val simpleInstruction = InstructionStanza(text, next, None, false)

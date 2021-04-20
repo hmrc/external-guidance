@@ -56,10 +56,10 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh, Some Text")),
-          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
-          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
+          Phrase(Vector("Some Text", "Welsh: Some Text")),
+          Phrase(Vector("Some Text1", "Welsh: Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh: Some Text3"))
         ),
         Vector[Link]()
       )
@@ -90,10 +90,10 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh, Some Text")),
-          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
-          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
+          Phrase(Vector("Some Text", "Welsh: Some Text")),
+          Phrase(Vector("Some Text1", "Welsh: Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh: Some Text3"))
         ),
         Vector[Link]()
       )
@@ -118,10 +118,10 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh, Some Text")),
-          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
-          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
+          Phrase(Vector("Some Text", "Welsh: Some Text")),
+          Phrase(Vector("Some Text1", "Welsh: Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh: Some Text3"))
         ),
         Vector[Link]()
       )
@@ -148,12 +148,12 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh, Some Text")),
-          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
-          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh, Some Text3")),
-          Phrase(Vector("Some Text4", "Welsh, Some Text4")),
-          Phrase(Vector("Some Text5", "Welsh, Some Text5"))
+          Phrase(Vector("Some Text", "Welsh: Some Text")),
+          Phrase(Vector("Some Text1", "Welsh: Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh: Some Text3")),
+          Phrase(Vector("Some Text4", "Welsh: Some Text4")),
+          Phrase(Vector("Some Text5", "Welsh: Some Text5"))
         ),
         Vector[Link]()
       )
@@ -178,10 +178,10 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh, Some Text")),
-          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
-          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
+          Phrase(Vector("Some Text", "Welsh: Some Text")),
+          Phrase(Vector("Some Text1", "Welsh: Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh: Some Text3"))
         ),
         Vector[Link]()
       )
@@ -216,10 +216,10 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh, Some Text")),
-          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
-          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
+          Phrase(Vector("Some Text", "Welsh: Some Text")),
+          Phrase(Vector("Some Text1", "Welsh: Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh: Some Text3"))
         ),
         Vector[Link]()
       )
@@ -244,10 +244,10 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh, Some Text")),
-          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
-          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
+          Phrase(Vector("Some Text", "Welsh: Some Text")),
+          Phrase(Vector("Some Text1", "Welsh: Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh: Some Text3"))
         ),
         Vector[Link]()
       )
@@ -265,7 +265,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         "1" -> InstructionStanza(2, Seq("end"), None, false),
         "end" -> EndStanza
       )
-      val process = Process(metaSection, flow, Vector[Phrase](Phrase(Vector("Some Text", "Welsh, Some Text"))), Vector[Link]())
+      val process = Process(metaSection, flow, Vector[Phrase](Phrase(Vector("Some Text", "Welsh: Some Text"))), Vector[Link]())
 
       pageBuilder.pagesWithValidation(process) match {
         case Left(List(PhraseNotFound(id, 2))) => succeed
@@ -280,7 +280,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         "1" -> InputStanza(Currency, Seq("end"), 2, Some(3), "Label", None, false),
         "end" -> EndStanza
       )
-      val process = Process(metaSection, flow, Vector[Phrase](Phrase(Vector("Some Text", "Welsh, Some Text"))), Vector[Link]())
+      val process = Process(metaSection, flow, Vector[Phrase](Phrase(Vector("Some Text", "Welsh: Some Text"))), Vector[Link]())
 
       pageBuilder.pagesWithValidation(process) match {
         case Left(List(PhraseNotFound(id, 2))) => succeed
@@ -295,7 +295,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         "1" -> InputStanza(Currency, Seq("end"), 0, Some(3), "Label", None, false),
         "end" -> EndStanza
       )
-      val process = Process(metaSection, flow, Vector[Phrase](Phrase(Vector("Some Text", "Welsh, Some Text"))), Vector[Link]())
+      val process = Process(metaSection, flow, Vector[Phrase](Phrase(Vector("Some Text", "Welsh: Some Text"))), Vector[Link]())
 
       pageBuilder.pagesWithValidation(process) match {
         case Left(List(PhraseNotFound(id, 3))) => succeed
@@ -310,7 +310,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         "1" -> InputStanza(Currency, Seq("end"), 0, Some(0), "Label", Some(3), false),
         "end" -> EndStanza
       )
-      val process = Process(metaSection, flow, Vector[Phrase](Phrase(Vector("Some Text", "Welsh, Some Text"))), Vector[Link]())
+      val process = Process(metaSection, flow, Vector[Phrase](Phrase(Vector("Some Text", "Welsh: Some Text"))), Vector[Link]())
 
       pageBuilder.pagesWithValidation(process) match {
         case Left(List(PhraseNotFound(id, 3))) => succeed
@@ -325,7 +325,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         "1" -> CalloutStanza(Title, 2, Seq("end"), false),
         "end" -> EndStanza
       )
-      val process = Process(metaSection, flow, Vector[Phrase](Phrase(Vector("Some Text", "Welsh, Some Text"))), Vector[Link]())
+      val process = Process(metaSection, flow, Vector[Phrase](Phrase(Vector("Some Text", "Welsh: Some Text"))), Vector[Link]())
 
       pageBuilder.pagesWithValidation(process) match {
         case Left(List(PhraseNotFound(id, 2))) => succeed
@@ -371,10 +371,10 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh, Some Text")),
-          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
-          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
+          Phrase(Vector("Some Text", "Welsh: Some Text")),
+          Phrase(Vector("Some Text1", "Welsh: Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh: Some Text3"))
         ),
         Vector[Link]()
       )
@@ -399,10 +399,10 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh, Some Text")),
-          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
-          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
+          Phrase(Vector("Some Text", "Welsh: Some Text")),
+          Phrase(Vector("Some Text1", "Welsh: Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh: Some Text3"))
         ),
         Vector[Link]()
       )
@@ -441,10 +441,10 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh, Some Text")),
+          Phrase(Vector("Some Text", "Welsh: Some Text")),
           Phrase(Vector("Some Text1", "")),
-          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
+          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh: Some Text3"))
         ),
         Vector[Link]()
       )
@@ -468,10 +468,10 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh, Some Text")),
-          Phrase(Vector("Some Text1", "Welsh, Some Text1")),
-          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh, Some Text3"))
+          Phrase(Vector("Some Text", "Welsh: Some Text")),
+          Phrase(Vector("Some Text1", "Welsh: Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh: Some Text3"))
         ),
         Vector[Link]()
       )
@@ -531,10 +531,10 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh, Some Text")),
-          Phrase(Vector("Exclusive sequence stanza", "Welsh, Exclusive sequence stanza")),
-          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
-          Phrase(Vector("Some Text3 [exclusive]", "Welsh, Some Text3"))
+          Phrase(Vector("Some Text", "Welsh: Some Text")),
+          Phrase(Vector("Exclusive sequence stanza", "Welsh: Exclusive sequence stanza")),
+          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
+          Phrase(Vector("Some Text3 [exclusive]", "Welsh: Some Text3"))
         ),
         Vector[Link]()
       )
@@ -566,10 +566,10 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh, Some Text")),
-          Phrase(Vector("Exclusive sequence stanza", "Welsh, Exclusive sequence stanza")),
-          Phrase(Vector("Some Text2 [exclusive]", "Welsh, Some Text2")),
-          Phrase(Vector("Some Text3 [exclusive]", "Welsh, Some Text3"))
+          Phrase(Vector("Some Text", "Welsh: Some Text")),
+          Phrase(Vector("Exclusive sequence stanza", "Welsh: Exclusive sequence stanza")),
+          Phrase(Vector("Some Text2 [exclusive]", "Welsh: Some Text2")),
+          Phrase(Vector("Some Text3 [exclusive]", "Welsh: Some Text3"))
         ),
         Vector[Link]()
       )
@@ -600,10 +600,10 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         metaSection,
         flow,
         Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh, Some Text")),
-          Phrase(Vector("Exclusive sequence stanza", "Welsh, Exclusive sequence stanza")),
-          Phrase(Vector("Some Text2", "Welsh, Some Text2")),
-          Phrase(Vector("Some Text3 [exclusive]", "Welsh, Some Text3"))
+          Phrase(Vector("Some Text", "Welsh: Some Text")),
+          Phrase(Vector("Exclusive sequence stanza", "Welsh: Exclusive sequence stanza")),
+          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
+          Phrase(Vector("Some Text3 [exclusive]", "Welsh: Some Text3"))
         ),
         Vector[Link]()
       )

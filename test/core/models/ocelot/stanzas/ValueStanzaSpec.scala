@@ -35,6 +35,7 @@ class ValueStanzaSpec extends BaseSpec {
   val listValue = "March,April,May"
   val emptyListLabel = "empty"
   val emptyListValue = ""
+  val listLengthLabel = "ListLength"
   val singleEntryListLabel = "single"
   val singleEntryListValue = "July"
   val copiedScalarLabel = "copiedScalarLabel"
@@ -171,6 +172,34 @@ class ValueStanzaSpec extends BaseSpec {
          |      "type": "${listType}",
          |      "label": "${listLabel}",
          |      "value": "${listValue}"
+         |    }
+         |  ],
+         |  "next": ["${next}"],
+         |  "stack": ${stack}
+         |}
+    """.stripMargin
+    )
+    .as[JsObject]
+
+  val validValueStanzaWithListLengthValueJson: JsObject = Json
+    .parse(
+      s"""{
+         |  "type": "${stanzaType}",
+         |  "values": [
+         |    {
+         |      "type": "${listType}",
+         |      "label": "${singleEntryListLabel}",
+         |      "value": "${singleEntryListValue}"
+         |    },
+         |    {
+         |      "type": "${listType}",
+         |      "label": "${listLabel}",
+         |      "value": "${listValue}"
+         |    },
+         |    {
+         |      "type": "${scalarType}",
+         |      "label": "${listLengthLabel}",
+         |      "value": "[list:${listLabel}:length]"
          |    }
          |  ],
          |  "next": ["${next}"],
@@ -407,6 +436,22 @@ class ValueStanzaSpec extends BaseSpec {
 
       updatedLabels.valueAsList(copiedScalarLabel) shouldBe Some(Nil)
     }
+
+    "correctly evaluate list length placeholder" in {
+
+      val stanza: ValueStanza = validValueStanzaWithListLengthValueJson.as[ValueStanza]
+
+      val labels = LabelCache()
+
+      val (nextStanza, updatedLabels) = stanza.eval(labels)
+
+      nextStanza shouldBe next
+
+      updatedLabels.valueAsList(singleEntryListLabel) shouldBe Some(List(singleEntryListValue))
+      updatedLabels.valueAsList(listLabel) shouldBe Some(List("March", "April", "May"))
+      updatedLabels.value(listLengthLabel) shouldBe Some("3")
+    }
+
 
     missingJsObjectAttrTests[ValueStanza](validValueStanzaJson, List("type"))
 

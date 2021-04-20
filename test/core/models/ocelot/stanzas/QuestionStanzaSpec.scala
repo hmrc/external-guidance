@@ -97,11 +97,11 @@ class QuestionStanzaSpec extends BaseSpec with TestConstants {
 
     "Validate input as correct when valid" in {
       val answers =
-        Seq(Phrase(Vector("Some Text 1", "Welsh, Some Text 1")),
-            Phrase(Vector("Some Text 2", "Welsh, Some Text 2")),
-            Phrase(Vector("Some Text 3", "Welsh, Some Text 3")))
+        Seq(Phrase(Vector("Some Text 1", "Welsh: Some Text 1")),
+            Phrase(Vector("Some Text 2", "Welsh: Some Text 2")),
+            Phrase(Vector("Some Text 3", "Welsh: Some Text 3")))
       val answerDestinations = Seq("4", "5", "6")
-      val questionPhrase: Phrase = Phrase(Vector("Some Text", "Welsh, Some Text"))
+      val questionPhrase: Phrase = Phrase(Vector("Some Text", "Welsh: Some Text"))
 
       val question: core.models.ocelot.stanzas.Question = Question(questionPhrase, answers, answerDestinations, None, false)
 
@@ -110,11 +110,11 @@ class QuestionStanzaSpec extends BaseSpec with TestConstants {
 
     "Validate input as incorrect when invalid" in {
       val answers =
-        Seq(Phrase(Vector("Some Text 1", "Welsh, Some Text 1")),
-            Phrase(Vector("Some Text 2", "Welsh, Some Text 2")),
-            Phrase(Vector("Some Text 3", "Welsh, Some Text 3")))
+        Seq(Phrase(Vector("Some Text 1", "Welsh: Some Text 1")),
+            Phrase(Vector("Some Text 2", "Welsh: Some Text 2")),
+            Phrase(Vector("Some Text 3", "Welsh: Some Text 3")))
       val answerDestinations = Seq("4", "5", "6")
-      val questionPhrase: Phrase = Phrase(Vector("Some Text", "Welsh, Some Text"))
+      val questionPhrase: Phrase = Phrase(Vector("Some Text", "Welsh: Some Text"))
 
       val question: core.models.ocelot.stanzas.Question = Question(questionPhrase, answers, answerDestinations, None, false)
 

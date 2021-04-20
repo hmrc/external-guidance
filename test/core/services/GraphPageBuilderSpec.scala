@@ -97,10 +97,10 @@ class GraphPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     )
 
     private val phrases = Vector[Phrase](
-      Phrase(Vector("Some Text", "Welsh, Some Text")),
-      Phrase(Vector(s"Some Text1 [link:Link to stanza 17:$pageId7]", s"Welsh, Some Text1 [link:Link to stanza 17:$pageId7]")),
-      Phrase(Vector(s"Some [link:PageId3:$pageId3] Text2", s"Welsh, Some [link:PageId3:$pageId3] Text2")),
-      Phrase(Vector(s"Some [link:Link to stanza 11:$pageId5] Text3", s"Welsh, Some [link:Link to stanza 11:$pageId5] Text3"))
+      Phrase(Vector("Some Text", "Welsh: Some Text")),
+      Phrase(Vector(s"Some Text1 [link:Link to stanza 17:$pageId7]", s"Welsh: Some Text1 [link:Link to stanza 17:$pageId7]")),
+      Phrase(Vector(s"Some [link:PageId3:$pageId3] Text2", s"Welsh: Some [link:PageId3:$pageId3] Text2")),
+      Phrase(Vector(s"Some [link:Link to stanza 11:$pageId5] Text3", s"Welsh: Some [link:Link to stanza 11:$pageId5] Text3"))
     )
 
     private val links = Vector(Link(0, pageId3, "", false), Link(1, pageId6, "", false), Link(2, Process.StartStanzaId, "Back to the start", false))

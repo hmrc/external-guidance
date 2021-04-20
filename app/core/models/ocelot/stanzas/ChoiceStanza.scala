@@ -19,7 +19,7 @@ package core.models.ocelot.stanzas
 import java.time.LocalDate
 
 import core.models.ocelot.{asDecimal, asDate, Labels}
-import core.models.ocelot.{labelReference, labelReferences}
+import core.models.ocelot.{labelScalarReference, labelReferences}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -69,7 +69,7 @@ sealed trait ChoiceTest {
   val left: String
   val right: String
   def eval(labels: Labels): Boolean
-  def value(arg: String, labels: Labels): String = labelReference(arg).fold(arg)(ref => labels.value(ref).getOrElse(""))
+  def value(arg: String, labels: Labels): String = labelScalarReference(arg)(labels).getOrElse("")
 
   def op(f: (BigDecimal, BigDecimal) => Boolean, g: (String, String) => Boolean, h: (LocalDate, LocalDate) => Boolean, labels: Labels): Boolean = {
     val x = value(left, labels)
