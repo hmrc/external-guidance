@@ -76,7 +76,9 @@ class ApprovalService @Inject() (
                       )
                     )
                   case Left(NotFoundError) => Future.successful(Left(NotFoundError))
-                  case Left(_) => Future.successful(Left(InternalServerError))
+                  case Left(x) =>
+                    logger.error(x.toString)
+                    Future.successful(Left(InternalServerError))
                 }
               case Left(DuplicateKeyError) => Future.successful(Left(DuplicateKeyError))
               case _ => Future.successful(Left(InternalServerError))

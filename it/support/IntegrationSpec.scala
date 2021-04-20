@@ -16,7 +16,10 @@
 
 package support
 
-import org.scalatest._
+
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, EitherValues}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsValue, Json}
@@ -25,7 +28,7 @@ import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import play.api.{Application, Environment, Mode}
 
 trait IntegrationSpec
-    extends WordSpecLike
+    extends AnyWordSpec
     with EitherValues
     with Matchers
     with FutureAwaits

@@ -32,6 +32,7 @@ class GetApprovalProcessISpec extends IntegrationSpec {
 
       val result = await(request.post(processToSave))
       val json = result.body[JsValue].as[JsObject]
+
       (json \ "id").as[String]
     }
 
