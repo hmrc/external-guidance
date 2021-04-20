@@ -41,34 +41,6 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       "2" -> DummyStanza
     )
 
-    "detect IncompleteDateInputPage error" in {
-      val flow = Map(
-        Process.StartStanzaId -> PageStanza("/url", Seq("1"), true),
-        "1" -> InstructionStanza(0, Seq("2"), None, false),
-        "2" -> InputStanza(Currency, Seq("4"), 0, Some(0), "Label", None, false),
-        "4" -> Choice(ChoiceStanza(Seq("5","end"), Seq(ChoiceStanzaTest("[label:label]", LessThanOrEquals, "8")), false)),
-        "5" -> PageStanza("/url2", Seq("1"), true),
-        "6" -> InstructionStanza(0, Seq("2"), None, false),
-        "2" -> InputStanza(Date, Seq("4"), 0, Some(0), "Label", None, false),
-        "end" -> EndStanza
-      )
-      val process = Process(
-        metaSection,
-        flow,
-        Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh: Some Text")),
-          Phrase(Vector("Some Text1", "Welsh: Some Text1")),
-          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh: Some Text3"))
-        ),
-        Vector[Link]()
-      )
-      pageBuilder.pagesWithValidation(process, Process.StartStanzaId) match {
-        case Left(Seq(IncompleteDateInputPage("5"), IncompleteDateInputPage("start"))) => succeed
-        case err => fail(s"IncompleteDateInputPage not detected $err")
-      }
-    }
-
     "detect StanzaNotFound error" in {
       val process = Process(metaSection, flow, Vector[Phrase](), Vector[Link]())
 
@@ -98,70 +70,10 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         Vector[Link]()
       )
 
-      pageBuilder.pagesWithValidation(process) match {
+      pageBuilder.pages(process) match {
         case Left(List(PageStanzaMissing("start"))) => succeed
         case Left(err) => fail(s"Missing PageStanza, failed with $err")
         case x => fail(s"Missing PageStanza with $x")
-      }
-    }
-
-    "detect VisualStanzasAfterQuestion error when Question stanzas followed by UI stanzas" in {
-      val flow = Map(
-        Process.StartStanzaId -> PageStanza("/url", Seq("1"), true),
-        "1" -> InstructionStanza(0, Seq("2"), None, false),
-        "2" -> QuestionStanza(1, Seq(2, 3), Seq("4", "5"), None, false),
-        "4" -> InstructionStanza(0, Seq("end"), None, false),
-        "5" -> InstructionStanza(0, Seq("end"), None, false),
-        "end" -> EndStanza
-      )
-      val process = Process(
-        metaSection,
-        flow,
-        Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh: Some Text")),
-          Phrase(Vector("Some Text1", "Welsh: Some Text1")),
-          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh: Some Text3"))
-        ),
-        Vector[Link]()
-      )
-
-      pageBuilder.pagesWithValidation(process) match {
-        case Left(List(VisualStanzasAfterQuestion("4"))) => succeed
-        case Left(err) => fail(s"Should generate VisualStanzasAfterQuestion, failed with $err")
-        case x => fail(s"Should generate VisualStanzasAfterQuestion, returned $x")
-      }
-    }
-
-    "detect VisualStanzasAfterQuestion with possible loop in post Question stanzas" in {
-      val flow = Map(
-        Process.StartStanzaId -> PageStanza("/url", Seq("1"), true),
-        "1" -> InstructionStanza(0, Seq("2"), None, false),
-        "2" -> QuestionStanza(1, Seq(2, 3, 4, 5), Seq("4", "5", "6", "7"), None, false),
-        "4" -> Choice(ChoiceStanza(Seq("5","6"), Seq(ChoiceStanzaTest("[label:X]", LessThanOrEquals, "8")), false)),
-        "5" -> ValueStanza(List(Value(ScalarType, "PageUrl", "/blah")), Seq("4"), false),
-        "6" -> InstructionStanza(0, Seq("end"), None, false),
-        "7" -> InstructionStanza(0, Seq("end"), None, false),
-        "end" -> EndStanza
-      )
-      val process = Process(
-        metaSection,
-        flow,
-        Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh: Some Text")),
-          Phrase(Vector("Some Text1", "Welsh: Some Text1")),
-          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh: Some Text3")),
-          Phrase(Vector("Some Text4", "Welsh: Some Text4")),
-          Phrase(Vector("Some Text5", "Welsh: Some Text5"))
-        ),
-        Vector[Link]()
-      )
-
-      pageBuilder.pagesWithValidation(process) match {
-        case Left(List(VisualStanzasAfterQuestion("6"))) => succeed
-        case Left(err) => fail(s"Should generate VisualStanzasAfterQuestion, failed with $err")
-        case x => fail(s"Should generate VisualStanzasAfterQuestion, returned $x")
       }
     }
 
@@ -186,7 +98,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         Vector[Link]()
       )
 
-      pageBuilder.pagesWithValidation(process) match {
+      pageBuilder.pages(process) match {
         case Left(List(PageUrlEmptyOrInvalid(Process.StartStanzaId))) => succeed
         case Left(err) => fail(s"Missing ValueStanza containing PageUrl value not detected, failed with $err")
         case _ => fail(s"Missing ValueStanza containing PageUrl value not detected")
@@ -196,7 +108,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
     "detect PageUrlEmptyOrInvalid error when PageStanza url is /" in {
       val invalidProcess = invalidOnePageJson.as[Process]
 
-      pageBuilder.pagesWithValidation(invalidProcess) match {
+      pageBuilder.pages(invalidProcess) match {
         case Left(List(PageUrlEmptyOrInvalid("4"))) => succeed
         case Left(err) => fail(s"PageStanza url equal to / not detected, failed with $err")
         case _ => fail(s"PageStanza url equal to / not detected")
@@ -224,7 +136,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         Vector[Link]()
       )
 
-      pageBuilder.pagesWithValidation(process) match {
+      pageBuilder.pages(process) match {
         case Left(List(PhraseNotFound(id, four))) => succeed
         case Left(err) => fail(s"Missing PhraseNotFound(4) with error $err")
         case Right(_) => fail(s"Missing PhraseNotFound(4)")
@@ -252,7 +164,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         Vector[Link]()
       )
 
-      pageBuilder.pagesWithValidation(process) match {
+      pageBuilder.pages(process) match {
         case Left(List(PhraseNotFound(id, four))) => succeed
         case Left(err) => fail(s"Missing PhraseNotFound(4) with error $err")
         case Right(_) => fail(s"Missing PhraseNotFound(4)")
@@ -267,7 +179,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       )
       val process = Process(metaSection, flow, Vector[Phrase](Phrase(Vector("Some Text", "Welsh: Some Text"))), Vector[Link]())
 
-      pageBuilder.pagesWithValidation(process) match {
+      pageBuilder.pages(process) match {
         case Left(List(PhraseNotFound(id, 2))) => succeed
         case Left(err) => fail(s"Missing PhraseNotFound(2) with error $err")
         case Right(_) => fail(s"Missing PhraseNotFound(2)")
@@ -282,7 +194,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       )
       val process = Process(metaSection, flow, Vector[Phrase](Phrase(Vector("Some Text", "Welsh: Some Text"))), Vector[Link]())
 
-      pageBuilder.pagesWithValidation(process) match {
+      pageBuilder.pages(process) match {
         case Left(List(PhraseNotFound(id, 2))) => succeed
         case Left(err) => fail(s"Missing PhraseNotFound(2) with error $err")
         case Right(_) => fail(s"Missing PhraseNotFound(2)")
@@ -297,7 +209,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       )
       val process = Process(metaSection, flow, Vector[Phrase](Phrase(Vector("Some Text", "Welsh: Some Text"))), Vector[Link]())
 
-      pageBuilder.pagesWithValidation(process) match {
+      pageBuilder.pages(process) match {
         case Left(List(PhraseNotFound(id, 3))) => succeed
         case Left(err) => fail(s"Missing PhraseNotFound(3) with error $err")
         case Right(_) => fail(s"Missing PhraseNotFound(3)")
@@ -312,7 +224,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       )
       val process = Process(metaSection, flow, Vector[Phrase](Phrase(Vector("Some Text", "Welsh: Some Text"))), Vector[Link]())
 
-      pageBuilder.pagesWithValidation(process) match {
+      pageBuilder.pages(process) match {
         case Left(List(PhraseNotFound(id, 3))) => succeed
         case Left(err) => fail(s"Missing PhraseNotFound(3) with error $err")
         case Right(_) => fail(s"Missing PhraseNotFound(3)")
@@ -327,7 +239,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       )
       val process = Process(metaSection, flow, Vector[Phrase](Phrase(Vector("Some Text", "Welsh: Some Text"))), Vector[Link]())
 
-      pageBuilder.pagesWithValidation(process) match {
+      pageBuilder.pages(process) match {
         case Left(List(PhraseNotFound(id, 2))) => succeed
         case Left(err) => fail(s"Missing PhraseNotFound(2) with error $err")
         case Right(_) => fail(s"Missing PhraseNotFound(2)")
@@ -351,81 +263,11 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         Vector[Link](Link(0, "http://my.com/search", "MyCOM Search Engine", false))
       )
 
-      pageBuilder.pagesWithValidation(process) match {
+      pageBuilder.pages(process) match {
         case Left(List(LinkNotFound(id, 1))) => succeed
         case Left(err) => fail(s"Missing LinkNotFound error. Actual error raised is $err")
         case Right(_) => fail("Page building terminated successfully when LinkNotFound error expected")
       }
-    }
-
-    "detect DuplicatePageUrl" in {
-      val flow = Map(
-        Process.StartStanzaId -> PageStanza("/this", Seq("1"), false),
-        "1" -> InstructionStanza(0, Seq("2"), None, false),
-        "2" -> QuestionStanza(1, Seq(2, 3), Seq("4", "5"), None, false),
-        "4" -> PageStanza("/this", Seq("5"), false),
-        "5" -> PageStanza("/that", Seq("end"), false),
-        "end" -> EndStanza
-      )
-      val process = Process(
-        metaSection,
-        flow,
-        Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh: Some Text")),
-          Phrase(Vector("Some Text1", "Welsh: Some Text1")),
-          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh: Some Text3"))
-        ),
-        Vector[Link]()
-      )
-
-      pageBuilder.pagesWithValidation(process) match {
-        case Left(List(DuplicatePageUrl("4", "/this"))) => succeed
-        case Left(err) => fail(s"DuplicatePageUrl error not detected, failed with $err")
-        case res => fail(s"DuplicatePageUrl not detected $res")
-      }
-    }
-
-    "detect UseOfReservedUrl" in {
-      val flow = Map(
-        Process.StartStanzaId -> PageStanza("/this", Seq("1"), false),
-        "1" -> InstructionStanza(0, Seq("2"), None, false),
-        "2" -> QuestionStanza(1, Seq(2, 3), Seq("4", "5"), None, false),
-        "4" -> PageStanza("/session-restart", Seq("5"), false),
-        "5" -> PageStanza("/session-timeout", Seq("end"), false),
-        "end" -> EndStanza
-      )
-      val process = Process(
-        metaSection,
-        flow,
-        Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh: Some Text")),
-          Phrase(Vector("Some Text1", "Welsh: Some Text1")),
-          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh: Some Text3"))
-        ),
-        Vector[Link]()
-      )
-
-      pageBuilder.pagesWithValidation(process) match {
-        case Left(List(UseOfReservedUrl("4"), UseOfReservedUrl("5"))) => succeed
-        case Left(err) => fail(s"UseOfReservedUrl error not detected, failed with $err")
-        case Right(res) => fail(s"UseOfReservedUrl not detected $res")
-      }
-    }
-
-    "detect multiple DuplicatePageUrl" in {
-      duplicateUrlsJson.validate[Process] match {
-        case JsSuccess(process, _) =>
-          pageBuilder.pagesWithValidation(process) match {
-            case Left(List(DuplicatePageUrl("6","/feeling-bad"), DuplicatePageUrl("8","/feeling-good"))) => succeed
-            case Left(err) => fail(s"DuplicatePageUrl error not detected, failed with $err")
-            case res => fail(s"DuplicatePageUrl not detected $res")
-          }
-
-        case JsError(errs) => fail(s"Errors reported $errs")
-      }
-
     }
 
     "detect MissingWelshText" in {
@@ -448,37 +290,10 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         ),
         Vector[Link]()
       )
-      pageBuilder.pagesWithValidation(process) match {
+      pageBuilder.pages(process) match {
         case Left(List(MissingWelshText("2", _, "Some Text1"))) => succeed
         case Left(err) => fail(s"MissingWelshText error not detected, failed with $err")
         case _ => fail(s"MissingWelshText not detected")
-      }
-    }
-
-    "detect InconsistentQuestionError" in {
-      val flow = Map(
-        Process.StartStanzaId -> PageStanza("/this", Seq("1"), false),
-        "1" -> InstructionStanza(0, Seq("2"), None, false),
-        "2" -> QuestionStanza(1, Seq(2, 3), Seq("4"), None, false),
-        "4" -> PageStanza("/that", Seq("5"), false),
-        "5" -> InstructionStanza(0, Seq("end"), None, false),
-        "end" -> EndStanza
-      )
-      val process = Process(
-        metaSection,
-        flow,
-        Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh: Some Text")),
-          Phrase(Vector("Some Text1", "Welsh: Some Text1")),
-          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh: Some Text3"))
-        ),
-        Vector[Link]()
-      )
-      pageBuilder.pagesWithValidation(process) match {
-        case Left(List(InconsistentQuestionError("2"))) => succeed
-        case Left(err) => fail(s"InconsistentQuestionError error not detected, failed with $err")
-        case _ => fail(s"InconsistentQuestionError not detected")
       }
     }
 
@@ -499,7 +314,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       val result = jsObject.as[JsObject].validate[Process].fold(
         errs => Left(core.models.errors.Error(GuidanceError.fromJsonValidationErrors(errs))),
         process => {
-          pageBuilder.pagesWithValidation(process, process.startPageId).fold(errs => Left(core.models.errors.Error(errs)),
+          pageBuilder.pages(process, process.startPageId).fold(errs => Left(core.models.errors.Error(errs)),
             pages => Right((process, pages, jsObject))
         )}
       )
@@ -539,80 +354,11 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         Vector[Link]()
       )
 
-      pageBuilder.pagesWithValidation(process) match {
+      pageBuilder.pages(process) match {
         case Right(_) => succeed
         case Left(err) => fail(s"Valid sequence stanza definition should pass validation, but failed with error $err")
       }
 
-    }
-
-    "detect multiple exclusive options in a sequence stanza" in {
-
-      val flow: Map[String, Stanza] = Map(
-        Process.StartStanzaId -> PageStanza("/start", Seq("10"), stack = false),
-        "10" -> CalloutStanza(TypeError, 2, Seq("1"), false),
-        "1" -> InstructionStanza(0, Seq("2"), None, stack = false),
-        "2" -> SequenceStanza(1, Seq("3", "5", "7"), Seq(2, 3), None, stack = false),
-        "3" -> PageStanza("/page-1", Seq("4"), stack = false),
-        "4" -> InstructionStanza(0, Seq("end"), None, stack = false),
-        "5" -> PageStanza("/page-2", Seq("6"), stack = false),
-        "6" -> InstructionStanza(0, Seq("end"), None, stack = false),
-        "7" -> PageStanza("/page-3", Seq("8"), stack = false),
-        "8" -> InstructionStanza(0, Seq("end"), None, stack = false),
-        "end" -> EndStanza
-      )
-
-      val process = Process(
-        metaSection,
-        flow,
-        Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh: Some Text")),
-          Phrase(Vector("Exclusive sequence stanza", "Welsh: Exclusive sequence stanza")),
-          Phrase(Vector("Some Text2 [exclusive]", "Welsh: Some Text2")),
-          Phrase(Vector("Some Text3 [exclusive]", "Welsh: Some Text3"))
-        ),
-        Vector[Link]()
-      )
-
-      pageBuilder.pagesWithValidation(process) match {
-        case Left(List(MultipleExclusiveOptionsError("2"))) => succeed
-        case Left(err) => fail(s"Failed to detect multiple exclusive options. Instead failed with error $err")
-        case _ => fail("Failed to detect multiple exclusive options")
-      }
-    }
-
-    "detect missing TypeError callout in an exclusive sequence stanza" in {
-
-      val flow: Map[String, Stanza] = Map(
-        Process.StartStanzaId -> PageStanza("/start", Seq("1"), stack = false),
-        "1" -> InstructionStanza(0, Seq("2"), None, stack = false),
-        "2" -> SequenceStanza(1, Seq("3", "5", "7"), Seq(2, 3), None, stack = false),
-        "3" -> PageStanza("/page-1", Seq("4"), stack = false),
-        "4" -> InstructionStanza(0, Seq("end"), None, stack = false),
-        "5" -> PageStanza("/page-2", Seq("6"), stack = false),
-        "6" -> InstructionStanza(0, Seq("end"), None, stack = false),
-        "7" -> PageStanza("/page-3", Seq("8"), stack = false),
-        "8" -> InstructionStanza(0, Seq("end"), None, stack = false),
-        "end" -> EndStanza
-      )
-
-      val process = Process(
-        metaSection,
-        flow,
-        Vector[Phrase](
-          Phrase(Vector("Some Text", "Welsh: Some Text")),
-          Phrase(Vector("Exclusive sequence stanza", "Welsh: Exclusive sequence stanza")),
-          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
-          Phrase(Vector("Some Text3 [exclusive]", "Welsh: Some Text3"))
-        ),
-        Vector[Link]()
-      )
-
-      pageBuilder.pagesWithValidation(process) match {
-        case Left(List(IncompleteExclusiveSequencePage(Process.StartStanzaId))) => succeed
-        case Left(err) => fail(s"Failed to detect missing TypeError callout. Instead failed with error $err")
-        case _ => fail("Failed to detect missing TypeError callout")
-      }
     }
 
   }

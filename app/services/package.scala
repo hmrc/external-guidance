@@ -20,11 +20,29 @@ import core.models.errors.Error
 import core.models.ocelot.errors._
 import core.models.RequestOutcome
 import core.models.ocelot.Process
+import core.models.ocelot.stanzas.{TitleCallout, YourCallCallout, Question, Sequence, Input}
 import play.api.libs.json._
 import config.AppConfig
 
 package object services {
-  def guidancePagesAndProcess(pageBuilder: PageBuilder, jsObject: JsObject)
+
+  def fromPageDetails[A](pages: Seq[Page])(f: (String, String, String) => A): List[A] =
+  pages.toList.flatMap { page =>
+    page.stanzas.collectFirst {
+      case TitleCallout(text, _, _) =>
+        f(page.id, page.url, text.english)
+      case YourCallCallout(text, _, _) =>
+        f(page.id, page.url, text.english)
+      case i: Question =>
+        f(page.id, page.url, hintRegex.replaceAllIn(i.text.english, ""))
+      case i: Sequence =>
+        f(page.id, page.url, hintRegex.replaceAllIn(i.text.english, ""))
+      case i: Input =>
+        f(page.id, page.url, hintRegex.replaceAllIn(i.name.english, ""))
+    }
+  }
+
+  def guidancePagesAndProcess(pageBuilder: ValidatingPageBuilder, jsObject: JsObject)
                    (implicit c: AppConfig): RequestOutcome[(Process, Seq[Page], JsObject)] =
     jsObject.validate[Process].fold(errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
       incomingProcess => {

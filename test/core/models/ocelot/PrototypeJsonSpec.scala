@@ -19,13 +19,14 @@ package core.models.ocelot
 import org.scalatest.{Matchers, WordSpec}
 import play.api.libs.json.{Json, JsObject}
 import core.services.{DefaultTodayProvider, Placeholders, PageBuilder}
+import services.ValidatingPageBuilder
 
 class PrototypeJsonSpec extends WordSpec with Matchers {
 
   trait Test {
     val jsObject: JsObject = Json.parse(PrototypeJson.json).as[JsObject]
     val process: Process = jsObject.as[Process]
-    val pageBuilder = new PageBuilder(new Placeholders(new DefaultTodayProvider))
+    val pageBuilder = new ValidatingPageBuilder(new PageBuilder(new Placeholders(new DefaultTodayProvider)))
   }
 
   "Prototype Json" must {
