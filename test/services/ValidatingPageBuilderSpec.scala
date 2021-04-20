@@ -83,6 +83,32 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHel
     val ihtProcess = ihtJsonShort.as[Process]
   }
 
+  "ValidatingPageBuilder" must {
+    "Detect an unsupported page redirection from a Choice stanza" in new Test {
+      val invalidFlow = Map(
+      pageId1 -> PageStanza("/start", Seq("1"), false),
+      "1" -> InstructionStanza(2, Seq("2"), None, false),
+      "2" -> QuestionStanza(1, Seq(2, 1), Seq(pageId2, pageId3), None, false),
+      pageId2 -> PageStanza("/this4", Seq("55"), false),
+      "55" -> ChoiceStanza(Seq("5", pageId7), Seq(ChoiceStanzaTest("yes", LessThanOrEquals, "No")), false),
+      "5" -> InstructionStanza(1, Seq("end"), Some(2), false),
+      pageId3 -> PageStanza("/this6", Seq("7"), false),
+      "7" -> InstructionStanza(2, Seq("8"), None, false),
+      "8" -> QuestionStanza(1, Seq(2, 3), Seq(pageId2, pageId7), None, false),
+      pageId7 -> PageStanza("/this15", Seq("18"), false),
+      "18" -> InstructionStanza(0, Seq("end"), None, false),
+      "end" -> EndStanza
+    )
+      val testProcess = processWithLinks.copy(flow = invalidFlow)
+
+      pageBuilder.pagesWithValidation(testProcess) match {
+        case Right(pages) => fail(s"Attempt to parse page with unsupported page redirect succeeded")
+        case Left(err) if err == List(PageRedirectNotSupported("55")) => succeed
+        case Left(err) => fail(s"Attempt to parse page with unsupported page redirect failed with error ${err}")
+      }
+    }
+  }
+
   "When processing guidance containing zero or more row stanzas" must {
 
     "successfully create an instance of Row from a RowStanza with a single data cell" in new Test {
@@ -318,213 +344,6 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHel
         case Left(err) => fail(s"FAIL ${err.toString}")
       }
     }
-  }
-
-  def testPagesInPrototypeJson(pages: Seq[Page]): Unit = {
-
-    val expectedPageIds: List[String] = List(
-      Process.StartStanzaId,
-      "26",
-      "36",
-      "37",
-      "39",
-      "46",
-      "53",
-      "60",
-      "70",
-      "77",
-      "120",
-      "80",
-      "83",
-      "90",
-      "97",
-      "102",
-      "109",
-      "113",
-      "121",
-      "124",
-      "127",
-      "131",
-      "159",
-      "138",
-      "143",
-      "151",
-      "157",
-      "158"
-    )
-
-    pages.length shouldBe expectedPageIds.length
-
-    pages.forall(p => expectedPageIds.contains(p.id)) shouldBe true
-  }
-
-  /**
-    * Test question page in simple question page test
-    *
-    * @param page - firstPage
-    */
-  def testSqpQp(page: Page): Unit = {
-
-    "Define the question page correctly" in {
-
-      page.id shouldBe Process.StartStanzaId
-      page.stanzas.size shouldBe 4
-
-      page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpCallout, sqpQpQuestion)
-
-      page.next shouldBe Seq("6", "4")
-    }
-
-  }
-
-  /**
-    * Test first answer page in simple question page test
-    *
-    * @param page - secondPage
-    */
-  def testSqpFap(page: Page): Unit = {
-
-    "Define the first answer page correctly" in {
-
-      page.id shouldBe "4"
-      page.stanzas.size shouldBe 3
-
-      page.stanzas(0) shouldBe sqpFapPageStanza
-      page.stanzas(1) shouldBe sqpFapInstruction
-      page.stanzas.last shouldBe EndStanza
-
-      page.next shouldBe Nil
-    }
-
-  }
-
-  /**
-    * Test second answer page in simple question page
-    *
-    * @param page - thirdPage
-    */
-  def testSqpSap(page: Page): Unit = {
-
-    "Define the second answer page correctly" in {
-
-      page.id shouldBe "6"
-      page.stanzas.size shouldBe 4
-
-      page.stanzas(0) shouldBe sqpSapPageStanza
-      page.stanzas(1) shouldBe sqpSapInstruction
-      page.stanzas(2) shouldBe sqpSapCallout
-      page.stanzas.last shouldBe EndStanza
-
-      page.next shouldBe Nil
-    }
-
-  }
-  /**
-   * Test input page in simple question page test
-   *
-   * @param page the input page to test
-   */
-  def testSqpInput(page: Page): Unit = {
-
-    "Define the input page correctly" in {
-
-      page.id shouldBe Process.StartStanzaId
-      page.stanzas.size shouldBe 4
-
-      page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpCallout, sqpQpInput)
-
-      page.next shouldBe Seq("4")
-    }
-
-  }
-
-  /**
-   * Test input page in simple date input page test
-   *
-   * @param page the input page to test
-   */
-  def testSimpleDateInputPage(page: Page): Unit = {
-
-    "Define the input page correctly" in {
-
-      page.id shouldBe Process.StartStanzaId
-      page.stanzas.size shouldBe 3
-
-      page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpDateInput)
-
-      page.next shouldBe Seq("4")
-    }
-
-  }
-
-  /**
-   * Test input page in simple number input page test
-   *
-   * @param page the input page to test
-   */
-  def testSimpleNumberInputPage(page: Page): Unit = {
-
-    "Define the input page correctly" in {
-
-      page.id shouldBe Process.StartStanzaId
-      page.stanzas.size shouldBe 3
-
-      page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpNumberInput)
-
-      page.next shouldBe Seq("4")
-    }
-
-  }
-
-  /**
-   * Test input page in simple date input page test
-   *
-   * @param page the input page to test
-   */
-  def testSimpleTextInputPage(page: Page): Unit = {
-
-    "Define the input page correctly" in {
-
-      page.id shouldBe Process.StartStanzaId
-      page.stanzas.size shouldBe 3
-
-      page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpTextInput)
-
-      page.next shouldBe Seq("4")
-    }
-
-  }
-
-  /**
-    *
-    * Test input page in simple sequence page test
-    *
-    * @param page
-    */
-  def testSimpleSequencePage(page: Page): Unit = {
-
-    "define the simple sequence page correctly" in {
-
-      page.id shouldBe Process.StartStanzaId
-      page.stanzas.size shouldBe 3
-
-      page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpNonExclusiveSequence)
-
-      page.next shouldBe Seq("6", "4")
-    }
-
-  }
-
-  def testExclusiveSequencePage(page: Page): Unit = {
-
-    "define an exclusive sequence page correctly" in {
-
-      page.id shouldBe Process.StartStanzaId
-      page.stanzas.size shouldBe 4
-
-      page.stanzas shouldBe Seq(sqpQpPageStanzaAlternate, sqpQpTypeErrorCallout, sqpQpInstruction, sqpQpExclusiveSequence)
-    }
-
   }
 
 }

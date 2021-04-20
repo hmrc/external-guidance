@@ -79,15 +79,15 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
     val pageIds = pages.map(_.id)
 
     @tailrec
-    def traverse(keys: Seq[String], page: Map[String, Stanza], seen: List[String]): Option[String] =
+    def traverse(keys: Seq[String], pageStanzas: Map[String, Stanza], seen: List[String]): Option[String] =
       keys match {
         case Nil => None
-        case x +: xs if seen.contains(x) => traverse(xs, page, seen)
-        case x +: xs => page.get(x) match {
-          case None => traverse(xs, page, x :: seen)
-          case Some(_: DataInput) => traverse(xs, page, x :: seen)
+        case x +: xs if seen.contains(x) => traverse(xs, pageStanzas, seen)
+        case x +: xs => pageStanzas.get(x) match {
+          case None => traverse(xs, pageStanzas, x :: seen)
+          case Some(_: DataInput) => traverse(xs, pageStanzas, x :: seen)
           case Some(s: Choice) if s.next.exists(n => pageIds.contains(n)) => Some(x)
-          case Some(s: Stanza) => traverse(s.next ++ xs, page, x :: seen)
+          case Some(s: Stanza) => traverse(s.next ++ xs, pageStanzas, x :: seen)
         }
       }
 
