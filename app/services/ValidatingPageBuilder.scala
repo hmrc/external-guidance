@@ -46,8 +46,6 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
       }
     )
 
-  private def sequenceFlowChecks(process: Process): List[GuidanceError] = Nil
-
   @tailrec
   private def checkDateInputErrorCallouts(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
     // Sufficient: 3 stacked callouts with messages containing 0,1 and 2 embedded parameters
