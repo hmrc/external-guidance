@@ -18,6 +18,7 @@ package core
 
 import core.models.ocelot._
 import core.models.errors.{Error, ProcessError, ValidationError}
+import core.models.ocelot.stanzas.{TitleCallout, YourCallCallout, Question, Sequence, Input}
 import core.models.ocelot.errors._
 import java.util.UUID
 
@@ -28,6 +29,21 @@ package object services {
   def validateProcessId(id: String): Either[Error, String] = if (id.matches(processIdformat)) Right(id) else Left(ValidationError)
   def uniqueLabels(pages: Seq[Page]):Seq[Label] = pages.flatMap(p => p.labels).distinct
   def uniqueLabelRefs(pages: Seq[Page]): Seq[String] = pages.flatMap(_.labelRefs)
+  def fromPageDetails[A](pages: Seq[Page])(f: (String, String, String) => A): List[A] =
+  pages.toList.flatMap { page =>
+    page.stanzas.collectFirst {
+      case TitleCallout(text, _, _) =>
+        f(page.id, page.url, text.english)
+      case YourCallCallout(text, _, _) =>
+        f(page.id, page.url, text.english)
+      case i: Question =>
+        f(page.id, page.url, hintRegex.replaceAllIn(i.text.english, ""))
+      case i: Sequence =>
+        f(page.id, page.url, hintRegex.replaceAllIn(i.text.english, ""))
+      case i: Input =>
+        f(page.id, page.url, hintRegex.replaceAllIn(i.name.english, ""))
+    }
+  }
 
   implicit def toProcessErr(err: GuidanceError): ProcessError = err match {
     case e: StanzaNotFound => ProcessError(s"Missing stanza at id = ${e.id}", e.id)

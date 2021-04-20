@@ -52,13 +52,12 @@ package object ocelot {
   def pageLinkIds(phrases: Seq[Phrase]): List[String] = phrases.flatMap(phrase => pageLinkIds(phrase.english)).toList
   def labelReferences(str: String): List[String] = plSingleGroupCaptures(labelRefRegex, str)
   def labelReference(str: String): Option[String] = plSingleGroupCaptures(labelRefRegex, str).headOption
+  def listLength(listName: String, labels: Labels): Option[String] = labels.valueAsList(listName).fold[Option[String]](None){l => Some(l.length.toString)}
   def labelScalarMatch(m: Regex.Match, labels: Labels, lbl: String => Option[String]): Option[String] =
     Option(m.group(1)).fold[Option[String]]{
-      Option(m.group(4)).fold[Option[String]](None){list =>
-        labels.valueAsList(list).fold[Option[String]](None){l => Some(l.length.toString)}
-      }
+      Option(m.group(4)).fold[Option[String]](None)(list => listLength(list, labels))
     }{label => lbl(label)}
-  def labelScalarReference(str: String)(implicit labels: Labels): Option[String] =
+  def labelScalarValue(str: String)(implicit labels: Labels): Option[String] =
     singleLabelOrListRegex.findFirstMatchIn(str).fold[Option[String]](Some(str)){labelScalarMatch(_, labels, labels.value)}
   def asTextString(value: String): Option[String] = value.trim.headOption.fold[Option[String]](None)(_ => Some(value.trim))
   def asDecimal(value: String): Option[BigDecimal] =

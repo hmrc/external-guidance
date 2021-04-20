@@ -498,6 +498,28 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
     }
 
+    "correctly determine the page title for a non-exclusive sequence page" in {
+
+      case class Dummy(id: String, pageUrl: String, pageTitle: String)
+
+      val process: Process = Process(meta, simpleSequencePage, phrases, links)
+
+      pageBuilder.pages(process) match {
+
+        case Right(pages) =>
+
+            val pageInfo = fromPageDetails(pages)(Dummy)
+
+            pageInfo.length shouldBe 1
+
+            pageInfo.head.id shouldBe "start"
+            pageInfo.head.pageUrl shouldBe "/page/1"
+            pageInfo.head.pageTitle shouldBe "Text 7"
+
+        case Left(err) => fail(s"Flow error $err")
+      }
+    }
+
     "when processing an exclusive sequence page" must {
 
       val process: Process = Process(meta, simpleExclusiveSequencePage, exclusiveSequencePhrases, links)
@@ -520,6 +542,31 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
         case Left(err) => fail(s"Flow error $err")
       }
+    }
+
+
+
+    "correctly determine the page title for an exclusive sequence page" in {
+
+      case class Dummy(id: String, pageUrl: String, pageTitle: String)
+
+      val process: Process = Process(meta, simpleExclusiveSequencePage, exclusiveSequencePhrases, links)
+
+      pageBuilder.pages(process) match {
+
+        case Right(pages) =>
+
+            val pageInfo = fromPageDetails(pages)(Dummy)
+
+            pageInfo.length shouldBe 1
+
+            pageInfo.head.id shouldBe "start"
+            pageInfo.head.pageUrl shouldBe "/page/1"
+            pageInfo.head.pageTitle shouldBe "What kind of fruit do you like?"
+
+        case Left(err) => fail(s"Flow error $err")
+      }
+
     }
 
   } // End of PageBuilder must
@@ -761,6 +808,132 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     }
   }
 
+  "When parsing a process" should  {
+    "determine the page title" in new Test {
+
+      case class Dummy(id: String, pageUrl: String, pageTitle: String)
+
+      pageBuilder.pages(Json.parse(processWithCallouts).as[Process]) match {
+        case Right(pages) =>
+          val pageInfo = fromPageDetails(pages)(Dummy)
+
+          pageInfo shouldNot be(Nil)
+          pageInfo.length shouldBe 7
+
+          pageInfo(0).id shouldBe "start"
+          pageInfo(0).pageUrl shouldBe "/example-page-1"
+          pageInfo(0).pageTitle shouldBe "External Guidance Testing process"
+
+          pageInfo(1).id shouldBe "13"
+          pageInfo(1).pageUrl shouldBe "/example-page-2"
+          pageInfo(1).pageTitle shouldBe "User role"
+
+          pageInfo(2).id shouldBe "19"
+          pageInfo(2).pageUrl shouldBe "/example-page-3"
+          pageInfo(2).pageTitle shouldBe "Who reviews and approves the g2uid1ance produced by the designer?"
+
+          pageInfo(6).id shouldBe "31"
+          pageInfo(6).pageUrl shouldBe "/example-page-7"
+          pageInfo(6).pageTitle shouldBe "Congratulations"
+
+        case _ => fail
+      }
+    }
+
+    "determine the input page title" in new Test {
+
+      case class Dummy(id: String, pageUrl: String, pageTitle: String)
+
+      pageBuilder.pages(validOnePageProcessWithProcessCodeJson.as[Process]) match {
+        case Right(pages) =>
+          val pageInfo = fromPageDetails(pages)(Dummy)
+
+          pageInfo shouldNot be(Nil)
+          pageInfo.length shouldBe 1
+
+          pageInfo(0).id shouldBe "start"
+          pageInfo(0).pageUrl shouldBe "/feeling-bad"
+          pageInfo(0).pageTitle shouldBe "Do you have a tea bag?"
+
+        case _ => fail
+      }
+    }
+
+    "determine the Your Call page title" in new Test {
+
+      case class Dummy(id: String, pageUrl: String, pageTitle: String)
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/this", Seq("1"), false),
+        "1" -> CalloutStanza(YourCall, 2, Seq("2"), false),
+        "2" -> InstructionStanza(0, Seq("4"), None, false),
+        "4" -> PageStanza("/that", Seq("5"), false),
+        "5" -> QuestionStanza(1, Seq(2, 3), Seq("end", "end"), None, false),
+        "end" -> EndStanza
+      )
+      val process = Process(
+        metaSection,
+        flow,
+        Vector[Phrase](
+          Phrase(Vector("Some Text", "Welsh: Some Text")),
+          Phrase(Vector("Some Text1", "Welsh: Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh: Some Text3"))
+        ),
+        Vector[Link]()
+      )
+
+      pageBuilder.pages(process) match {
+        case Right(pages) =>
+          val pageInfo = fromPageDetails(pages)(Dummy)
+
+          pageInfo shouldNot be(Nil)
+          pageInfo.length shouldBe 2
+
+          pageInfo(0).id shouldBe "start"
+          pageInfo(0).pageUrl shouldBe "/this"
+          pageInfo(0).pageTitle shouldBe "Some Text2"
+
+        case Left(err) =>
+          fail(s"Failed with error $err")
+      }
+    }
+
+    "determine the date input page title" in {
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/this", Seq("1"), false),
+        "1" -> InstructionStanza(0, Seq("2"), None, false),
+        "2" -> InputStanza(Date, Seq("end"), 1, None, "date", None, stack = false),
+        "end" -> EndStanza
+      )
+      val process = Process(
+        metaSection,
+        flow,
+        Vector[Phrase](
+          Phrase(Vector("Some Text", "Welsh: Some Text")),
+          Phrase(Vector("Some Text1", "Welsh: Some Text1")),
+          Phrase(Vector("Some Text2", "Welsh: Some Text2")),
+          Phrase(Vector("Some Text3", "Welsh: Some Text3"))
+        ),
+        Vector[Link]()
+      )
+      case class Dummy(id: String, pageUrl: String, pageTitle: String)
+      pageBuilder.pages(process) match {
+        case Right(pages) =>
+          val pageInfo = fromPageDetails(pages)(Dummy)
+
+          pageInfo shouldNot be(Nil)
+          pageInfo.length shouldBe 1
+
+          pageInfo(0).id shouldBe "start"
+          pageInfo(0).pageUrl shouldBe "/this"
+          pageInfo(0).pageTitle shouldBe "Some Text1"
+
+        case Left(err) =>
+          fail(s"Failed with error $err")
+      }
+    }
+
+  }
   def testPagesInPrototypeJson(pages: Seq[Page]): Unit = {
 
     val expectedPageIds: List[String] = List(
