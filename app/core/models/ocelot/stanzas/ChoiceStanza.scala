@@ -19,7 +19,7 @@ package core.models.ocelot.stanzas
 import java.time.LocalDate
 
 import core.models.ocelot.{asDecimal, asDate, Labels}
-import core.models.ocelot.{labelScalarValue, labelReferences}
+import core.models.ocelot.{labelScalarValue, labelReferences, labelReference}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -113,7 +113,20 @@ case class ContainsTest(left: String, right: String) extends ChoiceTest {
   def contains(l: BigDecimal, r: BigDecimal): Boolean = l.toString.toLowerCase().contains(r.toString.toLowerCase())
   def contains(l: String, r: String): Boolean = l.toLowerCase().contains(r.toLowerCase())
   def contains(l: LocalDate, r: LocalDate): Boolean = l.toString.toLowerCase().contains(r.toString.toLowerCase())
-  def eval(labels: Labels): Boolean = op(contains(_, _), contains(_, _), contains(_, _), labels)
+  def eval(labels: Labels): Boolean =
+    labels.valueAsList(labelReference(left).getOrElse(left)).fold(op(contains(_, _), contains(_, _), contains(_, _), labels)){l =>
+      l.exists{el =>
+        val y = value(right, labels)
+        (asDate(el), asDate(y)) match {
+          case (Some(ld1), Some(ld2)) => contains(ld1, ld2)
+          case _ =>
+            (asDecimal(el), asDecimal(y)) match {
+              case (Some(bd1), Some(bd2)) => contains(bd1, bd2)
+              case _ => contains(el.toString, y.toString)
+            }
+        }
+      }
+    }
 }
 
 object ChoiceTest {
