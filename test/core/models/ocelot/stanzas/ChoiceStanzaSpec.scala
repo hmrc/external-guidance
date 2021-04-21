@@ -438,6 +438,13 @@ class ChoiceStanzaSpec extends BaseSpec {
       ContainsTest("20/01/2021", "20/01/2021").eval(LabelCache()) shouldBe true
 
       ContainsTest("21/01/2021", "20/01/2021").eval(LabelCache()) shouldBe false
+
+      val list: ListLabel = ListLabel("Months", List("January", "February", "March", "April", "May"))
+
+      ContainsTest("[label:Months]", "December").eval(LabelCache(Map(list.name -> list))) shouldBe false
+      ContainsTest("[label:Months]", "January").eval(LabelCache(Map(list.name -> list))) shouldBe true
+      ContainsTest("[label:Months]", "April").eval(LabelCache(Map(list.name -> list))) shouldBe true
+      ContainsTest("[label:Months]", "arch").eval(LabelCache(Map(list.name -> list))) shouldBe true
     }
   }
 
