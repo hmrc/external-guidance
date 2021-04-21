@@ -116,8 +116,8 @@ case class ContainsTest(left: String, right: String) extends ChoiceTest {
   def eval(labels: Labels): Boolean =
     labelReference(left).fold(op(contains(_, _), contains(_, _), contains(_, _), labels)){lbl =>
       labels.valueAsList(lbl).fold(op(contains(_, _), contains(_, _), contains(_, _), labels)){l =>
+        val y = value(right, labels)
         l.exists{el =>
-          val y = value(right, labels)
           (asDate(el), asDate(y)) match {
             case (Some(ld1), Some(ld2)) => contains(ld1, ld2)
             case _ =>
