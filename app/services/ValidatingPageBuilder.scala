@@ -24,6 +24,19 @@ import core.models.ocelot.errors._
 import play.api.Logger
 import scala.annotation.tailrec
 
+case class PageVertex(id: String, url: String, next: Seq[String], flows: List[String], links: Seq[String])
+
+object PageVertex {
+  def apply(p: Page): PageVertex = {
+    val (next, flows) = p.stanzas.collectFirst{
+      case s: Sequence =>
+        val flws: List[String] = s.next.init.toList
+        (p.next.filterNot(flws.contains(_)), flws)
+    }.getOrElse((p.next, Nil))
+    PageVertex(p.id, p.url, next, flows, p.linked)
+  }
+}
+
 @Singleton
 class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
   val logger: Logger = Logger(this.getClass)
@@ -32,6 +45,7 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
   def pagesWithValidation(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] =
     pageBuilder.pages(process, start).fold[Either[List[GuidanceError], Seq[Page]]](Left(_),
       pages => {
+        checkForSequencePageReuse(pages) ++
         checkQuestionPages(pages, Nil) ++
         duplicateUrlErrors(pages.reverse, Nil) ++
         checkDateInputErrorCallouts(pages, Nil) ++
@@ -40,11 +54,36 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
         checkForUseOfReservedUrls(pages, Nil) ++
         detectUnsupportedPageRedirect(pages) match {
           case Nil => Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
-          case errors =>
-            Left(errors)
+          case errors => Left(errors)
         }
       }
     )
+
+  private def checkForSequencePageReuse(pages: Seq[Page]): List[GuidanceError] = {
+    val connections: List[PageVertex] = pages.map(PageVertex(_)).toList
+    val vertexMap = connections.map(pv => (pv.id, pv)).toMap
+    val mainFlow: List[String] = pageGraph(List(Process.StartStanzaId), vertexMap).map(_.id)
+    val sequencePageIds: List[String] = connections.filterNot(_.flows.isEmpty).flatMap{pv =>
+      pv.flows.flatMap(key => pageGraph(List(key), vertexMap, mainFlow).map(_.id))
+    }
+    sequencePageIds.groupBy(x => x).toList.collect{case m if m._2.length > 1 => PageOccursInMultiplSequenceFlows(m._1)}
+  }
+
+  @tailrec
+  private def pageGraph(keys: List[String],
+                        vertices: Map[String, PageVertex],
+                        ignore: Seq[String] = Seq.empty,
+                        dontFollowFlows: Boolean = true,
+                        acc: List[PageVertex] = Nil): List[PageVertex] =
+    keys match {
+      case Nil => acc
+      case x :: xs if !ignore.contains(x) =>
+        val v = vertices(x)
+        if (vertices(x).flows.isEmpty || dontFollowFlows) pageGraph(xs ++ v.next, vertices, ignore, dontFollowFlows, v :: acc)
+        else pageGraph(xs ++ v.next ++ v.flows, vertices, ignore, dontFollowFlows, v :: acc)
+      case x :: xs => pageGraph(xs, vertices, ignore, dontFollowFlows, acc)
+    }
+
 
   @tailrec
   private def checkDateInputErrorCallouts(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {

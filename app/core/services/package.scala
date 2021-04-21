@@ -29,6 +29,7 @@ package object services {
   def validateProcessId(id: String): Either[Error, String] = if (id.matches(processIdformat)) Right(id) else Left(ValidationError)
   def uniqueLabels(pages: Seq[Page]):Seq[Label] = pages.flatMap(p => p.labels).distinct
   def uniqueLabelRefs(pages: Seq[Page]): Seq[String] = pages.flatMap(_.labelRefs)
+
   def fromPageDetails[A](pages: Seq[Page])(f: (String, String, String) => A): List[A] =
   pages.toList.flatMap { page =>
     page.stanzas.collectFirst {
@@ -71,6 +72,7 @@ package object services {
     case e: MultipleExclusiveOptionsError => ProcessError(s"Sequence stanza ${e.id} defines multiple exclusive options", e.id)
     case e: UseOfReservedUrl => ProcessError(s"Use of reserved URL on PageStanza ${e.id}", e.id)
     case e: IncompleteExclusiveSequencePage => ProcessError(s"Exclusive sequence page ${e.id} is missing a TypeError callout definition", e.id)
+    case e: PageOccursInMultiplSequenceFlows => ProcessError(s"Page ${e.id} occurs in more than one Sequence flow", e.id)
   }
 
   implicit def processErrs(errs: List[GuidanceError]): List[ProcessError] = errs.map(toProcessErr)
