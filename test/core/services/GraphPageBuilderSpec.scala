@@ -163,7 +163,7 @@ class GraphPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     "follow each process patch only once" in new GraphTest {
       override val process = Process(metaSection, loopFlow, phrases, links)
 
-      pageBuilder.pagesWithValidation(process) match {
+      pageBuilder.pages(process) match {
         case Right(pages) => succeed
         case Left(err) => fail
       }

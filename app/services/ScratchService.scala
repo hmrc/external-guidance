@@ -30,7 +30,7 @@ import config.AppConfig
 
 @Singleton
 class ScratchService @Inject() (repository: ScratchRepository,
-                                pageBuilder: PageBuilder,
+                                pageBuilder: ValidatingPageBuilder,
                                 implicit val c: AppConfig) {
   val logger = Logger(getClass)
 

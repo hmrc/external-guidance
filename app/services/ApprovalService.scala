@@ -23,10 +23,10 @@ import javax.inject.{Inject, Singleton}
 import models._
 import core.models._
 import core.models.errors.{DuplicateKeyError, InternalServerError, NotFoundError}
+import core.services.fromPageDetails
 import play.api.Logger
 import play.api.libs.json._
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository, PublishedRepository}
-import core.services._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -35,7 +35,7 @@ class ApprovalService @Inject() (
     repository: ApprovalRepository,
     reviewRepository: ApprovalProcessReviewRepository,
     publishedRepository: PublishedRepository,
-    pageBuilder: PageBuilder,
+    pageBuilder: ValidatingPageBuilder,
     implicit val appConfig: AppConfig
 ) {
 
@@ -72,7 +72,7 @@ class ApprovalService @Inject() (
                         approvalProcess.version,
                         reviewType,
                         process.meta.title,
-                        pageBuilder.fromPageDetails(pages)(ApprovalProcessPageReview(_, _, _))
+                        fromPageDetails(pages)(ApprovalProcessPageReview(_, _, _))
                       )
                     )
                   case Left(NotFoundError) => Future.successful(Left(NotFoundError))
