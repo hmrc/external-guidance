@@ -77,6 +77,11 @@ class PlaceholdersSpec extends BaseSpec {
     "translate CY:short" in {
       pls.translate("Tax year start: [timescale:CY:short]", today) shouldBe s"Tax year start: 20"
     }
+
+    "translate date literals" in {
+      pls.translate("A date literal: [timescale:23/5/1999]", today) shouldBe s"A date literal: 23/5/1999"
+    }
+
   }
 
   "Placeholders with overridden TodayProvider" must {

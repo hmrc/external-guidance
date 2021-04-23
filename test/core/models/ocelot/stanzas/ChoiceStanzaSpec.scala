@@ -295,6 +295,35 @@ class ChoiceStanzaSpec extends BaseSpec {
       choice.eval(lc) shouldBe expectedResult
     }
 
+    "Evaluate to correct result when date test succeeds referencing a label and a timescale wrapped literal" in {
+      val next: Seq[String] = Seq("1,", "0")
+      val choice: Choice = Choice(ChoiceStanza(next, Seq(ChoiceStanzaTest("[label:date1]", LessThanOrEquals, "[timescale:20/01/2021]")), false))
+
+      val labels = LabelCache(Map(
+        "date1" -> ScalarLabel("date1", List("19/01/2021")),
+        "date2" -> ScalarLabel("date2", List("20/01/2021"))
+      ))
+
+      val (nextStanza, updatedLabels) = choice.eval(labels)
+
+      nextStanza shouldBe next(0)
+      updatedLabels shouldBe labels
+    }
+
+    "Evaluate to correct result when date test fails referencing a label and a timescale wrapped literal" in {
+      val next: Seq[String] = Seq("1,", "0")
+      val choice: Choice = Choice(ChoiceStanza(next, Seq(ChoiceStanzaTest("[label:date1]", MoreThanOrEquals, "[timescale:20/01/2021]")), false))
+
+      val labels = LabelCache(Map(
+        "date1" -> ScalarLabel("date1", List("19/01/2021")),
+        "date2" -> ScalarLabel("date2", List("20/01/2021"))
+      ))
+
+      val (nextStanza, updatedLabels) = choice.eval(labels)
+
+      nextStanza shouldBe next(1)
+      updatedLabels shouldBe labels
+    }
   }
 
   "ChoiceTest" must {

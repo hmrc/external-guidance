@@ -39,7 +39,7 @@ class DefaultTodayProvider extends TodayProvider {
 class Placeholders @Inject() (tp: TodayProvider) {
   val TaxYearStartDay: Int = 6
   val TaxYearStartMonth: Int = 4
-  val timescalePattern = "\\[timescale:(today|CY([\\-+]\\d+)?)(:(long|short))?\\]"
+  val timescalePattern = "\\[timescale:((\\d{1,2}\\/\\d{1,2}\\/\\d{4})|(today|CY([\\-+]\\d+)?)(:(long|short))?)\\]"
   val timescaleRegex: Regex = s"${timescalePattern}".r
 
   def long(date: LocalDate): Int = date.getYear
@@ -49,9 +49,10 @@ class Placeholders @Inject() (tp: TodayProvider) {
     candidateStartDate.minusYears(-offset + (if (when.isBefore(candidateStartDate)) 1 else 0))
   }
 
-  private val TodayOrCyGroup: Int = 1
-  private val CyOffsetGroup: Int = 2
-  private val LongOrShortGroup: Int = 4
+  private val DateLiteralGroup: Int = 2
+  private val TodayOrCyGroup: Int = 3
+  private val CyOffsetGroup: Int = 4
+  private val LongOrShortGroup: Int = 6
 
   def translate(str: String, todaysDate: LocalDate = tp.now): String = {
     def longOrShort(m: Match, when: LocalDate): String = Option(m.group(LongOrShortGroup)).fold(stringFromDate(when)){
@@ -60,11 +61,13 @@ class Placeholders @Inject() (tp: TodayProvider) {
     }
 
     timescaleRegex.replaceAllIn(str,{m =>
-      Option(m.group(TodayOrCyGroup)) match {
-        case Some("today") => longOrShort(m, todaysDate)
-        case Some(_) => longOrShort(m, Option(m.group(CyOffsetGroup)).fold(cy(0, todaysDate))(offset => cy(offset.toInt, todaysDate)))
-        case None => Option(m.matched).getOrElse("") // Should never occur, however group() can return null!!
-      }
+      Option(m.group(DateLiteralGroup)).fold[String]{
+        Option(m.group(TodayOrCyGroup)) match {
+          case Some("today") => longOrShort(m, todaysDate)
+          case Some(_) => longOrShort(m, Option(m.group(CyOffsetGroup)).fold(cy(0, todaysDate))(offset => cy(offset.toInt, todaysDate)))
+          case None => Option(m.matched).getOrElse("") // Should never occur, however group() can return null!!
+        }
+      }{literal => literal}
     })
   }
 }
