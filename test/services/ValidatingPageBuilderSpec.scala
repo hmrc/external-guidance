@@ -160,7 +160,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHel
       )
 
       pageBuilder.pagesWithValidation(process) match {
-        case Right(pages) => pages.head.stanzas(2) shouldBe expectedRow
+        case Right((pages, _)) => pages.head.stanzas(2) shouldBe expectedRow
         case Left(err) => fail(s"Attempt to parse page with single cell row stanza failed with error : ${err.toString()}")
       }
     }
@@ -199,7 +199,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHel
       )
 
       pageBuilder.pagesWithValidation(process) match {
-        case Right(pages) => pages.head.stanzas(2) shouldBe expectedRow
+        case Right((pages, _)) => pages.head.stanzas(2) shouldBe expectedRow
         case Left(err) => fail(s"Attempt to parse page with single cell row stanza failed with error : ${err.toString()}")
       }
     }
@@ -231,7 +231,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHel
       )
 
       pageBuilder.pagesWithValidation(process) match {
-        case Right(pages) => pages.head.stanzas(2) shouldBe expectedRow
+        case Right((pages, _)) => pages.head.stanzas(2) shouldBe expectedRow
         case Left(err) => fail(s"Attempt to parse page with single cell row stanza failed with error : ${err.toString()}")
       }
 
@@ -280,7 +280,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHel
       )
 
       pageBuilder.pagesWithValidation(process) match {
-        case Right(pages) => pages.head.stanzas(2) shouldBe expectedRow
+        case Right((pages, _)) => pages.head.stanzas(2) shouldBe expectedRow
         case Left(err) => fail(s"Attempt to parse page with single cell row stanza failed with error : ${err.toString()}")
       }
     }
@@ -345,7 +345,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHel
       val expectedZeroCellRow: Row = new Row(Seq(), Seq("end"), stack = true)
 
       pageBuilder.pagesWithValidation(process) match {
-        case Right(pages) =>
+        case Right((pages, _)) =>
           pages.head.stanzas(2) shouldBe expectedSingleCellRow
           pages.head.stanzas(3) shouldBe expectedMultipleCellRow
           pages.head.stanzas(four) shouldBe expectedZeroCellRow
@@ -364,8 +364,8 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHel
     )
     "result in 2 pages" in {
       pageBuilder.pagesWithValidation(process) match {
-        case Right(pages) if pages.length == 2 => succeed
-        case Right(pages) => fail(s"Page count is incorrect, found ${pages.length} pages")
+        case Right((pages, _)) if pages.length == 2 => succeed
+        case Right((pages, _)) => fail(s"Page count is incorrect, found ${pages.length} pages")
         case Left(err) => fail(s"FAIL ${err.toString}")
       }
     }

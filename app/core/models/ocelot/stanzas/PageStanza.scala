@@ -19,23 +19,23 @@ package core.models.ocelot.stanzas
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{OWrites, Reads, _}
 
-case class PageStanza(url: String, override val next: Seq[String], stack: Boolean) extends Stanza
+case class PageStanza(url: String, override val next: Seq[String], stack: Boolean, mainFlow: Boolean = false) extends Stanza
 
 object PageStanza {
-
-  def buildPageStanza(url: String, next: Seq[String], stack: Boolean): PageStanza =
-    PageStanza(s"/${url.trim.dropWhile(_.equals('/'))}", next, stack)
+  def buildPageStanza(url: String, next: Seq[String], stack: Boolean, mainFlow: Option[Boolean]): PageStanza =
+    PageStanza(s"/${url.trim.dropWhile(_.equals('/'))}", next, stack, mainFlow.getOrElse(false))
 
   implicit val reads: Reads[PageStanza] =
     ((__ \ "url").read[String] and
       (__ \ "next").read[Seq[String]](Reads.minLength[Seq[String]](1)) and
-      (__ \ "stack").read[Boolean])(buildPageStanza _)
+      (__ \ "stack").read[Boolean] and
+      (__ \ "mainFlow").readNullable[Boolean])(buildPageStanza _)
 
   implicit val writes: OWrites[PageStanza] =
     (
       (__ \ "url").write[String] and
         (__ \ "next").write[Seq[String]] and
-        (__ \ "stack").write[Boolean]
+        (__ \ "stack").write[Boolean] and
+        (__ \ "mainFlow").write[Boolean]
     )(unlift(PageStanza.unapply))
-
 }
