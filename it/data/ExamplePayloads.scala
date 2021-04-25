@@ -74,8 +74,7 @@ object ExamplePayloads {
       |      ],
       |      "stack": false,
       |      "type": "PageStanza",
-      |      "url": "/feeling-bad",
-      |      "mainFlow": true
+      |      "url": "/feeling-bad"
       |    }
       |  },
       |  "phrases": [
@@ -224,8 +223,7 @@ object ExamplePayloads {
       |      ],
       |      "stack": false,
       |      "type": "PageStanza",
-      |      "url": "/example-page-3",
-      |      "mainFlow": true
+      |      "url": "/example-page-3"
       |    },
       |    "23": {
       |      "next": [
@@ -282,8 +280,7 @@ object ExamplePayloads {
       |      ],
       |      "stack": false,
       |      "type": "PageStanza",
-      |      "url": "/example-page-4",
-      |      "mainFlow": true
+      |      "url": "/example-page-4"
       |    },
       |    "26": {
       |      "next": [
@@ -309,8 +306,7 @@ object ExamplePayloads {
       |      ],
       |      "stack": false,
       |      "type": "PageStanza",
-      |      "url": "/example-page-2",
-      |      "mainFlow": true
+      |      "url": "/example-page-2"
       |    },
       |    "24": {
       |      "next": [
@@ -421,8 +417,7 @@ object ExamplePayloads {
       |      ],
       |      "stack": false,
       |      "type": "PageStanza",
-      |      "url": "/example-page-5",
-      |      "mainFlow": true
+      |      "url": "/example-page-5"
       |    },
       |    "14": {
       |      "next": [
@@ -439,8 +434,7 @@ object ExamplePayloads {
       |      ],
       |      "stack": false,
       |      "type": "PageStanza",
-      |      "url": "/example-page-7",
-      |      "mainFlow": true
+      |      "url": "/example-page-7"
       |    },
       |    "20": {
       |      "next": [
@@ -507,8 +501,7 @@ object ExamplePayloads {
       |      ],
       |      "stack": false,
       |      "type": "PageStanza",
-      |      "url": "/example-page-1",
-      |      "mainFlow": true
+      |      "url": "/example-page-1"
       |    },
       |    "29": {
       |      "next": [
@@ -516,8 +509,7 @@ object ExamplePayloads {
       |      ],
       |      "stack": false,
       |      "type": "PageStanza",
-      |      "url": "/example-page-6",
-      |      "mainFlow": true
+      |      "url": "/example-page-6"
       |    },
       |    "3": {
       |      "next": [

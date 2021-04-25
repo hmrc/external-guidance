@@ -42,16 +42,9 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
   val logger: Logger = Logger(getClass)
   val ReservedUrls: List[String] = List("/session-timeout", "/session-restart")
 
-  def pagesWithValidation(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], (Seq[Page], Process)] = {
-    @tailrec
-    def identifyMainFlow(flow: List[(String, Stanza)], mainFlowIds: List[String], acc: List[(String, Stanza)] = Nil): List[(String, Stanza)] =
-      flow match {
-        case Nil => acc
-        case (id, x: PageStanza) :: xs if mainFlowIds.contains(id) => identifyMainFlow(xs, mainFlowIds, (id, x.copy(mainFlow = true)) :: acc)
-        case x :: xs => identifyMainFlow(xs, mainFlowIds, x :: acc)
-      }
+  def pagesWithValidation(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] = {
 
-    pageBuilder.pages(process, start).fold[Either[List[GuidanceError], (Seq[Page], Process)]](Left(_),
+    pageBuilder.pages(process, start).fold[Either[List[GuidanceError], Seq[Page]]](Left(_),
       pages => {
         implicit val stanzaMap: Map[String, Stanza] = process.flow
         val vertices: List[PageVertex] = pages.map(PageVertex(_)).toList
@@ -63,10 +56,7 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
         checkExclusiveSequencePages(pages, Nil) ++
         checkForUseOfReservedUrls(pages, Nil) ++
         detectUnsupportedPageRedirect(pages) match {
-          case Nil =>
-            val mainFlow: List[String] = mainFlowPageIds(vertices.map(pv => (pv.id, pv)).toMap)
-            Right((pages.head +: pages.tail.sortWith((x,y) => x.id < y.id),
-                   process.copy(flow = identifyMainFlow(process.flow.toList, mainFlow).toMap)))
+          case Nil => Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
           case errors => Left(errors)
         }
       }

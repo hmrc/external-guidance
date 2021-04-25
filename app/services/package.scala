@@ -30,13 +30,10 @@ package object services {
     jsObject.validate[Process].fold(errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
       incomingProcess => {
         // Transform process if fake welsh and/or secured process is indicated
-        val (p, _) = fakeWelshTextIfRequired _ tupled securedProcessIfRequired(incomingProcess, jsObject)
+        val (p, js) = fakeWelshTextIfRequired _ tupled securedProcessIfRequired(incomingProcess, jsObject)
         pageBuilder.pagesWithValidation(p, p.startPageId).fold(
           errs => Left(Error(errs)),
-          t => {
-            val (pages, process) = t
-            Right((process, pages, Json.toJson(process).as[JsObject]))
-          }
+          pages => Right((p, pages, js))
         )
       }
     )
@@ -45,9 +42,7 @@ package object services {
     if (process.passPhrase.isDefined || c.fakeWelshInUnauthenticatedGuidance) {
       val fakedWelshProcess = process.copy(phrases = process.phrases.map(p => if (p.welsh.trim.isEmpty) Phrase(p.english, s"Welsh: ${p.english}") else p))
       (fakedWelshProcess, Json.toJsObject(fakedWelshProcess))
-    } else {
-      (process, jsObject)
-    }
+    } else (process, jsObject)
 
   private[services] def securedProcessIfRequired(p: Process, jsObject: JsObject): (Process, JsObject) =
     p.valueStanzaPassPhrase.fold((p, jsObject)){passPhrase =>
