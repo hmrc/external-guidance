@@ -40,7 +40,7 @@ object PageVertex {
         val flws: List[String] = s.next.init.toList
         (p.next.filterNot(flws.contains(_)), flws)
     }.getOrElse((p.next, Nil))
-    PageVertex(p.id, p.url, next, flows, p.linked)
+    PageVertex(p.id, p.url, next ++ p.buttonLinked, flows, p.linked)
   }
 }
 
@@ -191,7 +191,7 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
 
   private def checkForSequencePageReuse(connections: List[PageVertex])(implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] = {
     val vertexMap = connections.map(pv => (pv.id, pv)).toMap
-    val mainFlow: List[String] = mainFlowPageIds(vertexMap)
+    val mainFlow: List[String] = pageGraph(List(Process.StartStanzaId), vertexMap).map(_.id)
     val sequencePageIds = for{
       pv <- connections.filterNot(_.flows.isEmpty)              // Sequences
       flw <- pv.flows                                           // Flow Ids
@@ -200,9 +200,6 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
 
     sequencePageIds.groupBy(x => x).toList.collect{case m if m._2.length > 1 => PageOccursInMultiplSequenceFlows(m._1)}
   }
-
-  private def mainFlowPageIds(vertexMap: Map[String, PageVertex])(implicit stanzaMap: Map[String, Stanza]): List[String] =
-    pageGraph(List(Process.StartStanzaId), vertexMap).map(_.id)
 
   @tailrec
   // Given a list of stanza ids, find all connected pages (wont follow links)

@@ -22,6 +22,7 @@ case class KeyedStanza(key: String, stanza: Stanza)
 
 case class Page(id: String, url: String, keyedStanzas: Seq[KeyedStanza], next: Seq[String]) {
   val stanzas: Seq[Stanza] = keyedStanzas.map(_.stanza)
+  val buttonLinked: Seq[String] = keyedStanzas.flatMap(_.stanza.buttonLinks)
   val linked: Seq[String] = keyedStanzas.flatMap(_.stanza.links)
   val labels: Seq[String] = keyedStanzas.flatMap(_.stanza.labels)
   val labelRefs: Seq[String] = keyedStanzas.flatMap(_.stanza.labelRefs).distinct
