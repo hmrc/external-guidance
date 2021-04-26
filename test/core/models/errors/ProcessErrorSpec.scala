@@ -105,5 +105,10 @@ class ProcessErrorSpec extends BaseSpec {
       val details: ProcessError = IncompleteExclusiveSequencePage("stanzaId")
       details shouldBe ProcessError("Exclusive sequence page stanzaId is missing a TypeError callout definition", "stanzaId")
     }
+    "from PageOccursInMultiplSequenceFlows" in {
+      val details: ProcessError = PageOccursInMultiplSequenceFlows("stanzaId")
+      details shouldBe ProcessError("Page stanzaId occurs in more than one Sequence flow", "stanzaId")
+    }
+
   }
 }

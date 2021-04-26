@@ -43,6 +43,7 @@ case class IncompleteDateInputPage(id: String) extends FlowError
 case class IncompleteExclusiveSequencePage(id: String) extends FlowError
 case class PageRedirectNotSupported(id: String) extends FlowError
 case class UseOfReservedUrl(id: String) extends FlowError
+case class PageOccursInMultiplSequenceFlows(id: String) extends FlowError
 case class ParseError(jsPath: JsPath, errs: Seq[JsonValidationError]) extends GuidanceError
 case class FlowParseError(id: String, msg: String, arg: String) extends FlowError
 case class MetaParseError(id: String, msg: String, arg: String) extends MetaError
