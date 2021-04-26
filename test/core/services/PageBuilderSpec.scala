@@ -84,25 +84,26 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
   "services" must {
     "determine unique set of case sensitive labels from a collection of pages" in new IhtTest {
-      val labels = Seq(ScalarLabel("Properties"),
-        ScalarLabel("Money"),
-        ScalarLabel("Household"),
-        ScalarLabel("Motor Vehicles"),
-        ScalarLabel("Private pension"),
-        ScalarLabel("Trust"),
-        ScalarLabel("Foreign assets"),
-        ScalarLabel("Other assets"),
-        ScalarLabel("Mortgage_debt"),
-        ScalarLabel("funeral_expenses"),
-        ScalarLabel("other_debts"),
-        ScalarLabel("left to spouse"),
-        ScalarLabel("registered charity"),
-        ScalarLabel("nil rate band"),
-        ScalarLabel("more than 100k"),
-        ScalarLabel("Value of Assets"),
-        ScalarLabel("Value of Debts"),
-        ScalarLabel("Additional Info"),
-        ScalarLabel("IHT result"))
+      val labels = Seq(
+        "Properties",
+        "Money",
+        "Household",
+        "Motor Vehicles",
+        "Private pension",
+        "Trust",
+        "Foreign assets",
+        "Other assets",
+        "Mortgage_debt",
+        "funeral_expenses",
+        "other_debts",
+        "left to spouse",
+        "registered charity",
+        "nil rate band",
+        "more than 100k",
+        "Value of Assets",
+        "Value of Debts",
+        "Additional Info",
+        "IHT result")
 
       pageBuilder.pages(ihtProcess, "start") match {
         case Right(pages) => uniqueLabels(pages) shouldBe labels
@@ -143,7 +144,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       pageBuilder.pages(ihtProcess, "start") match {
         case Right(pages) =>
           val labels = uniqueLabels(pages)
-          uniqueLabelRefs(pages).forall(lr => labels.exists(_.name == lr)) shouldBe true
+          uniqueLabelRefs(pages).forall(lr => labels.exists(_.equals(lr))) shouldBe true
         case Left(err) => fail(s"Failed with $err")
       }
     }

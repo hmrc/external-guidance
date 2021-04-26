@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot.{labelReferences, Phrase, Label, ScalarLabel, Labels, Page, hintRegex, asInt}
+import core.models.ocelot.{labelReferences, Phrase, Labels, Page, hintRegex, asInt}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -53,7 +53,7 @@ case class Question(text: Phrase,
                     label: Option[String],
                     stack: Boolean) extends VisualStanza with Populated with DataInput {
   override val labelRefs: List[String] = labelReferences(text.english) ++ answers.flatMap(a => labelReferences(a.english))
-  override val labels: List[Label] = label.fold[List[Label]](Nil)(l => List(ScalarLabel(l)))
+  override val labels: List[String] = label.fold[List[String]](Nil)(l => List(l))
 
   def eval(value: String, page: Page, labels: Labels): (Option[String], Labels) =
     validInput(value).fold[(Option[String], Labels)]((None, labels)){idx => {

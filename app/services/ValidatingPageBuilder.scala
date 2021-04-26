@@ -24,7 +24,14 @@ import core.models.ocelot.errors._
 import play.api.Logger
 import scala.annotation.tailrec
 
-case class PageVertex(id: String, url: String, next: Seq[String], flows: List[String], links: Seq[String])
+case class PageVertex(
+  id: String,
+  url: String,
+  next: Seq[String],
+  flows: List[String],
+  links: Seq[String],
+  endPage: Option[Boolean] = None
+)
 
 object PageVertex {
   def apply(p: Page): PageVertex = {
