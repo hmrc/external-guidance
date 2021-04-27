@@ -56,6 +56,7 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
         implicit val stanzaMap: Map[String, Stanza] = process.flow
         val vertices: List[PageVertex] = pages.map(PageVertex(_)).toList
         checkForSequencePageReuse(vertices) ++
+        checkAllFlowsHaveUniqueTerminationPage(vertices) ++
         checkQuestionPages(pages, Nil) ++
         duplicateUrlErrors(pages.reverse, Nil) ++
         checkDateInputErrorCallouts(pages, Nil) ++
@@ -188,6 +189,15 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
           case None => checkExclusiveSequencePages(xs, errors)
         }
     }
+
+  private def checkAllFlowsHaveUniqueTerminationPage(vertices: List[PageVertex])(implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] = {
+    val vertexMap = vertices.map(pv => (pv.id, pv)).toMap
+    val mainFlow: List[String] = pageGraph(List(Process.StartStanzaId), vertexMap).map(_.id)
+
+    vertices
+      .filterNot(_.flows.isEmpty)
+      .flatMap(_.flows.collect{case id if !pageGraph(findPageIds(List(id)), vertexMap, mainFlow).exists(_.endPage) => MissingUniqueFlowTerminator(id)})
+  }
 
   private def checkForSequencePageReuse(vertices: List[PageVertex])(implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] = {
     val vertexMap = vertices.map(pv => (pv.id, pv)).toMap
