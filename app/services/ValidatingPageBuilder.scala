@@ -195,7 +195,7 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
     val sequencePageIds: List[String] = for{
       pv <- vertices.filterNot(_.flows.isEmpty)                 // Sequences
       flw <- pv.flows                                           // Flow Ids
-      p <- pageGraph(findPages(List(flw)), vertexMap, mainFlow) // Pages below sequecnes
+      p <- pageGraph(findPageIds(List(flw)), vertexMap, mainFlow) // Pages below sequences
     } yield p.id
 
     sequencePageIds.groupBy(x => x).toList.collect{case m if m._2.length > 1 => PageOccursInMultiplSequenceFlows(m._1)}
@@ -203,15 +203,15 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
 
   @tailrec
   // Given a list of stanza ids, find all connected pages (wont follow links)
-  private def findPages(ids: List[String], seen: List[String] = Nil, acc: List[String] = Nil)(implicit stanzaMap: Map[String, Stanza]): List[String] =
+  private def findPageIds(ids: List[String], seen: List[String] = Nil, acc: List[String] = Nil)(implicit stanzaMap: Map[String, Stanza]): List[String] =
     ids match {
       case Nil => acc
-      case x :: xs if seen.contains(x) => findPages(xs, seen, acc)
+      case x :: xs if seen.contains(x) => findPageIds(xs, seen, acc)
       case x :: xs =>
         stanzaMap(x) match {
-          case _: PageStanza => findPages(xs, x :: seen, x :: acc)
-          case EndStanza => findPages(xs, x :: seen, x :: acc)
-          case s => findPages(s.next.toList.filterNot(seen.contains(_)) ++ xs, x :: seen, acc)
+          case _: PageStanza => findPageIds(xs, x :: seen, x :: acc)
+          case EndStanza => findPageIds(xs, x :: seen, x :: acc)
+          case s => findPageIds(s.next.toList.filterNot(seen.contains(_)) ++ xs, x :: seen, acc)
         }
     }
 
@@ -229,10 +229,10 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
       case x :: xs if seen.contains(x) => pageGraph(xs, vertices, ignore, dontFollowFlows, seen, acc)
       case x :: xs if !ignore.contains(x) =>
         val v = vertices(x)
-        if (vertices(x).flows.isEmpty || dontFollowFlows) {
+        if (v.flows.isEmpty || dontFollowFlows) {
           pageGraph(xs ++ v.next.filterNot(seen.contains(_)), vertices, ignore, dontFollowFlows, x :: seen, v :: acc)
         } else {
-          val flowStartPages = findPages(v.flows.filterNot(seen.contains(_)))
+          val flowStartPages = findPageIds(v.flows.filterNot(seen.contains(_)))
           pageGraph(xs ++ v.next.filterNot(seen.contains(_)) ++ flowStartPages, vertices, ignore, dontFollowFlows, x :: seen, v :: acc)
         }
       case x :: xs => pageGraph(xs, vertices, ignore, dontFollowFlows, x :: seen, acc)
