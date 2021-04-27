@@ -30,7 +30,7 @@ case class PageVertex(
   next: Seq[String],
   flows: List[String],
   links: Seq[String],
-  endPage: Option[Boolean] = None
+  endPage: Boolean = false
 )
 
 object PageVertex {
@@ -40,7 +40,7 @@ object PageVertex {
         val flws: List[String] = s.next.init.toList
         (p.next.filterNot(flws.contains(_)), flws)
     }.getOrElse((p.next, Nil))
-    PageVertex(p.id, p.url, next ++ p.buttonLinked, flows, p.linked)
+    PageVertex(p.id, p.url, next ++ p.buttonLinked, flows, p.linked, p.endPage)
   }
 }
 
@@ -189,11 +189,11 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
         }
     }
 
-  private def checkForSequencePageReuse(connections: List[PageVertex])(implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] = {
-    val vertexMap = connections.map(pv => (pv.id, pv)).toMap
+  private def checkForSequencePageReuse(vertices: List[PageVertex])(implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] = {
+    val vertexMap = vertices.map(pv => (pv.id, pv)).toMap
     val mainFlow: List[String] = pageGraph(List(Process.StartStanzaId), vertexMap).map(_.id)
-    val sequencePageIds = for{
-      pv <- connections.filterNot(_.flows.isEmpty)              // Sequences
+    val sequencePageIds: List[String] = for{
+      pv <- vertices.filterNot(_.flows.isEmpty)                 // Sequences
       flw <- pv.flows                                           // Flow Ids
       p <- pageGraph(findPages(List(flw)), vertexMap, mainFlow) // Pages below sequecnes
     } yield p.id
@@ -210,7 +210,7 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
       case x :: xs =>
         stanzaMap(x) match {
           case _: PageStanza => findPages(xs, x :: seen, x :: acc)
-          case EndStanza => findPages(xs, x :: seen, acc)
+          case EndStanza => findPages(xs, x :: seen, x :: acc)
           case s => findPages(s.next.toList.filterNot(seen.contains(_)) ++ xs, x :: seen, acc)
         }
     }
@@ -225,6 +225,7 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
                         acc: List[PageVertex] = Nil)(implicit stanzaMap: Map[String, Stanza]): List[PageVertex] =
     keys match {
       case Nil => acc
+      case Process.EndStanzaId :: xs => pageGraph(xs, vertices, ignore, dontFollowFlows, seen, acc)
       case x :: xs if seen.contains(x) => pageGraph(xs, vertices, ignore, dontFollowFlows, seen, acc)
       case x :: xs if !ignore.contains(x) =>
         val v = vertices(x)

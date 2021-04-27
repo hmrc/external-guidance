@@ -164,7 +164,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       val process: Process = invalidOnePageJson.as[Process]
 
       pageBuilder.buildPage("start", process) match {
-        case Right(Page(_,url,_,_)) if url.startsWith("/") => succeed
+        case Right(Page(_,url,_,_, _)) if url.startsWith("/") => succeed
         case Right(_) => fail("Url should be prefixed with a / char")
         case Left(err) => fail(s"Url should be prefixed with a / char, failed with unexpected err $err")
       }
