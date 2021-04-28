@@ -25,7 +25,7 @@ package object ocelot {
   val labelPattern: String = "\\[label:([A-Za-z0-9\\s\\-_]+)(:(currency|currencyPoundsOnly|date|number))?\\]"
   val boldPattern: String = s"\\[bold:($labelPattern|[^\\]]+)\\]"
   val linkToPageOnlyPattern: String = s"\\[link:(.+?):(\\d+|${Process.StartStanzaId})\\]"
-  val toPageLinkPattern: String = s"\\[(button|link)(-same|-tab)?:([^\\]]+?):(\\d+|${Process.StartStanzaId})\\]"
+  val toPageLinkPattern: String = s"\\[(button|link)(-same|-tab)?:(.+?):(\\d+|${Process.StartStanzaId})\\]"
   val linkPattern: String = s"\\[(button|link)(-same|-tab)?:(.+?):(\\d+|${Process.StartStanzaId}|https?:[a-zA-Z0-9\\/\\.\\-\\?_\\.=&#]+)\\]"
   val commaSeparatedIntsPattern: String = "^\\d+\\s*(?:,\\s*\\d+\\s*)*$"
   val listPattern: String = "\\[list:([A-Za-z0-9\\s\\-_]+):length\\]"

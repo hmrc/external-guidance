@@ -106,6 +106,9 @@ class OcelotPackageSpec extends BaseSpec {
       }
     }
 
+    "Recognise link when text contains other placeholder" in {
+      pageLinkIds("[link:Change[hint:Change the value]:45] some text [link:Change[hint:Change the value]:99]") shouldBe List("45", "99")
+    }
   }
 
   "Int conversion" must {
