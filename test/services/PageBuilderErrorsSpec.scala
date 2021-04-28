@@ -37,13 +37,14 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
 
     "detect IncompleteDateInputPage error" in {
       val flow = Map(
-        Process.StartStanzaId -> PageStanza("/url", Seq("1"), true),
-        "1" -> InstructionStanza(0, Seq("2"), None, false),
-        "2" -> InputStanza(Currency, Seq("4"), 0, Some(0), "Label", None, false),
-        "4" -> Choice(ChoiceStanza(Seq("5","end"), Seq(ChoiceStanzaTest("[label:label]", LessThanOrEquals, "8")), false)),
-        "5" -> PageStanza("/url2", Seq("1"), true),
-        "6" -> InstructionStanza(0, Seq("2"), None, false),
-        "2" -> InputStanza(Date, Seq("4"), 0, Some(0), "Label", None, false),
+        Process.StartStanzaId -> PageStanza("/url1", Seq("1"), stack = true),
+        "1" -> InstructionStanza(0, Seq("2"), None, stack = false),
+        "2" -> InputStanza(Currency, Seq("3"), 1, Some(2), "Label", None, stack = false),
+        "3" -> PageStanza("/url2", Seq("4"), stack = false),
+        "4" -> InstructionStanza(3, Seq("5"), None, stack = false),
+        "5" -> InputStanza(Date, Seq("6"), four, Some(five), "Label", None, stack = false),
+        "6" -> PageStanza("/url3", Seq("7"), stack = false),
+        "7" -> InstructionStanza(six, Seq("end"), None, stack = false),
         "end" -> EndStanza
       )
       val process = Process(
@@ -53,17 +54,20 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
           Phrase(Vector("Some Text", "Welsh: Some Text")),
           Phrase(Vector("Some Text1", "Welsh: Some Text1")),
           Phrase(Vector("Some Text2", "Welsh: Some Text2")),
-          Phrase(Vector("Some Text3", "Welsh: Some Text3"))
+          Phrase(Vector("Some Text3", "Welsh: Some Text3")),
+          Phrase(Vector("Some Text4", "Welsh: Some text4")),
+          Phrase(Vector("Some Text5", "Welsh: Some text5")),
+          Phrase(Vector("Some Text6", "Welsh: Some text6"))
         ),
         Vector[Link]()
       )
       pageBuilder.pagesWithValidation(process, Process.StartStanzaId) match {
-        case Left(Seq(IncompleteDateInputPage("5"), IncompleteDateInputPage("start"))) => succeed
+        case Left(Seq(IncompleteDateInputPage("3"))) => succeed
         case err => fail(s"IncompleteDateInputPage not detected $err")
       }
     }
 
-    "detect VisualStanzasAfterQuestion error when Question stanzas followed by UI stanzas" in {
+    "detect VisualStanzasAfterDataInput error when Question stanzas followed by UI stanzas" in {
       val flow = Map(
         Process.StartStanzaId -> PageStanza("/url", Seq("1"), true),
         "1" -> InstructionStanza(0, Seq("2"), None, false),
@@ -85,17 +89,17 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       )
 
       pageBuilder.pagesWithValidation(process) match {
-        case Left(List(VisualStanzasAfterQuestion("4"))) => succeed
-        case Left(err) => fail(s"Should generate VisualStanzasAfterQuestion, failed with $err")
-        case x => fail(s"Should generate VisualStanzasAfterQuestion, returned $x")
+        case Left(List(VisualStanzasAfterDataInput("4"))) => succeed
+        case Left(err) => fail(s"Should generate VisualStanzasAfterDataInput, failed with $err")
+        case x => fail(s"Should generate VisualStanzasAfterDataInput, returned $x")
       }
     }
 
-    "detect VisualStanzasAfterQuestion with possible loop in post Question stanzas" in {
+    "detect VisualStanzasAfterDataInput with possible loop in post Question stanzas" in {
       val flow = Map(
         Process.StartStanzaId -> PageStanza("/url", Seq("1"), true),
         "1" -> InstructionStanza(0, Seq("2"), None, false),
-        "2" -> QuestionStanza(1, Seq(2, 3, 4, 5), Seq("4", "5", "6", "7"), None, false),
+        "2" -> QuestionStanza(1, Seq(2, 3, four, five), Seq("4", "5", "6", "7"), None, false),
         "4" -> Choice(ChoiceStanza(Seq("5","6"), Seq(ChoiceStanzaTest("[label:X]", LessThanOrEquals, "8")), false)),
         "5" -> ValueStanza(List(Value(ScalarType, "PageUrl", "/blah")), Seq("4"), false),
         "6" -> InstructionStanza(0, Seq("end"), None, false),
@@ -117,11 +121,160 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       )
 
       pageBuilder.pagesWithValidation(process) match {
-        case Left(List(VisualStanzasAfterQuestion("6"))) => succeed
-        case Left(err) => fail(s"Should generate VisualStanzasAfterQuestion, failed with $err")
-        case x => fail(s"Should generate VisualStanzasAfterQuestion, returned $x")
+        case Left(List(VisualStanzasAfterDataInput("6"))) => succeed
+        case Left(err) => fail(s"Should generate VisualStanzasAfterDataInput, failed with $err")
+        case x => fail(s"Should generate VisualStanzasAfterDataInput, returned $x")
       }
     }
+
+    "not detect visual stanzas after data input error for standard date input pattern" in {
+
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/page-1", Seq("1"), stack = false),
+        "1" -> CalloutStanza(Error, 0, Seq("2"), stack = false),
+        "2" -> CalloutStanza(Error, 1, Seq("3"), stack = true),
+        "3" -> CalloutStanza(Error, 2, Seq("4"), stack = true),
+        "4" -> CalloutStanza(TypeError, 3, Seq("5"), stack = false),
+        "5" -> ChoiceStanza(
+          Seq("6", "7"),
+          Seq(ChoiceStanzaTest("[label:ErrorCode]", Equals, "out_of_range")),
+          stack = false
+        ),
+        "7" -> InputStanza(Date, Seq("8"), four, None, "date_label", None, stack = false),
+        "6" -> CalloutStanza(ValueError, five, Seq("7"), stack = false),
+        "8" -> ChoiceStanza(
+          Seq("1", "9"),
+          Seq(ChoiceStanzaTest("[label:date_label", MoreThan, "[timescale:today]")),
+          stack = false
+        ),
+        "9" -> PageStanza("/page-2", Seq("10"), stack = false),
+        "10" -> InstructionStanza(six, Seq("end"), None, stack = false),
+        "end" -> EndStanza
+      )
+
+      val phrases: Vector[Phrase] = Vector(
+        Phrase("Date of birth must include a {0} and {1}", "Welsh, Date of birth must include a {0} and {1}"),
+        Phrase("Date of birth must include a {0}", "Welsh, Date of birth must include a {0}"),
+        Phrase("You must enter a date", "Welsh, You must enter a date"),
+        Phrase("You must enter a real date", "Welsh, You must enter a real date"),
+        Phrase("What is your date of birth?", "Welsh, What is your date of birth?"),
+        Phrase(
+          "Date of birth must be on or after 1 January 1900 and not in the future",
+          "Welsh, Date of birth must be on or after 1 January 1900 and not in the future"),
+        Phrase("The second page", "Welsh, The second page")
+      )
+
+      val process = Process(
+        metaSection,
+        flow,
+        phrases,
+        Vector[Link]()
+      )
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Right(_) => succeed
+        case Left(err) => fail(s"Should not detect any errors, failed with $err")
+      }
+    }
+
+    "detect visual stanzas after data input error for standard date input pattern" in {
+
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/page-1", Seq("1"), stack = false),
+        "1" -> CalloutStanza(Error, 0, Seq("2"), stack = false),
+        "2" -> CalloutStanza(Error, 1, Seq("3"), stack = true),
+        "3" -> CalloutStanza(Error, 2, Seq("4"), stack = true),
+        "4" -> CalloutStanza(TypeError, 3, Seq("5"), stack = false),
+        "5" -> ChoiceStanza(
+          Seq("6", "7"),
+          Seq(ChoiceStanzaTest("[label:ErrorCode]", Equals, "out_of_range")),
+          stack = false
+        ),
+        "7" -> InputStanza(Date, Seq("8"), four, None, "date_label", None, stack = false),
+        "6" -> CalloutStanza(ValueError, five, Seq("7"), stack = false),
+        "8" -> CalloutStanza(SubSection, six, Seq("9"), stack = false),
+        "9" -> ChoiceStanza(
+          Seq("1", "10"),
+          Seq(ChoiceStanzaTest("[label:date_label", MoreThan, "[timescale:today]")),
+          stack = false
+        ),
+        "10" -> PageStanza("/page-2", Seq("11"), stack = false),
+        "11" -> InstructionStanza(seven, Seq("end"), None, stack = false),
+        "end" -> EndStanza
+      )
+
+      val phrases: Vector[Phrase] = Vector(
+        Phrase("Date of birth must include a {0} and {1}", "Welsh, Date of birth must include a {0} and {1}"),
+        Phrase("Date of birth must include a {0}", "Welsh, Date of birth must include a {0}"),
+        Phrase("You must enter a date", "Welsh, You must enter a date"),
+        Phrase("You must enter a real date", "Welsh, You must enter a real date"),
+        Phrase("What is your date of birth?", "Welsh, What is your date of birth?"),
+        Phrase(
+          "Date of birth must be on or after 1 January 1900 and not in the future",
+          "Welsh, Date of birth must be on or after 1 January 1900 and not in the future"),
+        Phrase("Page footer", "Welsh, Page footer"),
+        Phrase("The second page", "Welsh, The second page")
+      )
+
+      val process = Process(
+        metaSection,
+        flow,
+        phrases,
+        Vector[Link]()
+      )
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Left(List(VisualStanzasAfterDataInput("8"))) => succeed
+        case Left(err) => fail(s"Should generate VisualStanzasAfterDataInput, failed with $err")
+        case x => fail(s"Should generate VisualStanzasAfterDataInput, returned $x")
+      }
+    }
+
+    "detect a visual stanza after an exclusive sequence input component" in {
+
+      val flow: Map[String, Stanza] = Map(
+        Process.StartStanzaId -> PageStanza("/page-1", Seq("1"), stack = false),
+        "1" -> CalloutStanza(Title, 0, Seq("1.5"), stack = false),
+        "1.5" -> CalloutStanza(TypeError, nine, Seq("2"), stack = false),
+        "2" -> SequenceStanza(1, Seq("3", "5", "7"), Seq(2, 3, four), None, stack = false),
+        "3" -> PageStanza("/page-2", Seq("4"), stack = false),
+        "4" -> CalloutStanza(Title, five, Seq("end"), stack = false),
+        "5" -> PageStanza("/page-3", Seq("6"), stack = false),
+        "6" -> InstructionStanza(six, Seq("end"), None, stack = false),
+        "7"-> InstructionStanza(seven, Seq("8"), None, stack = false),
+        "8" -> PageStanza("/page-4", Seq("9"), stack = false),
+        "9" -> InstructionStanza(eight, Seq("end"), None, stack = false),
+        "end" -> EndStanza
+      )
+
+      val phrases: Vector[Phrase] = Vector(
+        Phrase("Sequence example", "Welsh: Sequence example"),
+        Phrase("Select your favourite type of sweet", "Welsh: Select your favourite type of sweet"),
+        Phrase("Wine gums", "Welsh: Wine gums"),
+        Phrase("Strawberry bonbons", "Welsh: Strawberry bonbons"),
+        Phrase("Something else [exclusive]", "Welsh: Something else [exclusive]"),
+        Phrase("You like wine gums", "Welsh: You like wine gums"),
+        Phrase("You like strawberry bonbons", "Welsh: You like strawberry bonbons"),
+        Phrase("Some random stuff", "Welsh: Some random stuff"),
+        Phrase("You like something else", "Welsh, You like something else"),
+        Phrase("You must select an option", "Welsh: You must select an option")
+      )
+
+      val process = Process(
+        metaSection,
+        flow,
+        phrases,
+        Vector[Link]()
+      )
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Left(List(VisualStanzasAfterDataInput("7"))) => succeed
+        case Left(err) => fail(s"Should generate VisualStanzasAfterDataInput, failed with $err")
+        case x => fail(s"Should generate VisualStanzasAfterDataInput, returned $x")
+      }
+    }
+
+
 
     "detect DuplicatePageUrl" in {
       val flow = Map(

@@ -55,7 +55,7 @@ package object services {
     case e: DuplicatePageUrl => ProcessError(s"Duplicate page url ${e.url} found on stanza id = ${e.id}", e.id)
     case e: InconsistentQuestionError => ProcessError(s"Inconsistent QuestionStanza at id ${e.id}, number of answers and next locations dont match", e.id)
     case e: MissingWelshText => ProcessError(s"Welsh text at index ${e.index} on stanza id = ${e.id} is empty", e.id)
-    case e: VisualStanzasAfterQuestion => ProcessError(s"Visual stanza with id = ${e.id} found following a Question stanza", e.id)
+    case e: VisualStanzasAfterDataInput => ProcessError(s"Visual stanza with id = ${e.id} found following a data input stanza", e.id)
     case e: UnknownStanza => ProcessError(s"Unsupported stanza type ${e.typeName} found at stanza id ${e.id}", e.id)
     case e: UnknownCalloutType => ProcessError(s"Unsupported CalloutStanza type ${e.typeName} found at stanza id ${e.id}", e.id)
     case e: UnknownValueType => ProcessError( s"Unsupported ValueStanza Value type ${e.typeName} found at stanza id ${e.id}", e.id)

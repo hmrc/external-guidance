@@ -69,9 +69,9 @@ class ProcessErrorSpec extends BaseSpec {
       details shouldBe ProcessError("Inconsistent QuestionStanza at id stanzaId, number of answers and next locations dont match", "stanzaId")
     }
 
-    "from VisualStanzasAfterQuestion" in {
-      val details: ProcessError = VisualStanzasAfterQuestion("stanzaId")
-      details shouldBe ProcessError("Visual stanza with id = stanzaId found following a Question stanza", "stanzaId")
+    "from VisualStanzasAfterDataInput" in {
+      val details: ProcessError = VisualStanzasAfterDataInput("stanzaId")
+      details shouldBe ProcessError("Visual stanza with id = stanzaId found following a data input stanza", "stanzaId")
     }
     "from UnknownCalcOperationType" in {
       val details: ProcessError = UnknownCalcOperationType("stanzaId", "unknowntype")
