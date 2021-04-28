@@ -220,7 +220,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       }
     }
 
-    "detect InconsistentQuestionError" in {
+    "detect InconsistentQuestion" in {
       val flow = Map(
         Process.StartStanzaId -> PageStanza("/this", Seq("1"), false),
         "1" -> InstructionStanza(0, Seq("2"), None, false),
@@ -241,9 +241,9 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         Vector[Link]()
       )
       pageBuilder.pagesWithValidation(process) match {
-        case Left(List(InconsistentQuestionError("2"))) => succeed
-        case Left(err) => fail(s"InconsistentQuestionError error not detected, failed with $err")
-        case _ => fail(s"InconsistentQuestionError not detected")
+        case Left(List(InconsistentQuestion("2"))) => succeed
+        case Left(err) => fail(s"InconsistentQuestion error not detected, failed with $err")
+        case _ => fail(s"InconsistentQuestion not detected")
       }
     }
 
@@ -311,7 +311,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       )
 
       pageBuilder.pagesWithValidation(process) match {
-        case Left(List(MultipleExclusiveOptionsError("2"))) => succeed
+        case Left(List(MultipleExclusiveOptions("2"))) => succeed
         case Left(err) => fail(s"Failed to detect multiple exclusive options. Instead failed with error $err")
         case _ => fail("Failed to detect multiple exclusive options")
       }

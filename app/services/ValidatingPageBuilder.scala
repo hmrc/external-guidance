@@ -174,7 +174,7 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
       case x +: xs => x.keyedStanzas.collectFirst{case KeyedStanza(key, exSeq: ExclusiveSequence) => (key, exSeq)} match {
           case Some((key, exclusiveSequence)) =>
             if(exclusiveSequence.exclusiveOptions.size > 1) {
-              checkExclusiveSequencePages(xs, MultipleExclusiveOptionsError(key) :: errors)
+              checkExclusiveSequencePages(xs, MultipleExclusiveOptions(key) :: errors)
             } else {
               checkExclusiveSequencePages(xs, errors)
             }

@@ -64,8 +64,8 @@ class ProcessErrorSpec extends BaseSpec {
       details shouldBe ProcessError("Welsh text at index index on stanza id = stanzaId is empty", "stanzaId")
     }
 
-    "from InconsistentQuestionError" in {
-      val details: ProcessError = InconsistentQuestionError("stanzaId")
+    "from InconsistentQuestion" in {
+      val details: ProcessError = InconsistentQuestion("stanzaId")
       details shouldBe ProcessError("Inconsistent QuestionStanza at id stanzaId, number of answers and next locations dont match", "stanzaId")
     }
 
@@ -93,8 +93,8 @@ class ProcessErrorSpec extends BaseSpec {
       val details: ProcessError = PageRedirectNotSupported("stanzaId")
       details shouldBe ProcessError("Use of ChoiceStanza stanzaId as a page redirect not supported", "stanzaId")
     }
-    "from MultipleExclusiveOptionsError" in {
-      val details: ProcessError = MultipleExclusiveOptionsError("stanzaId")
+    "from MultipleExclusiveOptions" in {
+      val details: ProcessError = MultipleExclusiveOptions("stanzaId")
       details shouldBe ProcessError("Sequence stanza stanzaId defines multiple exclusive options", "stanzaId")
     }
     "from UseOfReservedUrl" in {
