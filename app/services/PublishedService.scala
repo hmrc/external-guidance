@@ -23,19 +23,22 @@ import core.models.RequestOutcome
 import models.PublishedProcess
 import play.api.Logger
 import play.api.libs.json.JsObject
-import repositories.PublishedRepository
+import repositories.{ApprovalRepository, ArchiveRepository, PublishedRepository}
 import core.services.validateProcessId
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class PublishedService @Inject() (repository: PublishedRepository) {
+class PublishedService @Inject() (published: PublishedRepository,
+                                  archive: ArchiveRepository,
+                                  approval: ApprovalRepository) {
 
   val logger: Logger = Logger(this.getClass)
 
   def getById(id: String): Future[RequestOutcome[PublishedProcess]] = {
 
-    def getProcess(id: String): Future[RequestOutcome[PublishedProcess]] = repository.getById(id) map {
+    def getProcess(id: String): Future[RequestOutcome[PublishedProcess]] = published.getById(id) map {
       case error @ Left(NotFoundError) => error
       case Left(_) => Left(InternalServerError)
       case result => result
@@ -51,7 +54,7 @@ class PublishedService @Inject() (repository: PublishedRepository) {
 
   def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]] = {
 
-    repository.getByProcessCode(processCode) map {
+    published.getByProcessCode(processCode) map {
       case error @ Left(NotFoundError) => error
       case Left(_) => Left(InternalServerError)
       case result => result
@@ -62,7 +65,7 @@ class PublishedService @Inject() (repository: PublishedRepository) {
   def save(id: String, user: String, processCode: String, jsonProcess: JsObject): Future[RequestOutcome[String]] = {
 
     def saveProcess: Future[RequestOutcome[String]] =
-      repository.save(id, user, processCode, jsonProcess) map {
+      published.save(id, user, processCode, jsonProcess) map {
         case Left(DuplicateKeyError) => Left(DuplicateKeyError)
         case Left(_) =>
           logger.error(s"Request to publish $id has failed")
@@ -77,6 +80,22 @@ class PublishedService @Inject() (repository: PublishedRepository) {
         Future.successful(Left(BadRequestError))
       }, _ => saveProcess)
 
+  }
+
+  def archive(id: String, user: String): Future[RequestOutcome[String]] = {
+    published.getById(id).flatMap {
+      case Left(_) =>
+        logger.error(s"Invalid process id submitted to method getById. The requested id was $id")
+        Future.successful(Left(BadRequestError))
+      case Right(process) =>
+        archive.archive(id, user, process.processCode, process).flatMap {
+          case Left(_) => Future.successful(Left(InternalServerError))
+          case _ => for {
+            _       <- approval.changeStatus(id, "Archived", user)
+            deleted <- published.delete(id)
+          } yield deleted
+        }
+    }
   }
 
 }

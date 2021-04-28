@@ -36,6 +36,7 @@ trait PublishedRepository {
   def save(id: String, user: String, processCode: String, process: JsObject): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[PublishedProcess]]
   def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]]
+  def delete(id: String): Future[RequestOutcome[String]]
 }
 
 @Singleton
@@ -55,9 +56,9 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
     collection.indexesManager.list().flatMap { indexes =>
       indexes
         .filter(idx =>
-          idx.name == Some(processCodeIndexName) && !idx.unique
+          idx.name.contains(processCodeIndexName) && !idx.unique
         )
-        .map { i =>
+        .map { _ =>
           logger.warn(s"Dropping $processCodeIndexName ready for re-creation, due to configured unique change")
           collection.indexesManager.drop(processCodeIndexName).map(ret => logger.info(s"Drop of $processCodeIndexName index returned $ret"))
         }
@@ -135,6 +136,19 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
       .recover {
         case error =>
           logger.error(s"Attempt to retrieve process $processCode from collection $collectionName failed with error : ${error.getMessage}")
+          Left(DatabaseError)
+      }
+    //$COVERAGE-ON$
+  }
+
+  def delete(id: String): Future[RequestOutcome[String]] = {
+    val selector = Json.obj("_id" -> id)
+    collection.findAndRemove(selector)
+      .map { _ => Right(id) }
+      //$COVERAGE-OFF$
+      .recover {
+        case error =>
+          logger.error(s"Attempt to delete process $id from collection published failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
     //$COVERAGE-ON$

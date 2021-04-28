@@ -17,15 +17,16 @@
 package controllers
 
 import java.time.ZonedDateTime
-
 import base.BaseSpec
+import controllers.actions.FakeIdentifierAction
+import controllers.actions.FakeIdentifierAction.credential
 import mocks.MockPublishedService
 import models.PublishedProcess
 import core.models.errors.{BadRequestError, InternalServerError, NotFoundError}
 import core.models.ocelot.ProcessJson
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.ContentTypes
-import play.api.libs.json.JsObject
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -38,7 +39,11 @@ class PublishedControllerSpec extends BaseSpec with GuiceOneAppPerSuite with Pro
 
     val validId: String = "oct90005"
 
-    lazy val target: PublishedController = new PublishedController(mockPublishedService, stubControllerComponents())
+    lazy val target: PublishedController = new PublishedController(
+      mockPublishedService,
+      stubControllerComponents(),
+      FakeIdentifierAction
+    )
 
     lazy val getRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, "/")
   }
@@ -49,9 +54,10 @@ class PublishedControllerSpec extends BaseSpec with GuiceOneAppPerSuite with Pro
 
       trait ValidGetTest extends Test {
 
-        val expectedProcess: JsObject = validOnePageJson.as[JsObject]
+        val time: ZonedDateTime = ZonedDateTime.now()
+
         val returnedPublishedProcess: PublishedProcess =
-          PublishedProcess(validId, 1, ZonedDateTime.now(), validOnePageJson.as[JsObject], "user", processCode = "processCode")
+          PublishedProcess(validId, 1, time, validOnePageJson.as[JsObject], "user", processCode = "processCode")
 
         MockPublishedService
           .getById(validId)
@@ -71,11 +77,6 @@ class PublishedControllerSpec extends BaseSpec with GuiceOneAppPerSuite with Pro
         private val result = target.get(validId)(getRequest)
 
         contentType(result) shouldBe Some(ContentTypes.JSON)
-      }
-
-      "return expected content" in new ValidGetTest {
-        private val result = target.get(validId)(getRequest)
-        contentAsJson(result).as[JsObject] shouldBe expectedProcess
       }
     }
 
@@ -208,11 +209,6 @@ class PublishedControllerSpec extends BaseSpec with GuiceOneAppPerSuite with Pro
 
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
-
-      "return expected content" in new ValidGetTest {
-        private val result = target.getByProcessCode(validId)(getRequest)
-        contentAsJson(result).as[JsObject] shouldBe expectedProcess
-      }
     }
 
     "the request has an invalid process identifier" should {
@@ -311,6 +307,64 @@ class PublishedControllerSpec extends BaseSpec with GuiceOneAppPerSuite with Pro
 
         val json: JsObject = contentAsJson(result).as[JsObject]
         (json \ "code").as[String] shouldBe InternalServerError.code
+      }
+    }
+  }
+
+  "Invoking the controller archive action" when {
+
+    "the request is valid" should {
+
+      trait ValidGetTest extends Test {
+
+        MockPublishedService
+          .archive(validId, credential)
+          .returns(Future.successful(Right("")))
+
+      }
+
+      "return an Ok response" in new ValidGetTest {
+
+        private val result = target.archive(validId)(getRequest)
+
+        status(result) shouldBe OK
+      }
+    }
+
+
+    "a bad request error is raised by the service" should {
+
+      trait BadRequestErrorTest extends Test {
+
+        MockPublishedService
+          .archive(validId, credential)
+          .returns(Future.successful(Left(BadRequestError)))
+      }
+
+
+      "return an Ok response" in new BadRequestErrorTest {
+
+        private val result = target.archive(validId)(getRequest)
+
+        status(result) shouldBe BAD_REQUEST
+      }
+    }
+
+    "any other error is raised by the service" should {
+
+      trait BadRequestErrorTest extends Test {
+
+        MockPublishedService
+          .archive(validId, credential)
+          .returns(Future.successful(Left(NotFoundError)))
+      }
+
+
+      "return an Internal Server Error response" in new BadRequestErrorTest {
+
+        private val result = target.archive(validId)(getRequest)
+
+        status(result) shouldBe INTERNAL_SERVER_ERROR
       }
     }
   }

@@ -48,6 +48,12 @@ trait MockPublishedRepository extends MockFactory {
         .expects(id, user, processCode, process)
     }
 
+    def delete(id: String): CallHandler[Future[RequestOutcome[String]]] = {
+      (mockPublishedRepository
+        .delete(_: String))
+        .expects(id)
+    }
+
   }
 
 }

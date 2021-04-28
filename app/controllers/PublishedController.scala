@@ -16,8 +16,10 @@
 
 package controllers
 
+import controllers.actions.IdentifierAction
+
 import javax.inject.{Inject, Singleton}
-import core.models.errors.{BadRequestError, InternalServerError => ServerError, NotFoundError}
+import core.models.errors.{BadRequestError, NotFoundError, InternalServerError => ServerError}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.PublishedService
@@ -26,12 +28,14 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class PublishedController @Inject() (publishedService: PublishedService, cc: ControllerComponents) extends BackendController(cc) {
+class PublishedController @Inject() (publishedService: PublishedService,
+                                     cc: ControllerComponents,
+                                     identify: IdentifierAction) extends BackendController(cc) {
 
   def get(id: String): Action[AnyContent] = Action.async {
 
     publishedService.getById(id).map {
-      case Right(process) => Ok(process.process)
+      case Right(process) => Ok(Json.toJson(process))
       case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
       case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
       case Left(_) => InternalServerError(Json.toJson(ServerError))
@@ -41,10 +45,18 @@ class PublishedController @Inject() (publishedService: PublishedService, cc: Con
   def getByProcessCode(processCode: String): Action[AnyContent] = Action.async {
 
     publishedService.getByProcessCode(processCode).map {
-      case Right(process) => Ok(process.process)
+      case Right(process) => Ok(Json.toJson(process.process))
       case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
       case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
       case Left(_) => InternalServerError(Json.toJson(ServerError))
+    }
+  }
+
+  def archive(id: String): Action[AnyContent] = identify.async { implicit request =>
+    publishedService.archive(id, request.credId) map {
+      case Right(_) => Ok
+      case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
+      case _ => InternalServerError(Json.toJson(ServerError))
     }
   }
 
