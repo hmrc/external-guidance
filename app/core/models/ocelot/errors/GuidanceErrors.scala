@@ -38,7 +38,7 @@ case class LinkNotFound(id: String, index: Int) extends FlowError
 case class DuplicatePageUrl(id: String, url: String) extends FlowError
 case class InconsistentQuestionError(id: String) extends FlowError
 case class MissingWelshText(id: String, index: String, english: String) extends FlowError
-case class VisualStanzasAfterQuestion(id: String) extends FlowError
+case class VisualStanzasAfterDataInput(id: String) extends FlowError
 case class IncompleteDateInputPage(id: String) extends FlowError
 case class IncompleteExclusiveSequencePage(id: String) extends FlowError
 case class PageRedirectNotSupported(id: String) extends FlowError

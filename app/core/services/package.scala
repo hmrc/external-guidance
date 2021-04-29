@@ -56,7 +56,7 @@ package object services {
     case e: InconsistentQuestionError =>
       ProcessError(s"InconsistentQuestionError: Inconsistent QuestionStanza at id ${e.id}, number of answers and next locations dont match", e.id)
     case e: MissingWelshText => ProcessError(s"MissingWelshText: Welsh text at index ${e.index} on stanza id = ${e.id} is empty", e.id)
-    case e: VisualStanzasAfterQuestion => ProcessError(s"VisualStanzasAfterQuestion: Visual stanza with id = ${e.id} found following a Question stanza", e.id)
+    case e: VisualStanzasAfterDataInput => ProcessError(s"VisualStanzasAfterDataInput: Visual stanza with id = ${e.id} found following a data input stanza", e.id)
     case e: UnknownStanza => ProcessError(s"UnknownStanza: Unsupported stanza type ${e.typeName} found at stanza id ${e.id}", e.id)
     case e: UnknownCalloutType => ProcessError(s"UnknownCalloutType: Unsupported CalloutStanza type ${e.typeName} found at stanza id ${e.id}", e.id)
     case e: UnknownValueType => ProcessError( s"UnknownValueType: Unsupported ValueStanza Value type ${e.typeName} found at stanza id ${e.id}", e.id)
