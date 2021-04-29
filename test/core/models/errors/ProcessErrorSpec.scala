@@ -26,88 +26,88 @@ class ProcessErrorSpec extends BaseSpec {
   "Contructing ProcessErrors" should {
     "from UnknownStanza" in {
       val details: ProcessError = UnknownStanza("33", UnknownStanza.toString)
-      details shouldBe ProcessError(s"Unsupported stanza type ${UnknownStanza.toString} found at stanza id 33", "33")
+      details shouldBe ProcessError(s"UnknownStanza: Unsupported stanza type ${UnknownStanza.toString} found at stanza id 33", "33")
     }
 
     "from StanzaNotFound" in {
       val details: ProcessError = StanzaNotFound("id")
-      details shouldBe ProcessError("Missing stanza at id = id", "id")
+      details shouldBe ProcessError("StanzaNotFound: Missing stanza at id = id", "id")
     }
 
     "from PageStanzaMissing" in {
       val details: ProcessError = PageStanzaMissing("id")
-      details shouldBe ProcessError("PageSanza expected but missing at id = id", "id")
+      details shouldBe ProcessError("PageStanzaMissing: PageSanza expected but missing at id = id", "id")
     }
 
     "from PageUrlEmptyOrInvalid" in {
       val details: ProcessError = PageUrlEmptyOrInvalid("id")
-      details shouldBe ProcessError("PageStanza URL empty or invalid at id = id", "id")
+      details shouldBe ProcessError("PageUrlEmptyOrInvalid: PageStanza URL empty or invalid at id = id", "id")
     }
 
     "from PhraseNotFound" in {
       val details: ProcessError = PhraseNotFound("stanzaId", 3)
-      details shouldBe ProcessError("Referenced phrase at index 3 on stanza id = stanzaId is missing", "stanzaId")
+      details shouldBe ProcessError("PhraseNotFound: Referenced phrase at index 3 on stanza id = stanzaId is missing", "stanzaId")
     }
 
     "from LinkNotFound" in {
       val details: ProcessError = LinkNotFound("stanzaId", 4)
-      details shouldBe ProcessError("Referenced link at index 4 on stanza id = stanzaId is missing", "stanzaId")
+      details shouldBe ProcessError("LinkNotFound: Referenced link at index 4 on stanza id = stanzaId is missing", "stanzaId")
     }
 
     "from DuplicatePageUrl" in {
       val details: ProcessError = DuplicatePageUrl("id", "/url")
-      details shouldBe ProcessError("Duplicate page url /url found on stanza id = id", "id")
+      details shouldBe ProcessError("DuplicatePageUrl: Duplicate page url /url found on stanza id = id", "id")
     }
 
     "from MissingWelshText" in {
       val details: ProcessError = MissingWelshText("stanzaId", "index", "english")
-      details shouldBe ProcessError("Welsh text at index index on stanza id = stanzaId is empty", "stanzaId")
+      details shouldBe ProcessError("MissingWelshText: Welsh text at index index on stanza id = stanzaId is empty", "stanzaId")
     }
 
     "from InconsistentQuestionError" in {
       val details: ProcessError = InconsistentQuestionError("stanzaId")
-      details shouldBe ProcessError("Inconsistent QuestionStanza at id stanzaId, number of answers and next locations dont match", "stanzaId")
+      details shouldBe ProcessError("InconsistentQuestionError: Inconsistent QuestionStanza at id stanzaId, number of answers and next locations dont match", "stanzaId")
     }
 
     "from VisualStanzasAfterQuestion" in {
       val details: ProcessError = VisualStanzasAfterQuestion("stanzaId")
-      details shouldBe ProcessError("Visual stanza with id = stanzaId found following a Question stanza", "stanzaId")
+      details shouldBe ProcessError("VisualStanzasAfterQuestion: Visual stanza with id = stanzaId found following a Question stanza", "stanzaId")
     }
     "from UnknownCalcOperationType" in {
       val details: ProcessError = UnknownCalcOperationType("stanzaId", "unknowntype")
-      details shouldBe ProcessError("Unsupported CalculationStanza operation type unknowntype found at stanza id stanzaId", "stanzaId")
+      details shouldBe ProcessError("UnknownCalcOperationType: Unsupported CalculationStanza operation type unknowntype found at stanza id stanzaId", "stanzaId")
     }
     "from UnknownTestType" in {
       val details: ProcessError = UnknownTestType("stanzaId", "unknowntype")
-      details shouldBe ProcessError("Unsupported ChoiceStanza test type unknowntype found at stanza id stanzaId", "stanzaId")
+      details shouldBe ProcessError("UnknownTestType: Unsupported ChoiceStanza test type unknowntype found at stanza id stanzaId", "stanzaId")
     }
     "from ParseError" in {
       val details: ProcessError = ParseError(JsPath(Nil), Seq(JsonValidationError(Seq("err message"))))
-      details shouldBe ProcessError("Unknown parse error err message at location ", "")
+      details shouldBe ProcessError("ParseError: Unknown parse error err message at location ", "")
     }
     "from IncompleteDateInputPage" in {
       val details: ProcessError = IncompleteDateInputPage("stanzaId")
-      details shouldBe ProcessError("Incomplete Error callout group associated with date input page stanzaId", "stanzaId")
+      details shouldBe ProcessError("IncompleteDateInputPage: Incomplete Error callout group associated with date input page stanzaId", "stanzaId")
     }
     "from PageRedirectNotSupported" in {
       val details: ProcessError = PageRedirectNotSupported("stanzaId")
-      details shouldBe ProcessError("Use of ChoiceStanza stanzaId as a page redirect not supported", "stanzaId")
+      details shouldBe ProcessError("PageRedirectNotSupported: Use of ChoiceStanza stanzaId as a page redirect not supported", "stanzaId")
     }
     "from MultipleExclusiveOptionsError" in {
       val details: ProcessError = MultipleExclusiveOptionsError("stanzaId")
-      details shouldBe ProcessError("Sequence stanza stanzaId defines multiple exclusive options", "stanzaId")
+      details shouldBe ProcessError("MultipleExclusiveOptionsError: Sequence stanza stanzaId defines multiple exclusive options", "stanzaId")
     }
     "from UseOfReservedUrl" in {
       val details: ProcessError = UseOfReservedUrl("stanzaId")
-      details shouldBe ProcessError("Use of reserved URL on PageStanza stanzaId", "stanzaId")
+      details shouldBe ProcessError("UseOfReservedUrl: Use of reserved URL on PageStanza stanzaId", "stanzaId")
     }
     "from IncompleteExclusiveSequencePage" in {
       val details: ProcessError = IncompleteExclusiveSequencePage("stanzaId")
-      details shouldBe ProcessError("Exclusive sequence page stanzaId is missing a TypeError callout definition", "stanzaId")
+      details shouldBe ProcessError("IncompleteExclusiveSequencePage: Exclusive sequence page stanzaId is missing a TypeError callout definition", "stanzaId")
     }
     "from PageOccursInMultiplSequenceFlows" in {
       val details: ProcessError = PageOccursInMultiplSequenceFlows("stanzaId")
-      details shouldBe ProcessError("Page stanzaId occurs in more than one Sequence flow", "stanzaId")
+      details shouldBe ProcessError("PageOccursInMultiplSequenceFlows: Page stanzaId occurs in more than one Sequence flow", "stanzaId")
     }
 
   }
