@@ -40,7 +40,7 @@ object PageVertex {
 @Singleton
 class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
   val logger: Logger = Logger(getClass)
-  val ReservedUrls: List[String] = List("/session-timeout", "/session-restart")
+  val ReservedUrls: List[String] = List("/session-timeout", "/session-restart", s"/${SecuredProcess.SecuredProcessStartUrl}")
 
   def pagesWithValidation(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] = {
 
