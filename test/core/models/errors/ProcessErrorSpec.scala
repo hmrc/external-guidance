@@ -109,5 +109,9 @@ class ProcessErrorSpec extends BaseSpec {
       val details: ProcessError = PageOccursInMultiplSequenceFlows("stanzaId")
       details shouldBe ProcessError("PageOccursInMultiplSequenceFlows: Page stanzaId occurs in more than one Sequence flow", "stanzaId")
     }
+    "from ErrorRedirectToFirstNonPageStanzaOnly" in {
+      val details: ProcessError = ErrorRedirectToFirstNonPageStanzaOnly("stanzaId")
+      details shouldBe ProcessError("ErrorRedirectToFirstNonPageStanzaOnly: Invalid link to stanza stanzaId. Page redisplay after a ValueError must link to the first stanza after the PageStanza", "stanzaId")
+    }
   }
 }

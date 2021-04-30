@@ -52,7 +52,7 @@ case class PageRedirectNotSupported(id: String) extends FlowError
 case class UseOfReservedUrl(id: String) extends FlowError
 case class PageOccursInMultiplSequenceFlows(id: String) extends FlowError
 case class MultipleExclusiveOptions(id: String) extends FlowError
-case class PageStanzaRedisplayNotSupported(id: String) extends FlowError
+case class ErrorRedirectToFirstNonPageStanzaOnly(id: String) extends FlowError
 
 object GuidanceError {
 

@@ -72,8 +72,8 @@ package object services {
     case e: IncompleteExclusiveSequencePage =>
       ProcessError(s"IncompleteExclusiveSequencePage: Exclusive sequence page ${e.id} is missing a TypeError callout definition", e.id)
     case e: PageOccursInMultiplSequenceFlows => ProcessError(s"PageOccursInMultiplSequenceFlows: Page ${e.id} occurs in more than one Sequence flow", e.id)
-    case e: PageStanzaRedisplayNotSupported =>
-      ProcessError(s"PageStanzaRedisplayNotSupported: Choice ${e.id} redirection to current PageStanza not supported", e.id)
+    case e: ErrorRedirectToFirstNonPageStanzaOnly =>
+      ProcessError(s"ErrorRedirectToFirstNonPageStanzaOnly: Invalid link to stanza ${e.id}. Page redisplay after a ValueError must link to the first stanza after the PageStanza", e.id)
 
     case e: ParseError =>
       ProcessError(s"ParseError: Unknown parse error ${e.errs.map(_.messages.mkString(",")).mkString(",")} at location ${e.jsPath.toString}", "")
