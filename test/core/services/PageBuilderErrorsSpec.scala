@@ -300,15 +300,15 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
     "detect UnknownCalloutType" in {
       val processErrors: List[ProcessError] =
         List(
-          ProcessError("Unsupported InputStanza type UnknownInputType found at stanza id 34","34"),
-          ProcessError("Process Links section parse error, reason: error.path.missing, index: 0",""),
-          ProcessError("Process Phrases section parse error, reason: error.minLength, index: 5",""),
-          ProcessError("Unsupported stanza type UnknownStanza found at stanza id 2","2"),
-          ProcessError("""Process Flow section parse error, reason: 'type' is undefined on object:"""+
+          ProcessError("UnknownInputType: Unsupported InputStanza type UnknownInputType found at stanza id 34","34"),
+          ProcessError("LinksParseError: Process Links section parse error, reason: error.path.missing, index: 0",""),
+          ProcessError("PhrasesParseError: Process Phrases section parse error, reason: error.minLength, index: 5",""),
+          ProcessError("UnknownStanza: Unsupported stanza type UnknownStanza found at stanza id 2","2"),
+          ProcessError("""FlowParseError: Process Flow section parse error, reason: 'type' is undefined on object:"""+
            """ {"next":["end"],"noteType":"Error","stack":false,"text":59}, stanzaId: 5, target: /flow/5""","5"),
-          ProcessError("Unsupported CalloutStanza type UnknownType found at stanza id 4","4"),
-          ProcessError("Unsupported ValueStanza Value type AnUnknownType found at stanza id 33","33"),
-          ProcessError("Process Meta section parse error, reason: error.path.missing, target: ocelot",""))
+          ProcessError("UnknownCalloutType: Unsupported CalloutStanza type UnknownType found at stanza id 4","4"),
+          ProcessError("UnknownValueType: Unsupported ValueStanza Value type AnUnknownType found at stanza id 33","33"),
+          ProcessError("MetaParseError: Process Meta section parse error, reason: error.path.missing, target: ocelot",""))
 
       val jsObject = assortedParseErrorsJson
       val result = jsObject.as[JsObject].validate[Process].fold(
@@ -349,7 +349,9 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
           Phrase(Vector("Some Text", "Welsh: Some Text")),
           Phrase(Vector("Exclusive sequence stanza", "Welsh: Exclusive sequence stanza")),
           Phrase(Vector("Some Text2", "Welsh: Some Text2")),
-          Phrase(Vector("Some Text3 [exclusive]", "Welsh: Some Text3"))
+          Phrase(Vector(
+            "Some Text3 [exclusive:Selecting this checkbox will deselect the other checkboxes]",
+            "Welsh: Some Text3 [exclusive:Welsh: Selecting this checkbox will deselect the other checkboxes]"))
         ),
         Vector[Link]()
       )

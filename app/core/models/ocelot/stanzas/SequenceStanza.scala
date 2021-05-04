@@ -87,7 +87,8 @@ trait Sequence extends VisualStanza with Populated with DataInput {
 
 object Sequence {
   def apply(s: SequenceStanza, text: Phrase, options: Seq[Phrase]): Sequence =
-    if (options.exists(o => exclusiveOptionRegex.findFirstMatchIn(o.english).nonEmpty))
+    if (options.exists(o => exclusiveOptionRegex.findFirstMatchIn(o.english).nonEmpty &&
+    exclusiveOptionRegex.findFirstMatchIn(o.welsh).nonEmpty))
       ExclusiveSequence(text, s.next, options, s.label, s.stack)
     else
       NonExclusiveSequence(text, s.next, options, s.label, s.stack)
@@ -105,7 +106,8 @@ case class ExclusiveSequence(text: Phrase,
                              label: Option[String],
                              stack: Boolean) extends Sequence {
   lazy val (exclusiveOptions: Seq[Phrase], nonExclusiveOptions: Seq[Phrase]) =
-    options.partition{p => exclusiveOptionRegex.findFirstMatchIn(p.english).nonEmpty}
+    options.partition{p => exclusiveOptionRegex.findFirstMatchIn(p.english).nonEmpty &&
+      exclusiveOptionRegex.findFirstMatchIn(p.welsh).nonEmpty}
 
   override def validInput(value: String): Option[String] =
     asListOfInt(value).fold[Option[String]](None){l =>
