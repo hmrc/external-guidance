@@ -42,8 +42,7 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
   val logger: Logger = Logger(getClass)
   val ReservedUrls: List[String] = List("/session-timeout", "/session-restart")
 
-  def pagesWithValidation(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] = {
-
+  def pagesWithValidation(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] =
     pageBuilder.pages(process, start).fold[Either[List[GuidanceError], Seq[Page]]](Left(_),
       pages => {
         implicit val stanzaMap: Map[String, Stanza] = process.flow
@@ -61,7 +60,6 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
         }
       }
     )
-  }
 
   @tailrec
   private def checkDateInputErrorCallouts(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
