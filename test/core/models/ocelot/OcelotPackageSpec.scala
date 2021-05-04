@@ -16,6 +16,8 @@
 
 package core.models.ocelot
 
+import scala.util.matching.Regex.Match
+
 import base.BaseSpec
 import org.scalatest.Inspectors.forAll
 
@@ -135,5 +137,37 @@ class OcelotPackageSpec extends BaseSpec {
 
       isBoldOnlyPhrase(Phrase(Vector("Blah", "Blah"))) shouldBe false
     }
+  }
+
+  "Exclusive sequence exclusive option matching" must {
+
+    "not match options where the exclusive option place holder is absent" in {
+
+      exclusiveOptionRegex.findFirstMatchIn("Other") shouldBe None
+    }
+
+    "not match options where the place holder is present, but no hint is defined" in {
+
+      exclusiveOptionRegex.findFirstMatchIn("Other [exclusive:]") shouldBe None
+    }
+
+    "match option where both place holder and hint are defined" in {
+
+      val optionText: String = "Other [exclusive:Selection of this checkbox will cause the other checkboxes to be deselected]"
+
+      val optionMatch: Option[Match] = exclusiveOptionRegex.findFirstMatchIn(optionText)
+
+      optionMatch.isDefined shouldBe true
+    }
+
+    "match option where hint text contains colon and comma" in {
+
+      val optionText: String = "Other [exclusive: Welsh: One way, or another, the other checkboxes will be deselected]"
+
+      val optionMatch: Option[Match] = exclusiveOptionRegex.findFirstMatchIn(optionText)
+
+      optionMatch.isDefined shouldBe true
+    }
+
   }
 }
