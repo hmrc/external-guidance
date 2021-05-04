@@ -74,7 +74,7 @@ package object services {
     case e: IncompleteExclusiveSequencePage => ProcessError(s"Exclusive sequence page ${e.id} is missing a TypeError callout definition", e.id)
     case e: PageOccursInMultiplSequenceFlows => ProcessError(s"Page ${e.id} occurs in more than one Sequence flow", e.id)
     case e: MissingUniqueFlowTerminator =>
-      ProcessError(s"MissingUniqueFlowTerminator: Flow doesnt have a unique termination page ${e.id}, possible main flow connection into a sequence flow", e.id)
+      ProcessError(s"MissingUniqueFlowTerminator: Flow doesn't have a unique termination page ${e.id}, possible main flow connection into a sequence flow", e.id)
   }
 
   implicit def processErrs(errs: List[GuidanceError]): List[ProcessError] = errs.map(toProcessErr)

@@ -111,7 +111,7 @@ class ProcessErrorSpec extends BaseSpec {
     }
    "from MissingUniqueFlowTerminator" in {
       val details: ProcessError = MissingUniqueFlowTerminator("stanzaId")
-      details shouldBe ProcessError("MissingUniqueFlowTerminator: Flow doesnt have a unique termination page stanzaId, possible main flow connection into a sequence flow", "stanzaId")
+      details shouldBe ProcessError("MissingUniqueFlowTerminator: Flow doesn't have a unique termination page stanzaId, possible main flow connection into a sequence flow", "stanzaId")
     }
   }
 }
