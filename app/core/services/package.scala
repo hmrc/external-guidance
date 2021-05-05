@@ -76,6 +76,13 @@ package object services {
       ProcessError(s"ErrorRedirectToFirstNonPageStanzaOnly: Invalid link to stanza ${e.id}. Page redisplay after a ValueError must link to the first stanza after the PageStanza", e.id)
     case e: MissingUniqueFlowTerminator =>
       ProcessError(s"MissingUniqueFlowTerminator: Flow doesn't have a unique termination page ${e.id}, possible main flow connection into a sequence flow", e.id)
+
+    case e: ParseError =>
+      ProcessError(s"ParseError: Unknown parse error ${e.errs.map(_.messages.mkString(",")).mkString(",")} at location ${e.jsPath.toString}", "")
+    case e: FlowParseError => ProcessError(s"FlowParseError: Process Flow section parse error, reason: ${e.msg}, stanzaId: ${e.id}, target: ${e.arg}", e.id)
+    case e: MetaParseError => ProcessError(s"MetaParseError: Process Meta section parse error, reason: ${e.msg}, target: ${e.id}", "")
+    case e: PhrasesParseError => ProcessError(s"PhrasesParseError: Process Phrases section parse error, reason: ${e.msg}, index: ${e.id}", "")
+    case e: LinksParseError => ProcessError(s"LinksParseError: Process Links section parse error, reason: ${e.msg}, index: ${e.id}", "")
   }
 
   implicit def processErrs(errs: List[GuidanceError]): List[ProcessError] = errs.map(toProcessErr)
