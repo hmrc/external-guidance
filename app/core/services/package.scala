@@ -72,7 +72,7 @@ package object services {
     case e: LinksParseError => ProcessError(s"LinksParseError: Process Links section parse error, reason: ${e.msg}, index: ${e.id}", "")
     case e: IncompleteDateInputPage => ProcessError(s"IncompleteDateInputPage: Incomplete Error callout group associated with date input page ${e.id}", e.id)
     case e: PageRedirectNotSupported => ProcessError(s"PageRedirectNotSupported: Use of ChoiceStanza ${e.id} as a page redirect not supported", e.id)
-    case e: MultipleExclusiveOptionsError => ProcessError(s"MultipleExclusiveOptionsError: Sequence stanza ${e.id} defines multiple exclusive options", e.id)
+    case e: MultipleExclusiveOptions => ProcessError(s"MultipleExclusiveOptions: Sequence stanza ${e.id} defines multiple exclusive options", e.id)
     case e: UseOfReservedUrl => ProcessError(s"UseOfReservedUrl: Use of reserved URL on PageStanza ${e.id}", e.id)
     case e: IncompleteExclusiveSequencePage =>
       ProcessError(s"IncompleteExclusiveSequencePage: Exclusive sequence page ${e.id} is missing a TypeError callout definition", e.id)
