@@ -24,6 +24,13 @@ sealed trait FlowError extends GuidanceError
 sealed trait PhrasesError extends GuidanceError
 sealed trait LinksError extends GuidanceError
 
+// General and section parse errors
+case class ParseError(jsPath: JsPath, errs: Seq[JsonValidationError]) extends GuidanceError
+case class FlowParseError(id: String, msg: String, arg: String) extends FlowError
+case class MetaParseError(id: String, msg: String, arg: String) extends MetaError
+case class PhrasesParseError(id: String, msg: String, arg: String) extends PhrasesError
+case class LinksParseError(id: String, msg: String, arg: String) extends LinksError
+// Guidance Flow errors
 case class UnknownStanza(id: String, typeName: String) extends FlowError
 case class UnknownCalloutType(id: String, typeName: String) extends FlowError
 case class UnknownValueType(id: String, typeName: String) extends FlowError
@@ -36,7 +43,7 @@ case class PageUrlEmptyOrInvalid(id: String) extends FlowError
 case class PhraseNotFound(id: String, index: Int) extends FlowError
 case class LinkNotFound(id: String, index: Int) extends FlowError
 case class DuplicatePageUrl(id: String, url: String) extends FlowError
-case class InconsistentQuestionError(id: String) extends FlowError
+case class InconsistentQuestion(id: String) extends FlowError
 case class MissingWelshText(id: String, index: String, english: String) extends FlowError
 case class VisualStanzasAfterDataInput(id: String) extends FlowError
 case class IncompleteDateInputPage(id: String) extends FlowError
@@ -44,13 +51,9 @@ case class IncompleteExclusiveSequencePage(id: String) extends FlowError
 case class PageRedirectNotSupported(id: String) extends FlowError
 case class UseOfReservedUrl(id: String) extends FlowError
 case class PageOccursInMultiplSequenceFlows(id: String) extends FlowError
-case class MissingUniqueFlowTerminator(id: String) extends FlowError
-case class ParseError(jsPath: JsPath, errs: Seq[JsonValidationError]) extends GuidanceError
-case class FlowParseError(id: String, msg: String, arg: String) extends FlowError
-case class MetaParseError(id: String, msg: String, arg: String) extends MetaError
-case class PhrasesParseError(id: String, msg: String, arg: String) extends PhrasesError
-case class LinksParseError(id: String, msg: String, arg: String) extends LinksError
 case class MultipleExclusiveOptions(id: String) extends FlowError
+case class ErrorRedirectToFirstNonPageStanzaOnly(id: String) extends FlowError
+case class MissingUniqueFlowTerminator(id: String) extends FlowError
 
 object GuidanceError {
 

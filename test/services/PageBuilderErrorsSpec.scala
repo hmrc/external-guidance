@@ -177,6 +177,57 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       }
     }
 
+    "detect redirection to a stanza other than the first after the PageStanza when using the standard inpur error pattern" in {
+
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/page-1", Seq("1"), stack = false),
+        "1" -> CalloutStanza(Error, 0, Seq("2"), stack = false),
+        "2" -> CalloutStanza(Error, 1, Seq("3"), stack = true),
+        "3" -> CalloutStanza(Error, 2, Seq("4"), stack = true),
+        "4" -> CalloutStanza(TypeError, 3, Seq("5"), stack = false),
+        "5" -> ChoiceStanza(
+          Seq("6", "7"),
+          Seq(ChoiceStanzaTest("[label:ErrorCode]", Equals, "out_of_range")),
+          stack = false
+        ),
+        "7" -> InputStanza(Date, Seq("8"), four, None, "date_label", None, stack = false),
+        "6" -> CalloutStanza(ValueError, five, Seq("7"), stack = false),
+        "8" -> ChoiceStanza(
+          Seq("2", "9"),
+          Seq(ChoiceStanzaTest("[label:date_label", MoreThan, "[timescale:today]")),
+          stack = false
+        ),
+        "9" -> PageStanza("/page-2", Seq("10"), stack = false),
+        "10" -> InstructionStanza(six, Seq("end"), None, stack = false),
+        "end" -> EndStanza
+      )
+
+      val phrases: Vector[Phrase] = Vector(
+        Phrase("Date of birth must include a {0} and {1}", "Welsh, Date of birth must include a {0} and {1}"),
+        Phrase("Date of birth must include a {0}", "Welsh, Date of birth must include a {0}"),
+        Phrase("You must enter a date", "Welsh, You must enter a date"),
+        Phrase("You must enter a real date", "Welsh, You must enter a real date"),
+        Phrase("What is your date of birth?", "Welsh, What is your date of birth?"),
+        Phrase(
+          "Date of birth must be on or after 1 January 1900 and not in the future",
+          "Welsh, Date of birth must be on or after 1 January 1900 and not in the future"),
+        Phrase("The second page", "Welsh, The second page")
+      )
+
+      val process = Process(
+        metaSection,
+        flow,
+        phrases,
+        Vector[Link]()
+      )
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Right(_) => fail(s"Should not succeed")
+        case Left(List(ErrorRedirectToFirstNonPageStanzaOnly("2"))) =>
+      }
+    }
+
+
     "detect visual stanzas after data input error for standard date input pattern" in {
 
       val flow = Map(
@@ -373,7 +424,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       }
     }
 
-    "detect InconsistentQuestionError" in {
+    "detect InconsistentQuestion" in {
       val flow = Map(
         Process.StartStanzaId -> PageStanza("/this", Seq("1"), false),
         "1" -> InstructionStanza(0, Seq("2"), None, false),
@@ -394,9 +445,9 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         Vector[Link]()
       )
       pageBuilder.pagesWithValidation(process) match {
-        case Left(List(InconsistentQuestionError("2"))) => succeed
-        case Left(err) => fail(s"InconsistentQuestionError error not detected, failed with $err")
-        case _ => fail(s"InconsistentQuestionError not detected")
+        case Left(List(InconsistentQuestion("2"))) => succeed
+        case Left(err) => fail(s"InconsistentQuestion error not detected, failed with $err")
+        case _ => fail(s"InconsistentQuestion not detected")
       }
     }
 

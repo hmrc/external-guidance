@@ -235,21 +235,21 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
           case None => checkDataInputPages(xs, errors)
           case Some(d) =>
             val stanzaMap: Map[String, Stanza] = x.keyedStanzas.map(ks => (ks.key, ks.stanza)).toMap
-            val leadingStanzaIds: Seq[String] = stanzasBeforeDataInput(List(x.keyedStanzas.head.key), stanzaMap, Nil, Nil)
+            val leadingStanzaIds: List[String] = stanzasBeforeDataInput(List(x.keyedStanzas.head.key), stanzaMap, Nil, Nil)
             val anyErrors = checkDataInputFollowers(d.stanza.next, stanzaMap, leadingStanzaIds, Nil)
             checkDataInputPages(xs, anyErrors ++ errors)
         }
     }
 
   @tailrec
-  private def stanzasBeforeDataInput(p: Seq[String], stanzaMap: Map[String, Stanza], seen: Seq[String], acc: Seq[String]): Seq[String] =
+  private def stanzasBeforeDataInput(p: List[String], stanzaMap: Map[String, Stanza], seen: List[String], acc: List[String]): List[String] =
     p match {
-      case Nil => acc
-      case x +: xs if seen.contains(x) => stanzasBeforeDataInput(xs, stanzaMap, seen, acc)
-      case x +: xs if !stanzaMap.contains(x) => stanzasBeforeDataInput(xs, stanzaMap, x +: seen, acc)
-      case x +: xs => stanzaMap(x) match {
+      case Nil => acc.reverse
+      case x :: xs if seen.contains(x) => stanzasBeforeDataInput(xs, stanzaMap, seen, acc)
+      case x :: xs if !stanzaMap.contains(x) => stanzasBeforeDataInput(xs, stanzaMap, x :: seen, acc)
+      case x :: xs => stanzaMap(x) match {
         case _:DataInput => stanzasBeforeDataInput(xs, stanzaMap, x +: seen, acc)
-        case other => stanzasBeforeDataInput(xs ++ other.next, stanzaMap, x +: seen, x +: acc)
+        case other => stanzasBeforeDataInput(xs ++ other.next, stanzaMap, x :: seen, x :: acc)
       }
     }
 
@@ -257,15 +257,15 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
   private def checkDataInputFollowers(
                                        p: Seq[String],
                                        keyedStanzas: Map[String, Stanza],
-                                       leadingStanzaIds: Seq[String],
-                                       seen: Seq[String]): List[GuidanceError] =
+                                       leadingStanzaIds: List[String],
+                                       seen: List[String]): List[GuidanceError] =
     p match {
       case Nil => Nil
       case x +: xs if seen.contains(x) => checkDataInputFollowers(xs, keyedStanzas, leadingStanzaIds, seen)
-      case x +: xs if leadingStanzaIds.contains(x) => checkDataInputFollowers(xs, keyedStanzas, leadingStanzaIds, x +: seen)
-      case x +: xs if !keyedStanzas.contains(x) => checkDataInputFollowers(xs, keyedStanzas, leadingStanzaIds, x +: seen)
+      case x +: _ if leadingStanzaIds.contains(x) && leadingStanzaIds.indexOf(x) != 1 => List(ErrorRedirectToFirstNonPageStanzaOnly(x))
+      case x +: xs if leadingStanzaIds.contains(x) => checkDataInputFollowers(xs, keyedStanzas, leadingStanzaIds, x :: seen)
+      case x +: xs if !keyedStanzas.contains(x) => checkDataInputFollowers(xs, keyedStanzas, leadingStanzaIds, x :: seen)
       case x +: _ if keyedStanzas(x).visual => List(VisualStanzasAfterDataInput(x))
-      case x +: xs => checkDataInputFollowers(keyedStanzas(x).next ++ xs, keyedStanzas, leadingStanzaIds, x +: seen)
+      case x +: xs => checkDataInputFollowers(keyedStanzas(x).next ++ xs, keyedStanzas, leadingStanzaIds, x :: seen)
     }
-
 }

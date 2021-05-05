@@ -64,9 +64,9 @@ class ProcessErrorSpec extends BaseSpec {
       details shouldBe ProcessError("MissingWelshText: Welsh text at index index on stanza id = stanzaId is empty", "stanzaId")
     }
 
-    "from InconsistentQuestionError" in {
-      val details: ProcessError = InconsistentQuestionError("stanzaId")
-      details shouldBe ProcessError("InconsistentQuestionError: Inconsistent QuestionStanza at id stanzaId, number of answers and next locations dont match", "stanzaId")
+    "from InconsistentQuestion" in {
+      val details: ProcessError = InconsistentQuestion("stanzaId")
+      details shouldBe ProcessError("InconsistentQuestion: Inconsistent QuestionStanza at id stanzaId, number of answers and next locations dont match", "stanzaId")
     }
 
     "from VisualStanzasAfterDataInput" in {
@@ -109,7 +109,11 @@ class ProcessErrorSpec extends BaseSpec {
       val details: ProcessError = PageOccursInMultiplSequenceFlows("stanzaId")
       details shouldBe ProcessError("PageOccursInMultiplSequenceFlows: Page stanzaId occurs in more than one Sequence flow", "stanzaId")
     }
-   "from MissingUniqueFlowTerminator" in {
+    "from ErrorRedirectToFirstNonPageStanzaOnly" in {
+      val details: ProcessError = ErrorRedirectToFirstNonPageStanzaOnly("stanzaId")
+      details shouldBe ProcessError("ErrorRedirectToFirstNonPageStanzaOnly: Invalid link to stanza stanzaId. Page redisplay after a ValueError must link to the first stanza after the PageStanza", "stanzaId")
+    }
+    "from MissingUniqueFlowTerminator" in {
       val details: ProcessError = MissingUniqueFlowTerminator("stanzaId")
       details shouldBe ProcessError("MissingUniqueFlowTerminator: Flow doesn't have a unique termination page stanzaId, possible main flow connection into a sequence flow", "stanzaId")
     }
