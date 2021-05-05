@@ -36,7 +36,7 @@ class ProcessErrorSpec extends BaseSpec {
 
     "from PageStanzaMissing" in {
       val details: ProcessError = PageStanzaMissing("id")
-      details shouldBe ProcessError("PageStanzaMissing: PageSanza expected but missing at id = id", "id")
+      details shouldBe ProcessError("PageStanzaMissing: PageStanza expected but missing at id = id", "id")
     }
 
     "from PageUrlEmptyOrInvalid" in {
