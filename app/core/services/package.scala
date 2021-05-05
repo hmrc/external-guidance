@@ -48,7 +48,7 @@ package object services {
 
   implicit def toProcessErr(err: GuidanceError): ProcessError = err match {
     case e: StanzaNotFound => ProcessError(s"StanzaNotFound: Missing stanza at id = ${e.id}", e.id)
-    case e: PageStanzaMissing => ProcessError(s"PageStanzaMissing: PageSanza expected but missing at id = ${e.id}", e.id)
+    case e: PageStanzaMissing => ProcessError(s"PageStanzaMissing: PageStanza expected but missing at id = ${e.id}", e.id)
     case e: PageUrlEmptyOrInvalid => ProcessError(s"PageUrlEmptyOrInvalid: PageStanza URL empty or invalid at id = ${e.id}", e.id)
     case e: PhraseNotFound => ProcessError(s"PhraseNotFound: Referenced phrase at index ${e.index} on stanza id = ${e.id} is missing", e.id)
     case e: LinkNotFound => ProcessError(s"LinkNotFound: Referenced link at index ${e.index} on stanza id = ${e.id} is missing", e.id)
