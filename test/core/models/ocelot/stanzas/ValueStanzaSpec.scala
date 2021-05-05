@@ -337,7 +337,7 @@ class ValueStanzaSpec extends BaseSpec {
 
       val stanza: ValueStanza = validValueStanzaWithMixedValueTypesJson.as[ValueStanza]
 
-      stanza.labels shouldBe List(ScalarLabel(pageNameLabel), ListLabel(listLabel))
+      stanza.labels shouldBe List(pageNameLabel, listLabel)
     }
 
     "correctly evaluate scalar labels" in {

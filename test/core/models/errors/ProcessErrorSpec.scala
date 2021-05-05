@@ -36,7 +36,7 @@ class ProcessErrorSpec extends BaseSpec {
 
     "from PageStanzaMissing" in {
       val details: ProcessError = PageStanzaMissing("id")
-      details shouldBe ProcessError("PageStanzaMissing: PageSanza expected but missing at id = id", "id")
+      details shouldBe ProcessError("PageStanzaMissing: PageStanza expected but missing at id = id", "id")
     }
 
     "from PageUrlEmptyOrInvalid" in {
@@ -69,7 +69,7 @@ class ProcessErrorSpec extends BaseSpec {
       details shouldBe ProcessError("InconsistentQuestion: Inconsistent QuestionStanza at id stanzaId, number of answers and next locations dont match", "stanzaId")
     }
 
-    "from VisualStanzasAfterQuestion" in {
+    "from VisualStanzasAfterDataInput" in {
       val details: ProcessError = VisualStanzasAfterDataInput("stanzaId")
       details shouldBe ProcessError("VisualStanzasAfterDataInput: Visual stanza with id = stanzaId found following a data input stanza", "stanzaId")
     }
@@ -112,6 +112,10 @@ class ProcessErrorSpec extends BaseSpec {
     "from ErrorRedirectToFirstNonPageStanzaOnly" in {
       val details: ProcessError = ErrorRedirectToFirstNonPageStanzaOnly("stanzaId")
       details shouldBe ProcessError("ErrorRedirectToFirstNonPageStanzaOnly: Invalid link to stanza stanzaId. Page redisplay after a ValueError must link to the first stanza after the PageStanza", "stanzaId")
+    }
+    "from MissingUniqueFlowTerminator" in {
+      val details: ProcessError = MissingUniqueFlowTerminator("stanzaId")
+      details shouldBe ProcessError("MissingUniqueFlowTerminator: Flow doesn't have a unique termination page stanzaId, possible main flow connection into a sequence flow", "stanzaId")
     }
   }
 }

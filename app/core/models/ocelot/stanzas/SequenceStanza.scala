@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot.{labelReferences, ScalarLabel, Page, Labels, Label, Phrase, asListOfInt, exclusiveOptionRegex}
+import core.models.ocelot.{labelReferences, Page, Labels, Phrase, asListOfInt, exclusiveOptionRegex}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json.{JsSuccess, JsError, JsValue, JsonValidationError, JsPath, OWrites, Reads}
@@ -57,7 +57,7 @@ trait Sequence extends VisualStanza with Populated with DataInput {
   val options: Seq[Phrase]
   val label: Option[String]
   override val labelRefs: List[String] = labelReferences(text.english) ++ options.flatMap(a => labelReferences(a.english))
-  override val labels: List[Label] = label.fold[List[Label]](Nil)(l => List(ScalarLabel(l)))
+  override val labels: List[String] = label.fold[List[String]](Nil)(l => List(l))
 
   def eval(value: String, page: Page, labels: Labels): (Option[String], Labels) =
     validInput(value).fold[(Option[String], Labels)]((None, labels)){checkedItems =>
@@ -87,7 +87,8 @@ trait Sequence extends VisualStanza with Populated with DataInput {
 
 object Sequence {
   def apply(s: SequenceStanza, text: Phrase, options: Seq[Phrase]): Sequence =
-    if (options.exists(o => exclusiveOptionRegex.findFirstMatchIn(o.english).nonEmpty))
+    if (options.exists(o => exclusiveOptionRegex.findFirstMatchIn(o.english).nonEmpty &&
+    exclusiveOptionRegex.findFirstMatchIn(o.welsh).nonEmpty))
       ExclusiveSequence(text, s.next, options, s.label, s.stack)
     else
       NonExclusiveSequence(text, s.next, options, s.label, s.stack)
@@ -105,7 +106,8 @@ case class ExclusiveSequence(text: Phrase,
                              label: Option[String],
                              stack: Boolean) extends Sequence {
   lazy val (exclusiveOptions: Seq[Phrase], nonExclusiveOptions: Seq[Phrase]) =
-    options.partition{p => exclusiveOptionRegex.findFirstMatchIn(p.english).nonEmpty}
+    options.partition{p => exclusiveOptionRegex.findFirstMatchIn(p.english).nonEmpty &&
+      exclusiveOptionRegex.findFirstMatchIn(p.welsh).nonEmpty}
 
   override def validInput(value: String): Option[String] =
     asListOfInt(value).fold[Option[String]](None){l =>

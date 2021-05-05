@@ -523,10 +523,10 @@ class CalculationStanzaSpec extends BaseSpec {
       val calculation: Calculation = Calculation(exampleCalcStanza)
 
       // Define expected labels
-      val output1: Label = ScalarLabel("output1")
-      val output2: Label = ScalarLabel("output2")
-      val output3: Label = ScalarLabel("output3")
-      val output4: Label = ScalarLabel("output4")
+      val output1: String = "output1"
+      val output2: String = "output2"
+      val output3: String = "output3"
+      val output4: String = "output4"
 
       calculation.labels shouldBe List(output1, output2, output3, output4)
     }

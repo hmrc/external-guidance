@@ -508,8 +508,8 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         Vector[Phrase](
           Phrase(Vector("Some Text", "Welsh: Some Text")),
           Phrase(Vector("Exclusive sequence stanza", "Welsh: Exclusive sequence stanza")),
-          Phrase(Vector("Some Text2 [exclusive]", "Welsh: Some Text2")),
-          Phrase(Vector("Some Text3 [exclusive]", "Welsh: Some Text3"))
+          Phrase(Vector("Some Text2 [exclusive:Hint]", "Welsh: Some Text2 [exclusive:Welsh: Hint]")),
+          Phrase(Vector("Some Text3 [exclusive:Hint]", "Welsh: Some Text3 [exclusive:Welsh: Hint]"))
         ),
         Vector[Link]()
       )
@@ -543,7 +543,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
           Phrase(Vector("Some Text", "Welsh: Some Text")),
           Phrase(Vector("Exclusive sequence stanza", "Welsh: Exclusive sequence stanza")),
           Phrase(Vector("Some Text2", "Welsh: Some Text2")),
-          Phrase(Vector("Some Text3 [exclusive]", "Welsh: Some Text3"))
+          Phrase(Vector("Some Text3 [exclusive: Hint]", "Welsh: Some Text3 [exclusive:Welsh: Hint]"))
         ),
         Vector[Link]()
       )

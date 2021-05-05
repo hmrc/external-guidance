@@ -27,7 +27,7 @@ package object services {
   val uuidFormat: String = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
   def validateUUID(id: String): Option[UUID] = if (id.matches(uuidFormat)) Some(UUID.fromString(id)) else None
   def validateProcessId(id: String): Either[Error, String] = if (id.matches(processIdformat)) Right(id) else Left(ValidationError)
-  def uniqueLabels(pages: Seq[Page]):Seq[Label] = pages.flatMap(p => p.labels).distinct
+  def uniqueLabels(pages: Seq[Page]):Seq[String] = pages.flatMap(p => p.labels).distinct
   def uniqueLabelRefs(pages: Seq[Page]): Seq[String] = pages.flatMap(_.labelRefs)
 
   def fromPageDetails[A](pages: Seq[Page])(f: (String, String, String) => A): List[A] =
@@ -48,7 +48,7 @@ package object services {
 
   implicit def toProcessErr(err: GuidanceError): ProcessError = err match {
     case e: StanzaNotFound => ProcessError(s"StanzaNotFound: Missing stanza at id = ${e.id}", e.id)
-    case e: PageStanzaMissing => ProcessError(s"PageStanzaMissing: PageSanza expected but missing at id = ${e.id}", e.id)
+    case e: PageStanzaMissing => ProcessError(s"PageStanzaMissing: PageStanza expected but missing at id = ${e.id}", e.id)
     case e: PageUrlEmptyOrInvalid => ProcessError(s"PageUrlEmptyOrInvalid: PageStanza URL empty or invalid at id = ${e.id}", e.id)
     case e: PhraseNotFound => ProcessError(s"PhraseNotFound: Referenced phrase at index ${e.index} on stanza id = ${e.id} is missing", e.id)
     case e: LinkNotFound => ProcessError(s"LinkNotFound: Referenced link at index ${e.index} on stanza id = ${e.id} is missing", e.id)
@@ -74,13 +74,8 @@ package object services {
     case e: PageOccursInMultiplSequenceFlows => ProcessError(s"PageOccursInMultiplSequenceFlows: Page ${e.id} occurs in more than one Sequence flow", e.id)
     case e: ErrorRedirectToFirstNonPageStanzaOnly =>
       ProcessError(s"ErrorRedirectToFirstNonPageStanzaOnly: Invalid link to stanza ${e.id}. Page redisplay after a ValueError must link to the first stanza after the PageStanza", e.id)
-
-    case e: ParseError =>
-      ProcessError(s"ParseError: Unknown parse error ${e.errs.map(_.messages.mkString(",")).mkString(",")} at location ${e.jsPath.toString}", "")
-    case e: FlowParseError => ProcessError(s"FlowParseError: Process Flow section parse error, reason: ${e.msg}, stanzaId: ${e.id}, target: ${e.arg}", e.id)
-    case e: MetaParseError => ProcessError(s"MetaParseError: Process Meta section parse error, reason: ${e.msg}, target: ${e.id}", "")
-    case e: PhrasesParseError => ProcessError(s"PhrasesParseError: Process Phrases section parse error, reason: ${e.msg}, index: ${e.id}", "")
-    case e: LinksParseError => ProcessError(s"LinksParseError: Process Links section parse error, reason: ${e.msg}, index: ${e.id}", "")
+    case e: MissingUniqueFlowTerminator =>
+      ProcessError(s"MissingUniqueFlowTerminator: Flow doesn't have a unique termination page ${e.id}, possible main flow connection into a sequence flow", e.id)
   }
 
   implicit def processErrs(errs: List[GuidanceError]): List[ProcessError] = errs.map(toProcessErr)
