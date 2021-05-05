@@ -34,26 +34,27 @@ class PageBuilder @Inject() (val placeholders: Placeholders) extends ProcessPopu
                        pageStanza: Option[PageStanza] = None,
                        ids: Seq[String] = Nil,
                        stanzas: Seq[Stanza] = Nil,
-                       next: Seq[String] = Nil): Either[GuidanceError, (Option[PageStanza], Seq[String], Seq[Stanza], Seq[String])] =
+                       next: Seq[String] = Nil,
+                       endFound: Boolean = false): Either[GuidanceError, (Option[PageStanza], Seq[String], Seq[Stanza], Seq[String], Boolean)] =
       keys match {
-        case Nil => Right((pageStanza, ids, stanzas, next))                                                  // End Page
-        case key +: xs if ids.contains(key) => collectStanzas(xs, pageStanza, ids, stanzas, next)            // Already encountered, but potentially more paths
+        case Nil => Right((pageStanza, ids, stanzas, next, endFound))                                                  // End Page
+        case key +: xs if ids.contains(key) => collectStanzas(xs, pageStanza, ids, stanzas, next, endFound)            // Already encountered, but potentially more paths
         case key +: xs =>
           (stanza(key, process), xs ) match {
-            case (Right(s: PageStanza), _) if ids.nonEmpty => collectStanzas(xs, pageStanza, ids, stanzas, key +: next) // End page but potentially more paths
-            case (Right(s: PageStanza), _) => collectStanzas(xs ++ s.next, Some(s), ids :+ key, stanzas :+ s, next)     // Beginning of page
-            case (Right(EndStanza), _) => collectStanzas(xs, pageStanza, ids :+ key, stanzas :+ EndStanza, next)        // End page but potentially more paths
-            case (Right(s: Stanza), _) if ids.isEmpty => Left(PageStanzaMissing(key))                                   // None PageStanza at start of page
-            case (Right(s: Stanza), _) => collectStanzas(xs ++ s.next, pageStanza, ids :+ key, stanzas :+ s, next)      // None PageStanza within page
+            case (Right(s: PageStanza), _) if ids.nonEmpty => collectStanzas(xs, pageStanza, ids, stanzas, key +: next, endFound) // End page but potentially more paths
+            case (Right(s: PageStanza), _) => collectStanzas(xs ++ s.next, Some(s), ids :+ key, stanzas :+ s, next, endFound)     // Beginning of page
+            case (Right(EndStanza), _) => collectStanzas(xs, pageStanza, ids :+ key, stanzas :+ EndStanza, next, true)            // End page but potentially more paths
+            case (Right(s: Stanza), _) if ids.isEmpty => Left(PageStanzaMissing(key))                                             // No PageStanza at start of page
+            case (Right(s: Stanza), _) => collectStanzas(xs ++ s.next, pageStanza, ids :+ key, stanzas :+ s, next, endFound)      // Within-page stanza
             case (Left(err), _) => Left(err)
           }
       }
 
     collectStanzas(List(key)) match {
-      case Right((Some(p), ids, _, _)) if p.url.isEmpty || p.url.equals("/") => Left(PageUrlEmptyOrInvalid(ids.head))
-      case Right((Some(p), ids, stanzas, next)) =>
+      case Right((Some(p), ids, _, _, _)) if p.url.isEmpty || p.url.equals("/") => Left(PageUrlEmptyOrInvalid(ids.head))
+      case Right((Some(p), ids, stanzas, next, endPage)) =>
         val ks: Seq[KeyedStanza] = ids.zip(stanzas).map(t => KeyedStanza(t._1, t._2))
-        Right(Page(ks.head.key, p.url, ks, next))
+        Right(Page(ks.head.key, p.url, ks, next, endPage))
       case Left(err) => Left(err)
     }
   }

@@ -17,13 +17,14 @@
 package core.models.ocelot.stanzas
 
 import play.api.libs.json._
-import core.models.ocelot.{Labels, Label, Page}
+import core.models.ocelot.{Labels, Page}
 
 trait Stanza {
   val visual: Boolean = false
   val next: Seq[String] = Nil
   val links: List[String] = Nil
-  val labels: List[Label] = Nil
+  val buttonLinks: List[String] = Nil
+  val labels: List[String] = Nil
   val labelRefs: List[String] = Nil
 }
 

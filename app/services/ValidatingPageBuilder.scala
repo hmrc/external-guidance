@@ -24,7 +24,14 @@ import core.models.ocelot.errors._
 import play.api.Logger
 import scala.annotation.tailrec
 
-case class PageVertex(id: String, url: String, next: Seq[String], flows: List[String], links: Seq[String])
+case class PageVertex(
+  id: String,
+  url: String,
+  next: Seq[String],
+  flows: List[String],
+  links: Seq[String],
+  endPage: Boolean = false
+)
 
 object PageVertex {
   def apply(p: Page): PageVertex = {
@@ -33,7 +40,7 @@ object PageVertex {
         val flws: List[String] = s.next.init.toList
         (p.next.filterNot(flws.contains(_)), flws)
     }.getOrElse((p.next, Nil))
-    PageVertex(p.id, p.url, next, flows, p.linked)
+    PageVertex(p.id, p.url, next ++ p.buttonLinked, flows, p.linked, p.endPage)
   }
 }
 
@@ -47,7 +54,11 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
       pages => {
         implicit val stanzaMap: Map[String, Stanza] = process.flow
         val vertices: List[PageVertex] = pages.map(PageVertex(_)).toList
-        checkForSequencePageReuse(vertices) ++
+        val vertexMap = vertices.map(pv => (pv.id, pv)).toMap
+        val mainFlow: List[String] = pageGraph(List(Process.StartStanzaId), vertexMap).map(_.id)
+
+        checkForSequencePageReuse(vertices, vertexMap, mainFlow) ++
+        checkAllFlowsHaveUniqueTerminationPage(vertices, vertexMap, mainFlow) ++
         checkDataInputPages(pages, Nil) ++
         duplicateUrlErrors(pages.reverse, Nil) ++
         checkDateInputErrorCallouts(pages, Nil) ++
@@ -153,20 +164,26 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
         }
     }
 
-  private def checkForSequencePageReuse(connections: List[PageVertex])(implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] = {
-    val vertexMap = connections.map(pv => (pv.id, pv)).toMap
-    val mainFlow: List[String] = mainFlowPageIds(vertexMap)
-    val sequencePageIds = for{
-      pv <- connections.filterNot(_.flows.isEmpty)              // Sequences
+  private def checkAllFlowsHaveUniqueTerminationPage(vertices: List[PageVertex], vertexMap: Map[String, PageVertex], mainFlow: List[String])
+                                                    (implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] =
+    vertices.filterNot(_.flows.isEmpty) // Sequences
+            .flatMap(_.flows).distinct  // Unique flow ids
+            .filter{id =>               // All those containing pages which dont link to an EndStanza
+              val pages = pageGraph(findPageIds(List(id)), vertexMap, mainFlow)
+              pages.nonEmpty && !pages.exists(_.endPage)
+            }
+            .map(MissingUniqueFlowTerminator(_))
+
+  private def checkForSequencePageReuse(vertices: List[PageVertex], vertexMap: Map[String, PageVertex], mainFlow: List[String])
+                                       (implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] = {
+    val sequencePageIds: List[String] = for{
+      pv <- vertices.filterNot(_.flows.isEmpty)                 // Sequences
       flw <- pv.flows                                           // Flow Ids
       p <- pageGraph(findPageIds(List(flw)), vertexMap, mainFlow) // Pages below sequences
     } yield p.id
 
     sequencePageIds.groupBy(x => x).toList.collect{case m if m._2.length > 1 => PageOccursInMultiplSequenceFlows(m._1)}
   }
-
-  private def mainFlowPageIds(vertexMap: Map[String, PageVertex])(implicit stanzaMap: Map[String, Stanza]): List[String] =
-    pageGraph(List(Process.StartStanzaId), vertexMap).map(_.id)
 
   @tailrec
   // Given a list of stanza ids, find all connected pages (wont follow links)
@@ -192,6 +209,7 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
                         acc: List[PageVertex] = Nil)(implicit stanzaMap: Map[String, Stanza]): List[PageVertex] =
     keys match {
       case Nil => acc
+      case Process.EndStanzaId :: xs => pageGraph(xs, vertices, ignore, dontFollowFlows, seen, acc)
       case x :: xs if seen.contains(x) => pageGraph(xs, vertices, ignore, dontFollowFlows, seen, acc)
       case x :: xs if !ignore.contains(x) =>
         val v = vertices(x)
