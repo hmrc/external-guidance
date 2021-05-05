@@ -262,7 +262,7 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
     p match {
       case Nil => Nil
       case x +: xs if seen.contains(x) => checkDataInputFollowers(xs, keyedStanzas, leadingStanzaIds, seen)
-      case x +: xs if leadingStanzaIds.contains(x) && leadingStanzaIds.indexOf(x) != 1 => List(ErrorRedirectToFirstNonPageStanzaOnly(x))
+      case x +: _ if leadingStanzaIds.contains(x) && leadingStanzaIds.indexOf(x) != 1 => List(ErrorRedirectToFirstNonPageStanzaOnly(x))
       case x +: xs if leadingStanzaIds.contains(x) => checkDataInputFollowers(xs, keyedStanzas, leadingStanzaIds, x :: seen)
       case x +: xs if !keyedStanzas.contains(x) => checkDataInputFollowers(xs, keyedStanzas, leadingStanzaIds, x :: seen)
       case x +: _ if keyedStanzas(x).visual => List(VisualStanzasAfterDataInput(x))
