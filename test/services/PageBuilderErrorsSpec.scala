@@ -464,7 +464,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       )
 
       pageBuilder.pagesWithValidation(process) match {
-        case Left(List(MultipleExclusiveOptionsError("2"))) => succeed
+        case Left(List(MultipleExclusiveOptions("2"))) => succeed
         case Left(err) => fail(s"Failed to detect multiple exclusive options. Instead failed with error $err")
         case _ => fail("Failed to detect multiple exclusive options")
       }
