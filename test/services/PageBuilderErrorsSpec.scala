@@ -311,7 +311,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         "2" -> QuestionStanza(1, Seq(2, 3), Seq("4", "5"), None, false),
         "4" -> PageStanza("/session-restart", Seq("5"), false),
         "5" -> PageStanza("/session-timeout", Seq("6"), false),
-        "6" -> PageStanza(s"${SecuredProcess.SecuredProcessStartUrl}", Seq("end"), false),
+        "6" -> PageStanza(s"/${SecuredProcess.SecuredProcessStartUrl}", Seq("end"), false),
         "end" -> EndStanza
       )
       val process = Process(
@@ -327,7 +327,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       )
 
       pageBuilder.pagesWithValidation(process) match {
-        case Left(List(UseOfReservedUrl("4"), UseOfReservedUrl("5"))) => succeed
+        case Left(List(UseOfReservedUrl("4"), UseOfReservedUrl("6"), UseOfReservedUrl("5"))) => succeed
         case Left(err) => fail(s"UseOfReservedUrl error not detected, failed with $err")
         case Right(res) => fail(s"UseOfReservedUrl not detected $res")
       }
