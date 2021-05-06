@@ -97,7 +97,7 @@ trait ProcessPopulation {
     process.phraseOption(phraseIndex).fold[Either[GuidanceError, Phrase]](Left(PhraseNotFound(stanzaId, phraseIndex))){
       case Phrase(english, welsh) if welsh.trim.isEmpty && english.trim.nonEmpty => Left(MissingWelshText(stanzaId, phraseIndex.toString, english))
       case Phrase(english, welsh) if welsh.trim.startsWith("Welsh,") =>
-        logger.warn(s"Found obsolete faked Welsh prefix on phrase $english -- $welsh")
+        logger.debug(s"Found obsolete faked Welsh prefix on phrase $english -- $welsh")
         val updatedWelsh = s"Welsh: ${welsh.trim.drop("Welsh, ".length)}"
         Right(Phrase(placeholders.translate(english), placeholders.translate(updatedWelsh)))
       case p: Phrase =>

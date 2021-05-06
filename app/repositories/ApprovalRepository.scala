@@ -83,7 +83,7 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
 
   def update(approvalProcess: ApprovalProcess): Future[RequestOutcome[String]] = {
 
-    logger.info(s"Saving process ${approvalProcess.id} to collection $collectionName")
+    logger.debug(s"Saving process ${approvalProcess.id} to collection $collectionName")
     val selector = Json.obj("_id" -> approvalProcess.id)
     val metaJson = Json.toJson(approvalProcess.meta)
     val modifier = Json.obj("$inc" -> Json.obj("version" -> 1), "$set" -> Json.obj("meta" -> metaJson, "process" -> approvalProcess.process))
@@ -176,7 +176,7 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
 
   def changeStatus(id: String, status: String, user: String): Future[RequestOutcome[Unit]] = {
 
-    logger.info(s"updating status of process $id to $status to collection $collectionName")
+    logger.debug(s"updating status of process $id to $status to collection $collectionName")
     val selector = Json.obj("_id" -> id)
     val modifier = Json.obj("$set" -> Json.obj("meta.status" -> status, "meta.updateUser" -> user, "meta.lastModified" ->ZonedDateTime.now))
 

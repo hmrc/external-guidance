@@ -43,9 +43,11 @@ class ApprovalController @Inject() (identify: IdentifierAction, approvalService:
     saveProcess(request.body.as[JsObject], ReviewTypeFactCheck)
   }
 
-  def saveProcess(process: JsObject, reviewType: String): Future[Result] = {
+  def saveProcess(process: JsObject, reviewType: String): Future[Result] =
     approvalService.save(process, reviewType, StatusSubmitted).map {
-      case Right(id) => Created(Json.obj("id" -> id))
+      case Right(id) =>
+        logger.info(s"Saved process for $reviewType with id $id")
+        Created(Json.obj("id" -> id))
       case Left(err @ Error(Error.UnprocessableEntity, _, Some(details))) =>
         logger.error(s"Failed to save process for approval due to process errors $details")
         UnprocessableEntity(toJson(err))
@@ -58,7 +60,6 @@ class ApprovalController @Inject() (identify: IdentifierAction, approvalService:
       case Left(BadRequestError) => BadRequest(toJson(BadRequestError))
       case Left(_) => InternalServerError(toJson(ServerError))
     }
-  }
 
   def get(id: String): Action[AnyContent] = Action.async { _ =>
     approvalService.getById(id).map {
