@@ -82,7 +82,14 @@ class SequenceStanzaSpec extends BaseSpec {
   ExclusiveSequence(
     Phrase("Select","Select"),
     expectedStanza.next,
-    Seq(Phrase("One","One"),Phrase("Two","Two"),Phrase("Three","Three"), Phrase("Four [exclusive]","Four [exclusive]")),
+    Seq(
+      Phrase("One","One"),
+      Phrase("Two","Two"),
+      Phrase("Three","Three"),
+      Phrase(
+        "Four [exclusive:Selecting this checkbox will deselect the other checkboxes]",
+        "Four [exclusive:Welsh: Selecting this checkbox will deselect the other checkboxes]"
+      )),
     expectedStanza.label,
     expectedStanza.stack
   )

@@ -19,7 +19,7 @@ package core.models.ocelot.stanzas
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
-import core.models.ocelot.{asAnyInt, asDecimal, asDate, labelReference, labelScalarValue, labelReferences, Label, ScalarLabel, Labels}
+import core.models.ocelot.{asAnyInt, asDecimal, asDate, labelReference, labelScalarValue, labelReferences, Labels}
 import play.api.Logger
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
@@ -30,7 +30,7 @@ import scala.math.BigDecimal.RoundingMode
 import scala.annotation.tailrec
 
 case class CalculationStanza(calcs: Seq[CalcOperation], override val next: Seq[String], stack: Boolean) extends Stanza {
-  override val labels: List[Label] = calcs.map(op => ScalarLabel(op.label)).toList
+  override val labels: List[String] = calcs.map(op => op.label).toList
   override val labelRefs: List[String] = calcs.flatMap(op => labelReferences(op.left) ++ labelReferences(op.right)).toList
 }
 
@@ -292,7 +292,7 @@ object FloorOperation{
 }
 
 case class Calculation(override val next: Seq[String], calcs: Seq[Operation]) extends Stanza with Evaluate {
-  override val labels: List[Label] = calcs.map(op => ScalarLabel(op.label)).toList
+  override val labels: List[String] = calcs.map(op => op.label).toList
   override val labelRefs: List[String] = calcs.flatMap(op => labelReferences(op.left) ++ labelReferences(op.right)).toList
 
   def eval(labels: Labels): (String, Labels) = {

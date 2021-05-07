@@ -38,7 +38,10 @@ trait StanzaHelper extends TestConstants {
 
   val exclusiveSequencePhrases: Vector[Phrase] = phrases ++ Vector(
     Phrase(Vector("What kind of fruit do you like?", "Welsh: What kind of fruit do you like?")),
-    Phrase(Vector("Other [exclusive]", "Welsh: Other [exclusive]")),
+    Phrase(Vector(
+      "Other [exclusive:Selecting this checkbox will deselect the other checkboxes]",
+      "Welsh: Other [exclusive:Welsh: Selecting this checkbox will deselect the other checkboxes]"
+    )),
     Phrase(Vector("Apples", "Welsh: Apples")),
     Phrase(Vector("Bananas", "Welsh: Bananas")),
     Phrase(Vector("Oranges", "Welsh: Oranges"))
@@ -46,9 +49,13 @@ trait StanzaHelper extends TestConstants {
 
   val multipleExclusiveSequencePhrases: Vector[Phrase] = phrases ++ Vector(
     Phrase(Vector("What kind of fruit do you like?", "Welsh: What kind of fruit do you like?")),
-    Phrase(Vector("Other [exclusive]", "Welsh: Other [exclusive]")),
+    Phrase(Vector(
+      "Other [exclusive:Selecting this checkbox will deselect the other checkboxes]",
+      "Welsh: Other [exclusive:Welsh: Selecting this checkbox will deselect the other checkboxes]")),
     Phrase(Vector("Apples", "Welsh: Apples")),
-    Phrase(Vector("Bananas [exclusive]", "Welsh: Bananas")),
+    Phrase(Vector(
+      "Bananas [exclusive:Selecting this checkbox will deselect the other checkboxes]",
+      "Welsh: Bananas [exclusive:Welsh: Selecting this checkbox will deselect the other checkboxes]")),
     Phrase(Vector("Oranges", "Welsh: Oranges"))
   )
 
@@ -101,7 +108,9 @@ trait StanzaHelper extends TestConstants {
     exclusiveSequencePhrases(nine),
     Seq("4", "4", "4", "4", "6"),
     Seq(
-      Phrase("Other [exclusive]", "Welsh: Other [exclusive]"),
+      Phrase(
+        "Other [exclusive:Selecting this checkbox will deselect the other checkboxes]",
+        "Welsh: Other [exclusive:Welsh: Selecting this checkbox will deselect the other checkboxes]"),
       exclusiveSequencePhrases(eleven),
       exclusiveSequencePhrases(twelve),
       exclusiveSequencePhrases(thirteen)

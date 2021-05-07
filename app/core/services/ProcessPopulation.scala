@@ -40,15 +40,15 @@ trait ProcessPopulation {
         Left(_),
         text => {
           i.link match {
-            case Some(linkIndex) => link(linkIndex).fold(Left(_), link => Right(Instruction(i, text, Some(link), pageLinkIds(text.english))))
-            case None => Right(Instruction(i, text, None, pageLinkIds(text.english)))
+            case Some(linkIndex) => link(linkIndex).fold(Left(_), link => Right(Instruction(i, text, Some(link))))
+            case None => Right(Instruction(i, text, None))
           }
         }
       )
 
     def populateQuestion(q: QuestionStanza): Either[GuidanceError, Question] =
       phrases(q.text +: q.answers, Nil, id, process) match {
-        case Right(texts) if q.answers.length != q.next.length => Left(InconsistentQuestionError(id))
+        case Right(texts) if q.answers.length != q.next.length => Left(InconsistentQuestion(id))
         case Right(texts) => Right(Question(q, texts.head, texts.tail))
         case Left(err) => Left(err)
       }

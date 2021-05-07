@@ -24,7 +24,14 @@ import core.models.ocelot.errors._
 import play.api.Logger
 import scala.annotation.tailrec
 
-case class PageVertex(id: String, url: String, next: Seq[String], flows: List[String], links: Seq[String])
+case class PageVertex(
+  id: String,
+  url: String,
+  next: Seq[String],
+  flows: List[String],
+  links: Seq[String],
+  endPage: Boolean = false
+)
 
 object PageVertex {
   def apply(p: Page): PageVertex = {
@@ -33,7 +40,7 @@ object PageVertex {
         val flws: List[String] = s.next.init.toList
         (p.next.filterNot(flws.contains(_)), flws)
     }.getOrElse((p.next, Nil))
-    PageVertex(p.id, p.url, next, flows, p.linked)
+    PageVertex(p.id, p.url, next ++ p.buttonLinked, flows, p.linked, p.endPage)
   }
 }
 
@@ -42,13 +49,16 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
   val logger: Logger = Logger(getClass)
   val ReservedUrls: List[String] = List("/session-timeout", "/session-restart", s"/${SecuredProcess.SecuredProcessStartUrl}")
 
-  def pagesWithValidation(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] = {
-
+  def pagesWithValidation(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] =
     pageBuilder.pages(process, start).fold[Either[List[GuidanceError], Seq[Page]]](Left(_),
       pages => {
         implicit val stanzaMap: Map[String, Stanza] = process.flow
         val vertices: List[PageVertex] = pages.map(PageVertex(_)).toList
-        checkForSequencePageReuse(vertices) ++
+        val vertexMap = vertices.map(pv => (pv.id, pv)).toMap
+        val mainFlow: List[String] = pageGraph(List(Process.StartStanzaId), vertexMap).map(_.id)
+
+        checkForSequencePageReuse(vertices, vertexMap, mainFlow) ++
+        checkAllFlowsHaveUniqueTerminationPage(vertices, vertexMap, mainFlow) ++
         checkDataInputPages(pages, Nil) ++
         duplicateUrlErrors(pages.reverse, Nil) ++
         checkDateInputErrorCallouts(pages, Nil) ++
@@ -61,7 +71,6 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
         }
       }
     )
-  }
 
   @tailrec
   private def checkDateInputErrorCallouts(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
@@ -147,7 +156,7 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
       case x +: xs => x.keyedStanzas.collectFirst{case KeyedStanza(key, exSeq: ExclusiveSequence) => (key, exSeq)} match {
           case Some((key, exclusiveSequence)) =>
             if(exclusiveSequence.exclusiveOptions.size > 1) {
-              checkExclusiveSequencePages(xs, MultipleExclusiveOptionsError(key) :: errors)
+              checkExclusiveSequencePages(xs, MultipleExclusiveOptions(key) :: errors)
             } else {
               checkExclusiveSequencePages(xs, errors)
             }
@@ -155,20 +164,26 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
         }
     }
 
-  private def checkForSequencePageReuse(connections: List[PageVertex])(implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] = {
-    val vertexMap = connections.map(pv => (pv.id, pv)).toMap
-    val mainFlow: List[String] = mainFlowPageIds(vertexMap)
-    val sequencePageIds = for{
-      pv <- connections.filterNot(_.flows.isEmpty)              // Sequences
+  private def checkAllFlowsHaveUniqueTerminationPage(vertices: List[PageVertex], vertexMap: Map[String, PageVertex], mainFlow: List[String])
+                                                    (implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] =
+    vertices.filterNot(_.flows.isEmpty) // Sequences
+            .flatMap(_.flows).distinct  // Unique flow ids
+            .filter{id =>               // All those containing pages which dont link to an EndStanza
+              val pages = pageGraph(findPageIds(List(id)), vertexMap, mainFlow)
+              pages.nonEmpty && !pages.exists(_.endPage)
+            }
+            .map(MissingUniqueFlowTerminator(_))
+
+  private def checkForSequencePageReuse(vertices: List[PageVertex], vertexMap: Map[String, PageVertex], mainFlow: List[String])
+                                       (implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] = {
+    val sequencePageIds: List[String] = for{
+      pv <- vertices.filterNot(_.flows.isEmpty)                 // Sequences
       flw <- pv.flows                                           // Flow Ids
       p <- pageGraph(findPageIds(List(flw)), vertexMap, mainFlow) // Pages below sequences
     } yield p.id
 
     sequencePageIds.groupBy(x => x).toList.collect{case m if m._2.length > 1 => PageOccursInMultiplSequenceFlows(m._1)}
   }
-
-  private def mainFlowPageIds(vertexMap: Map[String, PageVertex])(implicit stanzaMap: Map[String, Stanza]): List[String] =
-    pageGraph(List(Process.StartStanzaId), vertexMap).map(_.id)
 
   @tailrec
   // Given a list of stanza ids, find all connected pages (wont follow links)
@@ -194,6 +209,7 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
                         acc: List[PageVertex] = Nil)(implicit stanzaMap: Map[String, Stanza]): List[PageVertex] =
     keys match {
       case Nil => acc
+      case Process.EndStanzaId :: xs => pageGraph(xs, vertices, ignore, dontFollowFlows, seen, acc)
       case x :: xs if seen.contains(x) => pageGraph(xs, vertices, ignore, dontFollowFlows, seen, acc)
       case x :: xs if !ignore.contains(x) =>
         val v = vertices(x)
@@ -219,21 +235,21 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
           case None => checkDataInputPages(xs, errors)
           case Some(d) =>
             val stanzaMap: Map[String, Stanza] = x.keyedStanzas.map(ks => (ks.key, ks.stanza)).toMap
-            val leadingStanzaIds: Seq[String] = stanzasBeforeDataInput(List(x.keyedStanzas.head.key), stanzaMap, Nil, Nil)
+            val leadingStanzaIds: List[String] = stanzasBeforeDataInput(List(x.keyedStanzas.head.key), stanzaMap, Nil, Nil)
             val anyErrors = checkDataInputFollowers(d.stanza.next, stanzaMap, leadingStanzaIds, Nil)
             checkDataInputPages(xs, anyErrors ++ errors)
         }
     }
 
   @tailrec
-  private def stanzasBeforeDataInput(p: Seq[String], stanzaMap: Map[String, Stanza], seen: Seq[String], acc: Seq[String]): Seq[String] =
+  private def stanzasBeforeDataInput(p: List[String], stanzaMap: Map[String, Stanza], seen: List[String], acc: List[String]): List[String] =
     p match {
-      case Nil => acc
-      case x +: xs if seen.contains(x) => stanzasBeforeDataInput(xs, stanzaMap, seen, acc)
-      case x +: xs if !stanzaMap.contains(x) => stanzasBeforeDataInput(xs, stanzaMap, x +: seen, acc)
-      case x +: xs => stanzaMap(x) match {
+      case Nil => acc.reverse
+      case x :: xs if seen.contains(x) => stanzasBeforeDataInput(xs, stanzaMap, seen, acc)
+      case x :: xs if !stanzaMap.contains(x) => stanzasBeforeDataInput(xs, stanzaMap, x :: seen, acc)
+      case x :: xs => stanzaMap(x) match {
         case _:DataInput => stanzasBeforeDataInput(xs, stanzaMap, x +: seen, acc)
-        case other => stanzasBeforeDataInput(xs ++ other.next, stanzaMap, x +: seen, x +: acc)
+        case other => stanzasBeforeDataInput(xs ++ other.next, stanzaMap, x :: seen, x :: acc)
       }
     }
 
@@ -241,15 +257,15 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
   private def checkDataInputFollowers(
                                        p: Seq[String],
                                        keyedStanzas: Map[String, Stanza],
-                                       leadingStanzaIds: Seq[String],
-                                       seen: Seq[String]): List[GuidanceError] =
+                                       leadingStanzaIds: List[String],
+                                       seen: List[String]): List[GuidanceError] =
     p match {
       case Nil => Nil
       case x +: xs if seen.contains(x) => checkDataInputFollowers(xs, keyedStanzas, leadingStanzaIds, seen)
-      case x +: xs if leadingStanzaIds.contains(x) => checkDataInputFollowers(xs, keyedStanzas, leadingStanzaIds, x +: seen)
-      case x +: xs if !keyedStanzas.contains(x) => checkDataInputFollowers(xs, keyedStanzas, leadingStanzaIds, x +: seen)
+      case x +: _ if leadingStanzaIds.contains(x) && leadingStanzaIds.indexOf(x) != 1 => List(ErrorRedirectToFirstNonPageStanzaOnly(x))
+      case x +: xs if leadingStanzaIds.contains(x) => checkDataInputFollowers(xs, keyedStanzas, leadingStanzaIds, x :: seen)
+      case x +: xs if !keyedStanzas.contains(x) => checkDataInputFollowers(xs, keyedStanzas, leadingStanzaIds, x :: seen)
       case x +: _ if keyedStanzas(x).visual => List(VisualStanzasAfterDataInput(x))
-      case x +: xs => checkDataInputFollowers(keyedStanzas(x).next ++ xs, keyedStanzas, leadingStanzaIds, x +: seen)
+      case x +: xs => checkDataInputFollowers(keyedStanzas(x).next ++ xs, keyedStanzas, leadingStanzaIds, x :: seen)
     }
-
 }

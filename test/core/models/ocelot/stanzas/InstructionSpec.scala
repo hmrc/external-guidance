@@ -30,13 +30,6 @@ class InstructionSpec extends WordSpec with Matchers {
     val link = Link(linkId, linkDest, "", false)
     val pageLinkedStanzaId = "6"
     val phrase0 = Phrase(Vector(s"hello [link:Blah:${pageLinkedStanzaId}] ;lasdk ", s"Welsh: hello [link:Blah:${pageLinkedStanzaId}] ;lasdk "))
-
-    val phrase1 = Phrase(
-      Vector(
-        s"hello [link:Blah:${linkDest}] ;lasdk [link:Blah:${pageLinkedStanzaId}]",
-        s"Welsh: hello [link:Blah:${linkDest}] ;lasdk [link:Blah:${pageLinkedStanzaId}]"
-      )
-    )
     val simpleInstruction = InstructionStanza(text, next, None, false)
     val linkInstruction = InstructionStanza(text, next, Some(linkId), false)
   }
@@ -44,17 +37,15 @@ class InstructionSpec extends WordSpec with Matchers {
   "when constructed via apply() Instruction" must {
 
     "contain a list of linked stanza ids drawn from placeholders within the text" in new Test {
-      val instruction = Instruction(simpleInstruction, phrase0, None, Nil)
-      instruction.links.length shouldBe 0
+      val instruction = Instruction(simpleInstruction, phrase0, None)
+      instruction.links.length shouldBe 1
     }
 
     "contain a list of linked stanza ids drawn from placeholders within the text and link" in new Test {
-      val instruction = Instruction(linkInstruction, phrase0, Some(link), Nil)
-      instruction.links.length shouldBe 1
+      val instruction = Instruction(linkInstruction, phrase0, Some(link))
+      instruction.links.length shouldBe 2
 
       instruction.links.contains(linkDest) shouldBe true
     }
-
   }
-
 }
