@@ -68,7 +68,9 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
     def publishIfRequired(approvalProcess: ApprovalProcess): Future[RequestOutcome[ApprovalProcess]] = info.status match {
       case StatusPublished =>
         publishedService.save(id, info.userId, approvalProcess.meta.processCode, approvalProcess.process) map {
-          case Right(_) => Right(approvalProcess)
+          case Right(_) =>
+            logger.info(s"Process $id successfully published with processCode ${approvalProcess.meta.processCode}")
+            Right(approvalProcess)
           case Left(DuplicateKeyError) => Left(DuplicateKeyError)
           case Left(errors) =>
             logger.error(s"Failed to publish $id - $errors")

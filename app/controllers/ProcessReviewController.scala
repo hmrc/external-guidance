@@ -25,7 +25,7 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ReviewService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import models.Constants._
-
+import play.api.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -36,6 +36,8 @@ class ProcessReviewController @Inject() (
     reviewService: ReviewService,
     cc: ControllerComponents
 ) extends BackendController(cc) {
+
+  val logger: Logger = Logger(getClass())
 
   def approval2iReviewInfo(id: String): Action[AnyContent] = twoEyeReviewerIdentifierAction.async { _ =>
     getReviewInfo(id, ReviewType2i)
@@ -69,7 +71,9 @@ class ProcessReviewController @Inject() (
   def approval2iReviewComplete(id: String): Action[JsValue] = twoEyeReviewerIdentifierAction.async(parse.json) { request =>
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
       reviewService.twoEyeReviewComplete(id, statusChangeInfo).map {
-        case Right(auditInfo) => Ok(Json.toJson(auditInfo))
+        case Right(auditInfo) =>
+          logger.info(s"2i review of $id complete")
+          Ok(Json.toJson(auditInfo))
         case Left(IncompleteDataError) => BadRequest(Json.toJson(IncompleteDataError))
         case Left(DuplicateKeyError) => BadRequest(Json.toJson(DuplicateKeyError))
         case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
@@ -87,7 +91,9 @@ class ProcessReviewController @Inject() (
   def approvalFactCheckComplete(id: String): Action[JsValue] = factCheckerIdentifierAction.async(parse.json) { request =>
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
       reviewService.factCheckComplete(id, statusChangeInfo).map {
-        case Right(auditInfo) => Ok(Json.toJson(auditInfo))
+        case Right(auditInfo) =>
+          logger.info(s"Fact check of $id complete")
+          Ok(Json.toJson(auditInfo))
         case Left(IncompleteDataError) => BadRequest(Json.toJson(IncompleteDataError))
         case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
         case Left(StaleDataError) => NotFound(Json.toJson(StaleDataError))
