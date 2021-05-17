@@ -4,6 +4,7 @@ GET         /scratch/:id                                controllers.ScratchContr
 POST        /scratch                                    controllers.ScratchController.save
 
 GET         /published/:processCode                     controllers.PublishedController.getByProcessCode(processCode)
+GET         /published-process/:id                      controllers.PublishedController.get(id)
 
 GET         /approval                                   controllers.ApprovalController.approvalSummaryList
 GET         /approval/:id                               controllers.ApprovalController.get(id)
@@ -28,3 +29,5 @@ GET         /approval/:id/fact-check-page-review/*page  controllers.ProcessRevie
 POST        /approval/:id/fact-check-page-review/*page  controllers.ProcessReviewController.approvalFactCheckPageComplete(id, page)
 GET         /approval/:id/fact-check-page-review/       controllers.ProcessReviewController.approvalFactCheckPageInfo(id, page: String ?= "")
 POST        /approval/:id/fact-check-page-review/       controllers.ProcessReviewController.approvalFactCheckPageComplete(id, page: String ?= "")
+
+GET         /archive/:id                                controllers.PublishedController.archive(id)

@@ -17,9 +17,8 @@
 package services
 
 import java.time.ZonedDateTime
-
 import base.BaseSpec
-import mocks.MockPublishedRepository
+import mocks.{MockApprovalRepository, MockArchiveRepository, MockPublishedRepository}
 import core.models.errors._
 import core.models.ocelot.ProcessJson
 import core.models.RequestOutcome
@@ -30,7 +29,7 @@ import scala.concurrent.Future
 
 class PublishedServiceSpec extends BaseSpec {
 
-  private trait Test extends MockPublishedRepository with ProcessJson {
+  private trait Test extends MockPublishedRepository with MockArchiveRepository with MockApprovalRepository with ProcessJson {
 
     val validId: String = "ext90005"
     val invalidId: String = "ext9005"
@@ -38,7 +37,7 @@ class PublishedServiceSpec extends BaseSpec {
     val publishedProcess: PublishedProcess =
       PublishedProcess(validId, 1, ZonedDateTime.now(), validOnePageJson.as[JsObject], "user", processCode = "processCode")
 
-    lazy val target: PublishedService = new PublishedService(mockPublishedRepository)
+    lazy val target: PublishedService = new PublishedService(mockPublishedRepository, mockArchiveRepository, mockApprovalRepository)
   }
 
   "The method getById of class PublishedService" should {
@@ -184,40 +183,81 @@ class PublishedServiceSpec extends BaseSpec {
       }
     }
 
+    "calling the archive method" when {
+      "the id retrieves a document" should {
+        "move it to the archive" in new Test {
 
-    "the JSON is invalid" should {
+          val expected: RequestOutcome[String] = Right(validId)
 
-      "not call the repository" in new Test {
+          MockPublishedRepository
+            .getById(validId)
+            .returns(Future.successful(Right(publishedProcess)))
 
-        MockPublishedRepository
-          .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
-          .never()
+          MockArchiveRepository
+            .archive(validId, "userId", "processCode", publishedProcess)
+            .returns(Future.successful(Right(validId)))
 
-        target.save(validId, "userId", "processCode", invalidProcess)
-      }
+          MockApprovalRepository
+            .changeStatus(validId, "Archived", "userId")
+            .returns(Future.successful(Right(validId)))
 
-      "return a bad request error" in new Test {
-        val expected: RequestOutcome[String] = Left(BadRequestError)
+          MockPublishedRepository
+            .delete(validId)
+            .returns(Future.successful(Right(validId)))
 
-        whenReady(target.save(validId, "userId", "processCode", invalidProcess)) {
-          case result @ Left(_) => result shouldBe expected
-          case _ => fail
+          whenReady(target.archive(validId, "userId")) { outcome =>
+            if (outcome == expected) succeed else fail
+          }
         }
       }
-    }
 
-    "a database error occurs" should {
-      "return an internal error" in new Test {
-        val repositoryResponse: RequestOutcome[String] = Left(DatabaseError)
-        val expected: RequestOutcome[String] = Left(InternalServerError)
+      "the id fails to retrieve a document" should {
+        "return an error" in new Test {
+          MockPublishedRepository
+            .getById(validId)
+            .returns(Future.successful(Left(NotFoundError)))
 
-        MockPublishedRepository
-          .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
-          .returns(Future.successful(repositoryResponse))
+          whenReady(target.archive(validId, "userId")) { outcome =>
+            if (outcome.left.get == BadRequestError) succeed else fail
+          }
+        }
+      }
 
-        whenReady(target.save(validId, "userId", "processCode", validOnePageJson.as[JsObject])) {
-          case result @ Left(_) => result shouldBe expected
-          case _ => fail
+
+      "the JSON is invalid" should {
+
+        "not call the repository" in new Test {
+
+          MockPublishedRepository
+            .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
+            .never()
+
+          target.save(validId, "userId", "processCode", invalidProcess)
+        }
+
+        "return a bad request error" in new Test {
+          val expected: RequestOutcome[String] = Left(BadRequestError)
+
+          whenReady(target.save(validId, "userId", "processCode", invalidProcess)) {
+            case result@Left(_) => result shouldBe expected
+            case _ => fail
+          }
+        }
+      }
+
+      "a database error occurs" should {
+        "return an internal error" in new Test {
+          val repositoryResponse: RequestOutcome[String] = Left(DatabaseError)
+          val expected: RequestOutcome[String] = Left(InternalServerError)
+
+          MockPublishedRepository
+            .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
+            .returns(Future.successful(repositoryResponse))
+
+          whenReady(target.save(validId, "userId", "processCode", validOnePageJson.as[JsObject])) {
+            case result@Left(_) => result shouldBe expected
+            case _ => fail
+          }
         }
       }
     }
