@@ -46,3 +46,4 @@ object BadRequestError extends Error("BAD_REQUEST", Some("The request is invalid
 object IncompleteDataError extends Error("INCOMPLETE_DATA_ERROR", Some("Data is not in the required state for the requested action."), None)
 object AuthenticationError extends Error("AUTHENTICATION_ERROR", Some("Not authenticated"), None)
 object ExpectationFailedError extends Error("EXPECTATION_FAILED", Some("Session missing when expected"), None)
+object ForbiddenError extends Error("FORBIDDEN", Some("Access to the requested resource is not allowed in this context"), None)
