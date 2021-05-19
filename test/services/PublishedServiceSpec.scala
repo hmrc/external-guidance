@@ -199,7 +199,7 @@ class PublishedServiceSpec extends BaseSpec {
 
           MockApprovalRepository
             .changeStatus(validId, "Archived", "userId")
-            .returns(Future.successful(Right(validId)))
+            .returns(Future.successful(Right(())))
 
           MockPublishedRepository
             .delete(validId)

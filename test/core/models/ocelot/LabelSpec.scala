@@ -24,42 +24,55 @@ case class DummyLabel(name: String, english: List[String] = Nil, welsh: List[Str
 
 class LabelSpec extends BaseSpec with ProcessJson {
 
-  val englishLang: Lang = Lang("en")
-  val welshLang: Lang = Lang("cy")
-  val label = """{"name":"BLAH","english":[],"type":"scalar","welsh":[]}"""
-  val labelWithSingleValue = """{"name":"BLAH","english":["39.99"],"type":"scalar","welsh":[]}"""
-  val labelWithValues = """{"name":"BLAH","english":["Hello"],"type":"scalar","welsh":["Welsh: Hello"]}"""
-  val listLabelWithEmptyLists = """{"name":"BLAH","english":[],"type":"list","welsh":[]}"""
-  val listLabelWithSingleEntryLists = """{"name":"BLAH","english":["March"],"type":"list","welsh":["Mawrth"]}"""
-  val listLabelWithSingleList = """{"name":"BLAH","english":["March,April,May,June"],"type":"list","welsh":[]}"""
+  trait Test {
+    val englishLang: Lang = Lang("en")
+    val welshLang: Lang = Lang("cy")
+    val label = """{"name":"BLAH","english":[],"type":"scalar","welsh":[]}"""
+    val labelWithSingleValue = """{"name":"BLAH","english":["39.99"],"type":"scalar","welsh":[]}"""
+    val labelWithValues = """{"name":"BLAH","english":["Hello"],"type":"scalar","welsh":["Welsh: Hello"]}"""
+    val listLabelWithEmptyLists = """{"name":"BLAH","english":[],"type":"list","welsh":[]}"""
+    val listLabelWithSingleEntryLists = """{"name":"BLAH","english":["March"],"type":"list","welsh":["Mawrth"]}"""
+    val listLabelWithSingleList = """{"name":"BLAH","english":["March,April,May,June"],"type":"list","welsh":[]}"""
+    val oneEn: String = "One"
+    val oneCy: String = s"Welsh: $oneEn"
+    val twoEn: String = "Two"
+    val twoCy: String = s"Welsh: $twoEn"
+    val threeEn: String = "Three"
+    val threeCy: String = s"Welsh: $threeEn"
+    val phraseOne: Phrase = Phrase(oneEn, oneCy)
+    val phraseTwo: Phrase = Phrase(twoEn, twoCy)
+    val phraseThree: Phrase = Phrase(threeEn, threeCy)
+    val oneTwo: List[Phrase] = List(phraseOne, phraseTwo)
+    val oneTwoThree: List[Phrase] = oneTwo :+ phraseThree
+  }
 
   "Label" must {
-    "deserialise " in {
+    "deserialise " in new Test {
       Json.parse(label).as[Label] shouldBe ScalarLabel("BLAH")
       Json.parse(labelWithSingleValue).as[Label] shouldBe ScalarLabel("BLAH", List("39.99"))
     }
 
-    "serialise from Label to json" in {
+    "serialise from Label to json" in new Test {
       val valueLabel: Label = ScalarLabel("BLAH")
       Json.toJson(valueLabel).toString shouldBe label
       val valueLabelWithValue: Label = ScalarLabel("BLAH", List("39.99"))
       Json.toJson(valueLabelWithValue).toString shouldBe labelWithSingleValue
     }
 
-    "deserialise label with both english and welsh values" in {
+    "deserialise label with both english and welsh values" in new Test {
       Json.parse(labelWithValues).as[Label] shouldBe ScalarLabel("BLAH", List("Hello"), List("Welsh: Hello"))
     }
 
-    "serialise from Label with both english and welsh values to json" in {
+    "serialise from Label with both english and welsh values to json" in new Test {
       val dLabelWithValues: Label = ScalarLabel("BLAH", List("Hello"), List("Welsh: Hello"))
       Json.toJson(dLabelWithValues).toString shouldBe labelWithValues
     }
 
-    "deserialize from list label with empty lists" in {
+    "deserialize from list label with empty lists" in new Test {
       Json.parse(listLabelWithEmptyLists).as[Label] shouldBe ListLabel("BLAH", Nil, Nil)
     }
 
-    "deserialize from list label with single entry lists" in {
+    "deserialize from list label with single entry lists" in new Test {
       val expectedLabel: ListLabel = ListLabel(
         "BLAH",
         List("March"),
@@ -69,7 +82,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       Json.parse(listLabelWithSingleEntryLists).as[Label] shouldBe expectedLabel
     }
 
-    "deserialize from list label with english list only" in {
+    "deserialize from list label with english list only" in new Test {
       val expectedLabel: ListLabel = ListLabel(
         "BLAH",
         List("March,April,May,June")
@@ -78,14 +91,14 @@ class LabelSpec extends BaseSpec with ProcessJson {
       Json.parse(listLabelWithSingleList).as[Label] shouldBe expectedLabel
     }
 
-    "serialize list label with empty entry lists" in {
+    "serialize list label with empty entry lists" in new Test {
 
       val listLabel: Label = ListLabel("BLAH", Nil, Nil)
 
       Json.toJson(listLabel).toString shouldBe listLabelWithEmptyLists
     }
 
-    "serialize list label with single entry lists" in {
+    "serialize list label with single entry lists" in new Test {
 
       val listLabel: Label = ListLabel(
         "BLAH",
@@ -96,7 +109,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       Json.toJson(listLabel).toString shouldBe listLabelWithSingleEntryLists
     }
 
-    "serialize list label with single list" in {
+    "serialize list label with single list" in new Test {
 
       val listLabel: Label = ListLabel(
         "BLAH",
@@ -106,7 +119,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       Json.toJson(listLabel).toString shouldBe listLabelWithSingleList
     }
 
-    "raise an error when an unknown label type is encountered" in {
+    "raise an error when an unknown label type is encountered" in new Test {
 
       val jsObject: JsObject = Json.parse("""{"type":"UnknownLabelType"}""").as[JsObject]
 
@@ -116,7 +129,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       }
     }
 
-    "return blank string on serialization if label type is unknown" in {
+    "return blank string on serialization if label type is unknown" in new Test {
       val dummyLabel: Label = DummyLabel("dummy")
 
       Json.toJson(dummyLabel).toString() shouldBe "\"\""
@@ -125,63 +138,63 @@ class LabelSpec extends BaseSpec with ProcessJson {
   }
 
   "LabelCache" must {
-    "contruct single value scalar label" in {
+    "contruct single value scalar label" in new Test {
       val labels = LabelCache()
       val newLabels = labels.update("Name", "value")
 
       newLabels.updatedLabels("Name") shouldBe ScalarLabel("Name", List("value"))
     }
 
-    "construct a single value list label" in {
+    "construct a single value list label" in new Test {
       val labels = LabelCache()
       val newLabels = labels.updateList("Name", List("value"))
 
       newLabels.updatedLabels("Name") shouldBe ListLabel("Name", List("value"))
     }
 
-    "contruct muli-value scalar label" in {
+    "contruct muli-value scalar label" in new Test {
       val labels = LabelCache()
       val newLabels = labels.update("Name", "english", "welsh")
 
       newLabels.updatedLabels("Name") shouldBe ScalarLabel("Name", List("english"), List("welsh"))
     }
 
-    "construct a multi-value list label" in {
+    "construct a multi-value list label" in new Test {
       val labels = LabelCache()
       val newLabels = labels.updateList("Name", List("english"), List("welsh"))
 
       newLabels.updatedLabels("Name") shouldBe ListLabel("Name", List("english"), List("welsh"))
     }
 
-    "construct a single value list label from an empty english list" in {
+    "construct a single value list label from an empty english list" in new Test {
       val labels = LabelCache()
       val newLabels = labels.updateList("Name", Nil)
 
       newLabels.updatedLabels("Name") shouldBe ListLabel("Name", Nil)
     }
 
-    "construct a multi-value list label from empty english and welsh lists" in {
+    "construct a multi-value list label from empty english and welsh lists" in new Test {
       val labels = LabelCache()
       val newLabels = labels.updateList("Name", Nil, Nil)
 
       newLabels.updatedLabels("Name") shouldBe ListLabel("Name", Nil, Nil)
     }
 
-    "construct a single value list label from a multiple entry english list" in {
+    "construct a single value list label from a multiple entry english list" in new Test {
       val labels = LabelCache()
       val newLabels = labels.updateList("Name", List("March", "April", "May"))
 
       newLabels.updatedLabels("Name") shouldBe ListLabel("Name", List("March" ,"April", "May"))
     }
 
-    "construct a multi-value list label from a multiple entry english and welsh lists" in {
+    "construct a multi-value list label from a multiple entry english and welsh lists" in new Test {
       val labels = LabelCache()
       val newLabels = labels.updateList("Name", List("March", "April", "May"), List("Mawrth", "Ebrill", "Mai"))
 
       newLabels.updatedLabels("Name") shouldBe ListLabel("Name", List("March","April","May"), List("Mawrth","Ebrill","Mai"))
     }
 
-    "update a single value scalar label" in {
+    "update a single value scalar label" in new Test {
       val labels = LabelCache()
       val newLabels = labels.update("Name", "Hello")
 
@@ -191,7 +204,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       updatedLabels.updatedLabels("Name") shouldBe ScalarLabel("Name", List("Goodbye"))
     }
 
-    "update a single value list label" in {
+    "update a single value list label" in new Test {
       val labels = LabelCache()
       val newLabels = labels.updateList("Name", List("March","April"))
 
@@ -201,7 +214,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       updatedLabels.updatedLabels("Name") shouldBe ListLabel("Name", List("May","June"))
     }
 
-    "update a multi-value scalar label" in {
+    "update a multi-value scalar label" in new Test {
       val labels = LabelCache()
       val newLabels = labels.update("Name", "Hello", "Helo")
 
@@ -211,7 +224,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       updatedLabels.updatedLabels("Name") shouldBe ScalarLabel("Name", List("Goodbye"), List("Hwyl fawr"))
     }
 
-    "update a multi-value list label" in {
+    "update a multi-value list label" in new Test {
       val labels = LabelCache()
       val newLabels = labels.updateList("Name", List("March"), List("Mawrth"))
 
@@ -221,7 +234,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       updatedLabels.updatedLabels("Name") shouldBe ListLabel("Name", List("April"), List("Ebrill"))
     }
 
-    "Return a blank string when a scalar label has no content" in {
+    "Return a blank string when a scalar label has no content" in new Test {
       val labelsMap = Map("empty" -> ScalarLabel("empty", Nil))
 
       val labels = LabelCache(labelsMap)
@@ -229,7 +242,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       labels.value("empty") shouldBe Some("")
     }
 
-    "Allow reference to the current value of a scalar label" in {
+    "Allow reference to the current value of a scalar label" in new Test {
       val labelsMap = Map(
         "X" -> ScalarLabel("X", List("33.5")),
         "Y" -> ScalarLabel("Y", List("4")),
@@ -242,7 +255,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       labels.value("Name") shouldBe Some("Coltrane")
     }
 
-    "return Nil when list label content is not defined" in {
+    "return Nil when list label content is not defined" in new Test {
       val labelsMap = Map("emptyList" -> ListLabel("emptyList", Nil))
 
       val labels = LabelCache(labelsMap)
@@ -250,7 +263,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       labels.valueAsList("emptyList") shouldBe Some(Nil)
     }
 
-    "Allow reference to the current value of a list label" in {
+    "Allow reference to the current value of a list label" in new Test {
       val labelsMap = Map(
         "a" -> ListLabel("a", List("x", "y", "z")),
         "b" -> ListLabel("b", (List("f", "g", "h"))),
@@ -263,7 +276,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       labels.valueAsList("b") shouldBe Some(List("f", "g", "h"))
     }
 
-    "Return a language specific value of a multi-lingual scalar label" in {
+    "Return a language specific value of a multi-lingual scalar label" in new Test {
       val labelsMap = Map(
         "Empty"-> ScalarLabel("Empty"),
         "EnglishOnly" -> ScalarLabel("EnglishOnly", List("Welcome")),
@@ -282,7 +295,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       labels.displayValue("Name")(welshLang) shouldBe Some("Coltrane")
     }
 
-    "Return a language specific value of a multi-value list label" in {
+    "Return a language specific value of a multi-value list label" in new Test {
       val labelsMap = Map(
         "one" -> ListLabel("one", Nil, Nil),
         "two" -> ListLabel("two", List("Home"), List("Hafan")),
@@ -302,7 +315,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       labels.displayValue("four")(welshLang) shouldBe Some("Welcome")
     }
 
-    "Allow access to the main label map" in {
+    "Allow access to the main label map" in new Test {
       val labelsMap = Map(
         "Door"-> ScalarLabel("Door", List("Open"), List("Drws")),
         "Name" -> ScalarLabel("Name", List("Coltrane")),
@@ -313,7 +326,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       labels.labelMap shouldBe labelsMap
     }
 
-    "Allow addition/update of labels with an english and welsh translation" in {
+    "Allow addition/update of labels with an english and welsh translation" in new Test {
       val labels = LabelCache(
         Map(
           "Door"-> ScalarLabel("Door", List("Open"), List("Drws")),
@@ -330,7 +343,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       updatedLabels1.displayValue("Door")(welshLang) shouldBe Some("Drws")
     }
 
-    "Construct a LabelCache from a label map a cache of updated labels and a Flow stack" in {
+    "Construct a LabelCache from a label map a cache of updated labels and a Flow stack" in new Test {
       val labelsMap = Map(
         "X"->ScalarLabel("X", List("33.5")),
         "Y"->ScalarLabel("Y"),
@@ -346,19 +359,21 @@ class LabelSpec extends BaseSpec with ProcessJson {
 
       labels.value("X") shouldBe Some("46.5")
       labels.valueAsList("Colours") shouldBe Some(List("Yellow", "Violet"))
-      val (next, labels0) = labels.pushFlows(List("1", "2"), "3", Some("loop"), List("One", "Two"), Map())
+      val (next, labels0) = labels.pushFlows(List("1", "2"), "3", Some("loop"), oneTwo, Map())
 
       next shouldBe Some("1")
-      labels0.value("loop") shouldBe Some("One")
+      labels0.value("loop") shouldBe Some(oneEn)
       labels0.nextFlow.fold(fail("Stack should not be empty")){t =>
         val (nxt, updatedLabels) = t
         nxt shouldBe "2"
-        updatedLabels.value("loop") shouldBe Some("Two")
+        updatedLabels.value("loop") shouldBe Some(twoEn)
+        updatedLabels.displayValue("loop")(englishLang) shouldBe Some(twoEn)
+        updatedLabels.displayValue("loop")(welshLang) shouldBe Some(twoCy)
 
       }
     }
 
-    "Return an empty string if label has no assigned value" in {
+    "Return an empty string if label has no assigned value" in new Test {
       val labelsMap = Map(
         "X"->ScalarLabel("X", List("33.5")),
         "Y"->ScalarLabel("Y"),
@@ -367,7 +382,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       labels.value("Y") shouldBe Some("")
     }
 
-    "Return None if referenced scalar label does not exist" in {
+    "Return None if referenced scalar label does not exist" in new Test {
       val labelsMap = Map(
         "X"->ScalarLabel("X", List("33.5")),
         "Y"->ScalarLabel("Y"),
@@ -376,7 +391,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       labels.value("Z") shouldBe None
     }
 
-    "Return None if referenced list label does not exist" in {
+    "Return None if referenced list label does not exist" in new Test {
       val labelMap = Map(
         "a" -> ListLabel("a", List("March"), List("Mawrth")),
         "b" -> ListLabel("b", List("May"), List("Mai"))
@@ -387,7 +402,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       labels.valueAsList("c") shouldBe None
     }
 
-    "Return None if the accessor method value is used to access a list label" in {
+    "Return None if the accessor method value is used to access a list label" in new Test {
       val labelMap = Map("list"->ListLabel("list", List("March"), List("Mawrth")))
 
       val labels = LabelCache(labelMap)
@@ -395,7 +410,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       labels.value("list") shouldBe None
     }
 
-    "Return None if the accessor method valueAsList is used to access a scalar label" in {
+    "Return None if the accessor method valueAsList is used to access a scalar label" in new Test {
       val labelMap = Map("scalar"->ScalarLabel("scalar"))
 
       val labels = LabelCache(labelMap)
@@ -403,7 +418,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       labels.valueAsList("scalar") shouldBe None
     }
 
-    "Allow the current value of the label to be updated" in {
+    "Allow the current value of the label to be updated" in new Test {
       val labelsMap = Map(
         "X"->ScalarLabel("X", List("33.5")),
         "Y"->ScalarLabel("Y", List("4")),
@@ -416,7 +431,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       updatedLabels.value("Name") shouldBe Some("Miles")
     }
 
-    "Allow new labels to be added to the cache" in {
+    "Allow new labels to be added to the cache" in new Test {
       val labelsMap = Map(
         "X"->ScalarLabel("X", List("33.5")),
         "Y"->ScalarLabel("Y", List("4")),
@@ -433,7 +448,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       updatedLabels.valueAsList("Months") shouldBe Some(List("February", "June"))
     }
 
-    "Return a map of new and updated labels on request" in {
+    "Return a map of new and updated labels on request" in new Test {
       val labelsMap = Map(
         "X"->ScalarLabel("X", List("33.5")),
         "Y"->ScalarLabel("Y", List("4")),
@@ -451,7 +466,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
         "Days"->ListLabel("Days", List("Monday", "Wednesday")))
     }
 
-    "Flush updated labels to main store" in {
+    "Flush updated labels to main store" in new Test {
       val labelsMap = Map(
         "X"->ScalarLabel("X", List("33.5")),
         "Y"->ScalarLabel("Y", List("4")),
@@ -474,27 +489,27 @@ class LabelSpec extends BaseSpec with ProcessJson {
   }
 
   "Labels Flow stack" must {
-    "Allow adding a Flow to top of stack" in {
-      val (nxt, labels) = LabelCache().pushFlows(List("1","2"), "3", Some("loop"), List("One", "Two", "Three"), Map())
+    "Allow adding a Flow to top of stack" in new Test {
+      val (nxt, labels) = LabelCache().pushFlows(List("1","2"), "3", Some("loop"), oneTwoThree, Map())
 
       nxt shouldBe Some("1")
 
-      labels.activeFlow shouldBe Some(Flow("1", Some(LabelValue("loop", "One"))))
+      labels.activeFlow shouldBe Some(Flow("1", Some(LabelValue("loop", phraseOne))))
       labels.flowStack.length shouldBe 3
-      labels.flowStack(1) shouldBe Flow("2", Some(LabelValue("loop", "Two")))
+      labels.flowStack(1) shouldBe Flow("2", Some(LabelValue("loop", phraseTwo)))
       labels.flowStack(2) shouldBe Continuation("3")
     }
 
-    "Allow removal of Flow from top of stack" in {
-      val (nxt, labels) = LabelCache().pushFlows(List("1","2"), "3", Some("loop"), List("One", "Two", "Three"), Map())
+    "Allow removal of Flow from top of stack" in new Test {
+      val (nxt, labels) = LabelCache().pushFlows(List("1","2"), "3", Some("loop"), oneTwoThree, Map())
 
       nxt shouldBe Some("1")
-      labels.activeFlow shouldBe Some(Flow("1", Some(LabelValue("loop", "One"))))
+      labels.activeFlow shouldBe Some(Flow("1", Some(LabelValue("loop", phraseOne))))
       labels.flowStack.length shouldBe 3
       labels.nextFlow.map{t =>
         val(n1, l1) = t
         n1 shouldBe "2"
-        l1.activeFlow shouldBe Some(Flow("2", Some(LabelValue("loop", "Two"))))
+        l1.activeFlow shouldBe Some(Flow("2", Some(LabelValue("loop", phraseTwo))))
         l1.flowStack.length shouldBe 2
         l1.nextFlow.map{t =>
           val(n2, l2) = t
@@ -507,8 +522,8 @@ class LabelSpec extends BaseSpec with ProcessJson {
       }
     }
 
-    "Allow removal of Flow from top of stack when no label is in use" in {
-      val (nxt, labels) = LabelCache().pushFlows(List("1","2"), "3", None, List("One", "Two", "Three"), Map())
+    "Allow removal of Flow from top of stack when no label is in use" in new Test {
+      val (nxt, labels) = LabelCache().pushFlows(List("1","2"), "3", None, oneTwoThree, Map())
 
       labels.activeFlow shouldBe Some(Flow("1", None))
       nxt shouldBe Some("1")
@@ -528,7 +543,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
       }
     }
 
-    "Return None when the stack is empty" in {
+    "Return None when the stack is empty" in new Test {
       LabelCache().nextFlow shouldBe None
       LabelCache().activeFlow shouldBe None
     }

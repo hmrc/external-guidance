@@ -20,7 +20,7 @@ import core.models.ocelot.stanzas.Stanza
 import play.api.i18n.Lang
 
 trait Flows {
-  def pushFlows(flowNext: List[String], continue: String, labelName: Option[String], labelValues: List[String], stanzas: Map[String, Stanza]): (Option[String], Labels)
+  def pushFlows(flowNext: List[String], continue: String, labelName: Option[String], labelValues: List[Phrase], stanzas: Map[String, Stanza]): (Option[String], Labels)
   def nextFlow: Option[(String, Labels)]
   def activeFlow: Option[FlowStage]
   def continuationPool: Map[String, Stanza]
@@ -88,8 +88,8 @@ private class LabelCacheImpl(labels: Map[String, Label] = Map(),
   // Flows
   def pushFlows(flowNext: List[String],
                 continue: String,
-                labelName: Option[String],
-                labelValues: List[String],
+                labelName: Option[String], // Flow label
+                labelValues: List[Phrase], // Flow label values assigned to the flow label when traversing the associated flow
                 stanzas: Map[String, Stanza]): (Option[String], Labels) =
     flowNext.zipWithIndex.map{
       case (nxt, idx) => Flow(nxt, labelName.map(LabelValue(_, labelValues(idx))))
@@ -99,7 +99,7 @@ private class LabelCacheImpl(labels: Map[String, Label] = Map(),
         (Some(x.next),
          x.labelValue.fold(new LabelCacheImpl(labels, cache, x :: xs ++ (Continuation(continue) :: stack), pool, poolCache ++ stanzas))
                           (lv => new LabelCacheImpl(labels,
-                                                    updateOrAddScalarLabel(lv.name, lv.value, None),
+                                                    updateOrAddScalarLabel(lv.name, lv.value.english, Some(lv.value.welsh)),
                                                     x :: xs ++ (Continuation(continue) :: stack),
                                                     pool,
                                                     poolCache ++ stanzas))
@@ -114,7 +114,7 @@ private class LabelCacheImpl(labels: Map[String, Label] = Map(),
         Some(
           (y.next,
            y.labelValue.fold(new LabelCacheImpl(labels, cache, stack.tail, pool, poolCache))
-                               (lv => new LabelCacheImpl(labels, updateOrAddScalarLabel(lv.name, lv.value, None), y :: xs, pool, poolCache)))
+                               (lv => new LabelCacheImpl(labels, updateOrAddScalarLabel(lv.name, lv.value.english, Some(lv.value.welsh)), y :: xs, pool, poolCache)))
         )
       case _ :: (c: Continuation) :: xs => Some((c.next, new LabelCacheImpl(labels, cache, xs, pool, poolCache)))
     }
