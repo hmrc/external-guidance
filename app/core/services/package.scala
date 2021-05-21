@@ -17,6 +17,7 @@
 package core
 
 import core.models.ocelot._
+import scala.language.implicitConversions
 import core.models.errors.{Error, ProcessError, ValidationError}
 import core.models.ocelot.stanzas.{TitleCallout, YourCallCallout, Question, Sequence, Input}
 import core.models.ocelot.errors._
