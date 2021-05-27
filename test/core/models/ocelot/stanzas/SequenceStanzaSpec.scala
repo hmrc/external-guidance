@@ -18,9 +18,12 @@ package core.models.ocelot.stanzas
 
 import base.BaseSpec
 import play.api.libs.json._
+import play.api.i18n.Lang
 import core.models.ocelot.{Page, Phrase, LabelCache, Labels, Process, Flow, LabelValue, Continuation}
 
 class SequenceStanzaSpec extends BaseSpec {
+  val langEn: Lang = Lang("en")
+  val langCy: Lang = Lang("cy")
 
   val json: JsValue = Json.parse(
     s"""|{
@@ -66,57 +69,71 @@ class SequenceStanzaSpec extends BaseSpec {
         |}""".stripMargin
   )
 
-  val expectedStanza: SequenceStanza =
-    SequenceStanza(0, Seq("1","2","3","4","end"), Seq(1,2,3,four), Some("Items"), stack = false)
+  trait Test {
+    val oneEn: String = "One"
+    val oneCy: String = s"Welsh: $oneEn"
+    val twoEn: String = "Two"
+    val twoCy: String = s"Welsh: $twoEn"
+    val threeEn: String = "Three"
+    val threeCy: String = s"Welsh: $threeEn"
+    val fourEn: String = "Four"
+    val fourCy: String = s"Welsh: $fourEn"
+    val phraseOne: Phrase = Phrase(oneEn, oneCy)
+    val phraseTwo: Phrase = Phrase(twoEn, twoCy)
+    val phraseThree: Phrase = Phrase(threeEn, threeCy)
+    val phraseFour: Phrase = Phrase(fourEn, fourCy)
+    val phraseFourExclusive: Phrase = Phrase(s"$fourEn [exclusive:Selecting this checkbox will deselect the other checkboxes]",
+                                             s"$fourCy [exclusive:Welsh: Selecting this checkbox will deselect the other checkboxes]")
+    val oneTwo: List[Phrase] = List(phraseOne, phraseTwo)
+    val oneTwoThree: List[Phrase] = oneTwo :+ phraseThree
+    val oneTwoThreeFour: List[Phrase] = oneTwoThree :+ phraseFour
+    val oneTwoThreeFourExclusive: List[Phrase] = oneTwoThree :+ phraseFourExclusive
 
-  val expectedNonExclusiveSequence: NonExclusiveSequence =
-    NonExclusiveSequence(
+    val expectedStanza: SequenceStanza =
+      SequenceStanza(0, Seq("1","2","3","4","end"), Seq(1,2,3,four), Some("Items"), stack = false)
+
+    val expectedNonExclusiveSequence: NonExclusiveSequence =
+      NonExclusiveSequence(
+        Phrase("Select","Select"),
+        expectedStanza.next,
+        oneTwoThreeFour,
+        expectedStanza.label,
+        expectedStanza.stack
+      )
+
+    val expectedExclusiveSequence: ExclusiveSequence =
+    ExclusiveSequence(
       Phrase("Select","Select"),
       expectedStanza.next,
-      Seq(Phrase("One","One"),Phrase("Two","Two"),Phrase("Three","Three"),Phrase("Four","Four")),
+      oneTwoThreeFourExclusive,
       expectedStanza.label,
       expectedStanza.stack
     )
-
-  val expectedExclusiveSequence: ExclusiveSequence =
-  ExclusiveSequence(
-    Phrase("Select","Select"),
-    expectedStanza.next,
-    Seq(
-      Phrase("One","One"),
-      Phrase("Two","Two"),
-      Phrase("Three","Three"),
-      Phrase(
-        "Four [exclusive:Selecting this checkbox will deselect the other checkboxes]",
-        "Four [exclusive:Welsh: Selecting this checkbox will deselect the other checkboxes]"
-      )),
-    expectedStanza.label,
-    expectedStanza.stack
-  )
+  }
 
   "Reading valid JSON" should {
-    "create a Sequence Stanza" in {
+    "create a Sequence Stanza" in new Test {
       json.as[SequenceStanza] shouldBe expectedStanza
     }
   }
 
   "Reading invalid JSON" should {
 
-    "generate a JsError when the number of entries in next is not one greater than the number of entries in options" in {
+    "generate a JsError when the number of entries in next is not one greater than the number of entries in options" in new Test {
       invalidJson_1.validate[SequenceStanza] match {
         case JsError(_) => succeed
         case _ => fail("An instance of SequenceStanza should not be created when the next and options list lengths differ")
       }
     }
 
-    "generate a JsError if the number of entries in next is less than three" in {
+    "generate a JsError if the number of entries in next is less than three" in new Test {
       invalidJson_2.validate[SequenceStanza] match {
         case JsError(_) => succeed
         case _ => fail("An instance of sequence stanza should not be created when the number of entries in next is less than 3")
       }
     }
 
-    "generate a JsError if the number of entries in options is less than one" in {
+    "generate a JsError if the number of entries in options is less than one" in new Test {
       invalidJson_3.validate[SequenceStanza] match {
         case JsError(_) => succeed
         case _ => fail("An instance of SequenceStanza should not be created when the number of entries in options is less than 1")
@@ -125,49 +142,51 @@ class SequenceStanzaSpec extends BaseSpec {
 
   }
 
-  "serialise to json" in {
+  "serialise to json" in new Test {
     Json.toJson(expectedStanza).toString shouldBe """{"text":0,"next":["1","2","3","4","end"],"options":[1,2,3,4],"label":"Items","stack":false}"""
   }
 
-  "serialise to json from a Stanza reference" in {
+  "serialise to json from a Stanza reference" in new Test {
     val stanza: Stanza = expectedStanza
     Json.toJson(stanza) shouldBe json
   }
 
   "Non-exclusive sequence" should {
 
-    "Determine invalid input to be incorrect" in {
+    "Determine invalid input to be incorrect" in new Test {
       expectedNonExclusiveSequence.validInput("a,b,c") shouldBe None
       expectedNonExclusiveSequence.validInput("5,6,7") shouldBe None
     }
 
-    "Determine valid input to be correct" in {
+    "Determine valid input to be correct" in new Test {
       expectedNonExclusiveSequence.validInput("1,2") shouldBe Some("1,2")
       expectedNonExclusiveSequence.validInput("2,3") shouldBe Some("2,3")
       expectedNonExclusiveSequence.validInput("0") shouldBe Some("0")
     }
 
-    "assign Nil to labels property when no label is used" in {
+    "assign Nil to labels property when no label is used" in new Test {
       expectedNonExclusiveSequence.copy(label = None).labels shouldBe Nil
     }
 
-    "Evaluate valid input and return with next of first flow in sequence" in {
+    "Evaluate valid input and return with next of first flow in sequence" in new Test {
       val labels = LabelCache()
       val blankPage: Page = Page("any", "/url", Seq.empty, Nil)
       val (next, updatedLabels) = expectedNonExclusiveSequence.eval("0", blankPage, labels)
       next shouldBe Some("1")
-      updatedLabels.flowStack shouldBe List(Flow("1", Some(LabelValue("Items", "One"))), Continuation(Process.EndStanzaId))
-      updatedLabels.value("Items") shouldBe Some("One")
+      updatedLabels.flowStack shouldBe List(Flow("1", Some(LabelValue("Items", phraseOne))), Continuation(Process.EndStanzaId))
+      updatedLabels.value("Items") shouldBe Some(oneEn)
+      updatedLabels.displayValue("Items")(langEn) shouldBe Some(oneEn)
+      updatedLabels.displayValue("Items")(langCy) shouldBe Some(oneCy)
     }
 
-    "Evaluate invalid input to error return" in {
+    "Evaluate invalid input to error return" in new Test {
       val labels = LabelCache()
       val blankPage: Page = Page("any", "/url", Seq.empty, Nil)
       val noopReturn: (Option[String], Labels) = (None, labels)
       expectedNonExclusiveSequence.eval("hello", blankPage, labels) shouldBe noopReturn
     }
 
-    "Evaluate indexes which don't exist in the options list to error return" in {
+    "Evaluate indexes which don't exist in the options list to error return" in new Test {
       val labels = LabelCache()
       val blankPage: Page = Page("any", "/url", Seq.empty, Nil)
       val noopReturn: (Option[String], Labels) = (None, labels)
@@ -178,7 +197,7 @@ class SequenceStanzaSpec extends BaseSpec {
 
   "Exclusive sequence" should {
 
-    "Determine invalid input to be incorrect" in {
+    "Determine invalid input to be incorrect" in new Test {
       expectedExclusiveSequence.validInput("a,b,c") shouldBe None
       expectedExclusiveSequence.validInput("5,6,7") shouldBe None
       expectedExclusiveSequence.validInput("2,3") shouldBe None
@@ -186,34 +205,36 @@ class SequenceStanzaSpec extends BaseSpec {
       expectedExclusiveSequence.validInput("1,3") shouldBe None
     }
 
-    "Determine valid input to be correct" in {
+    "Determine valid input to be correct" in new Test {
       expectedExclusiveSequence.validInput("1,2") shouldBe Some("1,2")
       expectedExclusiveSequence.validInput("0,1") shouldBe Some("0,1")
       expectedExclusiveSequence.validInput("0") shouldBe Some("0")
       expectedExclusiveSequence.validInput("3") shouldBe Some("3")
     }
 
-    "assign Nil to labels property when no label is used" in {
+    "assign Nil to labels property when no label is used" in new Test {
       expectedExclusiveSequence.copy(label = None).labels shouldBe Nil
     }
 
-    "Evaluate valid input and return with next of first flow in sequence" in {
+    "Evaluate valid input and return with next of first flow in sequence" in new Test {
       val labels = LabelCache()
       val blankPage: Page = Page("any", "/url", Seq.empty, Nil)
       val (next, updatedLabels) = expectedExclusiveSequence.eval("0", blankPage, labels)
       next shouldBe Some("1")
-      updatedLabels.flowStack shouldBe List(Flow("1", Some(LabelValue("Items", "One"))), Continuation(Process.EndStanzaId))
-      updatedLabels.value("Items") shouldBe Some("One")
+      updatedLabels.flowStack shouldBe List(Flow("1", Some(LabelValue("Items", phraseOne))), Continuation(Process.EndStanzaId))
+      updatedLabels.value("Items") shouldBe Some(oneEn)
+      updatedLabels.displayValue("Items")(langEn) shouldBe Some(oneEn)
+      updatedLabels.displayValue("Items")(langCy) shouldBe Some(oneCy)
     }
 
-    "Evaluate invalid input to error return" in {
+    "Evaluate invalid input to error return" in new Test {
       val labels = LabelCache()
       val blankPage: Page = Page("any", "/url", Seq.empty, Nil)
       val noopReturn: (Option[String], Labels) = (None, labels)
       expectedExclusiveSequence.eval("hello", blankPage, labels) shouldBe noopReturn
     }
 
-    "Evaluate indexes which don't exist in the options list to error return" in {
+    "Evaluate indexes which don't exist in the options list to error return" in new Test {
       val labels = LabelCache()
       val blankPage: Page = Page("any", "/url", Seq.empty, Nil)
       val noopReturn: (Option[String], Labels) = (None, labels)

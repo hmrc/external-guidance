@@ -85,7 +85,7 @@ class ArchiveRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)(i
         "process" -> process.process,
         "archivedBy" -> user,
         "processCode" -> processCode,
-        "dateArchived" -> Json.obj("$date" -> date)
+        "dateArchived" -> Json.obj("$" + "date" -> date)
       )
     )
 

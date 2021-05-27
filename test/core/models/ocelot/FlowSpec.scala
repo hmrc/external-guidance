@@ -24,14 +24,14 @@ class FlowSpec extends BaseSpec {
   val labelValueJson: JsValue = Json.parse(
     s"""|{
         |    "name": "LabelName",
-        |    "value": "A value"
+        |    "value": ["A value","Welsh:A value"]
         |}""".stripMargin
   )
 
   val invalidLabelValueJson: JsValue = Json.parse(
     s"""|{
         |    "namef": "LabelName",
-        |    "value": "A value"
+        |    "value": ["A value","Welsh:A value"]
         |}""".stripMargin
   )
 
@@ -40,7 +40,7 @@ class FlowSpec extends BaseSpec {
         |    "nextf": "1",
         |    "labelValue": {
         |     "name": "LabelName",
-        |     "value": "A value"
+        |     "value": ["A value","Welsh:A value"]
         |    }
         |}""".stripMargin
   )
@@ -51,7 +51,7 @@ class FlowSpec extends BaseSpec {
         |    "next": "1",
         |    "labelValue": {
         |     "name": "LabelName",
-        |     "value": "A value"
+        |     "value": ["A value","Welsh:A value"]
         |    }
         |}""".stripMargin
   )
@@ -62,7 +62,7 @@ class FlowSpec extends BaseSpec {
         |    "next": "1",
         |    "labelValue": {
         |     "name": "LabelName",
-        |     "value": "A value"
+        |     "value": ["A value","Welsh:A value"]
         |    }
         |}""".stripMargin
   )
@@ -73,7 +73,7 @@ class FlowSpec extends BaseSpec {
         |    "next": "1",
         |    "labelValue": {
         |     "name": "LabelName",
-        |     "value": "A value"
+        |     "value": ["A value","Welsh:A value"]
         |    }
         |}""".stripMargin
   )
@@ -83,7 +83,7 @@ class FlowSpec extends BaseSpec {
         |    "nextf": "1",
         |    "labelValue": {
         |     "name": "LabelName",
-        |     "value": "A value"
+        |     "value": ["A value","Welsh:A value"]
         |    }
         |}""".stripMargin
   )
@@ -107,7 +107,7 @@ class FlowSpec extends BaseSpec {
         }""".stripMargin
   )
 
-  val expectedLabelValue: LabelValue = LabelValue("LabelName", "A value")
+  val expectedLabelValue: LabelValue = LabelValue("LabelName", Phrase("A value", "Welsh:A value"))
   val expectedFlow: Flow = Flow("1", Some(expectedLabelValue))
   val expectedContinuation: Continuation = Continuation("1")
 

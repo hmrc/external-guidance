@@ -28,7 +28,7 @@ import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.formatters.PublishedProcessFormatter
 import uk.gov.hmrc.mongo.ReactiveRepository
-
+import reactivemongo.api.WriteConcern
 import scala.concurrent.{ExecutionContext, Future}
 
 trait PublishedRepository {
@@ -143,7 +143,13 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
 
   def delete(id: String): Future[RequestOutcome[String]] = {
     val selector = Json.obj("_id" -> id)
-    collection.findAndRemove(selector)
+    collection.findAndRemove(selector,
+                             sort = None,
+                             fields = None,
+                             writeConcern = WriteConcern.Acknowledged,
+                             maxTime = None,
+                             collation = None,
+                             arrayFilters = Seq.empty)
       .map { _ => Right(id) }
       //$COVERAGE-OFF$
       .recover {

@@ -62,7 +62,7 @@ trait Sequence extends VisualStanza with Populated with DataInput {
   def eval(value: String, page: Page, labels: Labels): (Option[String], Labels) =
     validInput(value).fold[(Option[String], Labels)]((None, labels)){checkedItems =>
       asListOfInt(checkedItems).fold[(Option[String], Labels)]((None, labels)){checked => {
-        val chosenOptions: List[String] = checked.flatMap(idx => options.lift(idx).fold[List[String]](Nil)(p => List(p.english)))
+        val chosenOptions: List[Phrase] = checked.flatMap(idx => options.lift(idx).fold[List[Phrase]](Nil)(p => List(p)))
         // Collect any Evaluate stanzas following this Sequence for use when the Continuation is followed
         val continuationStanzas: Map[String, Stanza] = page.keyedStanzas
           .dropWhile{ks => ks.stanza match {
@@ -75,7 +75,7 @@ trait Sequence extends VisualStanza with Populated with DataInput {
           .toMap
         // push the flows and Continuation corresponding to the checked items, then
         // nextFlow and redirect to the first flow (setting list and first flow label)
-        label.fold(labels)(l => labels.updateList(s"${l}_seq", chosenOptions))
+        label.fold(labels)(l => labels.updateList(s"${l}_seq", chosenOptions.map(_.english), chosenOptions.map(_.welsh)))
           .pushFlows(checked.flatMap(idx => next.lift(idx).fold[List[String]](Nil)(List(_))), next.last, label, chosenOptions, continuationStanzas)
         }
       }
