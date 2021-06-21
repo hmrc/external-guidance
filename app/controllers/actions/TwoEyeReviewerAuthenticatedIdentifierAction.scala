@@ -50,7 +50,7 @@ class TwoEyeReviewerAuthenticatedIdentifierAction @Inject() (
 
   override def invokeBlock[A](request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] = {
 
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
 
     // Restrict access to users with 2i reviewer role
     authorised(Enrolment(appConfig.twoEyeReviewerRole) and AuthProviders(PrivilegedApplication))

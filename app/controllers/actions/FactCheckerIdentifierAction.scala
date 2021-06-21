@@ -50,7 +50,7 @@ class FactCheckerAuthenticatedIdentifierAction @Inject() (
 
   override def invokeBlock[A](request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] = {
 
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
 
     // Restrict access to users with fact checker role
     authorised(Enrolment(appConfig.factCheckerRole) and AuthProviders(PrivilegedApplication))
