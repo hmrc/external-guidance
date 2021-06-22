@@ -51,7 +51,7 @@ class AuthenticatedIdentifierAction @Inject() (
 
   override def invokeBlock[A](request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] = {
 
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
 
     val allUsersPredicate: Predicate = AuthProviders(PrivilegedApplication) and
       (
