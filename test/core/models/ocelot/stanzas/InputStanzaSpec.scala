@@ -212,7 +212,7 @@ class InputStanzaSpec extends BaseSpec {
       input.validInput("100.78") shouldBe None
       input.validInput("100.7a") shouldBe None
       input.validInput("£33") shouldBe None
-      input.validInput("1,000") shouldBe None
+      input.validInput("1,000") shouldBe Some("1000")
       input.validInput("") shouldBe None
     }
 
@@ -220,6 +220,19 @@ class InputStanzaSpec extends BaseSpec {
       val input = Input(expectedNumberStanza, Phrase("",""), None, None)
       input.validInput("-567345") shouldBe Some("-567345")
     }
+
+    "Dont allow values outside range of Int.MinValue <= x <= Int.MaxValue" in {
+      val input = Input(expectedNumberStanza, Phrase("",""), None, None)
+      val tooNegative: Long = -1L + Int.MinValue
+      val tooPositive: Long = 1L + Int.MaxValue
+
+      input.validInput(tooNegative.toString) shouldBe None
+      input.validInput(tooPositive.toString) shouldBe None
+
+      input.validInput(Int.MinValue.toString) shouldBe Some(Int.MinValue.toString)
+      input.validInput(Int.MaxValue.toString) shouldBe Some(Int.MaxValue.toString)
+    }
+
 
     "Determine valid input to be correct" in {
 

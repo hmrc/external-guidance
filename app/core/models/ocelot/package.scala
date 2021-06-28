@@ -40,9 +40,9 @@ package object ocelot {
   val labelRefRegex: Regex = labelPattern.r
   val inputCurrencyRegex: Regex = "^-?£?(\\d{1,3}(,\\d{3})*|\\d+)(\\.(\\d{1,2})?)?$".r
   val inputCurrencyPoundsRegex: Regex = "^-?£?(\\d{1,3}(,\\d{3})*|\\d+)$".r
-  val integerRegex: Regex = "^\\d+$".r
+  val integerRegex: Regex = "^\\d{1,10}$".r
   val listOfintegerRegex: Regex = s"$commaSeparatedIntsPattern".r
-  val anyIntegerRegex: Regex = "^[\\-]?\\d+$".r
+  val anyIntegerRegex: Regex = "^-?(\\d{1,3}(,\\d{3})*|\\d+)$".r
   val EmbeddedParameterRegex: Regex = """\{(\d)\}""".r
   val exclusiveOptionRegex: Regex = "\\[exclusive:([^\\]]+)\\]".r
 
@@ -72,7 +72,10 @@ package object ocelot {
   def stringFromDate(when: LocalDate): String = when.format(dateFormatter)
   def asInt(value: String): Option[Int] = integerRegex.findFirstIn(value).map(_.toInt)
   def asListOfInt(value: String): Option[List[Int]] = listOfintegerRegex.findFirstIn(value).map(s => s.split(",").toList.map(el => el.trim.toInt))
-  def asAnyInt(value: String): Option[Int] = anyIntegerRegex.findFirstIn(value.filterNot(_.equals(' '))).map(_.toInt)
+  def asAnyInt(value: String): Option[Int] = anyIntegerRegex.findFirstIn(value.filterNot(_.equals(' '))).flatMap{str =>
+    val longValue: Long = str.filterNot(_ == ',').toLong
+    if (longValue < Int.MinValue || longValue > Int.MaxValue) None else Some(longValue.toInt)
+  }
 
   val pageLinkOnlyPattern: String = s"^${linkToPageOnlyPattern}$$"
   val boldOnlyPattern: String = s"^${boldPattern}$$"
