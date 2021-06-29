@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot.{labelReferences, Phrase, Labels, Page, hintRegex, asInt}
+import core.models.ocelot.{labelReferences, Phrase, Labels, Page, hintRegex, asPositiveInt}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -64,7 +64,7 @@ case class Question(text: Phrase,
       }
     }
   def validInput(value: String): Option[String] =
-    asInt(value).fold[Option[String]](None)(idx => if (answers.indices.contains(idx)) Some(idx.toString) else None)
+    asPositiveInt(value).fold[Option[String]](None)(idx => if (answers.indices.contains(idx)) Some(idx.toString) else None)
 }
 
 object Question {

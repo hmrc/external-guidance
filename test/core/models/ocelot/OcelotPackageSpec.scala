@@ -117,7 +117,7 @@ class OcelotPackageSpec extends BaseSpec {
     "recognise a valid number" in {
       val validNumbers: List[String] = List("30", "300", "030")
       forAll(validNumbers) { entry =>
-        asInt(entry) match {
+        asPositiveInt(entry) match {
           case Some(_) => succeed
           case _ => fail(s"Validation of $entry failed - expected success")
         }
