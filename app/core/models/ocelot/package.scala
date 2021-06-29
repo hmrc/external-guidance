@@ -28,7 +28,7 @@ package object ocelot {
   val pageLinkPattern: String = s"\\[(button|link)(-same|-tab)?:(.+?):(\\d+|${Process.StartStanzaId})\\]"
   val buttonLinkPattern: String = s"\\[(button)(-same|-tab)?:(.+?):(\\d+|${Process.StartStanzaId})\\]"
   val linkPattern: String = s"\\[(button|link)(-same|-tab)?:(.+?):(\\d+|${Process.StartStanzaId}|https?:[a-zA-Z0-9\\/\\.\\-\\?_\\.=&#]+)\\]"
-  val commaSeparatedIntsPattern: String = "^\\d+\\s*(?:,\\s*\\d+\\s*)*$"
+  val commaSeparatedIntsPattern: String = "^\\d{1,9}\\s*(?:,\\s*\\d{1,9}\\s*)*$"
   val listPattern: String = "\\[list:([A-Za-z0-9\\s\\-_]+):length\\]"
   val singleLabelOrListPattern: String = s"^$labelPattern|$listPattern$$"
   val singleLabelOrListRegex: Regex = singleLabelOrListPattern.r
@@ -40,7 +40,7 @@ package object ocelot {
   val labelRefRegex: Regex = labelPattern.r
   val inputCurrencyRegex: Regex = "^-?£?(\\d{1,3}(,\\d{3})*|\\d+)(\\.(\\d{1,2})?)?$".r
   val inputCurrencyPoundsRegex: Regex = "^-?£?(\\d{1,3}(,\\d{3})*|\\d+)$".r
-  val integerRegex: Regex = "^\\d{1,10}$".r
+  val integerRegex: Regex = "^\\d{1,9}$".r
   val listOfintegerRegex: Regex = s"$commaSeparatedIntsPattern".r
   val anyIntegerRegex: Regex = "^-?(\\d{1,3}(,\\d{3})*|\\d+)$".r
   val EmbeddedParameterRegex: Regex = """\{(\d)\}""".r
