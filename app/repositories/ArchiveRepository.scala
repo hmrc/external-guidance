@@ -74,7 +74,7 @@ class ArchiveRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)(i
 
   def archive(id: String, user: String, processCode: String, process: PublishedProcess): Future[RequestOutcome[String]] = {
 
-    logger.info(s"Archiving process $id")
+    logger.warn(s"Archiving process $id")
 
     val date = ZonedDateTime.now.toInstant.toEpochMilli
 
