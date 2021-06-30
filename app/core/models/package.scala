@@ -17,9 +17,24 @@
 package core
 
 import core.models.errors.Error
+import scala.annotation.tailrec
 
 package object models {
 
   type RequestOutcome[T] = Either[Error, T]
 
+   // List[Option[T]] => Option[List[T]] iff all Option[T] defined
+  def lOfOtoOofL[T](l:List[Option[T]]): Option[List[T]] = {
+    @tailrec
+    def toOptionOfList(l:List[Option[T]], acc: List[T]): Option[List[T]] = l match {
+      case Nil => Some(acc.reverse)
+      case None :: _ => None
+      case x :: xs => toOptionOfList(xs, x.get :: acc)
+    }
+
+    l match {
+      case Nil => None
+      case _ => toOptionOfList(l, Nil)
+    }
+  }
 }

@@ -73,7 +73,7 @@ package object ocelot {
   def asPositiveInt(value: String): Option[Int] = matchedInt(value, positiveIntRegex)
   def asAnyInt(value: String): Option[Int] = matchedInt(value, anyIntegerRegex)
   def asListOfPositiveInt(value: String): Option[List[Int]] = listOfPositiveIntRegex.findFirstIn(value.filterNot(_.equals(' ')))
-                                                                                    .map(_.split(",").toList.flatMap(asInt(_)))
+                                                                                    .flatMap(s => lOfOtoOofL(s.split(",").toList.map(asPositiveInt(_))))
 
   val pageLinkOnlyPattern: String = s"^${linkToPageOnlyPattern}$$"
   val boldOnlyPattern: String = s"^${boldPattern}$$"
