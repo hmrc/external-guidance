@@ -164,12 +164,9 @@ class OcelotPackageSpec extends BaseSpec {
       }
     }
 
-    "not recognise a list containg any invalid numbers" in {
+    "not recognise a list containing any invalid numbers" in {
       val tooBig: Long = 1L + Int.MaxValue
       val tooNegative: Long = -1L + Int.MinValue
-
-
-      println(asPositiveInt("067"))
 
       List("30, 3  56, A number, 067",
            "30, -3  56, 067",
