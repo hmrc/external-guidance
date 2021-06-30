@@ -28,7 +28,7 @@ package object ocelot {
   val pageLinkPattern: String = s"\\[(button|link)(-same|-tab)?:(.+?):(\\d+|${Process.StartStanzaId})\\]"
   val buttonLinkPattern: String = s"\\[(button)(-same|-tab)?:(.+?):(\\d+|${Process.StartStanzaId})\\]"
   val linkPattern: String = s"\\[(button|link)(-same|-tab)?:(.+?):(\\d+|${Process.StartStanzaId}|https?:[a-zA-Z0-9\\/\\.\\-\\?_\\.=&#]+)\\]"
-  val commaSeparatedIntsPattern: String = "^\\d+\\s*(?:,\\s*\\d+\\s*)*$"
+  val csPositiveIntPattern: String = "^\\d{1,10}(?:,\\d{1,10})*$"
   val listPattern: String = "\\[list:([A-Za-z0-9\\s\\-_]+):length\\]"
   val singleLabelOrListPattern: String = s"^$labelPattern|$listPattern$$"
   val singleLabelOrListRegex: Regex = singleLabelOrListPattern.r
@@ -40,9 +40,9 @@ package object ocelot {
   val labelRefRegex: Regex = labelPattern.r
   val inputCurrencyRegex: Regex = "^-?£?(\\d{1,3}(,\\d{3})*|\\d+)(\\.(\\d{1,2})?)?$".r
   val inputCurrencyPoundsRegex: Regex = "^-?£?(\\d{1,3}(,\\d{3})*|\\d+)$".r
-  val integerRegex: Regex = "^\\d+$".r
-  val listOfintegerRegex: Regex = s"$commaSeparatedIntsPattern".r
-  val anyIntegerRegex: Regex = "^[\\-]?\\d+$".r
+  val positiveIntRegex: Regex = "^\\d{1,10}$".r                                 // Limited to 10 decimal digits
+  val listOfPositiveIntRegex: Regex = s"$csPositiveIntPattern".r
+  val anyIntegerRegex: Regex = "^-?(\\d{1,3}(,\\d{3}){0,3}|\\d{1,10})$".r       // Limited to 10 decimal digits or 12 comma separated
   val EmbeddedParameterRegex: Regex = """\{(\d)\}""".r
   val exclusiveOptionRegex: Regex = "\\[exclusive:([^\\]]+)\\]".r
 
@@ -70,12 +70,19 @@ package object ocelot {
     inputCurrencyPoundsRegex.findFirstIn(value.filterNot(c => c==' ')).map(s => BigDecimal(s.filterNot(ignoredCurrencyChars.contains(_))))
   def asDate(value: String): Option[LocalDate] = Try(LocalDate.parse(value.filterNot(_.equals(' ')), dateFormatter)).map(d => d).toOption
   def stringFromDate(when: LocalDate): String = when.format(dateFormatter)
-  def asInt(value: String): Option[Int] = integerRegex.findFirstIn(value).map(_.toInt)
-  def asListOfInt(value: String): Option[List[Int]] = listOfintegerRegex.findFirstIn(value).map(s => s.split(",").toList.map(el => el.trim.toInt))
-  def asAnyInt(value: String): Option[Int] = anyIntegerRegex.findFirstIn(value.filterNot(_.equals(' '))).map(_.toInt)
+  def asPositiveInt(value: String): Option[Int] = matchedInt(value, positiveIntRegex)
+  def asAnyInt(value: String): Option[Int] = matchedInt(value, anyIntegerRegex)
+  def asListOfPositiveInt(value: String): Option[List[Int]] = listOfPositiveIntRegex.findFirstIn(value.filterNot(_.equals(' ')))
+                                                                                    .flatMap(s => lOfOtoOofL(s.split(",").toList.map(asPositiveInt(_))))
 
   val pageLinkOnlyPattern: String = s"^${linkToPageOnlyPattern}$$"
   val boldOnlyPattern: String = s"^${boldPattern}$$"
   def isLinkOnlyPhrase(phrase: Phrase): Boolean =phrase.english.matches(pageLinkOnlyPattern)
   def isBoldOnlyPhrase(phrase: Phrase): Boolean =phrase.english.matches(boldOnlyPattern)
+
+  private def matchedInt(value: String, regex: Regex): Option[Int] = regex.findFirstIn(value.filterNot(_.equals(' '))).flatMap(asInt(_))
+  private def asInt(value: String): Option[Int] = {
+    val longValue: Long = value.filterNot(_ == ',').toLong
+    if (longValue < Int.MinValue || longValue > Int.MaxValue) None else Some(longValue.toInt)
+  }
 }

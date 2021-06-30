@@ -113,13 +113,70 @@ class OcelotPackageSpec extends BaseSpec {
     }
   }
 
-  "Int conversion" must {
+  "Positive Int conversion" must {
     "recognise a valid number" in {
-      val validNumbers: List[String] = List("30", "300", "030")
-      forAll(validNumbers) { entry =>
-        asInt(entry) match {
+      List("30", "3  56", "300", "030", Int.MaxValue.toString).foreach{item =>
+        asPositiveInt(item) match {
           case Some(_) => succeed
-          case _ => fail(s"Validation of $entry failed - expected success")
+          case _ => fail(s"Validation of $item failed - expected success")
+        }
+      }
+    }
+
+    "not recognise invalid numbers" in {
+      val tooBig: Long = 1L + Int.MaxValue
+      List("A number", "", Int.MinValue.toString, "-2", "-030", "1,234,456", tooBig.toString).foreach{item =>
+        asPositiveInt(item) match {
+          case Some(_) => fail(s"Validation of $item failed - expected failure")
+          case _ => succeed
+        }
+      }
+    }
+  }
+
+  "Signed Int conversion" must {
+    "recognise a valid number" in {
+      List("30", "3  56", "1,234", "1,234,456", "-300", "030", Int.MaxValue.toString, Int.MinValue.toString).foreach{item =>
+        asAnyInt(item) match {
+          case Some(_) => succeed
+          case _ => fail(s"Validation of $item failed - expected success")
+        }
+      }
+    }
+
+    "not recognise invalid numbers" in {
+      val tooBig: Long = 1L + Int.MaxValue
+      val tooNegative: Long = -1L + Int.MinValue
+      List("A number", "", "1,234456", tooBig.toString, tooNegative.toString).foreach{item =>
+        asAnyInt(item) match {
+          case Some(_) => fail(s"Validation of $item failed - expected failure")
+          case _ => succeed
+        }
+      }
+    }
+  }
+
+  "List of positive Int conversion" must {
+    "recognise a list of valid positive Ints" in {
+      asListOfPositiveInt(s"30, 030, ${Int.MaxValue.toString}, 7003") match {
+        case Some(_) => succeed
+        case _ => fail(s"Validation failed - expected success")
+      }
+    }
+
+    "not recognise a list containing any invalid numbers" in {
+      val tooBig: Long = 1L + Int.MaxValue
+      val tooNegative: Long = -1L + Int.MinValue
+
+      List("30, 3  56, A number, 067",
+           "30, -3  56, 067",
+           "30, 3  56, -45, 067",
+           s"30, 3  56, ${tooBig.toString}, 067",
+           s"30, 3  56, ${tooNegative.toString}, 067"
+      ).foreach{item =>
+        asListOfPositiveInt(item) match {
+          case Some(_) => fail(s"Validation of $item failed - expected failure")
+          case _ => succeed
         }
       }
     }

@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot.{labelReferences, Page, Labels, Phrase, asListOfInt, exclusiveOptionRegex}
+import core.models.ocelot.{labelReferences, Page, Labels, Phrase, asListOfPositiveInt, exclusiveOptionRegex}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json.{JsSuccess, JsError, JsValue, JsonValidationError, JsPath, OWrites, Reads}
@@ -61,7 +61,7 @@ trait Sequence extends VisualStanza with Populated with DataInput {
 
   def eval(value: String, page: Page, labels: Labels): (Option[String], Labels) =
     validInput(value).fold[(Option[String], Labels)]((None, labels)){checkedItems =>
-      asListOfInt(checkedItems).fold[(Option[String], Labels)]((None, labels)){checked => {
+      asListOfPositiveInt(checkedItems).fold[(Option[String], Labels)]((None, labels)){checked => {
         val chosenOptions: List[Phrase] = checked.flatMap(idx => options.lift(idx).fold[List[Phrase]](Nil)(p => List(p)))
         // Collect any Evaluate stanzas following this Sequence for use when the Continuation is followed
         val continuationStanzas: Map[String, Stanza] = page.keyedStanzas
@@ -82,7 +82,7 @@ trait Sequence extends VisualStanza with Populated with DataInput {
     }
 
   def validInput(value: String): Option[String] =
-    asListOfInt(value).fold[Option[String]](None)(l => if (l.forall(options.indices.contains(_))) Some(value) else None)
+    asListOfPositiveInt(value).fold[Option[String]](None)(l => if (l.forall(options.indices.contains(_))) Some(value) else None)
 }
 
 object Sequence {
@@ -110,7 +110,7 @@ case class ExclusiveSequence(text: Phrase,
       exclusiveOptionRegex.findFirstMatchIn(p.welsh).nonEmpty}
 
   override def validInput(value: String): Option[String] =
-    asListOfInt(value).fold[Option[String]](None){l =>
+    asListOfPositiveInt(value).fold[Option[String]](None){l =>
       if (l.forall(nonExclusiveOptions.indices.contains(_)) ||
          (l.length == 1 && l.head == nonExclusiveOptions.length)) Some(value) else None
     }
