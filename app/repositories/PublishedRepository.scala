@@ -76,7 +76,7 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
 
   def save(id: String, user: String, processCode: String, process: JsObject): Future[RequestOutcome[String]] = {
 
-    logger.info(s"Saving process $id to collection published")
+    logger.warn(s"Saving process $id to collection published")
 
     val selector = Json.obj("_id" -> id)
     val modifier = Json.obj(

@@ -72,7 +72,7 @@ class ProcessReviewController @Inject() (
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
       reviewService.twoEyeReviewComplete(id, statusChangeInfo).map {
         case Right(auditInfo) =>
-          logger.info(s"2i review of $id complete")
+          logger.warn(s"2i review of $id complete")
           Ok(Json.toJson(auditInfo))
         case Left(IncompleteDataError) => BadRequest(Json.toJson(IncompleteDataError))
         case Left(DuplicateKeyError) => BadRequest(Json.toJson(DuplicateKeyError))
