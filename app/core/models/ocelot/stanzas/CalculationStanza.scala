@@ -16,18 +16,36 @@
 
 package core.models.ocelot.stanzas
 
-import java.time.LocalDate
-import java.time.temporal.ChronoUnit
-
-import core.models.ocelot.{asAnyInt, asDecimal, asDate, labelReference, labelScalarValue, labelReferences, Labels}
-import play.api.Logger
+import core.models.ocelot.{labelReferences, asAnyInt, Labels}
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 
-import scala.math.BigDecimal.RoundingMode
+case class CalcOperation(left:String, op: CalcOperationType, right: String, label: String)
 
-import scala.annotation.tailrec
+object CalcOperation {
+  implicit val reads: Reads[CalcOperation] = (js: JsValue) =>
+    ((js \ "left").validate[String] and
+      (js \ "op").validate[CalcOperationType] and
+      (js \ "right").validate[String] and
+      (js \ "label").validate[String]).tupled match {
+      case err: JsError => err
+      case JsSuccess((left, op, right, label), _) =>
+        op match {
+          case Floor | Ceiling if asAnyInt(right).isDefined => JsSuccess(CalcOperation(left, op, right, label))
+          case Floor | Ceiling => JsError(Seq(JsPath \ "right" -> Seq(JsonValidationError(Seq("error", "error.noninteger.scalefactor")))))
+          case _ => JsSuccess(CalcOperation(left, op, right, label))
+        }
+    }
+
+  implicit val writes: OWrites[CalcOperation] =
+    (
+      (JsPath \ "left").write[String] and
+        (JsPath \ "op").write[CalcOperationType] and
+        (JsPath \ "right").write[String] and
+        (JsPath \ "label").write[String]
+    )(unlift(CalcOperation.unapply))
+}
 
 case class CalculationStanza(calcs: Seq[CalcOperation], override val next: Seq[String], stack: Boolean) extends Stanza {
   override val labels: List[String] = calcs.map(op => op.label).toList
@@ -49,246 +67,6 @@ object CalculationStanza {
         (JsPath \ "next").write[Seq[String]] and
         (JsPath \ "stack").write[Boolean]
     )(unlift(CalculationStanza.unapply))
-}
-
-sealed trait Operation {
-
-  val logger: Logger = Logger(this.getClass)
-
-  val left: String
-  val right: String
-  val label: String
-
-  def eval(labels: Labels): Labels
-
-  def value(arg: String, labels: Labels): Option[String] = labelScalarValue(arg)(labels)
-
-  def listValue(arg: String, labels: Labels): Option[List[String]] = {
-    labelReference(arg).fold[Option[List[String]]](None){ref => labels.valueAsList(ref)}
-  }
-
-  def operands(labels: Labels): (Option[String], Option[List[String]], Option[String], Option[List[String]]) = {
-
-    val xScalar: Option[String] = value(left, labels)
-    val yScalar: Option[String] = value(right, labels)
-
-    (xScalar, yScalar) match {
-      case (Some(_), Some(_)) => (xScalar, None, yScalar, None) // Optimize for scalar on scalar as these are the most common operations
-      case _ =>
-        val xList: Option[List[String]] = listValue(left, labels)
-        val yList: Option[List[String]] = listValue(right, labels)
-
-        (xScalar, xList, yScalar, yList)
-    }
-  }
-
-  def unsupportedOperation[A](operationName: String)(arg1: Any, arg2: Any ): Option[A] = {
-
-    logger.error("Unsupported \"" + operationName + "\" calculation stanza operation defined in guidance")
-
-    None
-  }
-
-  def op(x : String,
-         y: String,
-         f: (BigDecimal, BigDecimal) => BigDecimal,
-         g: (String, String) => Option[String],
-         h: (LocalDate, LocalDate) => Option[String],
-         labels: Labels): Labels = {
-
-    (asDate(x), asDate(y)) match {
-      case (Some(ld1), Some(ld2)) =>
-        // Treat operands as instances of local date
-        h(ld1, ld2) match {
-          case Some(value) => labels.update(label, value)
-          case None => labels
-        }
-      case _ =>
-        (asDecimal(x), asDecimal(y)) match {
-          case (Some(bg1), Some(bg2)) => decimalOp(bg1, bg2, f, labels)
-          case _ =>
-            // Treat both operands as strings
-            g(x, y) match {
-              case Some(value) => labels.update(label, value)
-              case None => labels
-            }
-        }
-    }
-  }
-
-  // Treat operands as instances of big decimal
-  def decimalOp(x : BigDecimal, y: BigDecimal, f: (BigDecimal, BigDecimal) => BigDecimal, labels: Labels): Labels =
-    labels.update(label, f(x, y).bigDecimal.toPlainString)
-
-  def listAndValueOp(list: List[String], scalar: String, f:(List[String], String) => Option[List[String]], labels: Labels): Labels =
-  f(list, scalar) match {case Some(value) => labels.updateList(label, value) case None => labels}
-
-  def listOp(list1: List[String], list2: List[String], f:(List[String], List[String]) => List[String], labels: Labels): Labels =
-    labels.updateList(label, f(list1, list2))
-
-  def rounding(f: (BigDecimal, Int) => BigDecimal, labels: Labels): Labels = {
-
-    value(left, labels).fold(labels)(x => value(right, labels).fold(labels)(y =>
-
-      (asDecimal(x), asAnyInt(y)) match {
-
-        case (Some(value), Some(scale)) =>
-
-          val scaledValue = f(value, scale)
-          labels.update(label, scaledValue.bigDecimal.toPlainString)
-
-        case _ =>
-
-          unsupportedOperation("Rounding")(x, y)
-          labels
-
-      }))
-
-  }
-}
-
-case class AddOperation(left: String, right: String, label: String) extends Operation {
-
-  def eval(labels: Labels): Labels =
-    operands(labels) match {
-      case (Some(x), None, Some(y), None) => op(x, y, _ + _, (s1: String, s2: String) => Some(s1 + s2), unsupportedOperation("Add"), labels)
-      case (None, Some(xList), Some(y), None) => listAndValueOp(xList, y, appendStringToList, labels)
-      case (Some(x), None, None, Some(yList)) => listAndValueOp(yList, x, prependStringToList, labels)
-      case (None, Some(xList), None, Some(yList)) => listOp(xList, yList, addListToList, labels)
-      case _ => unsupportedOperation("Add")(None, None)
-        labels
-    }
-
-  private def appendStringToList(l: List[String], s: String): Option[List[String]] = Some((s :: l.reverse).reverse)
-
-  private def prependStringToList(l: List[String], s: String): Option[List[String]] = Some(s :: l)
-
-  private def addListToList(list1: List[String], list2: List[String]): List[String] = list1 ::: list2
-}
-
-case class SubtractOperation(left: String, right: String, label: String) extends Operation {
-
-  def eval(labels: Labels): Labels =
-
-    operands(labels) match {
-      case (Some(x), None, Some(y), None) => op(x, y, _ - _, unsupportedOperation("Subtract"), subtractDate, labels)
-      case (None, Some(xList), Some(y), None) => listAndValueOp(xList, y, subtractStringFromList, labels)
-      case (Some(x), None, None, Some(yList)) => listAndValueOp(yList, x, unsupportedOperation("Subtract list from string"), labels)
-      case (None, Some(xList), None, Some(yList)) => listOp(xList, yList, subtractListFromList, labels)
-      case _ => unsupportedOperation("Subtract")(None, None)
-        labels
-    }
-
-  private def subtractDate(date: LocalDate, other: LocalDate) : Option[String] =
-    Some(other.until(date, ChronoUnit.DAYS).toString)
-
-  private def subtractStringFromList(l: List[String], s: String): Option[List[String]] = Some(l.filter(_ != s))
-
-  @tailrec
-  private def subtractListFromList(list1: List[String], list2: List[String]): List[String] =
-    list2 match {
-      case Nil => list1
-      case x :: xs => subtractListFromList(list1.filter(_ != x), xs)
-    }
-}
-
-case class MultiplyOperation(left: String, right: String, label: String) extends Operation {
-  def eval(labels: Labels): Labels =
-    operands(labels) match {
-      case (Some(x), None, Some(y), None) => op(x, y, _ * _, unsupportedOperation("Multiply"), unsupportedOperation("Multiply"), labels)
-      case _ =>
-        unsupportedOperation("Multiply")(None, None)
-        labels
-    }
-}
-
-case class DivideOperation(left: String, right: String, label: String) extends Operation {
-  def eval(labels: Labels): Labels =
-    operands(labels) match {
-      case (Some(x), None, Some(y), None) => op(x, y, _ / _, unsupportedOperation("Divide"), unsupportedOperation("Divide"), labels)
-      case _ =>
-        unsupportedOperation("Divide")(None, None)
-        labels
-    }
-
-  override def decimalOp(x : BigDecimal, y: BigDecimal, f: (BigDecimal, BigDecimal) => BigDecimal, labels: Labels): Labels =
-    if (y.equals(0.0)) labels.update(label, "Infinity") else super.decimalOp(x, y, f, labels)
-}
-
-case class CeilingOperation(left: String, right: String, label: String) extends Operation {
-
-  def eval(labels: Labels): Labels = rounding(_.setScale(_, RoundingMode.CEILING), labels)
-
-}
-
-case class FloorOperation(left: String, right: String, label: String) extends Operation {
-
-  def eval(labels: Labels): Labels = rounding(_.setScale(_, RoundingMode.FLOOR), labels)
-
-}
-
-object Operation {
-  implicit val reads: Reads[Operation] = (js: JsValue) => {
-    (js \ "type").validate[String] match {
-      case err @ JsError(_) => err
-      case JsSuccess(typ, _) => typ match {
-        case "add" => js.validate[AddOperation]
-        case "sub" => js.validate[SubtractOperation]
-        case "mult" => js.validate[MultiplyOperation]
-        case "div" => js.validate[DivideOperation]
-        case "ceil" => js.validate[CeilingOperation]
-        case "flr" => js.validate[FloorOperation]
-        case typeName => JsError(JsonValidationError(Seq("Operation"), typeName))
-      }
-    }
-  }
-
-  implicit val writes: Writes[Operation] = {
-    case o: AddOperation => Json.obj("type" -> "add") ++ Json.toJsObject[AddOperation](o)
-    case o: SubtractOperation => Json.obj("type" -> "sub") ++ Json.toJsObject[SubtractOperation](o)
-    case o: MultiplyOperation => Json.obj("type" -> "mult") ++ Json.toJsObject[MultiplyOperation](o)
-    case o: DivideOperation => Json.obj("type" -> "div") ++ Json.toJsObject[DivideOperation](o)
-    case o: CeilingOperation => Json.obj("type" -> "ceil") ++ Json.toJsObject[CeilingOperation](o)
-    case o: FloorOperation => Json.obj("type" -> "flr") ++ Json.toJsObject[FloorOperation](o)
-  }
-}
-
-object AddOperation{
-  implicit val reads: Reads[AddOperation] =
-    ((JsPath \ "left").read[String] and (JsPath \ "right").read[String] and (JsPath \ "label").read[String])(AddOperation.apply _)
-  implicit val writes: OWrites[AddOperation] =
-    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String])(unlift(AddOperation.unapply))
-}
-
-object SubtractOperation{
-  implicit val reads: Reads[SubtractOperation] =
-    ((JsPath \ "left").read[String] and (JsPath \ "right").read[String] and (JsPath \ "label").read[String])(SubtractOperation.apply _)
-  implicit val writes: OWrites[SubtractOperation] =
-    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String])(unlift(SubtractOperation.unapply))
-}
-object MultiplyOperation{
-  implicit val reads: Reads[MultiplyOperation] =
-    ((JsPath \ "left").read[String] and (JsPath \ "right").read[String] and (JsPath \ "label").read[String])(MultiplyOperation.apply _)
-  implicit val writes: OWrites[MultiplyOperation] =
-    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String])(unlift(MultiplyOperation.unapply))
-}
-object DivideOperation{
-  implicit val reads: Reads[DivideOperation] =
-    ((JsPath \ "left").read[String] and (JsPath \ "right").read[String] and (JsPath \ "label").read[String])(DivideOperation.apply _)
-  implicit val writes: OWrites[DivideOperation] =
-    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String])(unlift(DivideOperation.unapply))
-}
-object CeilingOperation{
-  implicit val reads: Reads[CeilingOperation] =
-    ((JsPath \ "left").read[String] and (JsPath \ "right").read[String] and (JsPath \ "label").read[String])(CeilingOperation.apply _)
-  implicit val writes: OWrites[CeilingOperation] =
-    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String])(unlift(CeilingOperation.unapply))
-}
-object FloorOperation{
-  implicit val reads: Reads[FloorOperation] =
-    ((JsPath \ "left").read[String] and (JsPath \ "right").read[String] and (JsPath \ "label").read[String])(FloorOperation.apply _)
-  implicit val writes: OWrites[FloorOperation] =
-    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String])(unlift(FloorOperation.unapply))
 }
 
 case class Calculation(override val next: Seq[String], calcs: Seq[Operation]) extends Stanza with Evaluate {
