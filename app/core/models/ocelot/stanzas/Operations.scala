@@ -68,9 +68,9 @@ sealed trait Operation {
         evalCollectionScalarOp(l,r.toString).fold(labels)(result => labels.updateList(label, result))
       case (Some(l: Scalar[_]), Some(StringCollection(r))) =>
         evalScalarCollectionOp(l.toString,r).fold(labels)(result => labels.updateList(label, result))
-      case _ =>
-        unsupported()
-        labels
+      case (Some(l: Operand[_]), Some(r: Operand[_])) => // No typed op, fall back to String, String op
+        evalStringOp(l.v.toString, r.v.toString).fold(labels)(result => labels.update(label, result))
+      case _ => unsupported(); labels
     }
 
   private def operand(s: String, labels: Labels): Option[Operand[_]] =
