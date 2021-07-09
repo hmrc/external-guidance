@@ -35,13 +35,13 @@ package object ocelot {
   val labelAndListPattern: String = s"$labelPattern|$listPattern"
   val labelAndListRegex: Regex = labelAndListPattern.r
   val hintRegex: Regex = "\\[hint:([^\\]]+)\\]".r
-  val pageLinkRegex: Regex = s"${pageLinkPattern}".r
-  val buttonLinkRegex: Regex = s"${buttonLinkPattern}".r
+  val pageLinkRegex: Regex = pageLinkPattern.r
+  val buttonLinkRegex: Regex = buttonLinkPattern.r
   val labelRefRegex: Regex = labelPattern.r
   val inputCurrencyRegex: Regex = "^-?£?(\\d{1,3}(,\\d{3})*|\\d+)(\\.(\\d{1,2})?)?$".r
   val inputCurrencyPoundsRegex: Regex = "^-?£?(\\d{1,3}(,\\d{3})*|\\d+)$".r
   val positiveIntRegex: Regex = "^\\d{1,10}$".r                                 // Limited to 10 decimal digits
-  val listOfPositiveIntRegex: Regex = s"$csPositiveIntPattern".r
+  val listOfPositiveIntRegex: Regex = csPositiveIntPattern.r
   val anyIntegerRegex: Regex = "^-?(\\d{1,3}(,\\d{3}){0,3}|\\d{1,10})$".r       // Limited to 10 decimal digits or 12 comma separated
   val EmbeddedParameterRegex: Regex = """\{(\d)\}""".r
   val exclusiveOptionRegex: Regex = "\\[exclusive:([^\\]]+)\\]".r
@@ -73,14 +73,14 @@ package object ocelot {
   def asPositiveInt(value: String): Option[Int] = matchedInt(value, positiveIntRegex)
   def asAnyInt(value: String): Option[Int] = matchedInt(value, anyIntegerRegex)
   def asListOfPositiveInt(value: String): Option[List[Int]] = listOfPositiveIntRegex.findFirstIn(value.filterNot(_.equals(' ')))
-                                                                                    .flatMap(s => lOfOtoOofL(s.split(",").toList.map(asPositiveInt(_))))
+                                                                                    .flatMap(s => lOfOtoOofL(s.split(",").toList.map(asPositiveInt)))
 
   val pageLinkOnlyPattern: String = s"^${linkToPageOnlyPattern}$$"
   val boldOnlyPattern: String = s"^${boldPattern}$$"
   def isLinkOnlyPhrase(phrase: Phrase): Boolean =phrase.english.matches(pageLinkOnlyPattern)
   def isBoldOnlyPhrase(phrase: Phrase): Boolean =phrase.english.matches(boldOnlyPattern)
 
-  private def matchedInt(value: String, regex: Regex): Option[Int] = regex.findFirstIn(value.filterNot(_.equals(' '))).flatMap(asInt(_))
+  private def matchedInt(value: String, regex: Regex): Option[Int] = regex.findFirstIn(value.filterNot(_.equals(' '))).flatMap(asInt)
   private def asInt(value: String): Option[Int] = {
     val longValue: Long = value.filterNot(_ == ',').toLong
     if (longValue < Int.MinValue || longValue > Int.MaxValue) None else Some(longValue.toInt)

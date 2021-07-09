@@ -47,12 +47,12 @@ sealed trait Operation {
   val right: String
   val label: String
 
-  def evalScalarCollectionOp(left: String, right: List[String]): Option[List[String]] = unsupported[List[String]]()
-  def evalCollectionScalarOp(left: List[String], right: String): Option[List[String]] = unsupported[List[String]]()
-  def evalCollectionCollectionOp(left: List[String], right: List[String]): Option[List[String]] = unsupported[List[String]]()
-  def evalDateOp(left: LocalDate, right: LocalDate): Option[String] = unsupported[String]()
-  def evalNumericOp(left: BigDecimal, right: BigDecimal): Option[String] = unsupported[String]()
-  def evalStringOp(left: String, right: String): Option[String] = unsupported[String]()
+  private[stanzas] def evalScalarCollectionOp(left: String, right: List[String]): Option[List[String]] = unsupported[List[String]]()
+  private[stanzas] def evalCollectionScalarOp(left: List[String], right: String): Option[List[String]] = unsupported[List[String]]()
+  private[stanzas] def evalCollectionCollectionOp(left: List[String], right: List[String]): Option[List[String]] = unsupported[List[String]]()
+  private[stanzas] def evalDateOp(left: LocalDate, right: LocalDate): Option[String] = unsupported[String]()
+  private[stanzas] def evalNumericOp(left: BigDecimal, right: BigDecimal): Option[String] = unsupported[String]()
+  private[stanzas] def evalStringOp(left: String, right: String): Option[String] = unsupported[String]()
 
   def eval(labels: Labels): Labels =
     (operand(left, labels), operand(right, labels)) match {
