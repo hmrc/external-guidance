@@ -139,7 +139,6 @@ class OperationsSpec extends BaseSpec {
     }
   }
 
-
   "Addition Operation evaluation overrides" must {
     "Evaluate two numbers correctly or return None" in {
       AddOperation("","","").evalNumericOp(aNumber, aNumber) shouldBe Some(s"${aNumber + aNumber}")
