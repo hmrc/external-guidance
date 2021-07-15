@@ -82,8 +82,8 @@ class SequenceStanzaSpec extends BaseSpec {
     val phraseTwo: Phrase = Phrase(twoEn, twoCy)
     val phraseThree: Phrase = Phrase(threeEn, threeCy)
     val phraseFour: Phrase = Phrase(fourEn, fourCy)
-    val phraseFourExclusive: Phrase = Phrase(s"$fourEn [exclusive:Selecting this checkbox will deselect the other checkboxes]",
-                                             s"$fourCy [exclusive:Welsh: Selecting this checkbox will deselect the other checkboxes]")
+    val phraseFourExclusive: Phrase = Phrase(s"$fourEn [exclusive][hint:Selecting this checkbox will deselect the other checkboxes]",
+                                             s"$fourCy [exclusive][hint:Welsh: Selecting this checkbox will deselect the other checkboxes]")
     val oneTwo: List[Phrase] = List(phraseOne, phraseTwo)
     val oneTwoThree: List[Phrase] = oneTwo :+ phraseThree
     val oneTwoThreeFour: List[Phrase] = oneTwoThree :+ phraseFour
@@ -92,8 +92,8 @@ class SequenceStanzaSpec extends BaseSpec {
     val expectedStanza: SequenceStanza =
       SequenceStanza(0, Seq("1","2","3","4","end"), Seq(1,2,3,four), Some("Items"), stack = false)
 
-    val expectedNonExclusiveSequence: NonExclusiveSequence =
-      NonExclusiveSequence(
+    val expectedNonExclusiveSequence: Sequence =
+      Sequence(
         Phrase("Select","Select"),
         expectedStanza.next,
         oneTwoThreeFour,
@@ -101,8 +101,8 @@ class SequenceStanzaSpec extends BaseSpec {
         expectedStanza.stack
       )
 
-    val expectedExclusiveSequence: ExclusiveSequence =
-    ExclusiveSequence(
+    val expectedExclusiveSequence: Sequence =
+      Sequence(
       Phrase("Select","Select"),
       expectedStanza.next,
       oneTwoThreeFourExclusive,

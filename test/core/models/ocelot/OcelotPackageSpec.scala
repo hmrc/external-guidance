@@ -199,31 +199,30 @@ class OcelotPackageSpec extends BaseSpec {
   "Exclusive sequence exclusive option matching" must {
 
     "not match options where the exclusive option place holder is absent" in {
-
-      exclusiveOptionRegex.findFirstMatchIn("Other") shouldBe None
+      "Other" contains exclusiveOptionPattern
     }
 
-    "not match options where the place holder is present, but no hint is defined" in {
+    "match options where the place holder is present, but no hint is defined" in {
 
-      exclusiveOptionRegex.findFirstMatchIn("Other [exclusive:]") shouldBe None
+      val optionMatch = "Other [exclusive]" contains exclusiveOptionPattern
+      optionMatch shouldBe true
     }
 
     "match option where both place holder and hint are defined" in {
 
-      val optionText: String = "Other [exclusive:Selection of this checkbox will cause the other checkboxes to be deselected]"
+      val optionText: String = "Other [exclusive][hint:Selection of this checkbox will cause the other checkboxes to be deselected]"
 
-      val optionMatch: Option[Match] = exclusiveOptionRegex.findFirstMatchIn(optionText)
+      optionText contains exclusiveOptionPattern
 
-      optionMatch.isDefined shouldBe true
     }
 
     "match option where hint text contains colon and comma" in {
 
-      val optionText: String = "Other [exclusive: Welsh: One way, or another, the other checkboxes will be deselected]"
+      val optionText: String = "Other [exclusive][hint: Welsh: One way, or another, the other checkboxes will be deselected]"
 
-      val optionMatch: Option[Match] = exclusiveOptionRegex.findFirstMatchIn(optionText)
+      val optionMatch: Boolean = optionText contains exclusiveOptionPattern
 
-      optionMatch.isDefined shouldBe true
+      optionMatch shouldBe true
     }
 
   }

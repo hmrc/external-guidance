@@ -39,8 +39,8 @@ trait StanzaHelper extends TestConstants {
   val exclusiveSequencePhrases: Vector[Phrase] = phrases ++ Vector(
     Phrase(Vector("What kind of fruit do you like?", "Welsh: What kind of fruit do you like?")),
     Phrase(Vector(
-      "Other [exclusive:Selecting this checkbox will deselect the other checkboxes]",
-      "Welsh: Other [exclusive:Welsh: Selecting this checkbox will deselect the other checkboxes]"
+      "Other [exclusive][hint:Selecting this checkbox will deselect the other checkboxes]",
+      "Welsh: Other [exclusive][hint:Welsh: Selecting this checkbox will deselect the other checkboxes]"
     )),
     Phrase(Vector("Apples", "Welsh: Apples")),
     Phrase(Vector("Bananas", "Welsh: Bananas")),
@@ -50,12 +50,12 @@ trait StanzaHelper extends TestConstants {
   val multipleExclusiveSequencePhrases: Vector[Phrase] = phrases ++ Vector(
     Phrase(Vector("What kind of fruit do you like?", "Welsh: What kind of fruit do you like?")),
     Phrase(Vector(
-      "Other [exclusive:Selecting this checkbox will deselect the other checkboxes]",
-      "Welsh: Other [exclusive:Welsh: Selecting this checkbox will deselect the other checkboxes]")),
+      "Other [exclusive][hint:Selecting this checkbox will deselect the other checkboxes]",
+      "Welsh: Other [exclusive][hint:Welsh: Selecting this checkbox will deselect the other checkboxes]")),
     Phrase(Vector("Apples", "Welsh: Apples")),
     Phrase(Vector(
-      "Bananas [exclusive:Selecting this checkbox will deselect the other checkboxes]",
-      "Welsh: Bananas [exclusive:Welsh: Selecting this checkbox will deselect the other checkboxes]")),
+      "Bananas [exclusive][hint:Selecting this checkbox will deselect the other checkboxes]",
+      "Welsh: Bananas [exclusive][hint:Welsh: Selecting this checkbox will deselect the other checkboxes]")),
     Phrase(Vector("Oranges", "Welsh: Oranges"))
   )
 
@@ -97,20 +97,20 @@ trait StanzaHelper extends TestConstants {
   val sqpQpDateInput: DateInput = DateInput(Seq("4"), phrases(two), Some(phrases(three)), "label", None, stack = false)
   val sqpQpNumberInput: NumberInput = NumberInput(Seq("4"), phrases(two), Some(phrases(three)), "label", None, stack = false)
   val sqpQpTextInput: TextInput = TextInput(Seq("4"), phrases(two), Some(phrases(three)), "label", None, stack = false)
-  val sqpQpNonExclusiveSequence: NonExclusiveSequence = NonExclusiveSequence(
+  val sqpQpNonExclusiveSequence: Sequence = Sequence(
     phrases(seven),
     Seq("4", "6"),
     Seq(phrases(eight)),
     None,
     stack = false)
 
-  val sqpQpExclusiveSequence: ExclusiveSequence = ExclusiveSequence(
+  val sqpQpExclusiveSequence: Sequence = Sequence(
     exclusiveSequencePhrases(nine),
     Seq("4", "4", "4", "4", "6"),
     Seq(
       Phrase(
-        "Other [exclusive:Selecting this checkbox will deselect the other checkboxes]",
-        "Welsh: Other [exclusive:Welsh: Selecting this checkbox will deselect the other checkboxes]"),
+        "Other [exclusive][hint:Selecting this checkbox will deselect the other checkboxes]",
+        "Welsh: Other [exclusive][hint:Welsh: Selecting this checkbox will deselect the other checkboxes]"),
       exclusiveSequencePhrases(eleven),
       exclusiveSequencePhrases(twelve),
       exclusiveSequencePhrases(thirteen)

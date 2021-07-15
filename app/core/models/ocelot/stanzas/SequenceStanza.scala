@@ -16,11 +16,10 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot.{labelReferences, Page, Labels, Phrase, asListOfPositiveInt, exclusiveOptionRegex}
+import core.models.ocelot.{KeyedStanza, Labels, Page, Phrase, asListOfPositiveInt, exclusiveOptionPattern, labelReferences}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
-import play.api.libs.json.{JsSuccess, JsError, JsValue, JsonValidationError, JsPath, OWrites, Reads}
-import core.models.ocelot.KeyedStanza
+import play.api.libs.json.{JsError, JsPath, JsSuccess, JsValue, JsonValidationError, OWrites, Reads}
 
 case class SequenceStanza(text: Int,
                           override val next: Seq[String],
@@ -52,12 +51,22 @@ object SequenceStanza {
     )(unlift(SequenceStanza.unapply))
 }
 
-trait Sequence extends VisualStanza with Populated with DataInput {
-  val text: Phrase
-  val options: Seq[Phrase]
-  val label: Option[String]
+object Sequence {
+  def apply(s: SequenceStanza, text: Phrase, options: Seq[Phrase]): Sequence =
+    Sequence(text, s.next, options, s.label, s.stack)
+}
+
+case class Sequence(text: Phrase,
+                    override val next: Seq[String],
+                    options: Seq[Phrase],
+                    label: Option[String],
+                    stack: Boolean) extends VisualStanza with Populated with DataInput {
   override val labelRefs: List[String] = labelReferences(text.english) ++ options.flatMap(a => labelReferences(a.english))
   override val labels: List[String] = label.fold[List[String]](Nil)(l => List(l))
+
+  lazy val (exclusiveOptions: Seq[Phrase], nonExclusiveOptions: Seq[Phrase]) =
+    options.partition{p => p.english.contains(exclusiveOptionPattern) &&
+      p.welsh.contains(exclusiveOptionPattern)}
 
   def eval(value: String, page: Page, labels: Labels): (Option[String], Labels) =
     validInput(value).fold[(Option[String], Labels)]((None, labels)){checkedItems =>
@@ -66,9 +75,9 @@ trait Sequence extends VisualStanza with Populated with DataInput {
         // Collect any Evaluate stanzas following this Sequence for use when the Continuation is followed
         val continuationStanzas: Map[String, Stanza] = page.keyedStanzas
           .dropWhile{ks => ks.stanza match {
-              case s: Sequence => false
-              case _ => true
-            }
+            case s: Sequence => false
+            case _ => true
+          }
           }
           .drop(1)  // Drop the Sequence
           .collect{case ks @ KeyedStanza(_, s: Stanza with Evaluate) => (ks.key, ks.stanza)}
@@ -77,41 +86,17 @@ trait Sequence extends VisualStanza with Populated with DataInput {
         // nextFlow and redirect to the first flow (setting list and first flow label)
         label.fold(labels)(l => labels.updateList(s"${l}_seq", chosenOptions.map(_.english), chosenOptions.map(_.welsh)))
           .pushFlows(checked.flatMap(idx => next.lift(idx).fold[List[String]](Nil)(List(_))), next.last, label, chosenOptions, continuationStanzas)
-        }
+      }
       }
     }
 
   def validInput(value: String): Option[String] =
-    asListOfPositiveInt(value).fold[Option[String]](None)(l => if (l.forall(options.indices.contains(_))) Some(value) else None)
-}
-
-object Sequence {
-  def apply(s: SequenceStanza, text: Phrase, options: Seq[Phrase]): Sequence =
-    if (options.exists(o => exclusiveOptionRegex.findFirstMatchIn(o.english).nonEmpty &&
-    exclusiveOptionRegex.findFirstMatchIn(o.welsh).nonEmpty))
-      ExclusiveSequence(text, s.next, options, s.label, s.stack)
-    else
-      NonExclusiveSequence(text, s.next, options, s.label, s.stack)
-}
-
-case class NonExclusiveSequence(text: Phrase,
-                                override val next: Seq[String],
-                                options: Seq[Phrase],
-                                label: Option[String],
-                                stack: Boolean) extends Sequence
-
-case class ExclusiveSequence(text: Phrase,
-                             override val next: Seq[String],
-                             options: Seq[Phrase],
-                             label: Option[String],
-                             stack: Boolean) extends Sequence {
-  lazy val (exclusiveOptions: Seq[Phrase], nonExclusiveOptions: Seq[Phrase]) =
-    options.partition{p => exclusiveOptionRegex.findFirstMatchIn(p.english).nonEmpty &&
-      exclusiveOptionRegex.findFirstMatchIn(p.welsh).nonEmpty}
-
-  override def validInput(value: String): Option[String] =
     asListOfPositiveInt(value).fold[Option[String]](None){l =>
       if (l.forall(nonExclusiveOptions.indices.contains(_)) ||
-         (l.length == 1 && l.head == nonExclusiveOptions.length)) Some(value) else None
+        (l.length == 1 && l.head == nonExclusiveOptions.length)) {
+        Some(value)
+      } else {
+        None
+      }
     }
 }

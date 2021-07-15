@@ -44,7 +44,7 @@ package object ocelot {
   val listOfPositiveIntRegex: Regex = s"$csPositiveIntPattern".r
   val anyIntegerRegex: Regex = "^-?(\\d{1,3}(,\\d{3}){0,3}|\\d{1,10})$".r       // Limited to 10 decimal digits or 12 comma separated
   val EmbeddedParameterRegex: Regex = """\{(\d)\}""".r
-  val exclusiveOptionRegex: Regex = "\\[exclusive]".r
+  val exclusiveOptionPattern: String = "[exclusive]"
 
   val DateOutputFormat = "d MMMM uuuu"
   val ignoredCurrencyChars: Seq[Char] = Seq(' ','£', ',')
