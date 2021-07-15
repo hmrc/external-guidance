@@ -28,6 +28,7 @@ package object ocelot {
   val pageLinkPattern: String = s"\\[(button|link)(-same|-tab)?:(.+?):(\\d+|${Process.StartStanzaId})\\]"
   val buttonLinkPattern: String = s"\\[(button)(-same|-tab)?:(.+?):(\\d+|${Process.StartStanzaId})\\]"
   val linkPattern: String = s"\\[(button|link)(-same|-tab)?:(.+?):(\\d+|${Process.StartStanzaId}|https?:[a-zA-Z0-9\\/\\.\\-\\?_\\.=&#]+)\\]"
+  val timeConstantPattern: String = "^(\\d{1,10})(day|week|month|year)$"
   val csPositiveIntPattern: String = "^\\d{1,10}(?:,\\d{1,10})*$"
   val listPattern: String = "\\[list:([A-Za-z0-9\\s\\-_]+):length\\]"
   val singleLabelOrListPattern: String = s"^$labelPattern|$listPattern$$"
@@ -45,6 +46,7 @@ package object ocelot {
   val anyIntegerRegex: Regex = "^-?(\\d{1,3}(,\\d{3}){0,3}|\\d{1,10})$".r       // Limited to 10 decimal digits or 12 comma separated
   val EmbeddedParameterRegex: Regex = """\{(\d)\}""".r
   val exclusiveOptionRegex: Regex = "\\[exclusive:([^\\]]+)\\]".r
+  val timeConstantRegex: Regex = timeConstantPattern.r
 
   val DateOutputFormat = "d MMMM uuuu"
   val ignoredCurrencyChars: Seq[Char] = Seq(' ','£', ',')
@@ -74,6 +76,17 @@ package object ocelot {
   def asAnyInt(value: String): Option[Int] = matchedInt(value, anyIntegerRegex)
   def asListOfPositiveInt(value: String): Option[List[Int]] = listOfPositiveIntRegex.findFirstIn(value.filterNot(_.equals(' ')))
                                                                                     .flatMap(s => lOfOtoOofL(s.split(",").toList.map(asPositiveInt)))
+  def asTimePeriod(value: String): Option[TimePeriod] =
+    timeConstantRegex.findFirstMatchIn(value.trim).flatMap{m =>
+    Option(m.group(1)).fold[Option[TimePeriod]](None)(n =>
+      Option(m.group(2)).fold[Option[TimePeriod]](None){unit => unit match {
+        case "day" => Some(TimePeriod(n.toInt, Day))
+        case "week" => Some(TimePeriod(n.toInt, Week))
+        case "month" => Some(TimePeriod(n.toInt, Month))
+        case "year" => Some(TimePeriod(n.toInt, Year))
+      }
+    })
+  }
 
   val pageLinkOnlyPattern: String = s"^${linkToPageOnlyPattern}$$"
   val boldOnlyPattern: String = s"^${boldPattern}$$"
