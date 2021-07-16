@@ -16,10 +16,10 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot.{KeyedStanza, Labels, Page, Phrase, asListOfPositiveInt, exclusiveOptionPattern, labelReferences}
+import core.models.ocelot.{KeyedStanza, labelReferences, Page, Labels, Phrase, asListOfPositiveInt, exclusiveOptionPattern}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
-import play.api.libs.json.{JsError, JsPath, JsSuccess, JsValue, JsonValidationError, OWrites, Reads}
+import play.api.libs.json.{JsSuccess, JsError, JsValue, JsonValidationError, JsPath, OWrites, Reads}
 
 case class SequenceStanza(text: Int,
                           override val next: Seq[String],
