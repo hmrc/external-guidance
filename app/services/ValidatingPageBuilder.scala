@@ -142,7 +142,7 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
   private def checkExclusiveSequenceTypeError(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] =
     pages match {
       case Nil => errors
-      case p :: xs if p.stanzas.collectFirst{case _: ExclusiveSequence => ()}.fold(false)(_ => true) &&
+      case p :: xs if p.stanzas.collectFirst{case seq: Sequence => seq}.fold(false)(seq => seq.exclusiveOptions.nonEmpty) &&
                       p.stanzas.collectFirst{case _: TypeErrorCallout => ()}.fold(true)(_ => false) =>
         checkExclusiveSequenceTypeError(xs, IncompleteExclusiveSequencePage(p.id) :: errors)
       case _ :: xs =>
@@ -153,9 +153,9 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
   private def checkExclusiveSequencePages(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] =
     pages match {
       case Nil => errors
-      case x +: xs => x.keyedStanzas.collectFirst{case KeyedStanza(key, exSeq: ExclusiveSequence) => (key, exSeq)} match {
-          case Some((key, exclusiveSequence)) =>
-            if(exclusiveSequence.exclusiveOptions.size > 1) {
+      case x +: xs => x.keyedStanzas.collectFirst{case KeyedStanza(key, exSeq: Sequence) => (key, exSeq)} match {
+          case Some((key, sequence)) =>
+            if(sequence.exclusiveOptions.size > 1) {
               checkExclusiveSequencePages(xs, MultipleExclusiveOptions(key) :: errors)
             } else {
               checkExclusiveSequencePages(xs, errors)

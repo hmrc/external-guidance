@@ -350,8 +350,8 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
           Phrase(Vector("Exclusive sequence stanza", "Welsh: Exclusive sequence stanza")),
           Phrase(Vector("Some Text2", "Welsh: Some Text2")),
           Phrase(Vector(
-            "Some Text3 [exclusive:Selecting this checkbox will deselect the other checkboxes]",
-            "Welsh: Some Text3 [exclusive:Welsh: Selecting this checkbox will deselect the other checkboxes]"))
+            "Some Text3 [exclusive][hint:Selecting this checkbox will deselect the other checkboxes]",
+            "Welsh: Some Text3 [exclusive][hint:Welsh: Selecting this checkbox will deselect the other checkboxes]"))
         ),
         Vector[Link]()
       )
