@@ -17,7 +17,7 @@
 package core.models.ocelot
 
 import scala.util.matching.Regex.Match
-
+import core.models._
 import base.BaseSpec
 import org.scalatest.Inspectors.forAll
 
@@ -113,6 +113,12 @@ class OcelotPackageSpec extends BaseSpec {
     }
   }
 
+  "listLength" must {
+    "return None of list does not exit" in {
+      listLength("NonExistent", LabelCache()) shouldBe None
+    }
+  }
+
   "Positive Int conversion" must {
     "recognise a valid number" in {
       List("30", "3  56", "300", "030", Int.MaxValue.toString).foreach{item =>
@@ -179,6 +185,20 @@ class OcelotPackageSpec extends BaseSpec {
           case _ => succeed
         }
       }
+    }
+  }
+
+  "List of Options conversion" must {
+    "Return None if passed a empty list" in {
+      lOfOtoOofL(Nil) shouldBe None
+    }
+
+    "Return Some(list) if all elements defined" in {
+      lOfOtoOofL(List(Some(1), Some(2), Some(5), Some(8))) shouldBe Some(List(1,2,5,8))
+    }
+
+    "Return None if not all elements defined" in {
+      lOfOtoOofL(List(Some(1), Some(2), None, Some(8))) shouldBe None
     }
   }
 

@@ -17,22 +17,25 @@
 package core.models.ocelot.stanzas
 
 import base.BaseSpec
+import core.models.ocelot._
+
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import scala.math.BigDecimal.RoundingMode
 
-import core.models.ocelot._
-
 class OperationsSpec extends BaseSpec {
   val aNumber: BigDecimal = BigDecimal(32.6)
-  val aDate: LocalDate = LocalDate.of(2018,2,1)
+  val aDate: LocalDate = LocalDate.of(2018, 2, 20)
   val aString: String = "Some text"
   val aList: List[String] = List("One")
   val otherList: List[String] = List("One", "Two", "London")
 
   "Operand" must {
+    "detect a Time period operand" in {
+      Operand("31day", LabelCache()) shouldBe Some(TimePeriodOperand(TimePeriod(31, Day)))
+    }
     "detect a date operand" in {
-      Operand("1/12/1999", LabelCache()) shouldBe Some(DateOperand(LocalDate.of(1999,12,1)))
+      Operand("1/12/1999", LabelCache()) shouldBe Some(DateOperand(LocalDate.of(1999, 12, 1)))
     }
     "detect a numeric operand" in {
       Operand("1999.7", LabelCache()) shouldBe Some(NumericOperand(BigDecimal(1999.7)))
@@ -50,6 +53,11 @@ class OperationsSpec extends BaseSpec {
   }
 
   "AddOperation" must {
+    "correctly add a time period to a date" in {
+      val labels = AddOperation(stringFromDate(aDate), "4day", "Answer").eval(LabelCache())
+
+      labels.value("Answer") shouldBe Some("24/2/2018")
+    }
     "correctly sum two numbers" in {
       val labels = AddOperation("32.76", "65.2", "Answer").eval(LabelCache())
 
@@ -68,12 +76,12 @@ class OperationsSpec extends BaseSpec {
     "correctly sum date and string" in {
       val labels = AddOperation(stringFromDate(aDate), "-Universe", "Answer").eval(LabelCache())
 
-      labels.value("Answer") shouldBe Some("1/2/2018-Universe")
+      labels.value("Answer") shouldBe Some("20/2/2018-Universe")
     }
     "correctly sum string and date" in {
       val labels = AddOperation("Hello-", stringFromDate(aDate), "Answer").eval(LabelCache())
 
-      labels.value("Answer") shouldBe Some("Hello-1/2/2018")
+      labels.value("Answer") shouldBe Some("Hello-20/2/2018")
     }
     "correctly append an element to a list" in {
       val labels: Labels = LabelCache().updateList("AList", List("Hello", "my", "name"))
@@ -92,6 +100,11 @@ class OperationsSpec extends BaseSpec {
   }
 
   "SubtractOperation" must {
+    "correctly subtract a time period from a date" in {
+      val labels = SubtractOperation(stringFromDate(aDate), "4day", "Answer").eval(LabelCache())
+
+      labels.value("Answer") shouldBe Some("16/2/2018")
+    }
     "correctly subtract two numbers" in {
       val labels = SubtractOperation("32", "65", "Answer").eval(LabelCache())
 
@@ -141,127 +154,127 @@ class OperationsSpec extends BaseSpec {
 
   "Addition Operation evaluation overrides" must {
     "Evaluate two numbers correctly or return None" in {
-      AddOperation("","","").evalNumericOp(aNumber, aNumber) shouldBe Some(s"${aNumber + aNumber}")
+      AddOperation("", "", "").evalNumericOp(aNumber, aNumber) shouldBe Some(s"${aNumber + aNumber}")
     }
     "Evaluate two dates correctly or return None" in {
-      AddOperation("","","").evalDateOp(aDate, aDate) shouldBe None
+      AddOperation("", "", "").evalDateOp(aDate, aDate) shouldBe None
     }
     "Evaluate two strings correctly or return None" in {
-      AddOperation("","","").evalStringOp(aString, aString) shouldBe Some(aString + aString)
+      AddOperation("", "", "").evalStringOp(aString, aString) shouldBe Some(aString + aString)
     }
     "Evaluate list and string correctly or return None" in {
-      AddOperation("","","").evalCollectionScalarOp(aList, aString) shouldBe Some(aList :+ aString)
+      AddOperation("", "", "").evalCollectionScalarOp(aList, aString) shouldBe Some(aList :+ aString)
     }
     "Evaluate string and list correctly or return None" in {
-      AddOperation("","","").evalScalarCollectionOp(aString, aList) shouldBe Some(aString :: aList)
+      AddOperation("", "", "").evalScalarCollectionOp(aString, aList) shouldBe Some(aString :: aList)
     }
     "Evaluate list and list correctly or return None" in {
-      AddOperation("","","").evalCollectionCollectionOp(otherList, aList) shouldBe Some(otherList ::: aList)
+      AddOperation("", "", "").evalCollectionCollectionOp(otherList, aList) shouldBe Some(otherList ::: aList)
     }
   }
 
   "Subtraction Operation evaluation overrides" must {
     "Evaluate two numbers correctly or return None" in {
-      SubtractOperation("","","").evalNumericOp(aNumber, aNumber) shouldBe Some(s"${aNumber - aNumber}")
+      SubtractOperation("", "", "").evalNumericOp(aNumber, aNumber) shouldBe Some(s"${aNumber - aNumber}")
     }
     "Evaluate two dates correctly or return None" in {
-      SubtractOperation("","","").evalDateOp(aDate, aDate) shouldBe Some(aDate.until(aDate, ChronoUnit.DAYS).toString)
+      SubtractOperation("", "", "").evalDateOp(aDate, aDate) shouldBe Some(aDate.until(aDate, ChronoUnit.DAYS).toString)
     }
     "Evaluate two strings correctly or return None" in {
-      SubtractOperation("","","").evalStringOp(aString, aString) shouldBe None
+      SubtractOperation("", "", "").evalStringOp(aString, aString) shouldBe None
     }
     "Evaluate list and string correctly or return None" in {
-      SubtractOperation("","","").evalCollectionScalarOp(aList, aString) shouldBe Some(aList.filterNot(_ == aString))
+      SubtractOperation("", "", "").evalCollectionScalarOp(aList, aString) shouldBe Some(aList.filterNot(_ == aString))
     }
     "Evaluate string and list correctly or return None" in {
-      SubtractOperation("","","").evalScalarCollectionOp(aString, aList) shouldBe None
+      SubtractOperation("", "", "").evalScalarCollectionOp(aString, aList) shouldBe None
     }
     "Evaluate list and list correctly or return None" in {
-      SubtractOperation("","","").evalCollectionCollectionOp(otherList, aList) shouldBe Some(otherList.filterNot(aList.contains(_)))
+      SubtractOperation("", "", "").evalCollectionCollectionOp(otherList, aList) shouldBe Some(otherList.filterNot(aList.contains(_)))
     }
   }
 
   "Multiply Operation evaluation overrides" must {
     "Evaluate two numbers correctly or return None" in {
-      MultiplyOperation("","","").evalNumericOp(aNumber, aNumber) shouldBe Some(s"${aNumber * aNumber}")
+      MultiplyOperation("", "", "").evalNumericOp(aNumber, aNumber) shouldBe Some(s"${aNumber * aNumber}")
     }
     "Evaluate two dates correctly or return None" in {
-      MultiplyOperation("","","").evalDateOp(aDate, aDate) shouldBe None
+      MultiplyOperation("", "", "").evalDateOp(aDate, aDate) shouldBe None
     }
     "Evaluate two strings correctly or return None" in {
-      MultiplyOperation("","","").evalStringOp(aString, aString) shouldBe None
+      MultiplyOperation("", "", "").evalStringOp(aString, aString) shouldBe None
     }
     "Evaluate list and string correctly or return None" in {
-      MultiplyOperation("","","").evalCollectionScalarOp(aList, aString) shouldBe None
+      MultiplyOperation("", "", "").evalCollectionScalarOp(aList, aString) shouldBe None
     }
     "Evaluate string and list correctly or return None" in {
-      MultiplyOperation("","","").evalScalarCollectionOp(aString, aList) shouldBe None
+      MultiplyOperation("", "", "").evalScalarCollectionOp(aString, aList) shouldBe None
     }
     "Evaluate list and list correctly or return None" in {
-      MultiplyOperation("","","").evalCollectionCollectionOp(otherList, aList) shouldBe None
+      MultiplyOperation("", "", "").evalCollectionCollectionOp(otherList, aList) shouldBe None
     }
   }
 
   "Divide Operation evaluation overrides" must {
     "Evaluate two numbers correctly or return None" in {
-      DivideOperation("","","").evalNumericOp(aNumber, aNumber) shouldBe Some(s"${aNumber / aNumber}")
+      DivideOperation("", "", "").evalNumericOp(aNumber, aNumber) shouldBe Some(s"${aNumber / aNumber}")
     }
     "Evaluate two dates correctly or return None" in {
-      DivideOperation("","","").evalDateOp(aDate, aDate) shouldBe None
+      DivideOperation("", "", "").evalDateOp(aDate, aDate) shouldBe None
     }
     "Evaluate two strings correctly or return None" in {
-      DivideOperation("","","").evalStringOp(aString, aString) shouldBe None
+      DivideOperation("", "", "").evalStringOp(aString, aString) shouldBe None
     }
     "Evaluate list and string correctly or return None" in {
-      DivideOperation("","","").evalCollectionScalarOp(aList, aString) shouldBe None
+      DivideOperation("", "", "").evalCollectionScalarOp(aList, aString) shouldBe None
     }
     "Evaluate string and list correctly or return None" in {
-      DivideOperation("","","").evalScalarCollectionOp(aString, aList) shouldBe None
+      DivideOperation("", "", "").evalScalarCollectionOp(aString, aList) shouldBe None
     }
     "Evaluate list and list correctly or return None" in {
-      DivideOperation("","","").evalCollectionCollectionOp(otherList, aList) shouldBe None
+      DivideOperation("", "", "").evalCollectionCollectionOp(otherList, aList) shouldBe None
     }
   }
 
   "Ceiling Operation evaluation overrides" must {
     "Evaluate two numbers correctly or return None" in {
-      CeilingOperation("","","").evalNumericOp(aNumber, aNumber) shouldBe Some(s"${aNumber.setScale(aNumber.toInt, RoundingMode.CEILING).bigDecimal.toPlainString}")
+      CeilingOperation("", "", "").evalNumericOp(aNumber, aNumber) shouldBe Some(s"${aNumber.setScale(aNumber.toInt, RoundingMode.CEILING).bigDecimal.toPlainString}")
     }
     "Evaluate two dates correctly or return None" in {
-      CeilingOperation("","","").evalDateOp(aDate, aDate) shouldBe None
+      CeilingOperation("", "", "").evalDateOp(aDate, aDate) shouldBe None
     }
     "Evaluate two strings correctly or return None" in {
-      CeilingOperation("","","").evalStringOp(aString, aString) shouldBe None
+      CeilingOperation("", "", "").evalStringOp(aString, aString) shouldBe None
     }
     "Evaluate list and string correctly or return None" in {
-      CeilingOperation("","","").evalCollectionScalarOp(aList, aString) shouldBe None
+      CeilingOperation("", "", "").evalCollectionScalarOp(aList, aString) shouldBe None
     }
     "Evaluate string and list correctly or return None" in {
-      CeilingOperation("","","").evalScalarCollectionOp(aString, aList) shouldBe None
+      CeilingOperation("", "", "").evalScalarCollectionOp(aString, aList) shouldBe None
     }
     "Evaluate list and list correctly or return None" in {
-      CeilingOperation("","","").evalCollectionCollectionOp(otherList, aList) shouldBe None
+      CeilingOperation("", "", "").evalCollectionCollectionOp(otherList, aList) shouldBe None
     }
   }
 
   "Floor Operation evaluation overrides" must {
     "Evaluate two numbers correctly or return None" in {
-      FloorOperation("","","").evalNumericOp(aNumber, aNumber) shouldBe Some(s"${aNumber.setScale(aNumber.toInt, RoundingMode.FLOOR).bigDecimal.toPlainString}")
+      FloorOperation("", "", "").evalNumericOp(aNumber, aNumber) shouldBe Some(s"${aNumber.setScale(aNumber.toInt, RoundingMode.FLOOR).bigDecimal.toPlainString}")
     }
     "Evaluate two dates correctly or return None" in {
-      FloorOperation("","","").evalDateOp(aDate, aDate) shouldBe None
+      FloorOperation("", "", "").evalDateOp(aDate, aDate) shouldBe None
     }
     "Evaluate two strings correctly or return None" in {
-      FloorOperation("","","").evalStringOp(aString, aString) shouldBe None
+      FloorOperation("", "", "").evalStringOp(aString, aString) shouldBe None
     }
     "Evaluate list and string correctly or return None" in {
-      FloorOperation("","","").evalCollectionScalarOp(aList, aString) shouldBe None
+      FloorOperation("", "", "").evalCollectionScalarOp(aList, aString) shouldBe None
     }
     "Evaluate string and list correctly or return None" in {
-      FloorOperation("","","").evalScalarCollectionOp(aString, aList) shouldBe None
+      FloorOperation("", "", "").evalScalarCollectionOp(aString, aList) shouldBe None
     }
     "Evaluate list and list correctly or return None" in {
-      FloorOperation("","","").evalCollectionCollectionOp(otherList, aList) shouldBe None
+      FloorOperation("", "", "").evalCollectionCollectionOp(otherList, aList) shouldBe None
     }
   }
 }
