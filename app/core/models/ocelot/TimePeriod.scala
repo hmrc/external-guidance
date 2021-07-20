@@ -32,7 +32,7 @@ trait TimePeriodArithmetic[A] {
   def minus(tp: TimePeriod)(value: A): A
 }
 
-object TimePeriodSupport {
+object TimePeriodArithmetic {
   implicit val dateArithmetic: TimePeriodArithmetic[LocalDate] =
     new TimePeriodArithmetic[LocalDate]{
       def add(tp: TimePeriod)(value: LocalDate): LocalDate =
