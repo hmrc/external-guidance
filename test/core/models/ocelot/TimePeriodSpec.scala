@@ -42,9 +42,9 @@ class TimePeriodSpec extends BaseSpec {
     }
   }
 
-  import TimePeriodSupport._
+  import TimePeriodArithmetic._
 
-  "TimePeriodSupport" must {
+  "TimePeriodArithmetic" must {
     "Allow addition of Days to LocalDates" in {
       testDate.add(TimePeriod(1, Day)) shouldBe LocalDate.of(1999, 9, 11)
     }

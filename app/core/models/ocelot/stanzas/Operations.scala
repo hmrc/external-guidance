@@ -16,7 +16,6 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot.TimePeriodSupport._
 import core.models.ocelot._
 import play.api.Logger
 import play.api.libs.functional.syntax._
@@ -25,6 +24,8 @@ import play.api.libs.json._
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import scala.math.BigDecimal.RoundingMode
+
+import TimePeriodArithmetic._
 
 sealed trait Operand[+A] {
   val v: A
@@ -37,10 +38,7 @@ sealed trait Collection[+A] extends Operand[List[A]]
 case class StringOperand(v: String) extends Scalar[String]
 case class NumericOperand(v: BigDecimal) extends Scalar[BigDecimal]
 case class StringCollection(v: List[String]) extends Collection[String]
-case class DateOperand(v: LocalDate) extends Scalar[LocalDate] {
-  override def toString: String = stringFromDate(v)
-}
-
+case class DateOperand(v: LocalDate) extends Scalar[LocalDate] {override def toString: String = stringFromDate(v)}
 case class TimePeriodOperand(v: TimePeriod) extends Scalar[TimePeriod]
 
 object Operand {
