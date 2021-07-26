@@ -36,7 +36,7 @@ trait StanzaHelper extends TestConstants {
     Phrase(Vector("Text 8", "Welsh: Text 8"))
   )
 
-  val exclusiveSequencePhrases: Vector[Phrase] = phrases ++ Vector(
+  val rawExclusiveSequencePhrases: Vector[Phrase] = phrases ++ Vector(
     Phrase(Vector("What kind of fruit do you like?", "Welsh: What kind of fruit do you like?")),
     Phrase(Vector(
       "Other [exclusive][hint:Selecting this checkbox will deselect the other checkboxes]",
@@ -47,15 +47,14 @@ trait StanzaHelper extends TestConstants {
     Phrase(Vector("Oranges", "Welsh: Oranges"))
   )
 
-  val multipleExclusiveSequencePhrases: Vector[Phrase] = phrases ++ Vector(
+  val exclusiveSequencePhrases: Vector[Phrase] = phrases ++ Vector(
     Phrase(Vector("What kind of fruit do you like?", "Welsh: What kind of fruit do you like?")),
     Phrase(Vector(
-      "Other [exclusive][hint:Selecting this checkbox will deselect the other checkboxes]",
-      "Welsh: Other [exclusive][hint:Welsh: Selecting this checkbox will deselect the other checkboxes]")),
+      "Other [hint:Selecting this checkbox will deselect the other checkboxes]",
+      "Welsh: Other [hint:Welsh: Selecting this checkbox will deselect the other checkboxes]"
+    )),
     Phrase(Vector("Apples", "Welsh: Apples")),
-    Phrase(Vector(
-      "Bananas [exclusive][hint:Selecting this checkbox will deselect the other checkboxes]",
-      "Welsh: Bananas [exclusive][hint:Welsh: Selecting this checkbox will deselect the other checkboxes]")),
+    Phrase(Vector("Bananas", "Welsh: Bananas")),
     Phrase(Vector("Oranges", "Welsh: Oranges"))
   )
 
@@ -102,18 +101,21 @@ trait StanzaHelper extends TestConstants {
     Seq("4", "6"),
     Seq(phrases(eight)),
     None,
+    None,
     stack = false)
 
   val sqpQpExclusiveSequence: Sequence = Sequence(
     exclusiveSequencePhrases(nine),
     Seq("4", "4", "4", "4", "6"),
     Seq(
-      Phrase(
-        "Other [exclusive][hint:Selecting this checkbox will deselect the other checkboxes]",
-        "Welsh: Other [exclusive][hint:Welsh: Selecting this checkbox will deselect the other checkboxes]"),
       exclusiveSequencePhrases(eleven),
       exclusiveSequencePhrases(twelve),
       exclusiveSequencePhrases(thirteen)
+    ),
+    Some(
+      Phrase(
+        "Other [hint:Selecting this checkbox will deselect the other checkboxes]",
+        "Welsh: Other [hint:Welsh: Selecting this checkbox will deselect the other checkboxes]")
     ),
     None,
     stack = false

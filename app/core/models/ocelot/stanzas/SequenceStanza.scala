@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot.{KeyedStanza, labelReferences, Page, Labels, Phrase, asListOfPositiveInt, exclusiveOptionPattern}
+import core.models.ocelot.{KeyedStanza, labelReferences, Page, Labels, Phrase, stripHintPlaceholder, asListOfPositiveInt}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json.{JsSuccess, JsError, JsValue, JsonValidationError, JsPath, OWrites, Reads}
@@ -52,51 +52,46 @@ object SequenceStanza {
 }
 
 object Sequence {
-  def apply(s: SequenceStanza, text: Phrase, options: Seq[Phrase]): Sequence =
-    Sequence(text, s.next, options, s.label, s.stack)
+  def apply(s: SequenceStanza, text: Phrase, options: Seq[Phrase], exclusive: Option[Phrase]): Sequence = {
+    Sequence(text, s.next, options, exclusive, s.label, s.stack)
+  }
 }
 
 case class Sequence(text: Phrase,
                     override val next: Seq[String],
                     options: Seq[Phrase],
+                    exclusive: Option[Phrase],
                     label: Option[String],
                     stack: Boolean) extends VisualStanza with Populated with DataInput {
   override val labelRefs: List[String] = labelReferences(text.english) ++ options.flatMap(a => labelReferences(a.english))
-  override val labels: List[String] = label.fold[List[String]](Nil)(l => List(l))
-
-  lazy val (exclusiveOptions: Seq[Phrase], nonExclusiveOptions: Seq[Phrase]) =
-    options.partition{p => p.english.contains(exclusiveOptionPattern) &&
-      p.welsh.contains(exclusiveOptionPattern)}
+  override val labels: List[String] = label.fold(List.empty[String])(l => List(l))
+  lazy val optionsCount = options.length + exclusive.fold(0)(_ => 1)
 
   def eval(value: String, page: Page, labels: Labels): (Option[String], Labels) =
     validInput(value).fold[(Option[String], Labels)]((None, labels)){checkedItems =>
       asListOfPositiveInt(checkedItems).fold[(Option[String], Labels)]((None, labels)){checked => {
-        val chosenOptions: List[Phrase] = checked.flatMap(idx => options.lift(idx).fold[List[Phrase]](Nil)(p => List(p)))
+        val chosenOptions: List[Phrase] = checked.flatMap{idx =>
+          options.lift(idx).fold(exclusive.fold(List.empty[Phrase])(ep => List(stripHintPlaceholder(ep))))(sp => List(stripHintPlaceholder(sp)))
+        }
         // Collect any Evaluate stanzas following this Sequence for use when the Continuation is followed
-        val continuationStanzas: Map[String, Stanza] = page.keyedStanzas
-          .dropWhile{ks => ks.stanza match {
-            case s: Sequence => false
-            case _ => true
-          }
-          }
-          .drop(1)  // Drop the Sequence
-          .collect{case ks @ KeyedStanza(_, s: Stanza with Evaluate) => (ks.key, ks.stanza)}
-          .toMap
+        val continuationStanzas: Map[String, Stanza] = page.keyedStanzas.dropWhile(_.stanza != this)
+                                                           .collect{case ks @ KeyedStanza(_, s: Stanza with Evaluate) => (ks.key, ks.stanza)}
+                                                           .toMap
+
         // push the flows and Continuation corresponding to the checked items, then
         // nextFlow and redirect to the first flow (setting list and first flow label)
-        label.fold(labels)(l => labels.updateList(s"${l}_seq", chosenOptions.map(_.english), chosenOptions.map(_.welsh)))
-          .pushFlows(checked.flatMap(idx => next.lift(idx).fold[List[String]](Nil)(List(_))), next.last, label, chosenOptions, continuationStanzas)
-      }
-      }
+        label.fold(labels){l =>
+          labels.updateList(s"${l}_seq", chosenOptions.map(_.english), chosenOptions.map(_.welsh))
+        }.pushFlows(checked.flatMap(idx => next.lift(idx).fold[List[String]](Nil)(List(_))),
+                    next.last,
+                    label,
+                    chosenOptions,
+                    continuationStanzas)
+      }}
     }
 
   def validInput(value: String): Option[String] =
     asListOfPositiveInt(value).fold[Option[String]](None){l =>
-      if (l.forall(nonExclusiveOptions.indices.contains(_)) ||
-        (l.length == 1 && l.head == nonExclusiveOptions.length)) {
-        Some(value)
-      } else {
-        None
-      }
+      if (l.forall(idx => idx >= 0 && idx < optionsCount)) Some(value) else None
     }
 }

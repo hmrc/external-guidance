@@ -20,6 +20,7 @@ import java.time.LocalDate
 import java.time.format.{DateTimeFormatter, ResolverStyle}
 import scala.util.Try
 import scala.util.matching.Regex
+import Regex._
 
 package object ocelot {
   val labelPattern: String = "\\[label:([A-Za-z0-9\\s\\-_]+)(:(currency|currencyPoundsOnly|date|number))?\\]"
@@ -45,12 +46,15 @@ package object ocelot {
   val listOfPositiveIntRegex: Regex = csPositiveIntPattern.r
   val anyIntegerRegex: Regex = "^-?(\\d{1,3}(,\\d{3}){0,3}|\\d{1,10})$".r       // Limited to 10 decimal digits or 12 comma separated
   val EmbeddedParameterRegex: Regex = """\{(\d)\}""".r
-  val exclusiveOptionPattern: String = "[exclusive]"
+  val ExclusivePlaceholder: String = "[exclusive]"
   val timeConstantRegex: Regex = timeConstantPattern.r
 
   val DateOutputFormat = "d MMMM uuuu"
   val ignoredCurrencyChars: Seq[Char] = Seq(' ','£', ',')
   val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d/M/uuuu", java.util.Locale.UK).withResolverStyle(ResolverStyle.STRICT)
+  val pageLinkOnlyPattern: String = s"^${linkToPageOnlyPattern}$$"
+  val boldOnlyPattern: String = s"^${boldPattern}$$"
+
   def plSingleGroupCaptures(regex: Regex, str: String, index: Int = 1): List[String] = regex.findAllMatchIn(str).map(_.group(index)).toList
   def buttonLinkIds(str: String): List[String] = plSingleGroupCaptures(buttonLinkRegex, str, 4)
   def buttonLinkIds(phrases: Seq[Phrase]): List[String] = phrases.flatMap(phrase => buttonLinkIds(phrase.english)).toList
@@ -88,10 +92,15 @@ package object ocelot {
     })
   }
 
-  val pageLinkOnlyPattern: String = s"^${linkToPageOnlyPattern}$$"
-  val boldOnlyPattern: String = s"^${boldPattern}$$"
+  def fromPattern(pattern: Regex, text: String): (List[String], List[Match]) = (pattern.split(text).toList, pattern.findAllMatchIn(text).toList)
   def isLinkOnlyPhrase(phrase: Phrase): Boolean =phrase.english.matches(pageLinkOnlyPattern)
   def isBoldOnlyPhrase(phrase: Phrase): Boolean =phrase.english.matches(boldOnlyPattern)
+  def stringWithOptionalHint(str: String): (String, Option[String]) = {
+    val (txts, matches) = fromPattern(hintRegex, str)
+    val hint = matches.headOption.map(m => m.group(1))
+    (txts.mkString.trim, hint)
+  }
+  def stripHintPlaceholder(p: Phrase): Phrase = Phrase(hintRegex.replaceAllIn(p.english, ""), hintRegex.replaceAllIn(p.welsh, ""))
 
   private def matchedInt(value: String, regex: Regex): Option[Int] = regex.findFirstIn(value.filterNot(_.equals(' '))).flatMap(asInt)
   private def asInt(value: String): Option[Int] = {

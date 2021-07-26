@@ -17,7 +17,7 @@
 package core.services
 
 import core.models.ocelot.stanzas._
-import core.models.ocelot.{Link, Phrase, Process, pageLinkIds}
+import core.models.ocelot.{Link, Phrase, Process, pageLinkIds, ExclusivePlaceholder}
 import core.models.ocelot.errors._
 import play.api.Logger
 import scala.annotation.tailrec
@@ -68,7 +68,15 @@ trait ProcessPopulation {
 
     def populateSequence(id: String, s: SequenceStanza): Either[GuidanceError, Sequence] =
       phrases(s.options, Nil, id, process).fold(Left(_), options =>
-        phrase(s.text, id, process).fold(Left(_), text => Right(Sequence(s, text, options)))
+        options.partition(p => p.english.contains(ExclusivePlaceholder) && p.welsh.contains(ExclusivePlaceholder)) match {
+          case (exclusive: Seq[Phrase], _) if exclusive.length > 1 => Left(MultipleExclusiveOptions(id))
+          case (exclusive: Seq[Phrase], standard: Seq[Phrase]) =>
+            phrase(s.text, id, process).fold(Left(_), text =>
+              Right(Sequence(s, text, standard,
+                             exclusive.headOption.map(p => Phrase(p.english.replace(ExclusivePlaceholder, ""),
+                                                                  p.welsh.replace(ExclusivePlaceholder, "")))))
+            )
+        }
       )
 
     def link(linkIndex: Int): Either[LinkNotFound, Link] =

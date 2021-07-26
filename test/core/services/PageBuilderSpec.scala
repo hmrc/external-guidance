@@ -523,7 +523,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
 
     "when processing an exclusive sequence page" must {
 
-      val process: Process = Process(meta, simpleExclusiveSequencePage, exclusiveSequencePhrases, links)
+      val process: Process = Process(meta, simpleExclusiveSequencePage, rawExclusiveSequencePhrases, links)
 
       pageBuilder.pages(process) match {
 
@@ -536,22 +536,24 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
             pages.length shouldBe 3
           }
 
-          val indexedSequenceOfPages = pages.toIndexedSeq
+          "define an exclusive sequence page correctly" in {
+            val page = pages.head
+            page.id shouldBe Process.StartStanzaId
+            page.stanzas.size shouldBe 4
 
-          // Test content of page containing sequence input component
-          testExclusiveSequencePage(indexedSequenceOfPages.head)
+            page.stanzas shouldBe Seq(sqpQpPageStanzaAlternate, sqpQpTypeErrorCallout, sqpQpInstruction, sqpQpExclusiveSequence)
+          }
 
         case Left(err) => fail(s"Flow error $err")
       }
     }
 
 
-
     "correctly determine the page title for an exclusive sequence page" in {
 
       case class Dummy(id: String, pageUrl: String, pageTitle: String)
 
-      val process: Process = Process(meta, simpleExclusiveSequencePage, exclusiveSequencePhrases, links)
+      val process: Process = Process(meta, simpleExclusiveSequencePage, rawExclusiveSequencePhrases, links)
 
       pageBuilder.pages(process) match {
 
@@ -1068,17 +1070,4 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     }
 
   }
-
-  def testExclusiveSequencePage(page: Page): Unit = {
-
-    "define an exclusive sequence page correctly" in {
-
-      page.id shouldBe Process.StartStanzaId
-      page.stanzas.size shouldBe 4
-
-      page.stanzas shouldBe Seq(sqpQpPageStanzaAlternate, sqpQpTypeErrorCallout, sqpQpInstruction, sqpQpExclusiveSequence)
-    }
-
-  }
-
 }

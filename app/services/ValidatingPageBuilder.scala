@@ -63,7 +63,7 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
         duplicateUrlErrors(pages.reverse, Nil) ++
         checkDateInputErrorCallouts(pages, Nil) ++
         checkExclusiveSequenceTypeError(pages, Nil) ++
-        checkExclusiveSequencePages(pages, Nil) ++
+        //checkExclusiveSequencePages(pages, Nil) ++
         checkForUseOfReservedUrls(pages, Nil) ++
         detectUnsupportedPageRedirect(pages) match {
           case Nil => Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
@@ -142,27 +142,27 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
   private def checkExclusiveSequenceTypeError(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] =
     pages match {
       case Nil => errors
-      case p :: xs if p.stanzas.collectFirst{case seq: Sequence => seq}.fold(false)(seq => seq.exclusiveOptions.nonEmpty) &&
+      case p :: xs if p.stanzas.collectFirst{case seq: Sequence => seq}.fold(false)(seq => seq.exclusive.nonEmpty) &&
                       p.stanzas.collectFirst{case _: TypeErrorCallout => ()}.fold(true)(_ => false) =>
         checkExclusiveSequenceTypeError(xs, IncompleteExclusiveSequencePage(p.id) :: errors)
       case _ :: xs =>
         checkExclusiveSequenceTypeError(xs, errors)
     }
 
-  @tailrec
-  private def checkExclusiveSequencePages(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] =
-    pages match {
-      case Nil => errors
-      case x +: xs => x.keyedStanzas.collectFirst{case KeyedStanza(key, exSeq: Sequence) => (key, exSeq)} match {
-          case Some((key, sequence)) =>
-            if(sequence.exclusiveOptions.size > 1) {
-              checkExclusiveSequencePages(xs, MultipleExclusiveOptions(key) :: errors)
-            } else {
-              checkExclusiveSequencePages(xs, errors)
-            }
-          case None => checkExclusiveSequencePages(xs, errors)
-        }
-    }
+  // @tailrec
+  // private def checkExclusiveSequencePages(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] =
+  //   pages match {
+  //     case Nil => errors
+  //     case x +: xs => x.keyedStanzas.collectFirst{case KeyedStanza(key, exSeq: Sequence) => (key, exSeq)} match {
+  //         case Some((key, sequence)) =>
+  //           if(sequence.exclusiveOptions.size > 1) {
+  //             checkExclusiveSequencePages(xs, MultipleExclusiveOptions(key) :: errors)
+  //           } else {
+  //             checkExclusiveSequencePages(xs, errors)
+  //           }
+  //         case None => checkExclusiveSequencePages(xs, errors)
+  //       }
+  //   }
 
   private def checkAllFlowsHaveUniqueTerminationPage(vertices: List[PageVertex], vertexMap: Map[String, PageVertex], mainFlow: List[String])
                                                     (implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] =
