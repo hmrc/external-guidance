@@ -149,21 +149,6 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
         checkExclusiveSequenceTypeError(xs, errors)
     }
 
-  // @tailrec
-  // private def checkExclusiveSequencePages(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] =
-  //   pages match {
-  //     case Nil => errors
-  //     case x +: xs => x.keyedStanzas.collectFirst{case KeyedStanza(key, exSeq: Sequence) => (key, exSeq)} match {
-  //         case Some((key, sequence)) =>
-  //           if(sequence.exclusiveOptions.size > 1) {
-  //             checkExclusiveSequencePages(xs, MultipleExclusiveOptions(key) :: errors)
-  //           } else {
-  //             checkExclusiveSequencePages(xs, errors)
-  //           }
-  //         case None => checkExclusiveSequencePages(xs, errors)
-  //       }
-  //   }
-
   private def checkAllFlowsHaveUniqueTerminationPage(vertices: List[PageVertex], vertexMap: Map[String, PageVertex], mainFlow: List[String])
                                                     (implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] =
     vertices.filterNot(_.flows.isEmpty) // Sequences
