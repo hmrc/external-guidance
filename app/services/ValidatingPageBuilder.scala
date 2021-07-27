@@ -63,7 +63,6 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
         duplicateUrlErrors(pages.reverse, Nil) ++
         checkDateInputErrorCallouts(pages, Nil) ++
         checkExclusiveSequenceTypeError(pages, Nil) ++
-        //checkExclusiveSequencePages(pages, Nil) ++
         checkForUseOfReservedUrls(pages, Nil) ++
         detectUnsupportedPageRedirect(pages) match {
           case Nil => Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
