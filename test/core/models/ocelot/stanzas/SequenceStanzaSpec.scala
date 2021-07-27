@@ -212,16 +212,21 @@ class SequenceStanzaSpec extends BaseSpec {
     "Determine invalid input to be incorrect" in new Test {
       expectedExclusiveSequence.validInput("a,b,c") shouldBe None
       expectedExclusiveSequence.validInput("5,6,7") shouldBe None
+      expectedExclusiveSequence.validInput("2,3") shouldBe None
+      expectedExclusiveSequence.validInput("0,3") shouldBe None
+      expectedExclusiveSequence.validInput("1,3") shouldBe None
+      expectedExclusiveSequence.validInput("0,1,2,3") shouldBe None
     }
 
     "Determine valid input to be correct" in new Test {
-      expectedExclusiveSequence.validInput("2,3") shouldBe Some("2,3")
-      expectedExclusiveSequence.validInput("0,3") shouldBe Some("0,3")
-      expectedExclusiveSequence.validInput("1,3") shouldBe Some("1,3")
       expectedExclusiveSequence.validInput("1,2") shouldBe Some("1,2")
       expectedExclusiveSequence.validInput("0,1") shouldBe Some("0,1")
+      expectedExclusiveSequence.validInput("0,2") shouldBe Some("0,2")
       expectedExclusiveSequence.validInput("0") shouldBe Some("0")
       expectedExclusiveSequence.validInput("3") shouldBe Some("3")
+      expectedExclusiveSequence.validInput("1") shouldBe Some("1")
+      expectedExclusiveSequence.validInput("2") shouldBe Some("2")
+      expectedExclusiveSequence.validInput("0,1,2") shouldBe Some("0,1,2")
     }
 
     "assign Nil to labels property when no label is used" in new Test {

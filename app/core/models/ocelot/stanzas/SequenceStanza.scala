@@ -65,7 +65,6 @@ case class Sequence(text: Phrase,
                     stack: Boolean) extends VisualStanza with Populated with DataInput {
   override val labelRefs: List[String] = labelReferences(text.english) ++ options.flatMap(a => labelReferences(a.english))
   override val labels: List[String] = label.fold(List.empty[String])(l => List(l))
-  lazy val optionsCount = options.length + exclusive.fold(0)(_ => 1)
 
   def eval(value: String, page: Page, labels: Labels): (Option[String], Labels) =
     validInput(value).fold[(Option[String], Labels)]((None, labels)){checkedItems =>
@@ -92,6 +91,7 @@ case class Sequence(text: Phrase,
 
   def validInput(value: String): Option[String] =
     asListOfPositiveInt(value).fold[Option[String]](None){l =>
-      if (l.forall(idx => idx >= 0 && idx < optionsCount)) Some(value) else None
+      if (l.forall(options.indices.contains) ||
+          l.length == 1 && exclusive.fold(false)(_ => l.headOption == Some(options.length))) Some(value) else None
     }
 }
