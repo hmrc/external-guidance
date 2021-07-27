@@ -51,21 +51,6 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
 
   private def processCodeIndexName = "published-secondary-Index-process-code"
 
-  override def ensureIndexes(implicit ec: ExecutionContext): Future[Seq[Boolean]] =
-    // If current configuration includes an update to the unique attribute, drop the current index to allow its re-creation
-    collection.indexesManager.list().flatMap { indexes =>
-      indexes
-        .filter(idx =>
-          idx.name.contains(processCodeIndexName) && !idx.unique
-        )
-        .map { _ =>
-          logger.warn(s"Dropping $processCodeIndexName ready for re-creation, due to configured unique change")
-          collection.indexesManager.drop(processCodeIndexName).map(ret => logger.info(s"Drop of $processCodeIndexName index returned $ret"))
-        }
-
-      super.ensureIndexes
-    }
-
   override def indexes: Seq[Index] = Seq(
     Index(
       key = Seq("processCode" -> IndexType.Ascending),

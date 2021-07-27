@@ -16,13 +16,10 @@
 
 package repositories
 
-import java.time.ZonedDateTime
-
 import config.AppConfig
-import javax.inject.{Inject, Singleton}
-import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
 import core.models.RequestOutcome
-import models.{ApprovalProcess, ApprovalProcessSummary}
+import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
+import models.{ApprovalProcess, ApprovalProcessSummary, Constants}
 import play.api.libs.json.{Format, JsObject, JsResultException, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.Cursor.FailOnError
@@ -32,7 +29,9 @@ import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.formatters.ApprovalProcessFormatter
 import repositories.formatters.ApprovalProcessMetaFormatter._
 import uk.gov.hmrc.mongo.ReactiveRepository
-import models.Constants
+
+import java.time.ZonedDateTime
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ApprovalRepository {
@@ -57,21 +56,6 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
     with ApprovalRepository {
 
   private def processCodeIndexName = "approval-secondary-Index-process-code"
-
-  override def ensureIndexes(implicit ec: ExecutionContext): Future[Seq[Boolean]] =
-    // If current configuration includes an update to the unique attribute of the processCode index, drop the current index to allow its re-creation
-    collection.indexesManager.list().flatMap { indexes =>
-      indexes
-        .filter(idx =>
-          idx.name == Some(processCodeIndexName) && !idx.unique
-        )
-        .map { i =>
-          logger.warn(s"Dropping $processCodeIndexName ready for re-creation, due to configured unique change")
-          collection.indexesManager.drop(processCodeIndexName).map(ret => logger.info(s"Drop of $processCodeIndexName index returned $ret"))
-        }
-
-      super.ensureIndexes
-    }
 
   override def indexes: Seq[Index] = Seq(
     Index(
