@@ -21,18 +21,146 @@ import core.models.ocelot.errors._
 import core.models.ocelot.stanzas._
 import core.models.ocelot._
 import play.api.libs.json._
-import core.models.StanzaHelper
+import base.TestConstants
 
-class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
+trait PageDefns extends TestConstants {
+  val phrases: Vector[Phrase] = Vector(
+    Phrase(Vector("Text 0", "Welsh: Text 0")),
+    Phrase(Vector("Text 1", "Welsh: Text 1")),
+    Phrase(Vector("Text 2", "Welsh: Text 2")),
+    Phrase(Vector("Text 3", "Welsh: Text 3")),
+    Phrase(Vector("Text 4", "Welsh: Text 4")),
+    Phrase(Vector("Text 5", "Welsh: Text 5")),
+    Phrase(Vector("Text 6", "Welsh: Text 6")),
+    Phrase(Vector("Text 7", "Welsh: Text 7")),
+    Phrase(Vector("Text 8", "Welsh: Text 8"))
+  )
 
-  // Define instance of class used in testing
+  val rawExclusiveSequencePhrases: Vector[Phrase] = phrases ++ Vector(
+    Phrase(Vector("What kind of fruit do you like?", "Welsh: What kind of fruit do you like?")),
+    Phrase(Vector(
+      "Other [exclusive][hint:Selecting this checkbox will deselect the other checkboxes]",
+      "Welsh: Other [exclusive][hint:Welsh: Selecting this checkbox will deselect the other checkboxes]"
+    )),
+    Phrase(Vector("Apples", "Welsh: Apples")),
+    Phrase(Vector("Bananas", "Welsh: Bananas")),
+    Phrase(Vector("Oranges", "Welsh: Oranges"))
+  )
+
+  val exclusiveSequencePhrases: Vector[Phrase] = phrases ++ Vector(
+    Phrase(Vector("What kind of fruit do you like?", "Welsh: What kind of fruit do you like?")),
+    Phrase(Vector(
+      "Other [hint:Selecting this checkbox will deselect the other checkboxes]",
+      "Welsh: Other [hint:Welsh: Selecting this checkbox will deselect the other checkboxes]"
+    )),
+    Phrase(Vector("Apples", "Welsh: Apples")),
+    Phrase(Vector("Bananas", "Welsh: Bananas")),
+    Phrase(Vector("Oranges", "Welsh: Oranges"))
+  )
+
+  val links: Vector[Link] = Vector(Link(0, "http://my.com/news", "MyCOM Daily News", window = true))
+
+  // Define stanzas used in simple question page test
+  val pageOneUrl = "/page/1"
+  val pageTwoUrl = "/page/2"
+  val pageThreeUrl = "/page/3"
+
+  // Question page - BEFORE
+  val pageOnePageStanza: PageStanza = PageStanza(pageOneUrl, Seq("1"), stack = false)
+  val pageOneInstructionStanza: InstructionStanza = InstructionStanza(0, Seq("2"), None, stack = false)
+  val pageOneCalloutStanza: CalloutStanza = CalloutStanza(SubTitle, 1, Seq("3"), stack = false)
+  val pageOneQuestionStanza: QuestionStanza = QuestionStanza(two, Seq(three, four), Seq("4", "6"), None, stack = false)
+
+  val pageOneInputStanza: InputStanza = InputStanza(Currency, Seq("4"), two, Some(three), "label", None, stack = false)
+  val pageOneDateInputStanza: InputStanza = InputStanza(Date, Seq("4"), two, Some(three), "label", None, stack = false)
+  val pageOneNumberInputStanza: InputStanza = InputStanza(Number, Seq("4"), two, Some(three), "label", None, stack = false)
+  val pageOneTextInputStanza: InputStanza = InputStanza(Txt, Seq("4"), two, Some(three), "label", None, stack = false)
+  val pageOneSequenceStanza: SequenceStanza = SequenceStanza(seven, Seq("4", "6"), Seq(eight), None, stack = false )
+  val pageOneSequenceStanzaMissingTitle: SequenceStanza = SequenceStanza(oneHundred, Seq("4", "6"), Seq(eight), None, stack = false)
+  val pageOneSequenceStanzaMissingOption: SequenceStanza = SequenceStanza(seven, Seq("4", "6"), Seq(oneHundred), None, stack = false)
+
+  val pageOnePageStanzaAlternate: PageStanza = PageStanza(pageOneUrl, Seq("9"), stack = false)
+  val pageOneTypeErrorCallout: TypeErrorCallout = TypeErrorCallout(Phrase("Invalid selection", "Invalid selection"), Seq("1"), false)
+  val pageOneExclusiveSequenceStanza: SequenceStanza = SequenceStanza(
+    nine,
+    Seq("4", "4", "4", "4", "6"),
+    Seq(ten, eleven, twelve, thirteen),
+    None,
+    stack = false)
+
+  // Question page - After
+  val pageOneInstruction: Instruction = Instruction(phrases(0), Seq("2"), None, stack = false)
+  val pageOneCallout: SubTitleCallout = SubTitleCallout(phrases(1), Seq("3"), stack = false)
+  val pageOneQuestion: Question = Question(phrases(two), Seq(phrases(three), phrases(four)), Seq("4", "6"), None, stack = false)
+  val pageOneInput: CurrencyInput = CurrencyInput(Seq("4"), phrases(two), Some(phrases(three)), "label", None, stack = false)
+  val pageOneDateInput: DateInput = DateInput(Seq("4"), phrases(two), Some(phrases(three)), "label", None, stack = false)
+  val pageOneNumberInput: NumberInput = NumberInput(Seq("4"), phrases(two), Some(phrases(three)), "label", None, stack = false)
+  val pageOneTextInput: TextInput = TextInput(Seq("4"), phrases(two), Some(phrases(three)), "label", None, stack = false)
+  val pageOneNonExclusiveSequence: Sequence = Sequence(
+    phrases(seven),
+    Seq("4", "6"),
+    Seq(phrases(eight)),
+    None,
+    None,
+    stack = false)
+
+  val pageOneExclusiveSequence: Sequence = Sequence(
+    exclusiveSequencePhrases(nine),
+    Seq("4", "4", "4", "4", "6"),
+    Seq(
+      exclusiveSequencePhrases(eleven),
+      exclusiveSequencePhrases(twelve),
+      exclusiveSequencePhrases(thirteen)
+    ),
+    Some(
+      Phrase(
+        "Other [hint:Selecting this checkbox will deselect the other checkboxes]",
+        "Welsh: Other [hint:Welsh: Selecting this checkbox will deselect the other checkboxes]")
+    ),
+    None,
+    stack = false
+  )
+
+  // First answer page BEFORE
+  val pageTwoPageStanza: PageStanza = PageStanza(pageTwoUrl, Seq("5"), stack = false)
+  val pageTwoInstructionStanza: InstructionStanza = InstructionStanza(0, Seq("end"), None, stack = false)
+  // First answer page AFTER
+  val pageTwoInstruction: Instruction = Instruction(phrases(0), Seq("end"), None, stack = false)
+
+  // Second answer page BEFORE
+  val pageThreePageStanza: PageStanza = PageStanza(pageThreeUrl, Seq("7"), stack = false)
+  val pageThreeInstructionStanza: InstructionStanza = InstructionStanza(five, Seq("8"), Some(0), stack = false)
+  val pageThreeCalloutStanza: CalloutStanza = CalloutStanza(Lede, six, Seq("end"), stack = false)
+  // Second answer page AFTER
+  val pageThreeInstruction: Instruction = Instruction(phrases(five), Seq("8"), Some(links(0)), stack = false)
+  val pageThreeCallout: LedeCallout = LedeCallout(phrases(six), Seq("end"), stack = false)
+
+  val standardSequenceFlow: Map[String, Stanza] =  Map(
+    Process.StartStanzaId -> pageOnePageStanza,
+    "1" -> pageOneInstructionStanza,
+    "2" -> pageOneSequenceStanza,
+    "4" -> pageTwoPageStanza,
+    "5" -> pageTwoInstructionStanza,
+    "6" -> pageThreePageStanza,
+    "7" -> pageThreeInstructionStanza,
+    "8" -> pageThreeCalloutStanza,
+    "end" -> EndStanza)
+  val exclusiveSequenceFlow: Map[String, Stanza] =  Map(
+    Process.StartStanzaId -> pageOnePageStanzaAlternate,
+    "9" -> pageOneTypeErrorCallout,
+    "1" -> pageOneInstructionStanza,
+    "2" -> pageOneExclusiveSequenceStanza,
+    "4" -> pageTwoPageStanza,
+    "5" -> pageTwoInstructionStanza,
+    "6" -> pageThreePageStanza,
+    "7" -> pageThreeInstructionStanza,
+    "8" -> pageThreeCalloutStanza,
+    "end" -> EndStanza)
+}
+
+class PageBuilderSpec extends BaseSpec with ProcessJson with PageDefns {
   val pageBuilder: PageBuilder = new PageBuilder(new Placeholders(new DefaultTodayProvider))
-
   val meta: Meta = Json.parse(prototypeMetaSection).as[Meta]
-
-  case object DummyStanza extends Stanza {
-    override val next: Seq[String] = Seq("1")
-  }
 
   trait Test {
     val pageId1 = Process.StartStanzaId
@@ -231,10 +359,13 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       "correctly identify the pages in a Process accounting fro every stanza" in {
 
         val process: Process = prototypeJson.as[Process]
+        val expectedPageIds: List[String] = List(Process.StartStanzaId,"26","36","37","39","46","53","60","70","77","120","80","83",
+                                                 "90","97","102","109","113","121","124","127","131","159","138","143","151","157","158")
 
         pageBuilder.pages(process) match {
           case Right(pages) =>
-            testPagesInPrototypeJson(pages)
+            pages.length shouldBe expectedPageIds.length
+            pages.forall(p => expectedPageIds.contains(p.id)) shouldBe true
 
           case Left(err) => fail(s"GuidanceError error $err")
         }
@@ -255,6 +386,11 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       }
 
       "confirm one page elements" in {
+        val onePage: Map[String, Stanza] = Map(
+            Process.StartStanzaId -> PageStanza("/blah", Seq("1"), stack = false),
+            "1" -> InstructionStanza(0, Seq("2"), None, stack = false),
+            "2" -> InstructionStanza(1, Seq("end"), None, stack = false),
+            "end" -> EndStanza)
 
         val process: Process = Process(
           meta,
@@ -266,7 +402,6 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
         pageBuilder.pages(process) match {
           case Right(pages) =>
             pages shouldNot be(Nil)
-
             pages.length shouldBe 1
 
           case Left(err) => fail(s"GuidanceError $err")
@@ -282,7 +417,6 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
             val pageMap = pages.map(p => (p.id, p.linked)).toMap
 
             pageIds.forall(pageMap.contains) shouldBe true
-
             pageMap(pageId1) shouldBe List(pageId5)
             pageMap(pageId2) shouldBe List(pageId7, pageId1)
             pageMap(pageId3) shouldBe List(pageId3)
@@ -297,16 +431,24 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     }
 
     "When processing a simple question page" must {
-
-      val process: Process = Process(meta, simpleQuestionPage, phrases, links)
+      val simpleQuestionFlow: Map[String, Stanza] = Map(
+          Process.StartStanzaId -> pageOnePageStanza,
+          "1" -> pageOneInstructionStanza,
+          "2" -> pageOneCalloutStanza,
+          "3" -> pageOneQuestionStanza,
+          "4" -> pageTwoPageStanza,
+          "5" -> pageTwoInstructionStanza,
+          "6" -> pageThreePageStanza,
+          "7" -> pageThreeInstructionStanza,
+          "8" -> pageThreeCalloutStanza,
+          "end" -> EndStanza)
+      val process: Process = Process(meta, simpleQuestionFlow, phrases, links)
 
       pageBuilder.pages(process) match {
 
         case Right(pages) =>
           "Determine the correct number of pages to be displayed" in {
-
             pages shouldNot be(Nil)
-
             pages.length shouldBe 3
           }
 
@@ -315,35 +457,27 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
           // Test contents of individual pages
 
           "Define the question page correctly" in {
-
             indexedSeqOfPages(0).id shouldBe Process.StartStanzaId
             indexedSeqOfPages(0).stanzas.size shouldBe 4
-
-            indexedSeqOfPages(0).stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpCallout, sqpQpQuestion)
-
+            indexedSeqOfPages(0).stanzas shouldBe Seq(pageOnePageStanza, pageOneInstruction, pageOneCallout, pageOneQuestion)
             indexedSeqOfPages(0).next shouldBe Seq("6", "4")
           }
 
           "Define the first answer page correctly" in {
-
             indexedSeqOfPages(2).id shouldBe "4"
             indexedSeqOfPages(2).stanzas.size shouldBe 3
-
-            indexedSeqOfPages(2).stanzas(0) shouldBe sqpFapPageStanza
-            indexedSeqOfPages(2).stanzas(1) shouldBe sqpFapInstruction
+            indexedSeqOfPages(2).stanzas(0) shouldBe pageTwoPageStanza
+            indexedSeqOfPages(2).stanzas(1) shouldBe pageTwoInstruction
             indexedSeqOfPages(2).stanzas.last shouldBe EndStanza
-
             indexedSeqOfPages(2).next shouldBe Nil
           }
 
           "Define the second answer page correctly" in {
-
             indexedSeqOfPages(1).id shouldBe "6"
             indexedSeqOfPages(1).stanzas.size shouldBe 4
-
-            indexedSeqOfPages(1).stanzas(0) shouldBe sqpSapPageStanza
-            indexedSeqOfPages(1).stanzas(1) shouldBe sqpSapInstruction
-            indexedSeqOfPages(1).stanzas(2) shouldBe sqpSapCallout
+            indexedSeqOfPages(1).stanzas(0) shouldBe pageThreePageStanza
+            indexedSeqOfPages(1).stanzas(1) shouldBe pageThreeInstruction
+            indexedSeqOfPages(1).stanzas(2) shouldBe pageThreeCallout
             indexedSeqOfPages(1).stanzas.last shouldBe EndStanza
 
             indexedSeqOfPages(1).next shouldBe Nil
@@ -353,129 +487,173 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
       }
     }
 
-    "When processing a simple input page" must {
+    "When processing a simple input page one" must {
 
-      val process: Process = Process(meta, simpleInputPage, phrases, links)
+      "Confirm content of page" in {
+        val simpleInputFlow: Map[String, Stanza] = Map(
+            Process.StartStanzaId -> pageOnePageStanza,
+            "1" -> pageOneInstructionStanza,
+            "2" -> pageOneCalloutStanza,
+            "3" -> pageOneInputStanza,
+            "4" -> pageTwoPageStanza,
+            "5" -> pageTwoInstructionStanza,
+            "6" -> pageThreePageStanza,
+            "7" -> pageThreeInstructionStanza,
+            "8" -> pageThreeCalloutStanza,
+            "end" -> EndStanza)
+        val process: Process = Process(meta, simpleInputFlow, phrases, links)
 
-      pageBuilder.pages(process) match {
-
-        case Right(pages) =>
-          "Determine the correct number of pages to be displayed" in {
-
+        pageBuilder.pages(process) match {
+          case Right(pages) =>
             pages shouldNot be(Nil)
-
             pages.length shouldBe 2
-          }
+            val page = pages.head
+            // Test contents of individual pages
+            page.id shouldBe Process.StartStanzaId
+            page.stanzas.size shouldBe 4
+            page.stanzas shouldBe Seq(pageOnePageStanza, pageOneInstruction, pageOneCallout, pageOneInput)
+            page.next shouldBe Seq("4")
 
-          val indexedSeqOfPages = pages.toIndexedSeq
-
-          // Test contents of individual pages
-          testSqpInput(indexedSeqOfPages(0))
-
-        case Left(err) => fail(s"Flow error $err")
+          case Left(err) => fail(s"Flow error $err")
+        }
       }
     }
 
     "When processing a simple date input page" must {
-
-      val process: Process = Process(meta, simpleDateInputPage, phrases, links)
+      val simpleDateInputFlow: Map[String, Stanza] = Map(
+          Process.StartStanzaId -> pageOnePageStanza,
+          "1" -> pageOneInstructionStanza,
+          "2" -> pageOneDateInputStanza,
+          "4" -> pageTwoPageStanza,
+          "5" -> pageTwoInstructionStanza,
+          "6" -> pageThreePageStanza,
+          "7" -> pageThreeInstructionStanza,
+          "8" -> pageThreeCalloutStanza,
+          "end" -> EndStanza)
+      val process: Process = Process(meta, simpleDateInputFlow, phrases, links)
 
       pageBuilder.pages(process) match {
-
         case Right(pages) =>
           "Determine the correct number of pages to be displayed" in {
-
             pages shouldNot be(Nil)
-
             pages.length shouldBe 2
           }
 
-          val indexedSeqOfPages = pages.toIndexedSeq
-
           // Test contents of individual pages
-          testSimpleDateInputPage(indexedSeqOfPages(0))
+          "Define the input page correctly" in {
+            val page = pages.head
+            page.id shouldBe Process.StartStanzaId
+            page.stanzas.size shouldBe 3
+            page.stanzas shouldBe Seq(pageOnePageStanza, pageOneInstruction, pageOneDateInput)
+            page.next shouldBe Seq("4")
+          }
 
         case Left(err) => fail(s"Flow error $err")
       }
     }
 
     "When processing a simple text input page" must {
-
-      val process: Process = Process(meta, simpleTextInputPage, phrases, links)
+      val simpleTextInputFlow: Map[String, Stanza] = Map(
+          Process.StartStanzaId -> pageOnePageStanza,
+          "1" -> pageOneInstructionStanza,
+          "2" -> pageOneTextInputStanza,
+          "4" -> pageTwoPageStanza,
+          "5" -> pageTwoInstructionStanza,
+          "6" -> pageThreePageStanza,
+          "7" -> pageThreeInstructionStanza,
+          "8" -> pageThreeCalloutStanza,
+          "end" -> EndStanza)
+      val process: Process = Process(meta, simpleTextInputFlow, phrases, links)
 
       pageBuilder.pages(process) match {
-
         case Right(pages) =>
           "Determine the correct number of pages to be displayed" in {
-
             pages shouldNot be(Nil)
-
             pages.length shouldBe 2
           }
 
-          val indexedSeqOfPages = pages.toIndexedSeq
-
           // Test contents of individual pages
-          testSimpleTextInputPage(indexedSeqOfPages(0))
-
+          "Define the input page correctly" in {
+            val page = pages.head
+            page.id shouldBe Process.StartStanzaId
+            page.stanzas.size shouldBe 3
+            page.stanzas shouldBe Seq(pageOnePageStanza, pageOneInstruction, pageOneTextInput)
+            page.next shouldBe Seq("4")
+          }
         case Left(err) => fail(s"Flow error $err")
       }
     }
 
 
     "When processing a simple number input page" must {
-
-      val process: Process = Process(meta, simpleNumberInputPage, phrases, links)
+      val simpleNumberInputFlow: Map[String, Stanza] = Map(
+          Process.StartStanzaId -> pageOnePageStanza,
+          "1" -> pageOneInstructionStanza,
+          "2" -> pageOneNumberInputStanza,
+          "4" -> pageTwoPageStanza,
+          "5" -> pageTwoInstructionStanza,
+          "6" -> pageThreePageStanza,
+          "7" -> pageThreeInstructionStanza,
+          "8" -> pageThreeCalloutStanza,
+          "end" -> EndStanza)
+      val process: Process = Process(meta, simpleNumberInputFlow, phrases, links)
 
       pageBuilder.pages(process) match {
-
         case Right(pages) =>
           "Determine the correct number of pages to be displayed" in {
-
             pages shouldNot be(Nil)
-
             pages.length shouldBe 2
           }
 
-          val indexedSeqOfPages = pages.toIndexedSeq
-
           // Test contents of individual pages
-          testSimpleNumberInputPage(indexedSeqOfPages(0))
-
+          "Define the input page correctly" in {
+            val page = pages.head
+            page.id shouldBe Process.StartStanzaId
+            page.stanzas.size shouldBe 3
+            page.stanzas shouldBe Seq(pageOnePageStanza, pageOneInstruction, pageOneNumberInput)
+            page.next shouldBe Seq("4")
+          }
         case Left(err) => fail(s"Flow error $err")
       }
     }
 
     "when processing a simple sequence page" must {
-
-      val process: Process = Process(meta, simpleSequencePage, phrases, links)
+      val process: Process = Process(meta, standardSequenceFlow, phrases, links)
 
       pageBuilder.pages(process) match {
-
         case Right(pages) =>
-
           "Determine the correct number of pages to be displayed" in {
-
             pages shouldNot be(Nil)
-
             pages.length shouldBe 3
           }
 
-          val indexedSequenceOfPages = pages.toIndexedSeq
-
           // Test content of page containing sequence input component
-          testSimpleSequencePage(indexedSequenceOfPages.head)
+          "define the simple sequence page correctly" in {
+            val page = pages.head
+            page.id shouldBe Process.StartStanzaId
+            page.stanzas.size shouldBe 3
+            page.stanzas shouldBe Seq(pageOnePageStanza, pageOneInstruction, pageOneNonExclusiveSequence)
+            page.next shouldBe Seq("6", "4")
+          }
 
         case Left(err) => fail(s"Flow error $err")
       }
     }
 
     "when processing a sequence with a missing title phrase" must {
-
-      val process: Process = Process(meta, sequenceWithMissingTitlePage, phrases, links)
+      val sequenceWithMissingTitleFlow: Map[String, Stanza] =  Map(
+        Process.StartStanzaId -> pageOnePageStanza,
+        "1" -> pageOneInstructionStanza,
+        "2" -> pageOneSequenceStanzaMissingTitle,
+        "4" -> pageTwoPageStanza,
+        "5" -> pageTwoInstructionStanza,
+        "6" -> pageThreePageStanza,
+        "7" -> pageThreeInstructionStanza,
+        "8" -> pageThreeCalloutStanza,
+        "end" -> EndStanza)
+      val process: Process = Process(meta, sequenceWithMissingTitleFlow, phrases, links)
 
       "return a phrase not found error" in {
-
         pageBuilder.pages(process) match {
           case Right(_) => fail("A sequence should not be created when the title phrase is undefined")
           case Left(err) => err shouldBe List(PhraseNotFound("2", oneHundred))
@@ -485,11 +663,19 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     }
 
     "when processing a sequence with a missing option phrase" must {
-
-      val process: Process = Process(meta, sequenceWithMissingOptionPage, phrases, links)
+      val sequenceWithMissingOptionFlow: Map[String, Stanza] =  Map(
+        Process.StartStanzaId -> pageOnePageStanza,
+        "1" -> pageOneInstructionStanza,
+        "2" -> pageOneSequenceStanzaMissingOption,
+        "4" -> pageTwoPageStanza,
+        "5" -> pageTwoInstructionStanza,
+        "6" -> pageThreePageStanza,
+        "7" -> pageThreeInstructionStanza,
+        "8" -> pageThreeCalloutStanza,
+        "end" -> EndStanza)
+      val process: Process = Process(meta, sequenceWithMissingOptionFlow, phrases, links)
 
       "return a phrase not found error" in {
-
         pageBuilder.pages(process) match {
           case Right(_) => fail("A sequence should not be created when one, or more, option phrases are undefined")
           case Left(err) => err shouldBe List(PhraseNotFound("2", oneHundred))
@@ -500,58 +686,47 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
     }
 
     "correctly determine the page title for a non-exclusive sequence page" in {
-
       case class Dummy(id: String, pageUrl: String, pageTitle: String)
-
-      val process: Process = Process(meta, simpleSequencePage, phrases, links)
+      val process: Process = Process(meta, standardSequenceFlow, phrases, links)
 
       pageBuilder.pages(process) match {
 
         case Right(pages) =>
-
-            val pageInfo = fromPageDetails(pages)(Dummy)
-
-            pageInfo.length shouldBe 1
-
-            pageInfo.head.id shouldBe "start"
-            pageInfo.head.pageUrl shouldBe "/page/1"
-            pageInfo.head.pageTitle shouldBe "Text 7"
+          val pageInfo = fromPageDetails(pages)(Dummy)
+          pageInfo.length shouldBe 1
+          pageInfo.head.id shouldBe "start"
+          pageInfo.head.pageUrl shouldBe "/page/1"
+          pageInfo.head.pageTitle shouldBe "Text 7"
 
         case Left(err) => fail(s"Flow error $err")
       }
     }
 
     "when processing an exclusive sequence page" must {
-
-      val process: Process = Process(meta, simpleExclusiveSequencePage, exclusiveSequencePhrases, links)
+      val process: Process = Process(meta, exclusiveSequenceFlow, rawExclusiveSequencePhrases, links)
 
       pageBuilder.pages(process) match {
-
         case Right(pages) =>
-
           "Determine the correct number of pages to be displayed" in {
-
             pages shouldNot be(Nil)
-
             pages.length shouldBe 3
           }
 
-          val indexedSequenceOfPages = pages.toIndexedSeq
-
-          // Test content of page containing sequence input component
-          testExclusiveSequencePage(indexedSequenceOfPages.head)
+          "define an exclusive sequence page correctly" in {
+            val page = pages.head
+            page.id shouldBe Process.StartStanzaId
+            page.stanzas.size shouldBe 4
+            page.stanzas shouldBe Seq(pageOnePageStanzaAlternate, pageOneTypeErrorCallout, pageOneInstruction, pageOneExclusiveSequence)
+          }
 
         case Left(err) => fail(s"Flow error $err")
       }
     }
 
 
-
     "correctly determine the page title for an exclusive sequence page" in {
-
       case class Dummy(id: String, pageUrl: String, pageTitle: String)
-
-      val process: Process = Process(meta, simpleExclusiveSequencePage, exclusiveSequencePhrases, links)
+      val process: Process = Process(meta, exclusiveSequenceFlow, rawExclusiveSequencePhrases, links)
 
       pageBuilder.pages(process) match {
 
@@ -560,7 +735,6 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
             val pageInfo = fromPageDetails(pages)(Dummy)
 
             pageInfo.length shouldBe 1
-
             pageInfo.head.id shouldBe "start"
             pageInfo.head.pageUrl shouldBe "/page/1"
             pageInfo.head.pageTitle shouldBe "What kind of fruit do you like?"
@@ -794,6 +968,14 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
   }
 
   "When processing a 2 page flow separated by a PageStanza" must {
+    val twoPagesSeperatedByValueStanza: Map[String, Stanza] = Map(
+        Process.StartStanzaId -> PageStanza("/blah", Seq("1"), stack = false),
+        "1" -> InstructionStanza(0, Seq("2"), None, stack = false),
+        "2" -> InstructionStanza(1, Seq("3"), None, stack = false),
+        "3" -> PageStanza("/a", Seq("4"), stack = false),
+        "4" -> InstructionStanza(0, Seq("end"), None, stack = false),
+        "end" -> EndStanza
+      )
     val process: Process = Process(
       meta,
       twoPagesSeperatedByValueStanza,
@@ -933,152 +1115,5 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
           fail(s"Failed with error $err")
       }
     }
-
   }
-  def testPagesInPrototypeJson(pages: Seq[Page]): Unit = {
-
-    val expectedPageIds: List[String] = List(
-      Process.StartStanzaId,
-      "26",
-      "36",
-      "37",
-      "39",
-      "46",
-      "53",
-      "60",
-      "70",
-      "77",
-      "120",
-      "80",
-      "83",
-      "90",
-      "97",
-      "102",
-      "109",
-      "113",
-      "121",
-      "124",
-      "127",
-      "131",
-      "159",
-      "138",
-      "143",
-      "151",
-      "157",
-      "158"
-    )
-
-    pages.length shouldBe expectedPageIds.length
-
-    pages.forall(p => expectedPageIds.contains(p.id)) shouldBe true
-  }
-
-  /**
-   * Test input page in simple question page test
-   *
-   * @param page the input page to test
-   */
-  def testSqpInput(page: Page): Unit = {
-
-    "Define the input page correctly" in {
-
-      page.id shouldBe Process.StartStanzaId
-      page.stanzas.size shouldBe 4
-
-      page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpCallout, sqpQpInput)
-
-      page.next shouldBe Seq("4")
-    }
-
-  }
-
-  /**
-   * Test input page in simple date input page test
-   *
-   * @param page the input page to test
-   */
-  def testSimpleDateInputPage(page: Page): Unit = {
-
-    "Define the input page correctly" in {
-
-      page.id shouldBe Process.StartStanzaId
-      page.stanzas.size shouldBe 3
-
-      page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpDateInput)
-
-      page.next shouldBe Seq("4")
-    }
-
-  }
-
-  /**
-   * Test input page in simple number input page test
-   *
-   * @param page the input page to test
-   */
-  def testSimpleNumberInputPage(page: Page): Unit = {
-
-    "Define the input page correctly" in {
-
-      page.id shouldBe Process.StartStanzaId
-      page.stanzas.size shouldBe 3
-
-      page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpNumberInput)
-
-      page.next shouldBe Seq("4")
-    }
-
-  }
-
-  /**
-   * Test input page in simple date input page test
-   *
-   * @param page the input page to test
-   */
-  def testSimpleTextInputPage(page: Page): Unit = {
-
-    "Define the input page correctly" in {
-
-      page.id shouldBe Process.StartStanzaId
-      page.stanzas.size shouldBe 3
-
-      page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpTextInput)
-
-      page.next shouldBe Seq("4")
-    }
-
-  }
-
-  /**
-    *
-    * Test input page in simple sequence page test
-    *
-    * @param page
-    */
-  def testSimpleSequencePage(page: Page): Unit = {
-
-    "define the simple sequence page correctly" in {
-
-      page.id shouldBe Process.StartStanzaId
-      page.stanzas.size shouldBe 3
-
-      page.stanzas shouldBe Seq(sqpQpPageStanza, sqpQpInstruction, sqpQpNonExclusiveSequence)
-
-      page.next shouldBe Seq("6", "4")
-    }
-
-  }
-
-  def testExclusiveSequencePage(page: Page): Unit = {
-
-    "define an exclusive sequence page correctly" in {
-
-      page.id shouldBe Process.StartStanzaId
-      page.stanzas.size shouldBe 4
-
-      page.stanzas shouldBe Seq(sqpQpPageStanzaAlternate, sqpQpTypeErrorCallout, sqpQpInstruction, sqpQpExclusiveSequence)
-    }
-
-  }
-
 }

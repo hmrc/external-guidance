@@ -21,10 +21,9 @@ import core.models.ocelot.errors._
 import core.models.ocelot.stanzas._
 import core.models.ocelot._
 import play.api.libs.json._
-import core.models.StanzaHelper
 import core.services._
 
-class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
+class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
 
   // Define instance of class used in testing
   val pageBuilder: ValidatingPageBuilder = new ValidatingPageBuilder(new PageBuilder(new Placeholders(new DefaultTodayProvider)))
@@ -382,6 +381,14 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHel
   }
 
   "When processing a 2 page flow separated by a PageStanza" must {
+    val twoPagesSeperatedByValueStanza: Map[String, Stanza] = Map(
+        Process.StartStanzaId -> PageStanza("/blah", Seq("1"), stack = false),
+        "1" -> InstructionStanza(0, Seq("2"), None, stack = false),
+        "2" -> InstructionStanza(1, Seq("3"), None, stack = false),
+        "3" -> PageStanza("/a", Seq("4"), stack = false),
+        "4" -> InstructionStanza(0, Seq("end"), None, stack = false),
+        "end" -> EndStanza
+      )
     val process: Process = Process(
       meta,
       twoPagesSeperatedByValueStanza,

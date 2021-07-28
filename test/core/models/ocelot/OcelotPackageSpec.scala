@@ -218,12 +218,12 @@ class OcelotPackageSpec extends BaseSpec {
   "Exclusive sequence exclusive option matching" must {
 
     "not match options where the exclusive option place holder is absent" in {
-      "Other" contains exclusiveOptionPattern
+      "Other" contains ExclusivePlaceholder
     }
 
     "match options where the place holder is present, but no hint is defined" in {
 
-      val optionMatch = "Other [exclusive]" contains exclusiveOptionPattern
+      val optionMatch = "Other [exclusive]" contains ExclusivePlaceholder
       optionMatch shouldBe true
     }
 
@@ -231,7 +231,7 @@ class OcelotPackageSpec extends BaseSpec {
 
       val optionText: String = "Other [exclusive][hint:Selection of this checkbox will cause the other checkboxes to be deselected]"
 
-      optionText contains exclusiveOptionPattern
+      optionText contains ExclusivePlaceholder
 
     }
 
@@ -239,7 +239,7 @@ class OcelotPackageSpec extends BaseSpec {
 
       val optionText: String = "Other [exclusive][hint: Welsh: One way, or another, the other checkboxes will be deselected]"
 
-      val optionMatch: Boolean = optionText contains exclusiveOptionPattern
+      val optionMatch: Boolean = optionText contains ExclusivePlaceholder
 
       optionMatch shouldBe true
     }

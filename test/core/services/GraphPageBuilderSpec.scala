@@ -20,19 +20,27 @@ import base.BaseSpec
 import core.models.ocelot.stanzas._
 import core.models.ocelot._
 import play.api.libs.json._
-import core.models.StanzaHelper
 
-
-class GraphPageBuilderSpec extends BaseSpec with ProcessJson with StanzaHelper {
+class GraphPageBuilderSpec extends BaseSpec with ProcessJson {
 
   // Define instance of class used in testing
   val pageBuilder: PageBuilder = new PageBuilder(new Placeholders(new DefaultTodayProvider))
 
   val meta: Meta = Json.parse(prototypeMetaSection).as[Meta]
 
-  case object DummyStanza extends Stanza {
-    override val next: Seq[String] = Seq("1")
-  }
+  val phrases: Vector[Phrase] = Vector(
+    Phrase(Vector("Text 0", "Welsh: Text 0")),
+    Phrase(Vector("Text 1", "Welsh: Text 1")),
+    Phrase(Vector("Text 2", "Welsh: Text 2")),
+    Phrase(Vector("Text 3", "Welsh: Text 3")),
+    Phrase(Vector("Text 4", "Welsh: Text 4")),
+    Phrase(Vector("Text 5", "Welsh: Text 5")),
+    Phrase(Vector("Text 6", "Welsh: Text 6")),
+    Phrase(Vector("Text 7", "Welsh: Text 7")),
+    Phrase(Vector("Text 8", "Welsh: Text 8"))
+  )
+
+ val links: Vector[Link] = Vector(Link(0, "http://my.com/news", "MyCOM Daily News", window = true))
 
   trait GraphTest {
     val pageId1 = Process.StartStanzaId
