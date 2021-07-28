@@ -91,7 +91,7 @@ class SequenceStanzaSpec extends BaseSpec {
     val expectedStanza: SequenceStanza =
       SequenceStanza(0, Seq("1","2","3","4","end"), Seq(1,2,3,four), Some("Items"), stack = false)
 
-    val expectedNonExclusiveSequence: Sequence =
+    val standardSequence: Sequence =
       Sequence(
         Phrase("Select","Select"),
         expectedStanza.next,
@@ -101,7 +101,7 @@ class SequenceStanzaSpec extends BaseSpec {
         expectedStanza.stack
       )
 
-    val expectedExclusiveSequence: Sequence =
+    val exclusiveSequence: Sequence =
       Sequence(
       Phrase("Select","Select"),
       expectedStanza.next,
@@ -155,24 +155,24 @@ class SequenceStanzaSpec extends BaseSpec {
   "Non-exclusive sequence" should {
 
     "Determine invalid input to be incorrect" in new Test {
-      expectedNonExclusiveSequence.validInput("a,b,c") shouldBe None
-      expectedNonExclusiveSequence.validInput("5,6,7") shouldBe None
+      standardSequence.validInput("a,b,c") shouldBe None
+      standardSequence.validInput("5,6,7") shouldBe None
     }
 
     "Determine valid input to be correct" in new Test {
-      expectedNonExclusiveSequence.validInput("1,2") shouldBe Some("1,2")
-      expectedNonExclusiveSequence.validInput("2,3") shouldBe Some("2,3")
-      expectedNonExclusiveSequence.validInput("0") shouldBe Some("0")
+      standardSequence.validInput("1,2") shouldBe Some("1,2")
+      standardSequence.validInput("2,3") shouldBe Some("2,3")
+      standardSequence.validInput("0") shouldBe Some("0")
     }
 
     "assign Nil to labels property when no label is used" in new Test {
-      expectedNonExclusiveSequence.copy(label = None).labels shouldBe Nil
+      standardSequence.copy(label = None).labels shouldBe Nil
     }
 
     "Evaluate valid input and return with next of first flow in sequence" in new Test {
       val labels = LabelCache()
       val blankPage: Page = Page("any", "/url", Seq.empty, Nil)
-      val (next, updatedLabels) = expectedNonExclusiveSequence.eval("0", blankPage, labels)
+      val (next, updatedLabels) = standardSequence.eval("0", blankPage, labels)
       next shouldBe Some("1")
       updatedLabels.flowStack shouldBe List(Flow("1", Some(LabelValue("Items", stripHintPlaceholder(phraseOne)))), Continuation(Process.EndStanzaId))
       updatedLabels.value("Items") shouldBe Some(hintRegex.replaceAllIn(oneEn, ""))
@@ -183,7 +183,7 @@ class SequenceStanzaSpec extends BaseSpec {
     "Evaluate valid input and set labels without hint placeholders" in new Test {
       val labels = LabelCache()
       val blankPage: Page = Page("any", "/url", Seq.empty, Nil)
-      val (next, updatedLabels) = expectedNonExclusiveSequence.eval("0", blankPage, labels)
+      val (next, updatedLabels) = standardSequence.eval("0", blankPage, labels)
       next shouldBe Some("1")
       updatedLabels.flowStack shouldBe List(Flow("1", Some(LabelValue("Items", stripHintPlaceholder(phraseOne)))), Continuation(Process.EndStanzaId))
       updatedLabels.value("Items") shouldBe Some(hintRegex.replaceAllIn(oneEn, ""))
@@ -195,14 +195,14 @@ class SequenceStanzaSpec extends BaseSpec {
       val labels = LabelCache()
       val blankPage: Page = Page("any", "/url", Seq.empty, Nil)
       val noopReturn: (Option[String], Labels) = (None, labels)
-      expectedNonExclusiveSequence.eval("hello", blankPage, labels) shouldBe noopReturn
+      standardSequence.eval("hello", blankPage, labels) shouldBe noopReturn
     }
 
     "Evaluate indexes which don't exist in the options list to error return" in new Test {
       val labels = LabelCache()
       val blankPage: Page = Page("any", "/url", Seq.empty, Nil)
       val noopReturn: (Option[String], Labels) = (None, labels)
-      expectedNonExclusiveSequence.eval("24", blankPage, labels) shouldBe noopReturn
+      standardSequence.eval("24", blankPage, labels) shouldBe noopReturn
       labels.flowStack shouldBe Nil
     }
   }
@@ -210,33 +210,33 @@ class SequenceStanzaSpec extends BaseSpec {
   "Exclusive sequence" should {
 
     "Determine invalid input to be incorrect" in new Test {
-      expectedExclusiveSequence.validInput("a,b,c") shouldBe None
-      expectedExclusiveSequence.validInput("5,6,7") shouldBe None
-      expectedExclusiveSequence.validInput("2,3") shouldBe None
-      expectedExclusiveSequence.validInput("0,3") shouldBe None
-      expectedExclusiveSequence.validInput("1,3") shouldBe None
-      expectedExclusiveSequence.validInput("0,1,2,3") shouldBe None
+      exclusiveSequence.validInput("a,b,c") shouldBe None
+      exclusiveSequence.validInput("5,6,7") shouldBe None
+      exclusiveSequence.validInput("2,3") shouldBe None
+      exclusiveSequence.validInput("0,3") shouldBe None
+      exclusiveSequence.validInput("1,3") shouldBe None
+      exclusiveSequence.validInput("0,1,2,3") shouldBe None
     }
 
     "Determine valid input to be correct" in new Test {
-      expectedExclusiveSequence.validInput("1,2") shouldBe Some("1,2")
-      expectedExclusiveSequence.validInput("0,1") shouldBe Some("0,1")
-      expectedExclusiveSequence.validInput("0,2") shouldBe Some("0,2")
-      expectedExclusiveSequence.validInput("0") shouldBe Some("0")
-      expectedExclusiveSequence.validInput("3") shouldBe Some("3")
-      expectedExclusiveSequence.validInput("1") shouldBe Some("1")
-      expectedExclusiveSequence.validInput("2") shouldBe Some("2")
-      expectedExclusiveSequence.validInput("0,1,2") shouldBe Some("0,1,2")
+      exclusiveSequence.validInput("1,2") shouldBe Some("1,2")
+      exclusiveSequence.validInput("0,1") shouldBe Some("0,1")
+      exclusiveSequence.validInput("0,2") shouldBe Some("0,2")
+      exclusiveSequence.validInput("0") shouldBe Some("0")
+      exclusiveSequence.validInput("3") shouldBe Some("3")
+      exclusiveSequence.validInput("1") shouldBe Some("1")
+      exclusiveSequence.validInput("2") shouldBe Some("2")
+      exclusiveSequence.validInput("0,1,2") shouldBe Some("0,1,2")
     }
 
     "assign Nil to labels property when no label is used" in new Test {
-      expectedExclusiveSequence.copy(label = None).labels shouldBe Nil
+      exclusiveSequence.copy(label = None).labels shouldBe Nil
     }
 
     "Evaluate valid input and return with next of first flow in sequence" in new Test {
       val labels = LabelCache()
       val blankPage: Page = Page("any", "/url", Seq.empty, Nil)
-      val (next, updatedLabels) = expectedExclusiveSequence.eval("0", blankPage, labels)
+      val (next, updatedLabels) = exclusiveSequence.eval("0", blankPage, labels)
       next shouldBe Some("1")
       updatedLabels.flowStack shouldBe List(Flow("1", Some(LabelValue("Items", stripHintPlaceholder(phraseOne)))), Continuation(Process.EndStanzaId))
       updatedLabels.value("Items") shouldBe Some(hintRegex.replaceAllIn(oneEn, ""))
@@ -248,14 +248,14 @@ class SequenceStanzaSpec extends BaseSpec {
       val labels = LabelCache()
       val blankPage: Page = Page("any", "/url", Seq.empty, Nil)
       val noopReturn: (Option[String], Labels) = (None, labels)
-      expectedExclusiveSequence.eval("hello", blankPage, labels) shouldBe noopReturn
+      exclusiveSequence.eval("hello", blankPage, labels) shouldBe noopReturn
     }
 
     "Evaluate indexes which don't exist in the options list to error return" in new Test {
       val labels = LabelCache()
       val blankPage: Page = Page("any", "/url", Seq.empty, Nil)
       val noopReturn: (Option[String], Labels) = (None, labels)
-      expectedExclusiveSequence.eval("24", blankPage, labels) shouldBe noopReturn
+      exclusiveSequence.eval("24", blankPage, labels) shouldBe noopReturn
       labels.flowStack shouldBe Nil
     }
 
