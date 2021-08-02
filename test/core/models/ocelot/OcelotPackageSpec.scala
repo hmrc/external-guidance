@@ -215,6 +215,28 @@ class OcelotPackageSpec extends BaseSpec {
     }
   }
 
+  "operandValue function" must {
+    "parse date_add placeholder with literal date" in {
+      operandValue("[date_add:22/9/1973:NTCReAwardManAward]")(LabelCache()) shouldBe Some("6/10/1973")
+    }
+
+    "parse date_add placeholders with label date" in {
+      val labels = LabelCache().update("MyDate", "22/9/1973")
+      operandValue("[date_add:MyDate:NTCReAwardManAward]")(labels) shouldBe Some("6/10/1973")
+    }
+
+    "parse date label reference" in {
+      val labels = LabelCache().update("MyDate", "22/9/1973")
+      operandValue("[label:MyDate]")(labels) shouldBe Some("22/9/1973")
+    }
+  }
+
+  "Timescale functions" must {
+    "dateAdd with a valid date and timescale id" in {
+      dateAdd(Some("22/9/1973"), "NTCReAwardManAward") shouldBe Some("6/10/1973")
+    }
+  }
+
   "Exclusive sequence exclusive option matching" must {
 
     "not match options where the exclusive option place holder is absent" in {

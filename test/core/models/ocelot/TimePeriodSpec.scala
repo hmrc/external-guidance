@@ -37,6 +37,10 @@ class TimePeriodSpec extends BaseSpec {
       asTimePeriod("23455year") shouldBe Some(TimePeriod(23455, Year))
     }
 
+    "construct from a number of years with plural and whitespace" in {
+      asTimePeriod("23455 years") shouldBe Some(TimePeriod(23455, Year))
+    }
+
     "not construct when the count digit length is greater than the digit length of Int.MaxValue" in {
       asTimePeriod("12345678901day") shouldBe None
     }

@@ -21,9 +21,10 @@ import core.models.ocelot._
 import java.time.LocalDate
 import scala.util.matching.Regex
 import Regex._
+import play.api.libs.json.Json
 
-trait PlaceholderProvider {
-  val placeholders: Placeholders
+trait TimescaleProvider {
+  val timescales: Timescales
 }
 
 trait TodayProvider {
@@ -36,11 +37,12 @@ class DefaultTodayProvider extends TodayProvider {
 }
 
 @Singleton
-class Placeholders @Inject() (tp: TodayProvider) {
+class Timescales @Inject() (tp: TodayProvider) {
   val TaxYearStartDay: Int = 6
   val TaxYearStartMonth: Int = 4
-  val timescalePattern = "\\[timescale:((\\d{1,2}\\/\\d{1,2}\\/\\d{4})|(today|CY([\\-+]\\d+)?)(:(long|short))?)\\]"
-  val timescaleRegex: Regex = s"${timescalePattern}".r
+  val TaxYearPattern: String = "CY([\\-+]\\d+)?"
+  val timescalePattern = s"\\[timescale:(?:(?:($TimescaleIdPattern):days)|(?:($DatePattern)|(today)|($TaxYearPattern))(?::(long|short))?)\\]"
+  val timescaleRegex: Regex = timescalePattern.r
 
   def long(date: LocalDate): Int = date.getYear
   def short(date: LocalDate): Int = long(date) % 100
@@ -49,25 +51,27 @@ class Placeholders @Inject() (tp: TodayProvider) {
     candidateStartDate.minusYears(-offset + (if (when.isBefore(candidateStartDate)) 1 else 0))
   }
 
+  private val TimescaleIdGroup: Int = 1
   private val DateLiteralGroup: Int = 2
-  private val TodayOrCyGroup: Int = 3
-  private val CyOffsetGroup: Int = 4
+  private val TodayGroup: Int = 3
+  private val CyOffsetGroup: Int = 5
   private val LongOrShortGroup: Int = 6
 
-  def translate(str: String, todaysDate: LocalDate = tp.now): String = {
+  def expand(str: String, todaysDate: LocalDate = tp.now): String = {
     def longOrShort(m: Match, when: LocalDate): String = Option(m.group(LongOrShortGroup)).fold(stringFromDate(when)){
       case "long" => long(when).toString
       case "short" => short(when).toString
     }
 
-    timescaleRegex.replaceAllIn(str,{m =>
-      Option(m.group(DateLiteralGroup)).fold[String]{
-        Option(m.group(TodayOrCyGroup)) match {
-          case Some("today") => longOrShort(m, todaysDate)
-          case Some(_) => longOrShort(m, Option(m.group(CyOffsetGroup)).fold(cy(0, todaysDate))(offset => cy(offset.toInt, todaysDate)))
-          case None => Option(m.matched).getOrElse("") // Should never occur, however group() can return null!!
-        }
+    def dateTimescale(m: Match): String =
+      Option(m.group(DateLiteralGroup)).fold{
+        Option(m.group(TodayGroup)).fold{
+          Option(m.group(CyOffsetGroup)).fold{
+            longOrShort(m, cy(0, todaysDate))
+          }{offset => longOrShort(m, cy(offset.toInt, todaysDate))}
+        }{_ => longOrShort(m, todaysDate)}
       }{literal => literal}
-    })
+
+    timescaleRegex.replaceAllIn(str,m => Option(m.group(TimescaleIdGroup)).fold(dateTimescale(m))(tsId => timescaleDays(tsId).getOrElse(m.group(0))))
   }
 }
