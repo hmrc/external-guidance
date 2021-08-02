@@ -21,7 +21,6 @@ import core.models.ocelot._
 import java.time.LocalDate
 import scala.util.matching.Regex
 import Regex._
-import play.api.libs.json.Json
 
 trait TimescaleProvider {
   val timescales: Timescales

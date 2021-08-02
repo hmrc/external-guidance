@@ -18,7 +18,7 @@ package services
 
 import java.time.ZonedDateTime
 import java.util.UUID
-import core.services.{Placeholders, PageBuilder}
+import core.services.{Timescales, PageBuilder}
 import base.BaseSpec
 import mocks.{MockAppConfig, MockApprovalProcessReviewRepository, MockApprovalRepository, MockPublishedRepository}
 import models._
@@ -48,7 +48,7 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
       new ApprovalService(mockApprovalRepository,
                           mockApprovalProcessReviewRepository,
                           mockPublishedRepository,
-                          new ValidatingPageBuilder(new PageBuilder(new Placeholders(new DefaultTodayProvider))),
+                          new ValidatingPageBuilder(new PageBuilder(new Timescales(new DefaultTodayProvider))),
                           MockAppConfig)
 
     val processReview: ApprovalProcessReview =
