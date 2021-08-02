@@ -26,7 +26,7 @@ import core.services._
 class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
 
   // Define instance of class used in testing
-  val pageBuilder: ValidatingPageBuilder = new ValidatingPageBuilder(new PageBuilder(new Placeholders(new DefaultTodayProvider)))
+  val pageBuilder: ValidatingPageBuilder = new ValidatingPageBuilder(new PageBuilder(new Timescales(new DefaultTodayProvider)))
 
   val meta: Meta = Json.parse(prototypeMetaSection).as[Meta]
 

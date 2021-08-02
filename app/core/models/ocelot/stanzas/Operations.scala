@@ -46,7 +46,7 @@ object Operand {
     scalar(s, labels).fold[Option[Operand[_]]](collection(s, labels).fold[Option[Operand[_]]](None)(o => Some(o))) { o => Some(o) }
 
   def scalar(v: String, labels: Labels): Option[Scalar[_]] =
-    labelScalarValue(v)(labels).fold[Option[Scalar[_]]](None) { s =>
+    operandValue(v)(labels).fold[Option[Scalar[_]]](None) { s =>
       asDate(s).fold[Option[Scalar[_]]] {
         asTimePeriod(s).fold[Option[Scalar[_]]] {
           asDecimal(s).fold[Option[Scalar[_]]](Some(StringOperand(s)))(dec => Some(NumericOperand(dec)))

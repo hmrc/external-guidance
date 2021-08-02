@@ -25,7 +25,7 @@ import play.api.libs.json._
 
 class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
   // Define instance of class used in testing
-  val pageBuilder: PageBuilder = new PageBuilder(new Placeholders(new DefaultTodayProvider))
+  val pageBuilder: PageBuilder = new PageBuilder(new Timescales(new DefaultTodayProvider))
 
   val meta: Meta = Json.parse(prototypeMetaSection).as[Meta]
 

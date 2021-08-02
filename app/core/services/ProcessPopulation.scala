@@ -23,7 +23,7 @@ import play.api.Logger
 import scala.annotation.tailrec
 
 trait ProcessPopulation {
-  this: PlaceholderProvider =>
+  this: TimescaleProvider =>
 
   val logger: Logger
 
@@ -89,11 +89,11 @@ trait ProcessPopulation {
       case i: InputStanza => populateInput(i)
       case c: CalloutStanza => phrase(c.text, id, process).fold(Left(_), text => Right(Callout(c, text)))
       case c: ChoiceStanza =>
-        Right(Choice(c.copy(tests = c.tests.map(t => t.copy(left = placeholders.translate(t.left), right = placeholders.translate(t.right))))))
+        Right(Choice(c.copy(tests = c.tests.map(t => t.copy(left = timescales.expand(t.left), right = timescales.expand(t.right))))))
       case c: CalculationStanza =>
-        Right(Calculation(c.copy(calcs = c.calcs.map(op => op.copy(left = placeholders.translate(op.left), right = placeholders.translate(op.right))))))
+        Right(Calculation(c.copy(calcs = c.calcs.map(op => op.copy(left = timescales.expand(op.left), right = timescales.expand(op.right))))))
       case s: SequenceStanza => populateSequence(id, s)
-      case vs: ValueStanza => Right(vs.copy(values = vs.values.map(v => v.copy(value = placeholders.translate(v.value)))))
+      case vs: ValueStanza => Right(vs.copy(values = vs.values.map(v => v.copy(value = timescales.expand(v.value)))))
       case s: Stanza => Right(s)
     }
   }
@@ -107,9 +107,9 @@ trait ProcessPopulation {
       case Phrase(english, welsh) if welsh.trim.startsWith("Welsh,") =>
         logger.debug(s"Found obsolete faked Welsh prefix on phrase $english -- $welsh")
         val updatedWelsh = s"Welsh: ${welsh.trim.drop("Welsh, ".length)}"
-        Right(Phrase(placeholders.translate(english), placeholders.translate(updatedWelsh)))
+        Right(Phrase(timescales.expand(english), timescales.expand(updatedWelsh)))
       case p: Phrase =>
-        Right(Phrase(placeholders.translate(p.english), placeholders.translate(p.welsh)))
+        Right(Phrase(timescales.expand(p.english), timescales.expand(p.welsh)))
     }
 
   @tailrec
