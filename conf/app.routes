@@ -3,6 +3,9 @@
 GET         /scratch/:id                                controllers.ScratchController.get(id)
 POST        /scratch                                    controllers.ScratchController.save
 
+GET         /timescales                                 controllers.TimescalesController.get
+POST        /timescales                                 controllers.TimescalesController.save
+
 GET         /published/:processCode                     controllers.PublishedController.getByProcessCode(processCode)
 GET         /published-process/:id                      controllers.PublishedController.get(id)
 
