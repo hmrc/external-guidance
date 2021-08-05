@@ -22,6 +22,7 @@
     MockAppConfig.designerRole,
     MockAppConfig.factCheckerRole,
     MockAppConfig.twoEyeReviewerRole,
-    MockAppConfig.fakeWelshInUnauthenticatedGuidance
+    MockAppConfig.fakeWelshInUnauthenticatedGuidance,
+    MockAppConfig.seedTimescales
   )
  }

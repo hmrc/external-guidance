@@ -28,6 +28,7 @@ object MockAppConfig extends AppConfig {
   val factCheckerRole: String = "FactChecker"
   val twoEyeReviewerRole: String = "2iReviewer"
   val fakeWelshInUnauthenticatedGuidance: Boolean = true
+  val seedTimescales: Map[String,Int] = Map("First" -> 1, "Second" -> 2, "Third" -> 3)
 }
 
 case class MockAppConfigCopyable(scratchExpiryHour: Int,
@@ -36,6 +37,7 @@ case class MockAppConfigCopyable(scratchExpiryHour: Int,
                                  designerRole: String,
                                  factCheckerRole: String,
                                  twoEyeReviewerRole: String,
-                                 fakeWelshInUnauthenticatedGuidance: Boolean) extends AppConfig
+                                 fakeWelshInUnauthenticatedGuidance: Boolean,
+                                 seedTimescales: Map[String,Int]) extends AppConfig
 
 
