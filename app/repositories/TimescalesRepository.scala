@@ -23,11 +23,10 @@ import core.models.RequestOutcome
 import play.api.libs.json.{Format, Json, JsValue}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import config.AppConfig
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import play.api.libs.functional.syntax._
+import repositories.formatters.TimescalesFormatter
 
 trait TimescalesRepository {
   val CurrentTimescalesID: String = "1"
@@ -42,12 +41,13 @@ class TimescalesRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent
     extends ReactiveRepository[Timescales, String](
       collectionName = "timescales",
       mongo = mongoComponent.mongoConnector.db,
-      domainFormat = ReactiveMongoFormats.mongoEntity { Json.format[Timescales] },
+      domainFormat = TimescalesFormatter.mongoFormat,
       idFormat = implicitly[Format[String]]
     )
     with TimescalesRepository {
 
   def save(timescales: JsValue): Future[RequestOutcome[Unit]] =
+    //$COVERAGE-OFF$
     findAndUpdate(
       Json.obj("_id" -> CurrentTimescalesID),
       Json.obj(
@@ -56,7 +56,6 @@ class TimescalesRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent
         "when" -> Json.obj("$date" -> ZonedDateTime.now.toInstant.toEpochMilli)
       )
     ), upsert = true).map(_ => Right(()))
-      //$COVERAGE-OFF$
       .recover {
         case e =>
           logger.warn(e.getMessage)
@@ -65,12 +64,12 @@ class TimescalesRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent
       //$COVERAGE-ON$
 
   def get(id: String): Future[RequestOutcome[JsValue]] =
+    //$COVERAGE-OFF$
     findById(id)
       .map {
         case Some(data) => Right(data.timescales)
         case None => Left(NotFoundError)
       }
-      //$COVERAGE-OFF$
       .recover {
         case e =>
           logger.warn(e.getMessage)

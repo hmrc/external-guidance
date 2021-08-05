@@ -36,9 +36,11 @@ class TimescalesController @Inject() (timescaleService: TimescalesService, cc: C
     timescaleService.save(timescales).map {
       case Right(id) => NoContent
       case Left(ValidationError) =>
-        logger.error(s"Save of updated timescales returned ValidationError")
+        logger.error(s"Failed to save of updated timescales due to ValidationError")
         BadRequest(Json.toJson(ValidationError))
-      case Left(_) => InternalServerError(Json.toJson(ServerError))
+      case Left(err) =>
+        logger.error(s"Failed to save of updated timescales due to $err, returning internal server error")
+        InternalServerError(Json.toJson(ServerError))
     }
   }
 

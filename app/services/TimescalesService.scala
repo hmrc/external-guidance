@@ -21,15 +21,12 @@ import core.models.RequestOutcome
 import core.models.errors.{ValidationError, InternalServerError, NotFoundError}
 import play.api.libs.json.{Json, JsValue}
 import repositories.TimescalesRepository
-import play.api.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import config.AppConfig
 
 @Singleton
 class TimescalesService @Inject() (repository: TimescalesRepository, appConfig: AppConfig) {
-  val logger = Logger(getClass)
-
   def save(json: JsValue): Future[RequestOutcome[Unit]] =
     json.validate[Map[String, Int]].fold(_ => Future.successful(Left(ValidationError)), _ =>
       repository.save(json).map{
@@ -40,9 +37,8 @@ class TimescalesService @Inject() (repository: TimescalesRepository, appConfig: 
 
   def get(): Future[RequestOutcome[JsValue]] =
     repository.get(repository.CurrentTimescalesID) map {
+      case timescales @ Right(_) => timescales
       case Left(NotFoundError) => Right(Json.toJson(appConfig.seedTimescales))
       case Left(_) => Left(InternalServerError)
-      case timescales => timescales
     }
-
 }
