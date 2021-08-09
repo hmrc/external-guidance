@@ -40,8 +40,8 @@ class Timescales @Inject() (tp: TodayProvider) {
   val TaxYearStartDay: Int = 6
   val TaxYearStartMonth: Int = 4
   val TaxYearPattern: String = "CY([\\-+]\\d+)?"
-  val timescalePattern = s"\\[timescale:(?:(?:($TimescaleIdPattern):days)|(?:($DatePattern)|(today)|($TaxYearPattern))(?::(long|short))?)\\]"
-  val timescaleRegex: Regex = timescalePattern.r
+  val timescalesPattern = s"\\[timescale:(?:(?:($TimescaleIdPattern):days)|(?:($DatePattern)|(today)|($TaxYearPattern))(?::(long|short))?)\\]"
+  val timescalesRegex: Regex = timescalesPattern.r
 
   def long(date: LocalDate): Int = date.getYear
   def short(date: LocalDate): Int = long(date) % 100
@@ -71,6 +71,6 @@ class Timescales @Inject() (tp: TodayProvider) {
         }{_ => longOrShort(m, todaysDate)}
       }{literal => literal}
 
-    timescaleRegex.replaceAllIn(str,m => Option(m.group(TimescaleIdGroup)).fold(dateTimescale(m))(tsId => timescaleDays(tsId).getOrElse(m.group(0))))
+    timescalesRegex.replaceAllIn(str,m => Option(m.group(TimescaleIdGroup)).fold(dateTimescale(m))(tsId => timescaleDays(tsId).getOrElse(m.group(0))))
   }
 }

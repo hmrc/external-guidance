@@ -82,6 +82,7 @@ class TimescalesServiceSpec extends BaseSpec {
         }
       }
     }
+
   }
 
   "Calling get method" should {
@@ -96,6 +97,18 @@ class TimescalesServiceSpec extends BaseSpec {
         result shouldBe expected
       }
     }
+
+    "return Seed defnitions if no DB data found" in new Test {
+      val expected: RequestOutcome[JsValue] = Right(timescaleJson)
+      MockTimescalesRepository
+        .get("1")
+        .returns(Future.successful(Left(NotFoundError)))
+
+      whenReady(target.get) { result =>
+        result shouldBe expected
+      }
+    }
+
 
     "return an internal error if a database error occurs" in new Test {
       MockTimescalesRepository

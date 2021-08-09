@@ -23,7 +23,7 @@ import scala.util.matching.Regex
 import Regex._
 
 package object ocelot {
-  val TimescaleIdPattern: String = "[A-Z]{1}[A-Za-z0-9_-]*"
+  val TimescaleIdPattern: String = "[A-Za-z][a-zA-Z0-9_-]+"
   val DatePattern: String = "\\d{1,2}\\/\\d{1,2}\\/\\d{4}"
   val HttpUriPattern: String = "https?:[a-zA-Z0-9\\/\\.\\-\\?_\\.=&#]+"
   val StanzaIdPattern: String = s"\\d+|${Process.StartStanzaId}"
@@ -32,7 +32,9 @@ package object ocelot {
 
   val LabelPattern: String = s"\\[label:($LabelNamePattern)(?::(currency|currencyPoundsOnly|date|number))?\\]"
   val boldPattern: String = s"\\[bold:($LabelPattern|[^\\]]+)\\]"
+  val SimpleTimescalePattern: String = s"\\[timescale:(?:(?:($TimescaleIdPattern):days))\\]"
   val DateAddPattern: String = s"\\[date_add:(?:($LabelNamePattern)|($DatePattern)):($TimescaleIdPattern)\\]"
+  val TimscaleIdUsagePattern: String = s"(?:$DateAddPattern)|(?:$SimpleTimescalePattern)"
   val linkToPageOnlyPattern: String = s"\\[link:(.+?):($StanzaIdPattern)\\]"
   val pageLinkPattern: String = s"\\[(button|link)(-same|-tab)?:(.+?):($StanzaIdPattern)\\]"
   val buttonLinkPattern: String = s"\\[(button)(-same|-tab)?:(.+?):($StanzaIdPattern)\\]"
@@ -56,6 +58,7 @@ package object ocelot {
   val EmbeddedParameterRegex: Regex = """\{(\d)\}""".r
   val ExclusivePlaceholder: String = "[exclusive]"
   val timeConstantRegex: Regex = timeConstantPattern.r
+  val TimescaleIdUsageRegex: Regex = TimscaleIdUsagePattern.r
 
   val DateOutputFormat = "d MMMM uuuu"
   val ignoredCurrencyChars: Seq[Char] = Seq(' ','£', ',')
