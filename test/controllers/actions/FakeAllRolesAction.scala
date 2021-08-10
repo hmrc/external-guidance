@@ -23,12 +23,12 @@ import play.api.test.Helpers.stubControllerComponents
 
 import scala.concurrent.{ExecutionContext, Future}
 
-object FakeFactCheckerIdentifierAction extends ControllerBaseSpec with FactCheckerIdentifierAction {
+object FakeAllRolesAction extends ControllerBaseSpec with AllRolesAction {
 
   override implicit protected def executionContext: ExecutionContext = ExecutionContext.global
 
   override def parser: BodyParser[AnyContent] = stubControllerComponents().parsers.defaultBodyParser
 
   override def invokeBlock[A](request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] =
-    block(IdentifierRequest(request, credential, name, email, List("FactChecker")))
+    block(IdentifierRequest(request, credential, name, email, List("FactChecker", "2iReviewer")))
 }

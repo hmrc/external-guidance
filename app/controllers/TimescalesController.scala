@@ -23,14 +23,15 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.TimescalesService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.Logger
+import controllers.actions.AllRolesAction
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton()
-class TimescalesController @Inject() (timescaleService: TimescalesService, cc: ControllerComponents) extends BackendController(cc) {
+class TimescalesController @Inject() (timescaleService: TimescalesService, cc: ControllerComponents, allRolesAction: AllRolesAction) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass)
 
-  def save(): Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def save(): Action[JsValue] = allRolesAction.async(parse.json) { implicit request =>
     val timescales = request.body.as[JsObject]
     logger.debug(s"Received timescales update")
     timescaleService.save(timescales).map {

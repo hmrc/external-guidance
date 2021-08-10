@@ -16,7 +16,7 @@
 
 package controllers
 
-import controllers.actions.IdentifierAction
+import controllers.actions.AllRolesAction
 
 import javax.inject.{Inject, Singleton}
 import core.models.errors.{BadRequestError, NotFoundError, InternalServerError => ServerError}
@@ -30,7 +30,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 @Singleton
 class PublishedController @Inject() (publishedService: PublishedService,
                                      cc: ControllerComponents,
-                                     identify: IdentifierAction) extends BackendController(cc) {
+                                     identify: AllRolesAction) extends BackendController(cc) {
 
   def get(id: String): Action[AnyContent] = Action.async {
 

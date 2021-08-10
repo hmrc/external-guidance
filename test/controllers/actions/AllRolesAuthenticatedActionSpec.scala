@@ -28,10 +28,10 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AuthenticatedIdentifierActionSpec extends ControllerBaseSpec with MockAuthConnector {
+class AllRolesAuthenticatedActionSpec extends ControllerBaseSpec with MockAuthConnector {
 
   // Define simple harness class to represent controller
-  class Harness(authenticatedIdentifierAction: IdentifierAction) {
+  class Harness(authenticatedIdentifierAction: AllRolesAction) {
 
     def onPageLoad(): Action[AnyContent] = authenticatedIdentifierAction { _ =>
       Results.Ok
@@ -48,12 +48,12 @@ class AuthenticatedIdentifierActionSpec extends ControllerBaseSpec with MockAuth
     implicit val hc: HeaderCarrier = HeaderCarrier()
     implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
-    lazy val authAction = new AuthenticatedIdentifierAction(mockAuthConnector, MockAppConfig, bodyParser, config, env)
+    lazy val authAction = new AllRolesAuthenticatedAction(mockAuthConnector, MockAppConfig, bodyParser, config, env)
 
     lazy val target = new Harness(authAction)
   }
 
-  "AuthenticatedIdentifierAction" should {
+  "AllRolesAuthenticatedAction" should {
 
     "grant access if authorisation is successful" in new AuthTestData {
 
