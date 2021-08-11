@@ -51,8 +51,8 @@ trait PrivilegedAction extends AuthorisedFunctions with AuthRedirects {
         logger.error("Identifier action could not retrieve required user details in method invokeBlock")
         Future.successful(Unauthorized)
     } recover {
-      case _ =>
-        logger.error(s"Attempt to access resource without relevant role")
+      case result =>
+        logger.error(s"Attempt to access resource without relevant role: $result")
         Unauthorized
     }
   }
