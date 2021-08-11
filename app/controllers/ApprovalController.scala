@@ -16,7 +16,7 @@
 
 package controllers
 
-import controllers.actions.IdentifierAction
+import controllers.actions.AllRolesAction
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.libs.json._
@@ -31,7 +31,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ApprovalController @Inject() (identify: IdentifierAction, approvalService: ApprovalService, cc: ControllerComponents) extends BackendController(cc) {
+class ApprovalController @Inject() (allRolesAction: AllRolesAction, approvalService: ApprovalService, cc: ControllerComponents) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass)
 
@@ -80,7 +80,7 @@ class ApprovalController @Inject() (identify: IdentifierAction, approvalService:
     }
   }
 
-  def approvalSummaryList: Action[AnyContent] = identify.async { implicit request =>
+  def approvalSummaryList: Action[AnyContent] = allRolesAction.async { implicit request =>
     approvalService.approvalSummaryList(request.roles).map {
       case Right(list) => Ok(list)
       case _ => InternalServerError(toJson(ServerError))

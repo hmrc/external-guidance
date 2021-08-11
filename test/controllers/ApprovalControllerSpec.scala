@@ -16,7 +16,7 @@
 
 package controllers
 
-import controllers.actions.FakeIdentifierAction
+import controllers.actions.FakeAllRolesAction
 import mocks.MockApprovalService
 import core.models.errors.{BadRequestError, DuplicateKeyError, Error, InternalServerError, NotFoundError, ProcessError, ValidationError}
 import core.models.ocelot.errors.DuplicatePageUrl
@@ -41,7 +41,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
     val invalidId: String = "ext95"
     val invalidProcess: JsObject = Json.obj("id" -> "ext0093")
 
-    lazy val controller: ApprovalController = new ApprovalController(FakeIdentifierAction, mockApprovalService, stubControllerComponents())
+    lazy val controller: ApprovalController = new ApprovalController(FakeAllRolesAction, mockApprovalService, stubControllerComponents())
   }
 
   "Calling the saveFor2iReview action" when {
