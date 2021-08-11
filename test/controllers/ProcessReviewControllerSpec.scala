@@ -16,7 +16,7 @@
 
 package controllers
 
-import controllers.actions.{FakeFactCheckerIdentifierAction, FakeTwoEyeReviewerIdentifierAction}
+import controllers.actions.{FakeFactCheckerAction, FakeTwoEyeReviewerAction}
 import data.ReviewData
 import mocks.MockReviewService
 import models._
@@ -49,8 +49,8 @@ class ProcessReviewControllerSpec extends WordSpec
     val reviewUpdate: ApprovalProcessPageReview = ApprovalProcessPageReview("id", "/pageUrl", "Title", None, "status")
 
     lazy val controller: ProcessReviewController = new ProcessReviewController(
-      FakeFactCheckerIdentifierAction,
-      FakeTwoEyeReviewerIdentifierAction,
+      FakeFactCheckerAction,
+      FakeTwoEyeReviewerAction,
       mockReviewService,
       stubControllerComponents())
   }

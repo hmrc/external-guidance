@@ -18,8 +18,8 @@ package controllers
 
 import java.time.ZonedDateTime
 import base.BaseSpec
-import controllers.actions.FakeIdentifierAction
-import controllers.actions.FakeIdentifierAction.credential
+import controllers.actions.FakeAllRolesAction
+import controllers.actions.FakeAllRolesAction.credential
 import mocks.MockPublishedService
 import models.PublishedProcess
 import core.models.errors.{BadRequestError, InternalServerError, NotFoundError}
@@ -42,7 +42,7 @@ class PublishedControllerSpec extends BaseSpec with GuiceOneAppPerSuite with Pro
     lazy val target: PublishedController = new PublishedController(
       mockPublishedService,
       stubControllerComponents(),
-      FakeIdentifierAction
+      FakeAllRolesAction
     )
 
     lazy val getRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, "/")

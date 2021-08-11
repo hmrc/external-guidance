@@ -18,21 +18,22 @@ package controllers
 
 import javax.inject.{Inject, Singleton}
 import core.models.errors.{ValidationError, InternalServerError => ServerError}
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.TimescalesService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.Logger
+import controllers.actions.AllRolesAction
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton()
-class TimescalesController @Inject() (timescaleService: TimescalesService, cc: ControllerComponents) extends BackendController(cc) {
+class TimescalesController @Inject() (timescaleService: TimescalesService, cc: ControllerComponents, allRolesAction: AllRolesAction) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass)
 
-  def save(): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    val timescales = request.body.as[JsObject]
-    logger.debug(s"Received timescales update")
+  def save(): Action[JsValue] = allRolesAction.async(parse.json) { implicit request =>
+    val timescales: JsValue = request.body
+    logger.warn(s"Received timescales update")
     timescaleService.save(timescales).map {
       case Right(id) => NoContent
       case Left(ValidationError) =>

@@ -26,7 +26,7 @@ import play.api.http.ContentTypes
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-//import core.services.toProcessErr
+import controllers.actions.FakeAllRolesAction
 
 import scala.concurrent.Future
 
@@ -34,7 +34,7 @@ class TimescalesControllerSpec extends WordSpec with Matchers with ScalaFutures 
 
   private trait Test extends MockTimescalesService {
     val timescaleJson: JsValue = Json.parse("""{"First": 1, "Second": 2, "Third": 3}""")
-    lazy val target: TimescalesController = new TimescalesController(mockTimescalesService, stubControllerComponents())
+    lazy val target: TimescalesController = new TimescalesController(mockTimescalesService, stubControllerComponents(), FakeAllRolesAction)
   }
 
   "Calling the save action" when {

@@ -31,9 +31,9 @@ class Module extends AbstractModule {
     bind(classOf[ArchiveRepository]).to(classOf[ArchiveRepositoryImpl])
     bind(classOf[TimescalesRepository]).to(classOf[TimescalesRepositoryImpl])
     bind(classOf[ApprovalProcessReviewRepository]).to(classOf[ApprovalProcessReviewRepositoryImpl])
-    bind(classOf[IdentifierAction]).to(classOf[AuthenticatedIdentifierAction])
-    bind(classOf[FactCheckerIdentifierAction]).to(classOf[FactCheckerAuthenticatedIdentifierAction])
-    bind(classOf[TwoEyeReviewerIdentifierAction]).to(classOf[TwoEyeReviewerAuthenticatedIdentifierAction])
+    bind(classOf[AllRolesAction]).to(classOf[AllRolesAuthenticatedAction])
+    bind(classOf[FactCheckerAction]).to(classOf[FactCheckerAuthenticatedAction])
+    bind(classOf[TwoEyeReviewerAction]).to(classOf[TwoEyeReviewerAuthenticatedAction])
     bind(classOf[TodayProvider]).to(classOf[DefaultTodayProvider])
   }
 }

@@ -16,7 +16,7 @@
 
 package controllers
 
-import controllers.actions.{FactCheckerIdentifierAction, TwoEyeReviewerIdentifierAction}
+import controllers.actions.{FactCheckerAction, TwoEyeReviewerAction}
 import javax.inject.{Inject, Singleton}
 import core.models.errors.{InternalServerError => ServerError, _}
 import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange}
@@ -31,19 +31,19 @@ import scala.concurrent.Future
 
 @Singleton
 class ProcessReviewController @Inject() (
-    factCheckerIdentifierAction: FactCheckerIdentifierAction,
-    twoEyeReviewerIdentifierAction: TwoEyeReviewerIdentifierAction,
+    factCheckerAction: FactCheckerAction,
+    twoEyeReviewerAction: TwoEyeReviewerAction,
     reviewService: ReviewService,
     cc: ControllerComponents
 ) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass())
 
-  def approval2iReviewInfo(id: String): Action[AnyContent] = twoEyeReviewerIdentifierAction.async { _ =>
+  def approval2iReviewInfo(id: String): Action[AnyContent] = twoEyeReviewerAction.async { _ =>
     getReviewInfo(id, ReviewType2i)
   }
 
-  def approvalFactCheckInfo(id: String): Action[AnyContent] = factCheckerIdentifierAction.async { _ =>
+  def approvalFactCheckInfo(id: String): Action[AnyContent] = factCheckerAction.async { _ =>
     getReviewInfo(id, ReviewTypeFactCheck)
   }
 
@@ -58,7 +58,7 @@ class ProcessReviewController @Inject() (
     }
   }
 
-  def approval2iReviewConfirmAllPagesReviewed(id: String): Action[AnyContent] = twoEyeReviewerIdentifierAction.async { _ =>
+  def approval2iReviewConfirmAllPagesReviewed(id: String): Action[AnyContent] = twoEyeReviewerAction.async { _ =>
     reviewService.checkProcessInCorrectStateForCompletion(id, ReviewType2i).map {
       case Right(_) => NoContent
       case Left(IncompleteDataError) => BadRequest(Json.toJson(IncompleteDataError))
@@ -68,7 +68,7 @@ class ProcessReviewController @Inject() (
     }
   }
 
-  def approval2iReviewComplete(id: String): Action[JsValue] = twoEyeReviewerIdentifierAction.async(parse.json) { request =>
+  def approval2iReviewComplete(id: String): Action[JsValue] = twoEyeReviewerAction.async(parse.json) { request =>
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
       reviewService.twoEyeReviewComplete(id, statusChangeInfo).map {
         case Right(auditInfo) =>
@@ -88,7 +88,7 @@ class ProcessReviewController @Inject() (
     }
   }
 
-  def approvalFactCheckComplete(id: String): Action[JsValue] = factCheckerIdentifierAction.async(parse.json) { request =>
+  def approvalFactCheckComplete(id: String): Action[JsValue] = factCheckerAction.async(parse.json) { request =>
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
       reviewService.factCheckComplete(id, statusChangeInfo).map {
         case Right(auditInfo) =>
@@ -108,11 +108,11 @@ class ProcessReviewController @Inject() (
     }
   }
 
-  def approval2iReviewPageInfo(id: String, pageUrl: String): Action[AnyContent] = twoEyeReviewerIdentifierAction.async { _ =>
+  def approval2iReviewPageInfo(id: String, pageUrl: String): Action[AnyContent] = twoEyeReviewerAction.async { _ =>
     pageReviewInfo(id, pageUrl, ReviewType2i)
   }
 
-  def approvalFactCheckPageInfo(id: String, pageUrl: String): Action[AnyContent] = factCheckerIdentifierAction.async { _ =>
+  def approvalFactCheckPageInfo(id: String, pageUrl: String): Action[AnyContent] = factCheckerAction.async { _ =>
     pageReviewInfo(id, pageUrl, ReviewTypeFactCheck)
   }
 
@@ -126,11 +126,11 @@ class ProcessReviewController @Inject() (
     }
   }
 
-  def approval2iReviewPageComplete(id: String, pageUrl: String): Action[JsValue] = twoEyeReviewerIdentifierAction.async(parse.json) { request =>
+  def approval2iReviewPageComplete(id: String, pageUrl: String): Action[JsValue] = twoEyeReviewerAction.async(parse.json) { request =>
     pageReviewComplete(id, pageUrl, ReviewType2i, request.body)
   }
 
-  def approvalFactCheckPageComplete(id: String, pageUrl: String): Action[JsValue] = factCheckerIdentifierAction.async(parse.json) { request =>
+  def approvalFactCheckPageComplete(id: String, pageUrl: String): Action[JsValue] = factCheckerAction.async(parse.json) { request =>
     pageReviewComplete(id, pageUrl, ReviewTypeFactCheck, request.body)
   }
 

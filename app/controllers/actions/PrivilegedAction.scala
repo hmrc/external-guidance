@@ -16,13 +16,11 @@
 
 package controllers.actions
 
-import config.AppConfig
-import javax.inject.Inject
 import models.requests.IdentifierRequest
 import play.api.mvc.Results._
 import play.api.mvc._
-import play.api.{Configuration, Environment, Logger}
-import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
+import play.api.Logger
+import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
@@ -30,45 +28,33 @@ import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name, ~}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import uk.gov.hmrc.play.bootstrap.config.AuthRedirects
-
 import scala.concurrent.{ExecutionContext, Future}
+import config.AppConfig
 
 trait IdentifierAction extends ActionBuilder[IdentifierRequest, AnyContent] with ActionFunction[Request, IdentifierRequest]
 
-class AuthenticatedIdentifierAction @Inject() (
-    override val authConnector: AuthConnector,
-    appConfig: AppConfig,
-    val parser: BodyParsers.Default,
-    val config: Configuration,
-    val env: Environment
-)(
-    implicit val executionContext: ExecutionContext
-) extends IdentifierAction
-    with AuthorisedFunctions
-    with AuthRedirects {
-
+trait PrivilegedAction extends AuthorisedFunctions with AuthRedirects {
+  val predicate: Predicate
+  implicit val executionContext: ExecutionContext
   val logger: Logger = Logger(getClass)
+  val appConfig: AppConfig
 
-  override def invokeBlock[A](request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] = {
+  def invokeBlock[A](request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
 
-    val allUsersPredicate: Predicate = AuthProviders(PrivilegedApplication) and
-      (
-        Enrolment(appConfig.designerRole) or
-          Enrolment(appConfig.twoEyeReviewerRole) or
-          Enrolment(appConfig.factCheckerRole)
-      )
-
     // Allow access for all roles
-    authorised(allUsersPredicate).retrieve(Retrievals.credentials and Retrievals.name and Retrievals.email and Retrievals.authorisedEnrolments) {
+    authorised(predicate).retrieve(Retrievals.credentials and Retrievals.name and Retrievals.email and Retrievals.authorisedEnrolments) {
       case Some(Credentials(providerId, _)) ~ Some(Name(Some(name), _)) ~ Some(email) ~ authEnrolments =>
         block(IdentifierRequest(request, providerId, name, email, authEnrolments.enrolments.map(_.key).toList))
       case _ =>
-        logger.warn("Identifier action could not retrieve required user details in method invokeBlock")
+        logger.error("Identifier action could not retrieve required user details in method invokeBlock")
         Future.successful(Unauthorized)
     } recover {
-      case _ => Unauthorized
+      case result =>
+        logger.error(s"Attempt to access resource without relevant role: $result")
+        Unauthorized
     }
   }
+
 }
