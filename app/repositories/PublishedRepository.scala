@@ -74,8 +74,7 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
       )
     )
 
-    this
-      .findAndUpdate(selector, modifier, upsert = true)
+    findAndUpdate(selector, modifier, upsert = true)
       .map { _ =>
         Right(id)
       }
@@ -91,8 +90,7 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
     //$COVERAGE-ON$
   }
 
-  def getById(id: String): Future[RequestOutcome[PublishedProcess]] = {
-
+  def getById(id: String): Future[RequestOutcome[PublishedProcess]] =
     findById(id)
       .map {
         case Some(publishedProcess) => Right(publishedProcess)
@@ -105,13 +103,10 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
           Left(DatabaseError)
       }
     //$COVERAGE-ON$
-  }
 
-  def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]] = {
-
-    val selector = Json.obj("processCode" -> processCode)
+  def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]] =
     collection
-      .find[JsObject, JsObject](selector)
+      .find[JsObject, JsObject](Json.obj("processCode" -> processCode))
       .one[PublishedProcess]
       .map {
         case Some(publishedProcess) => Right(publishedProcess)
@@ -124,11 +119,9 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
           Left(DatabaseError)
       }
     //$COVERAGE-ON$
-  }
 
-  def delete(id: String): Future[RequestOutcome[String]] = {
-    val selector = Json.obj("_id" -> id)
-    collection.findAndRemove(selector,
+  def delete(id: String): Future[RequestOutcome[String]] =
+    collection.findAndRemove(Json.obj("_id" -> id),
                              sort = None,
                              fields = None,
                              writeConcern = WriteConcern.Acknowledged,
@@ -143,6 +136,5 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
           Left(DatabaseError)
       }
     //$COVERAGE-ON$
-  }
 
 }

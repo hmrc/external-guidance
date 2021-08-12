@@ -84,6 +84,7 @@ package object services {
     case e: MetaParseError => ProcessError(s"MetaParseError: Process Meta section parse error, reason: ${e.msg}, target: ${e.id}", "")
     case e: PhrasesParseError => ProcessError(s"PhrasesParseError: Process Phrases section parse error, reason: ${e.msg}, index: ${e.id}", "")
     case e: LinksParseError => ProcessError(s"LinksParseError: Process Links section parse error, reason: ${e.msg}, index: ${e.id}", "")
+    case e: TimescalesParseError => ProcessError(s"TimescalesParseError: Process timescales section parse error, reason: ${e.msg}, index: ${e.id}", "")
   }
 
   implicit def processErrs(errs: List[GuidanceError]): List[ProcessError] = errs.map(toProcessErr)

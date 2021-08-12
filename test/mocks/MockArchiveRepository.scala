@@ -20,7 +20,6 @@ import core.models.RequestOutcome
 import models.PublishedProcess
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
-import play.api.libs.json.JsObject
 import repositories.ArchiveRepository
 
 import scala.concurrent.Future
@@ -35,9 +34,9 @@ trait MockArchiveRepository extends MockFactory {
         .expects(id, user, processCode, process)
     }
 
-    def getByProcessCode(processCode: String): CallHandler[Future[List[JsObject]]] = {
-      (mockArchiveRepository.getByProcessCode(_: String)).expects(processCode)
-    }
+    // def getByProcessCode(processCode: String): CallHandler[Future[List[JsObject]]] = {
+    //   (mockArchiveRepository.getByProcessCode(_: String)).expects(processCode)
+    // }
   }
 
 }

@@ -36,53 +36,41 @@ class PublishedService @Inject() (published: PublishedRepository,
 
   val logger: Logger = Logger(this.getClass)
 
-  def getById(id: String): Future[RequestOutcome[PublishedProcess]] = {
-
-    def getProcess(id: String): Future[RequestOutcome[PublishedProcess]] = published.getById(id) map {
-      case error @ Left(NotFoundError) => error
-      case Left(_) => Left(InternalServerError)
-      case result => result
-    }
-
+  def getById(id: String): Future[RequestOutcome[PublishedProcess]] =
     validateProcessId(id) match {
-      case Right(id) => getProcess(id)
+      case Right(id) => published.getById(id) map {
+        case error @ Left(NotFoundError) => error
+        case Left(_) => Left(InternalServerError)
+        case result => result
+      }
       case Left(_) =>
         logger.error(s"Invalid process id submitted to method getById. The requested id was $id")
         Future.successful(Left(BadRequestError))
     }
-  }
 
-  def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]] = {
-
+  def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]] =
     published.getByProcessCode(processCode) map {
       case error @ Left(NotFoundError) => error
       case Left(_) => Left(InternalServerError)
       case result => result
     }
-  }
 
-
-  def save(id: String, user: String, processCode: String, jsonProcess: JsObject): Future[RequestOutcome[String]] = {
-
-    def saveProcess: Future[RequestOutcome[String]] =
-      published.save(id, user, processCode, jsonProcess) map {
-        case Left(DuplicateKeyError) => Left(DuplicateKeyError)
-        case Left(_) =>
-          logger.error(s"Request to publish $id has failed")
-          Left(InternalServerError)
-        case result => result
-      }
-
+  def save(id: String, user: String, processCode: String, jsonProcess: JsObject): Future[RequestOutcome[String]] =
     jsonProcess
       .validate[Process]
       .fold(_ => {
         logger.error(s"Publish process $id has failed - invalid process passed in")
         Future.successful(Left(BadRequestError))
-      }, _ => saveProcess)
+      }, _ => published.save(id, user, processCode, jsonProcess) map {
+          case Left(DuplicateKeyError) => Left(DuplicateKeyError)
+          case Left(_) =>
+            logger.error(s"Request to publish $id has failed")
+            Left(InternalServerError)
+          case result => result
+        }
+      )
 
-  }
-
-  def archive(id: String, user: String): Future[RequestOutcome[String]] = {
+  def archive(id: String, user: String): Future[RequestOutcome[String]] =
     published.getById(id).flatMap {
       case Left(_) =>
         logger.error(s"Invalid process id submitted to method getById. The requested id was $id")
@@ -90,12 +78,12 @@ class PublishedService @Inject() (published: PublishedRepository,
       case Right(process) =>
         archive.archive(id, user, process.processCode, process).flatMap {
           case Left(_) => Future.successful(Left(InternalServerError))
-          case _ => for {
-            _       <- approval.changeStatus(id, "Archived", user)
-            deleted <- published.delete(id)
-          } yield deleted
+          case _ =>
+            logger.warn(s"ARCHIVE: Process $id archived")
+            for {
+              _       <- approval.changeStatus(id, "Archived", user)
+              deleted <- published.delete(id)
+            } yield deleted
         }
     }
-  }
-
 }

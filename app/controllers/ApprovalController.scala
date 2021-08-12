@@ -21,7 +21,7 @@ import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
-import services.ApprovalService
+import services.{TimescalesService, ApprovalService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import models.Constants._
 import core.models.errors.{BadRequestError, DuplicateKeyError, Error, NotFoundError, ValidationError, InternalServerError => ServerError}
@@ -31,7 +31,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ApprovalController @Inject() (allRolesAction: AllRolesAction, approvalService: ApprovalService, cc: ControllerComponents) extends BackendController(cc) {
+class ApprovalController @Inject() (allRolesAction: AllRolesAction,
+                                    approvalService: ApprovalService,
+                                    timescalesService: TimescalesService,
+                                    cc: ControllerComponents) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass)
 
@@ -62,21 +65,27 @@ class ApprovalController @Inject() (allRolesAction: AllRolesAction, approvalServ
     }
 
   def get(id: String): Action[AnyContent] = Action.async { _ =>
-    approvalService.getById(id).map {
-      case Right(approvalProcess) => Ok(approvalProcess)
-      case Left(NotFoundError) => NotFound(toJson(NotFoundError))
-      case Left(BadRequestError) => BadRequest(toJson(BadRequestError))
-      case Left(_) => InternalServerError(toJson(ServerError))
+    approvalService.getById(id).flatMap {
+      case Right(approvalProcess) => timescalesService.updateTimescaleTable(approvalProcess).map {
+        case Right(result) => Ok(result)
+        case Left(_) => InternalServerError(toJson(ServerError))
+      }
+      case Left(NotFoundError) => Future.successful(NotFound(toJson(NotFoundError)))
+      case Left(BadRequestError) => Future.successful(BadRequest(toJson(BadRequestError)))
+      case Left(_) => Future.successful(InternalServerError(toJson(ServerError)))
     }
   }
 
   def getByProcessCode(processCode: String): Action[AnyContent] = Action.async { _ =>
 
-    approvalService.getByProcessCode(processCode).map {
-      case Right(approvalProcess) => Ok(approvalProcess)
-      case Left(NotFoundError) => NotFound(toJson(NotFoundError))
-      case Left(BadRequestError) => BadRequest(toJson(BadRequestError))
-      case Left(_) => InternalServerError(toJson(ServerError))
+    approvalService.getByProcessCode(processCode).flatMap {
+      case Right(approvalProcess) => timescalesService.updateTimescaleTable(approvalProcess).map {
+        case Right(result) => Ok(result)
+        case Left(_) => InternalServerError(toJson(ServerError))
+      }
+      case Left(NotFoundError) => Future.successful(NotFound(toJson(NotFoundError)))
+      case Left(BadRequestError) => Future.successful(BadRequest(toJson(BadRequestError)))
+      case Left(_) => Future.successful(InternalServerError(toJson(ServerError)))
     }
   }
 

@@ -46,18 +46,13 @@ class ScratchService @Inject() (repository: ScratchRepository,
       }
     )
 
-  def getById(id: String): Future[RequestOutcome[JsObject]] = {
-
-    def getProcess(id: UUID): Future[RequestOutcome[JsObject]] = repository.getById(id) map {
-      case error @ Left(NotFoundError) => error
-      case Left(_) => Left(InternalServerError)
-      case result => result
-    }
-
+  def getById(id: String): Future[RequestOutcome[JsObject]] =
     validateUUID(id) match {
-      case Some(id) => getProcess(id)
+      case Some(id) => repository.getById(id).map {
+        case error @ Left(NotFoundError) => error
+        case Left(_) => Left(InternalServerError)
+        case result @ Right(_) => result
+      }
       case None => Future { Left(BadRequestError) }
     }
-  }
-
 }

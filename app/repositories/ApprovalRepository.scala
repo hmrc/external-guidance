@@ -89,8 +89,7 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
     //$COVERAGE-ON$
   }
 
-  def getById(id: String): Future[RequestOutcome[ApprovalProcess]] = {
-
+  def getById(id: String): Future[RequestOutcome[ApprovalProcess]] =
     findById(id)
       .map {
         case Some(approvalProcess) => Right(approvalProcess)
@@ -103,13 +102,10 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
           Left(DatabaseError)
       }
     //$COVERAGE-ON$
-  }
 
-  def getByProcessCode(processCode: String): Future[RequestOutcome[ApprovalProcess]] = {
-
-    val selector = Json.obj("meta.processCode" -> processCode)
+  def getByProcessCode(processCode: String): Future[RequestOutcome[ApprovalProcess]] =
     collection
-      .find[JsObject, JsObject](selector)
+      .find[JsObject, JsObject](Json.obj("meta.processCode" -> processCode))
       .one[ApprovalProcess]
       .map {
         case Some(approvalProcess) => Right(approvalProcess)
@@ -122,7 +118,6 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
           Left(DatabaseError)
       }
     //$COVERAGE-ON$
-  }
 
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]] = {
 

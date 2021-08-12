@@ -19,9 +19,8 @@ package repositories
 import core.models.RequestOutcome
 import core.models.errors.DatabaseError
 import models.PublishedProcess
-import play.api.libs.json.{Format, JsObject, Json}
+import play.api.libs.json.{Format, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.Cursor
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.formatters.PublishedProcessFormatter
@@ -32,9 +31,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ArchiveRepository {
-
   def archive(id: String, user: String, processCode: String, process: PublishedProcess): Future[RequestOutcome[String]]
-  def getByProcessCode(processCode: String): Future[List[JsObject]]
 }
 
 @Singleton
@@ -74,8 +71,7 @@ class ArchiveRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)(i
       )
     )
 
-    this
-      .findAndUpdate(selector, modifier, upsert = true)
+    findAndUpdate(selector, modifier, upsert = true)
       .map ( _ => Right(id) )
       //$COVERAGE-OFF$
       .recover {
@@ -85,21 +81,4 @@ class ArchiveRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)(i
       }
       //$COVERAGE-ON$
   }
-
-  def getByProcessCode(processCode: String): Future[List[JsObject]] = {
-
-    val selector = Json.obj("processCode" -> processCode)
-    collection
-      .find[JsObject, JsObject](selector)
-      .cursor[JsObject]()
-      .collect[List](Int.MaxValue, Cursor.FailOnError())
-      //$COVERAGE-OFF$
-      .recover {
-        case error =>
-          logger.error(s"Attempt to retrieve process $processCode from collection $collectionName failed with error : ${error.getMessage}")
-          Nil
-      }
-      //$COVERAGE-ON$
-  }
-
 }

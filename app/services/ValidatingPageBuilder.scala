@@ -65,12 +65,7 @@ class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
         checkExclusiveSequenceTypeError(pages, Nil) ++
         checkForUseOfReservedUrls(pages, Nil) ++
         detectUnsupportedPageRedirect(pages) match {
-          case Nil =>
-            logger.info(s"TIMESCALE ID USAGE")
-            pages.flatMap(PageAnalysis.timescaleIds(_)).foreach{ids =>
-              logger.info(s"\tTIMESCALE_IDs: $ids")
-            }
-            Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
+          case Nil => Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
           case errors => Left(errors)
         }
       }
