@@ -30,7 +30,14 @@ trait Flows {
   def poolUpdates: Map[String, Stanza]  // Changes to initial pool
 }
 
-trait Labels extends Flows {
+// Timescale defns
+trait TimescaleDefns {
+  def updateTimescales(timescales: Map[String, Int]): Labels
+  def timescaleDays(id: String): Option[Int]
+  def timescalesMap: Map[String, Int]
+}
+
+trait Labels extends Flows with TimescaleDefns {
   def value(name: String): Option[String]
   def valueAsList(name: String): Option[List[String]]
   def displayValue(name: String)(implicit lang: Lang): Option[String]
@@ -49,7 +56,8 @@ private class LabelCacheImpl(labels: Map[String, Label] = Map(),
                              cache: Map[String, Label] = Map(),
                              stack: List[FlowStage] = Nil,
                              pool: Map[String, Stanza] = Map(),
-                             poolCache: Map[String, Stanza] = Map()) extends Labels {
+                             poolCache: Map[String, Stanza] = Map(),
+                             timescales: Map[String, Int] = Map()) extends Labels {
 
   // Labels
   def value(name: String): Option[String] = label(name).collect{case s: ScalarLabel => s.english.headOption.getOrElse("")}
@@ -61,18 +69,18 @@ private class LabelCacheImpl(labels: Map[String, Label] = Map(),
     }
   }
   def update(name: String, english: String): Labels =
-    new LabelCacheImpl(labels, updateOrAddScalarLabel(name, english, None), stack, pool, poolCache)
+    new LabelCacheImpl(labels, updateOrAddScalarLabel(name, english, None), stack, pool, poolCache, timescales)
   def update(name: String, english: String, welsh: String): Labels =
-    new LabelCacheImpl(labels, updateOrAddScalarLabel(name, english, Some(welsh)), stack, pool, poolCache)
+    new LabelCacheImpl(labels, updateOrAddScalarLabel(name, english, Some(welsh)), stack, pool, poolCache, timescales)
   def updateList(name: String, english: List[String]): Labels =
-    new LabelCacheImpl(labels, updateOrAddListLabel(name, english), stack, pool, poolCache)
+    new LabelCacheImpl(labels, updateOrAddListLabel(name, english), stack, pool, poolCache, timescales)
   def updateList(name: String, english: List[String], welsh: List[String]): Labels =
-    new LabelCacheImpl(labels, updateOrAddListLabel(name, english, welsh), stack, pool, poolCache)
+    new LabelCacheImpl(labels, updateOrAddListLabel(name, english, welsh), stack, pool, poolCache, timescales)
 
   // Persistence access
   def updatedLabels: Map[String, Label] = cache
   def labelMap:Map[String, Label] = labels
-  def flush(): Labels = new LabelCacheImpl(labels ++ cache.toList, Map(), stack, pool, poolCache)
+  def flush(): Labels = new LabelCacheImpl(labels ++ cache.toList, Map(), stack, pool, poolCache, timescales)
 
   // Label ops
   private def label(name: String): Option[Label] = cache.get(name).fold(labels.get(name))(Some(_))
@@ -97,12 +105,13 @@ private class LabelCacheImpl(labels: Map[String, Label] = Map(),
       case Nil => (Some(continue), this)
       case x :: xs =>
         (Some(x.next),
-         x.labelValue.fold(new LabelCacheImpl(labels, cache, x :: xs ++ (Continuation(continue) :: stack), pool, poolCache ++ stanzas))
+         x.labelValue.fold(new LabelCacheImpl(labels, cache, x :: xs ++ (Continuation(continue) :: stack), pool, poolCache ++ stanzas, timescales))
                           (lv => new LabelCacheImpl(labels,
                                                     updateOrAddScalarLabel(lv.name, lv.value.english, Some(lv.value.welsh)),
                                                     x :: xs ++ (Continuation(continue) :: stack),
                                                     pool,
-                                                    poolCache ++ stanzas))
+                                                    poolCache ++ stanzas,
+                                                    timescales))
         )
     }
 
@@ -113,26 +122,29 @@ private class LabelCacheImpl(labels: Map[String, Label] = Map(),
       case _ :: (y: Flow) :: xs =>
         Some(
           (y.next,
-           y.labelValue.fold(new LabelCacheImpl(labels, cache, stack.tail, pool, poolCache))
-                               (lv => new LabelCacheImpl(labels, updateOrAddScalarLabel(lv.name, lv.value.english, Some(lv.value.welsh)), y :: xs, pool, poolCache)))
+           y.labelValue.fold(new LabelCacheImpl(labels, cache, stack.tail, pool, poolCache, timescales))
+                               (lv => new LabelCacheImpl(labels, updateOrAddScalarLabel(lv.name, lv.value.english, Some(lv.value.welsh)), y :: xs, pool, poolCache, timescales)))
         )
-      case _ :: (c: Continuation) :: xs => Some((c.next, new LabelCacheImpl(labels, cache, xs, pool, poolCache)))
+      case _ :: (c: Continuation) :: xs => Some((c.next, new LabelCacheImpl(labels, cache, xs, pool, poolCache, timescales)))
     }
 
   def activeFlow: Option[FlowStage] = stack.headOption
-
   def continuationPool: Map[String, Stanza] = pool ++ poolCache
 
   // Persistence access
   def flowStack: List[FlowStage] = stack
   def poolUpdates: Map[String, Stanza] = poolCache
+
+  // Timescales defns
+  def updateTimescales(update: Map[String, Int]): Labels = new LabelCacheImpl(labels, cache, stack, pool, poolCache, update)
+  def timescaleDays(id: String): Option[Int] = timescales.get(id)
+  def timescalesMap: Map[String, Int] = timescales
 }
 
 object LabelCache {
   def apply(): Labels = new LabelCacheImpl()
   def apply(labels: Map[String, Label]): Labels = new LabelCacheImpl(labels)
   def apply(labels: Map[String, Label], cache: Map[String, Label]): Labels = new LabelCacheImpl(labels, cache)
-  def apply(labels: Map[String, Label], cache: Map[String, Label], stack: List[FlowStage]): Labels = new LabelCacheImpl(labels, cache, stack)
-  def apply(labels: Map[String, Label], cache: Map[String, Label], stack: List[FlowStage], pool: Map[String, Stanza]): Labels =
-    new LabelCacheImpl(labels, cache, stack, pool)
+  def apply(labels: Map[String, Label], cache: Map[String, Label], stack: List[FlowStage], pool: Map[String, Stanza], timescales: Map[String, Int]): Labels =
+    new LabelCacheImpl(labels, cache, stack, pool, Map(), timescales)
 }

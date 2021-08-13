@@ -16,10 +16,11 @@
 
 package core.services
 
+import core.models.TestTimescaleDefnsDB
 import base.BaseSpec
 import java.time.LocalDate
 
-class TimescalesSpec extends BaseSpec {
+class TimescalesSpec extends BaseSpec with TestTimescaleDefnsDB {
   val today: LocalDate = LocalDate.of(2020, 6, 24)
   val earlyYearToday: LocalDate = LocalDate.of(2018, 2, 12)
   val taxStartForNow = LocalDate.of(2020, 4, 6)
@@ -48,50 +49,50 @@ class TimescalesSpec extends BaseSpec {
     }
 
     "expand today" in {
-      pls.expand("Today is [timescale:today]", today) shouldBe s"Today is 24/6/2020"
+      pls.expand("Today is [timescale:today]", timescaleMap, today) shouldBe s"Today is 24/6/2020"
     }
 
     "expand today:long" in {
-      pls.expand("Today is [timescale:today:long]", today) shouldBe s"Today is 2020"
+      pls.expand("Today is [timescale:today:long]", timescaleMap, today) shouldBe s"Today is 2020"
     }
 
     "expand today:short" in {
-      pls.expand("Today is [timescale:today:short]", today) shouldBe s"Today is 20"
+      pls.expand("Today is [timescale:today:short]", timescaleMap, today) shouldBe s"Today is 20"
     }
 
     "expand CY" in {
-      pls.expand("Tax year start date: [timescale:CY]", today) shouldBe s"Tax year start date: 6/4/2020"
+      pls.expand("Tax year start date: [timescale:CY]", timescaleMap, today) shouldBe s"Tax year start date: 6/4/2020"
     }
 
     "expand CY with -/- offsets" in {
-      pls.expand("Tax year start date: [timescale:CY-1]", today) shouldBe s"Tax year start date: 6/4/2019"
-      pls.expand("Tax year start date: [timescale:CY-2]", today) shouldBe s"Tax year start date: 6/4/2018"
-      pls.expand("Tax year start date: [timescale:CY+1]", today) shouldBe s"Tax year start date: 6/4/2021"
-      pls.expand("Tax year start date: [timescale:CY+2]", today) shouldBe s"Tax year start date: 6/4/2022"
+      pls.expand("Tax year start date: [timescale:CY-1]", timescaleMap, today) shouldBe s"Tax year start date: 6/4/2019"
+      pls.expand("Tax year start date: [timescale:CY-2]", timescaleMap, today) shouldBe s"Tax year start date: 6/4/2018"
+      pls.expand("Tax year start date: [timescale:CY+1]", timescaleMap, today) shouldBe s"Tax year start date: 6/4/2021"
+      pls.expand("Tax year start date: [timescale:CY+2]", timescaleMap, today) shouldBe s"Tax year start date: 6/4/2022"
     }
 
     "expand CY:long" in {
-      pls.expand("Tax year start: [timescale:CY:long]", today) shouldBe s"Tax year start: 2020"
+      pls.expand("Tax year start: [timescale:CY:long]", timescaleMap, today) shouldBe s"Tax year start: 2020"
     }
 
     "expand CY:short" in {
-      pls.expand("Tax year start: [timescale:CY:short]", today) shouldBe s"Tax year start: 20"
+      pls.expand("Tax year start: [timescale:CY:short]", timescaleMap, today) shouldBe s"Tax year start: 20"
     }
 
     "expand date literals" in {
-      pls.expand("A date literal: [timescale:23/5/1999]", today) shouldBe s"A date literal: 23/5/1999"
+      pls.expand("A date literal: [timescale:23/5/1999]", timescaleMap, today) shouldBe s"A date literal: 23/5/1999"
     }
 
     "expand valid timescale days" in {
-      pls.expand("Timescale in days: [timescale:NTCReAwardManAward:days]", today) shouldBe s"Timescale in days: 14"
+      pls.expand("Timescale in days: [timescale:NTCReAwardManAward:days]", timescaleMap, today) shouldBe s"Timescale in days: 14"
     }
 
     "expand another valid timescale days" in {
-      pls.expand("Timescale in days: [timescale:CHBIntCorrCOC:days]", today) shouldBe s"Timescale in days: 147"
+      pls.expand("Timescale in days: [timescale:CHBIntCorrCOC:days]", timescaleMap, today) shouldBe s"Timescale in days: 147"
     }
 
     "expand invalid timescale days" in {
-      pls.expand("Timescale in days: [timescale:UNKNOWN:days]", today) shouldBe s"Timescale in days: [timescale:UNKNOWN:days]"
+      pls.expand("Timescale in days: [timescale:UNKNOWN:days]", timescaleMap, today) shouldBe s"Timescale in days: [timescale:UNKNOWN:days]"
     }
 
   }
@@ -100,26 +101,26 @@ class TimescalesSpec extends BaseSpec {
     val pls: Timescales = new Timescales(new TodayProvider {def now: LocalDate = earlyYearToday})
 
     "expand today" in {
-      pls.expand("Today is [timescale:today]") shouldBe s"Today is 12/2/2018"
+      pls.expand("Today is [timescale:today]", timescaleMap) shouldBe s"Today is 12/2/2018"
     }
 
     "expand today:long" in {
-      pls.expand("Today is [timescale:today:long]") shouldBe s"Today is 2018"
+      pls.expand("Today is [timescale:today:long]", timescaleMap) shouldBe s"Today is 2018"
     }
 
     "expand today:short" in {
-      pls.expand("Today is [timescale:today:short]") shouldBe s"Today is 18"
+      pls.expand("Today is [timescale:today:short]", timescaleMap) shouldBe s"Today is 18"
     }
 
     "expand CY" in {
-      pls.expand("Tax year start date: [timescale:CY]") shouldBe s"Tax year start date: 6/4/2017"
+      pls.expand("Tax year start date: [timescale:CY]", timescaleMap) shouldBe s"Tax year start date: 6/4/2017"
     }
 
     "expand CY with -/- offsets" in {
-      pls.expand("Tax year start date: [timescale:CY-1]") shouldBe s"Tax year start date: 6/4/2016"
-      pls.expand("Tax year start date: [timescale:CY-2]") shouldBe s"Tax year start date: 6/4/2015"
-      pls.expand("Tax year start date: [timescale:CY+1]") shouldBe s"Tax year start date: 6/4/2018"
-      pls.expand("Tax year start date: [timescale:CY+2]") shouldBe s"Tax year start date: 6/4/2019"
+      pls.expand("Tax year start date: [timescale:CY-1]", timescaleMap) shouldBe s"Tax year start date: 6/4/2016"
+      pls.expand("Tax year start date: [timescale:CY-2]", timescaleMap) shouldBe s"Tax year start date: 6/4/2015"
+      pls.expand("Tax year start date: [timescale:CY+1]", timescaleMap) shouldBe s"Tax year start date: 6/4/2018"
+      pls.expand("Tax year start date: [timescale:CY+2]", timescaleMap) shouldBe s"Tax year start date: 6/4/2019"
     }
 
   }

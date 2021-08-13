@@ -83,7 +83,7 @@ class Timescales @Inject() (tp: TodayProvider) {
   private val CyOffsetGroup: Int = 5
   private val LongOrShortGroup: Int = 6
 
-  def expand(str: String, todaysDate: LocalDate = tp.now): String = {
+  def expand(str: String, timescales: Map[String, Int], todaysDate: LocalDate = tp.now): String = {
     def longOrShort(m: Match, when: LocalDate): String = Option(m.group(LongOrShortGroup)).fold(stringFromDate(when)){
       case "long" => long(when).toString
       case "short" => short(when).toString
@@ -98,6 +98,10 @@ class Timescales @Inject() (tp: TodayProvider) {
         }{_ => longOrShort(m, todaysDate)}
       }{literal => literal}
 
-    timescalesRegex.replaceAllIn(str,m => Option(m.group(TimescaleIdGroup)).fold(dateTimescale(m))(tsId => timescaleDays(tsId).getOrElse(m.group(0))))
+    timescalesRegex.replaceAllIn(str, m =>
+      Option(m.group(TimescaleIdGroup)).fold(dateTimescale(m)){tsId =>
+        timescales.get(tsId).getOrElse(m.group(0)).toString
+      }
+    )
   }
 }

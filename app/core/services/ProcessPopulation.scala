@@ -89,11 +89,13 @@ trait ProcessPopulation {
       case i: InputStanza => populateInput(i)
       case c: CalloutStanza => phrase(c.text, id, process).fold(Left(_), text => Right(Callout(c, text)))
       case c: ChoiceStanza =>
-        Right(Choice(c.copy(tests = c.tests.map(t => t.copy(left = timescales.expand(t.left), right = timescales.expand(t.right))))))
+        Right(Choice(c.copy(tests = c.tests.map(t => t.copy(left = timescales.expand(t.left, process.timescales),
+                                                            right = timescales.expand(t.right, process.timescales))))))
       case c: CalculationStanza =>
-        Right(Calculation(c.copy(calcs = c.calcs.map(op => op.copy(left = timescales.expand(op.left), right = timescales.expand(op.right))))))
+        Right(Calculation(c.copy(calcs = c.calcs.map(op => op.copy(left = timescales.expand(op.left, process.timescales),
+                                                                   right = timescales.expand(op.right, process.timescales))))))
       case s: SequenceStanza => populateSequence(id, s)
-      case vs: ValueStanza => Right(vs.copy(values = vs.values.map(v => v.copy(value = timescales.expand(v.value)))))
+      case vs: ValueStanza => Right(vs.copy(values = vs.values.map(v => v.copy(value = timescales.expand(v.value, process.timescales)))))
       case s: Stanza => Right(s)
     }
   }
@@ -107,9 +109,9 @@ trait ProcessPopulation {
       case Phrase(english, welsh) if welsh.trim.startsWith("Welsh,") =>
         logger.debug(s"Found obsolete faked Welsh prefix on phrase $english -- $welsh")
         val updatedWelsh = s"Welsh: ${welsh.trim.drop("Welsh, ".length)}"
-        Right(Phrase(timescales.expand(english), timescales.expand(updatedWelsh)))
+        Right(Phrase(timescales.expand(english, process.timescales), timescales.expand(updatedWelsh, process.timescales)))
       case p: Phrase =>
-        Right(Phrase(timescales.expand(p.english), timescales.expand(p.welsh)))
+        Right(Phrase(timescales.expand(p.english, process.timescales), timescales.expand(p.welsh, process.timescales)))
     }
 
   @tailrec

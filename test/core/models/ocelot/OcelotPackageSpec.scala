@@ -20,7 +20,7 @@ import core.models._
 import base.BaseSpec
 import org.scalatest.Inspectors.forAll
 
-class OcelotPackageSpec extends BaseSpec {
+class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
 
   "Date conversion" must {
     "recognise a valid date" in {
@@ -217,23 +217,23 @@ class OcelotPackageSpec extends BaseSpec {
 
   "operandValue function" must {
     "parse date_add placeholder with literal date" in {
-      operandValue("[date_add:22/9/1973:NTCReAwardManAward]")(LabelCache()) shouldBe Some("6/10/1973")
+      operandValue("[date_add:22/9/1973:NTCReAwardManAward]")(labels) shouldBe Some("6/10/1973")
     }
 
     "parse date_add placeholders with label date" in {
-      val labels = LabelCache().update("MyDate", "22/9/1973")
-      operandValue("[date_add:MyDate:NTCReAwardManAward]")(labels) shouldBe Some("6/10/1973")
+      val labelsWithMyDate = labels.update("MyDate", "22/9/1973")
+      operandValue("[date_add:MyDate:NTCReAwardManAward]")(labelsWithMyDate) shouldBe Some("6/10/1973")
     }
 
     "parse date label reference" in {
-      val labels = LabelCache().update("MyDate", "22/9/1973")
-      operandValue("[label:MyDate]")(labels) shouldBe Some("22/9/1973")
+      val labelsWithMyDate = labels.update("MyDate", "22/9/1973")
+      operandValue("[label:MyDate]")(labelsWithMyDate) shouldBe Some("22/9/1973")
     }
   }
 
   "Timescale functions" must {
     "dateAdd with a valid date and timescale id" in {
-      dateAdd(Some("22/9/1973"), "NTCReAwardManAward") shouldBe Some("6/10/1973")
+      dateAdd(Some("22/9/1973"), "NTCReAwardManAward", labels) shouldBe Some("6/10/1973")
     }
   }
 

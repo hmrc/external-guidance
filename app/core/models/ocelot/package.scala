@@ -78,7 +78,7 @@ package object ocelot {
     Option(m.group(LabelNameGroup)).fold{
       Option(m.group(ListLengthLabelNameGroup)).fold{
         Option(m.group(DateAddTimescaleIdGroup)).fold[Option[String]](None){tsId =>
-          Option(m.group(DateAddLabelNameGroup)).fold(dateAdd(Option(m.group(DateAddLiteralGroup)), tsId)){daLabel => dateAdd(lbl(daLabel), tsId)}
+          Option(m.group(DateAddLabelNameGroup)).fold(dateAdd(Option(m.group(DateAddLiteralGroup)), tsId, labels)){daLabel => dateAdd(lbl(daLabel), tsId, labels)}
         }
       }{list => listLength(list, labels)}
     }{label => lbl(label)}
@@ -124,9 +124,8 @@ package object ocelot {
     )
   }
 
-  def timescaleDays(tsId: String): Option[String] = TimescaleDB.timescaleMap.get(tsId).map(_.toString)
-  def dateAdd(date: Option[String], tsId: String): Option[String] =
-    timescaleDays(tsId).flatMap(days => date.flatMap(asDate).map(dt => stringFromDate(dt.plusDays(days.toLong))))
+  def dateAdd(date: Option[String], tsId: String, labels: Labels): Option[String] =
+    labels.timescaleDays(tsId).flatMap(days => date.flatMap(asDate).map(dt => stringFromDate(dt.plusDays(days.toLong))))
 
   private def plSingleGroupCaptures(regex: Regex, str: String, index: Int = 1): List[String] = regex.findAllMatchIn(str).map(_.group(index)).toList
   private def matchedInt(value: String, regex: Regex): Option[Int] = regex.findFirstIn(value.filterNot(_.equals(' '))).flatMap(asInt)

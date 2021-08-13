@@ -355,7 +355,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
         "Colours"->ListLabel("Colours", List("Yellow", "Violet"))
       )
 
-      val labels = LabelCache(labelsMap, cacheMap, Nil)
+      val labels = LabelCache(labelsMap, cacheMap)
 
       labels.value("X") shouldBe Some("46.5")
       labels.valueAsList("Colours") shouldBe Some(List("Yellow", "Violet"))
