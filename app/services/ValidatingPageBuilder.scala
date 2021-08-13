@@ -45,7 +45,7 @@ object PageVertex {
 }
 
 @Singleton
-class ValidatingPageBuilder @Inject() (pageBuilder: PageBuilder){
+class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
   val logger: Logger = Logger(getClass)
   val ReservedUrls: List[String] = List("/session-timeout", "/session-restart", s"/${SecuredProcess.SecuredProcessStartUrl}")
 

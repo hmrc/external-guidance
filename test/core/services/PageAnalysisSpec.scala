@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services
+package core.services
 
 import base.BaseSpec
 import core.models.ocelot.stanzas._
@@ -130,25 +130,27 @@ class PageAnalysisSpec extends BaseSpec {
     val page1: Page = Page(Process.StartStanzaId, "/start", stanzas1, Seq("3"))
     val page2: Page = Page("3", "/two", stanzas2, Seq("7"))
     val page3: Page = Page("7", "/three", stanzas3, Seq("end"))
+
+    val timescales = new Timescales(new DefaultTodayProvider)
   }
 
-  "PageAnalysis" must {
-    "Detect all timescaleIds in a page" in new Test {
-      PageAnalysis.timescaleIds(page1) shouldBe List("CHBClaimLa", "JRSBACs", "JRSHMRCcall", "JRSProgChaseCB", "CHBClaimSection")
-      PageAnalysis.timescaleIds(page2) shouldBe  List("JRSRefCB", "CHBOtherOnline", "JRSHMRCcall", "CHBOtherAck", "CHBFLDL84TSNot",
+  "Timescales" must {
+    "Detect all referencedIds in a page" in new Test {
+      timescales.referencedIds(page1) shouldBe List("CHBClaimLa", "JRSBACs", "JRSHMRCcall", "JRSProgChaseCB", "CHBClaimSection")
+      timescales.referencedIds(page2) shouldBe  List("JRSRefCB", "CHBOtherOnline", "JRSHMRCcall", "CHBOtherAck", "CHBFLDL84TSNot",
                                                       "CHBCBORet", "CHBDOCCheck", "CHBE140Pcb", "CHBE140cb")
-      PageAnalysis.timescaleIds(page3) shouldBe List("CHBDOCpost", "CHBCBORet", "CHBDOCCheck", "CHBE140Pcb", "JRSRefCB", "JRSBACs")
+      timescales.referencedIds(page3) shouldBe List("CHBDOCpost", "CHBCBORet", "CHBDOCCheck", "CHBE140Pcb", "JRSRefCB", "JRSBACs")
     }
 
     "Detect all timescales in a Phrase" in new Test {
       val p: Phrase = Phrase(s"This is a timescale [timescale:${tids(4)}:days] and this a date_add [date_add:MyLabel:${rtids(0)}] and more text",
                              s"Welsh:This is a timescale [timescale:${tids(4)}:days] and this a date_add [date_add:MyLabel:${rtids(0)}] and more text")
 
-      PageAnalysis.timescaleIds(p) shouldBe List("CHBClaimSection", "CHBOtherOnline")
+      timescales.referencedIds(p) shouldBe List("CHBClaimSection", "CHBOtherOnline")
     }
 
     "Detect all timescales in a String" in new Test {
-      PageAnalysis.timescaleIds(s"This is a timescale [timescale:${tids(4)}:days] and this a date_add [date_add:MyLabel:${rtids(0)}] and more text") shouldBe List("CHBClaimSection", "CHBOtherOnline")
+      timescales.referencedIds(s"This is a timescale [timescale:${tids(4)}:days] and this a date_add [date_add:MyLabel:${rtids(0)}] and more text") shouldBe List("CHBClaimSection", "CHBOtherOnline")
     }
   }
 

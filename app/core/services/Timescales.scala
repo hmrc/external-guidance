@@ -18,6 +18,7 @@ package core.services
 
 import javax.inject.{Inject, Singleton}
 import core.models.ocelot._
+import core.models.ocelot.stanzas._
 import java.time.LocalDate
 import scala.util.matching.Regex
 import Regex._
@@ -37,15 +38,41 @@ class DefaultTodayProvider extends TodayProvider {
 
 @Singleton
 class Timescales @Inject() (tp: TodayProvider) {
-  val TaxYearStartDay: Int = 6
-  val TaxYearStartMonth: Int = 4
-  val TaxYearPattern: String = "CY([\\-+]\\d+)?"
-  val timescalesPattern = s"\\[timescale:(?:(?:($TimescaleIdPattern):days)|(?:($DatePattern)|(today)|($TaxYearPattern))(?::(long|short))?)\\]"
-  val timescalesRegex: Regex = timescalesPattern.r
 
-  def long(date: LocalDate): Int = date.getYear
-  def short(date: LocalDate): Int = long(date) % 100
-  def cy(offset: Int, when: LocalDate): LocalDate = {
+  // Page Analysis
+  private val DateAddTimescaleId: Int = 3
+  private val TimescaleId: Int = 4
+
+  private[services] def referencedIds(s: String): List[String] = TimescaleIdUsageRegex.findAllMatchIn(s).toList.flatMap{m =>
+    Option(m.group(DateAddTimescaleId)).fold{
+      Option(m.group(TimescaleId)).fold(List.empty[String]){id => List(id)}
+    }(id => List(id))
+  }
+
+  private[services] def referencedIds(p: Phrase): List[String] = (referencedIds((p.english)) ++ referencedIds((p.welsh))).distinct
+
+  def referencedIds(page: Page): List[String] =
+    page.stanzas.toList.collect{
+      case s: Calculation => s.calcs.flatMap(o => referencedIds(o.left) ++ referencedIds(o.right))
+      case s: Choice => s.tests.flatMap(t => referencedIds(t.left) ++ referencedIds(t.right))
+      case s: ValueStanza => s.values.flatMap(v => referencedIds(v.value))
+      case s: Input => referencedIds(s.name) ++ s.help.map(referencedIds(_)).getOrElse(Nil)
+      case s: Instruction => referencedIds(s.text)
+      case s: Sequence => referencedIds(s.text) ++ s.options.toList.flatMap(referencedIds(_)) ++ s.exclusive.map(referencedIds(_)).getOrElse(Nil)
+      case s: Question => referencedIds(s.text) ++ s.answers.toList.flatMap(referencedIds(_))
+      case s: Callout => referencedIds(s.text)
+      case s: Row => s.cells.toList.flatMap(referencedIds(_))
+    }.flatten.distinct
+
+  private val TaxYearStartDay: Int = 6
+  private val TaxYearStartMonth: Int = 4
+  private val TaxYearPattern: String = "CY([\\-+]\\d+)?"
+  private val timescalesPattern = s"\\[timescale:(?:(?:($TimescaleIdPattern):days)|(?:($DatePattern)|(today)|($TaxYearPattern))(?::(long|short))?)\\]"
+  private val timescalesRegex: Regex = timescalesPattern.r
+
+  private[services] def long(date: LocalDate): Int = date.getYear
+  private[services] def short(date: LocalDate): Int = long(date) % 100
+  private[services] def cy(offset: Int, when: LocalDate): LocalDate = {
     val candidateStartDate = when.withMonth(TaxYearStartMonth).withDayOfMonth(TaxYearStartDay)
     candidateStartDate.minusYears(-offset + (if (when.isBefore(candidateStartDate)) 1 else 0))
   }

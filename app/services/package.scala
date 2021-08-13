@@ -25,16 +25,16 @@ import config.AppConfig
 
 package object services {
 
-  def guidancePagesAndProcess(pageBuilder: ValidatingPageBuilder, jsObject: JsObject)
+  def guidancePagesAndProcess(pb: ValidatingPageBuilder, jsObject: JsObject)
                    (implicit c: AppConfig): RequestOutcome[(Process, Seq[Page], JsObject)] =
     jsObject.validate[Process].fold(errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
       incomingProcess => {
         // Transform process if fake welsh and/or secured process is indicated
         val (p, js) = fakeWelshTextIfRequired _ tupled securedProcessIfRequired(incomingProcess, Some(jsObject))
-        pageBuilder.pagesWithValidation(p, p.startPageId).fold(
+        pb.pagesWithValidation(p, p.startPageId).fold(
           errs => Left(Error(errs)),
           pages => {
-            val timescaleIds = pages.toList.flatMap(p => PageAnalysis.timescaleIds(p))
+            val timescaleIds = pages.toList.flatMap(p => pb.pageBuilder.timescales.referencedIds(p))
             val (process, jsObject) = addTimescaleTableIfRequired(p, js, timescaleIds)
             Right((process, pages, jsObject.fold(Json.toJsObject(process))(json => json)))
           }
