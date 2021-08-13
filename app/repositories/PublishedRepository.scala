@@ -21,7 +21,7 @@ import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
 import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
 import core.models.RequestOutcome
-import models.PublishedProcess
+import models.{PublishedSummary, PublishedProcess}
 import play.api.libs.json.{Format, JsObject, JsResultException, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.indexes.{Index, IndexType}
@@ -32,10 +32,10 @@ import reactivemongo.api.WriteConcern
 import scala.concurrent.{ExecutionContext, Future}
 
 trait PublishedRepository {
-
   def save(id: String, user: String, processCode: String, process: JsObject): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[PublishedProcess]]
   def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]]
+  def processSummaries(): Future[RequestOutcome[List[PublishedSummary]]]
   def delete(id: String): Future[RequestOutcome[String]]
 }
 
@@ -137,4 +137,13 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
       }
     //$COVERAGE-ON$
 
+  //$COVERAGE-OFF$
+  def processSummaries(): Future[RequestOutcome[List[PublishedSummary]]] =
+    findAll().map(res => Right(res.map(doc => PublishedSummary(doc.id, doc.datePublished, doc.processCode, doc.publishedBy))))
+      .recover {
+        case error =>
+          logger.error(s"Attempt to retrieve published process summaries failed with error : ${error.getMessage}")
+          Left(DatabaseError)
+      }
+  //$COVERAGE-ON$
 }
