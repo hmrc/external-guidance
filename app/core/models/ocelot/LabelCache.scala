@@ -20,7 +20,11 @@ import core.models.ocelot.stanzas.Stanza
 import play.api.i18n.Lang
 
 trait Flows {
-  def pushFlows(flowNext: List[String], continue: String, labelName: Option[String], labelValues: List[Phrase], stanzas: Map[String, Stanza]): (Option[String], Labels)
+  def pushFlows(flowNext: List[String],
+                continue: String,
+                labelName: Option[String],
+                labelValues: List[Phrase],
+                stanzas: Map[String, Stanza]): (Option[String], Labels)
   def nextFlow: Option[(String, Labels)]
   def activeFlow: Option[FlowStage]
   def continuationPool: Map[String, Stanza]
@@ -50,7 +54,7 @@ trait Labels extends Flows with TimescaleDefns {
   def flush(): Labels
 }
 
-private [ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
+private[ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
                              cache: Map[String, Label] = Map(),
                              stack: List[FlowStage] = Nil,
                              pool: Map[String, Stanza] = Map(),
@@ -121,7 +125,12 @@ private [ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
         Some(
           (y.next,
            y.labelValue.fold(new LabelCacheImpl(labels, cache, stack.tail, pool, poolCache, timescales))
-                               (lv => new LabelCacheImpl(labels, updateOrAddScalarLabel(lv.name, lv.value.english, Some(lv.value.welsh)), y :: xs, pool, poolCache, timescales)))
+                               (lv => new LabelCacheImpl(labels,
+                                                         updateOrAddScalarLabel(lv.name, lv.value.english, Some(lv.value.welsh)),
+                                                         y :: xs,
+                                                         pool,
+                                                         poolCache,
+                                                         timescales)))
         )
       case _ :: (c: Continuation) :: xs => Some((c.next, new LabelCacheImpl(labels, cache, xs, pool, poolCache, timescales)))
     }

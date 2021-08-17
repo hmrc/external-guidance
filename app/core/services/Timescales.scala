@@ -49,19 +49,19 @@ class Timescales @Inject() (tp: TodayProvider) extends TimescaleExpansion {
     }(id => List(id))
   }
 
-  private[services] def referencedIds(p: Phrase): List[String] = (referencedIds((p.english)) ++ referencedIds((p.welsh))).distinct
+  private[services] def referencedIds(p: Phrase): List[String] = (referencedIds(p.english) ++ referencedIds(p.welsh)).distinct
 
   def referencedIds(page: Page): List[String] =
     page.stanzas.toList.collect{
       case s: Calculation => s.calcs.flatMap(o => referencedIds(o.left) ++ referencedIds(o.right))
       case s: Choice => s.tests.flatMap(t => referencedIds(t.left) ++ referencedIds(t.right))
       case s: ValueStanza => s.values.flatMap(v => referencedIds(v.value))
-      case s: Input => referencedIds(s.name) ++ s.help.map(referencedIds(_)).getOrElse(Nil)
+      case s: Input => referencedIds(s.name) ++ s.help.map(referencedIds).getOrElse(Nil)
       case s: Instruction => referencedIds(s.text)
-      case s: Sequence => referencedIds(s.text) ++ s.options.toList.flatMap(referencedIds(_)) ++ s.exclusive.map(referencedIds(_)).getOrElse(Nil)
-      case s: Question => referencedIds(s.text) ++ s.answers.toList.flatMap(referencedIds(_))
+      case s: Sequence => referencedIds(s.text) ++ s.options.toList.flatMap(referencedIds) ++ s.exclusive.map(referencedIds).getOrElse(Nil)
+      case s: Question => referencedIds(s.text) ++ s.answers.toList.flatMap(referencedIds)
       case s: Callout => referencedIds(s.text)
-      case s: Row => s.cells.toList.flatMap(referencedIds(_))
+      case s: Row => s.cells.toList.flatMap(referencedIds)
     }.flatten.distinct
 
   private val TaxYearStartDay: Int = 6
@@ -84,7 +84,7 @@ class Timescales @Inject() (tp: TodayProvider) extends TimescaleExpansion {
   private val LongOrShortGroup: Int = 6
 
   def expand(str: String, timescaleDefns: Map[String, Int]): String = expand(str, timescaleDefns, tp.now)
-  private [services] def expand(str: String, timescaleDefns: Map[String, Int], todaysDate: LocalDate): String = {
+  private[services] def expand(str: String, timescaleDefns: Map[String, Int], todaysDate: LocalDate): String = {
     def longOrShort(m: Match, when: LocalDate): String = Option(m.group(LongOrShortGroup)).fold(stringFromDate(when)){
       case "long" => long(when).toString
       case "short" => short(when).toString
@@ -101,7 +101,7 @@ class Timescales @Inject() (tp: TodayProvider) extends TimescaleExpansion {
 
     timescalesRegex.replaceAllIn(str, m =>
       Option(m.group(TimescaleIdGroup)).fold(dateTimescale(m)){tsId =>
-        timescaleDefns.get(tsId).getOrElse(m.group(0)).toString
+        timescaleDefns.getOrElse(tsId, m.group(0)).toString
       }
     )
   }

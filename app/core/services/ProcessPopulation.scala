@@ -48,7 +48,7 @@ class ProcessPopulation(timescaleExpansion: TimescaleExpansion) {
 
     def populateQuestion(q: QuestionStanza): Either[GuidanceError, Question] =
       phrases(q.text +: q.answers, Nil, id, process) match {
-        case Right(texts) if q.answers.length != q.next.length => Left(InconsistentQuestion(id))
+        case Right(_) if q.answers.length != q.next.length => Left(InconsistentQuestion(id))
         case Right(texts) => Right(Question(q, texts.head, texts.tail))
         case Left(err) => Left(err)
       }
