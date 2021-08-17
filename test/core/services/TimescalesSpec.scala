@@ -16,7 +16,7 @@
 
 package core.services
 
-import core.models.TestTimescaleDefnsDB
+import core.models.ocelot.TestTimescaleDefnsDB
 import base.BaseSpec
 import java.time.LocalDate
 

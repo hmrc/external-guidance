@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package core.models
+package core.models.ocelot
 
-import core.models.ocelot._
 import play.api.libs.json.Json
 
 trait TestTimescaleDefnsDB {
@@ -672,7 +671,4 @@ trait TestTimescaleDefnsDB {
       "VATEC66_BF": 30,
       "VAT104A": 21
     }""").as[Map[String, Int]]
-
-  val blankLabels: Labels = LabelCache()
-  val labels: Labels = blankLabels.updateTimescales(timescaleMap)
 }

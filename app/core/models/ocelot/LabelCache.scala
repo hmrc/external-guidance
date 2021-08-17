@@ -32,9 +32,7 @@ trait Flows {
 
 // Timescale defns
 trait TimescaleDefns {
-  def updateTimescales(timescales: Map[String, Int]): Labels
   def timescaleDays(id: String): Option[Int]
-  def timescalesMap: Map[String, Int]
 }
 
 trait Labels extends Flows with TimescaleDefns {
@@ -52,7 +50,7 @@ trait Labels extends Flows with TimescaleDefns {
   def flush(): Labels
 }
 
-private class LabelCacheImpl(labels: Map[String, Label] = Map(),
+private [ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
                              cache: Map[String, Label] = Map(),
                              stack: List[FlowStage] = Nil,
                              pool: Map[String, Stanza] = Map(),
@@ -136,9 +134,7 @@ private class LabelCacheImpl(labels: Map[String, Label] = Map(),
   def poolUpdates: Map[String, Stanza] = poolCache
 
   // Timescales defns
-  def updateTimescales(update: Map[String, Int]): Labels = new LabelCacheImpl(labels, cache, stack, pool, poolCache, update)
   def timescaleDays(id: String): Option[Int] = timescales.get(id)
-  def timescalesMap: Map[String, Int] = timescales
 }
 
 object LabelCache {

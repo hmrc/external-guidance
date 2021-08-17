@@ -23,8 +23,8 @@ import java.time.LocalDate
 import scala.util.matching.Regex
 import Regex._
 
-trait TimescaleProvider {
-  val timescales: Timescales
+trait TimescaleExpansion {
+  def expand(str: String, timescaleDefns: Map[String, Int]): String
 }
 
 trait TodayProvider {
@@ -37,7 +37,7 @@ class DefaultTodayProvider extends TodayProvider {
 }
 
 @Singleton
-class Timescales @Inject() (tp: TodayProvider) {
+class Timescales @Inject() (tp: TodayProvider) extends TimescaleExpansion {
 
   // Page Analysis
   private val DateAddTimescaleId: Int = 3
@@ -83,7 +83,8 @@ class Timescales @Inject() (tp: TodayProvider) {
   private val CyOffsetGroup: Int = 5
   private val LongOrShortGroup: Int = 6
 
-  def expand(str: String, timescales: Map[String, Int], todaysDate: LocalDate = tp.now): String = {
+  def expand(str: String, timescaleDefns: Map[String, Int]): String = expand(str, timescaleDefns, tp.now)
+  private [services] def expand(str: String, timescaleDefns: Map[String, Int], todaysDate: LocalDate): String = {
     def longOrShort(m: Match, when: LocalDate): String = Option(m.group(LongOrShortGroup)).fold(stringFromDate(when)){
       case "long" => long(when).toString
       case "short" => short(when).toString
@@ -100,7 +101,7 @@ class Timescales @Inject() (tp: TodayProvider) {
 
     timescalesRegex.replaceAllIn(str, m =>
       Option(m.group(TimescaleIdGroup)).fold(dateTimescale(m)){tsId =>
-        timescales.get(tsId).getOrElse(m.group(0)).toString
+        timescaleDefns.get(tsId).getOrElse(m.group(0)).toString
       }
     )
   }

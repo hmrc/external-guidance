@@ -22,6 +22,8 @@ import org.scalatest.Inspectors.forAll
 
 class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
 
+  val labels: Labels = new LabelCacheImpl(Map(), Map(), Nil, Map(), Map(), timescaleMap)
+
   "Date conversion" must {
     "recognise a valid date" in {
       val validDates: List[String] = List("30/04/2000", "3/12/2000", "13/4/2000", "31/3/2130")

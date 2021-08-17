@@ -24,7 +24,8 @@ import play.api.Logger
 import scala.annotation.tailrec
 
 @Singleton
-class PageBuilder @Inject() (val timescales: Timescales) extends ProcessPopulation with TimescaleProvider {
+class PageBuilder @Inject() (val timescales: Timescales) {
+  val processPopulation = new ProcessPopulation(timescales)
   val logger: Logger = Logger(this.getClass)
 
   def buildPage(key: String, process: Process): Either[GuidanceError, Page] = {
@@ -40,7 +41,7 @@ class PageBuilder @Inject() (val timescales: Timescales) extends ProcessPopulati
         case Nil => Right((pageStanza, ids, stanzas, next, endFound))                                                  // End Page
         case key +: xs if ids.contains(key) => collectStanzas(xs, pageStanza, ids, stanzas, next, endFound)            // Already encountered, but potentially more paths
         case key +: xs =>
-          (stanza(key, process), xs ) match {
+          (processPopulation.stanza(key, process), xs ) match {
             case (Right(s: PageStanza), _) if ids.nonEmpty => collectStanzas(xs, pageStanza, ids, stanzas, key +: next, endFound) // End page but potentially more paths
             case (Right(s: PageStanza), _) => collectStanzas(xs ++ s.next, Some(s), ids :+ key, stanzas :+ s, next, endFound)     // Beginning of page
             case (Right(EndStanza), _) => collectStanzas(xs, pageStanza, ids :+ key, stanzas :+ EndStanza, next, true)            // End page but potentially more paths
