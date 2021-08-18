@@ -36,13 +36,14 @@ trait AppConfig {
 @Singleton
 class AppConfigImpl @Inject() (config: Configuration, servicesConfig: ServicesConfig) extends AppConfig {
 
-  lazy val scratchExpiryHour = servicesConfig.getInt("mongodb.scratchExpiryHour")
-  lazy val scratchExpiryMinutes = servicesConfig.getInt("mongodb.scratchExpiryMinutes")
-  lazy val scratchExpiryTZ = servicesConfig.getString("mongodb.scratchExpiryTZ")
+  lazy val scratchExpiryHour: Int = servicesConfig.getInt("mongodb.scratchExpiryHour")
+  lazy val scratchExpiryMinutes: Int = servicesConfig.getInt("mongodb.scratchExpiryMinutes")
+  lazy val scratchExpiryTZ: String = servicesConfig.getString("mongodb.scratchExpiryTZ")
 
-  lazy val designerRole = servicesConfig.getString("strideAuth.roles.designer")
-  lazy val factCheckerRole = servicesConfig.getString("strideAuth.roles.factChecker")
-  lazy val twoEyeReviewerRole = servicesConfig.getString("strideAuth.roles.twoEyeReviewer")
-  lazy val fakeWelshInUnauthenticatedGuidance: Boolean = config.getOptional[Boolean]("welsh-guidance-text.fake-when-unauthenticated").fold(false)(answer => answer)
+  lazy val designerRole: String = servicesConfig.getString("strideAuth.roles.designer")
+  lazy val factCheckerRole: String = servicesConfig.getString("strideAuth.roles.factChecker")
+  lazy val twoEyeReviewerRole: String = servicesConfig.getString("strideAuth.roles.twoEyeReviewer")
+  lazy val fakeWelshInUnauthenticatedGuidance: Boolean =
+    config.getOptional[Boolean]("welsh-guidance-text.fake-when-unauthenticated").fold(false)(answer => answer)
   lazy val seedTimescales: Map[String, Int] = config.get[Map[String, Int]]("seed-timescales")
 }

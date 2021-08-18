@@ -35,7 +35,7 @@ class TimescalesService @Inject() (repository: TimescalesRepository, appConfig: 
     json.validate[Map[String, Int]].fold(_ => Future.successful(Left(ValidationError)), _ =>
       repository.save(json).map{
         case Left(_) => Left(InternalServerError)
-        case result =>
+        case _ =>
           logger.warn("TIMESCALES: update to timescales definitions saved")
           Right(())
       }

@@ -27,7 +27,9 @@ import controllers.actions.AllRolesAction
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton()
-class TimescalesController @Inject() (timescaleService: TimescalesService, cc: ControllerComponents, allRolesAction: AllRolesAction) extends BackendController(cc) {
+class TimescalesController @Inject() (timescaleService: TimescalesService,
+                                      cc: ControllerComponents,
+                                      allRolesAction: AllRolesAction) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass)
 

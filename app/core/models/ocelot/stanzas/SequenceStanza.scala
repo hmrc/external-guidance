@@ -35,7 +35,7 @@ object SequenceStanza {
       (js \ "label").validateOpt[String] and
       (js \ "stack").validate[Boolean]).tupled match {
       case err: JsError => err
-      case JsSuccess((text: Int, next: Seq[String], options: Seq[Int], label: Option[String], stack: Boolean), _) if next.length != (options.length + 1) =>
+      case JsSuccess((_: Int, next: Seq[String], options: Seq[Int], _: Option[String], _: Boolean), _) if next.length != (options.length + 1) =>
         JsError(Seq(JsPath \ "right" -> Seq(JsonValidationError(Seq("error", "error.listlengths.inconsistent")))))
       case JsSuccess((text: Int, next: Seq[String], options: Seq[Int], label: Option[String], stack: Boolean), _) =>
         JsSuccess(SequenceStanza(text, next, options, label, stack))
@@ -74,7 +74,7 @@ case class Sequence(text: Phrase,
         }
         // Collect any Evaluate stanzas following this Sequence for use when the Continuation is followed
         val continuationStanzas: Map[String, Stanza] = page.keyedStanzas.dropWhile(_.stanza != this)
-                                                           .collect{case ks @ KeyedStanza(_, s: Stanza with Evaluate) => (ks.key, ks.stanza)}
+                                                           .collect{case ks @ KeyedStanza(_, _: Stanza with Evaluate) => (ks.key, ks.stanza)}
                                                            .toMap
 
         // push the flows and Continuation corresponding to the checked items, then
@@ -92,6 +92,6 @@ case class Sequence(text: Phrase,
   def validInput(value: String): Option[String] =
     asListOfPositiveInt(value).fold[Option[String]](None){l =>
       if (l.forall(options.indices.contains) ||
-          l.length == 1 && exclusive.fold(false)(_ => l.headOption == Some(options.length))) Some(value) else None
+          l.length == 1 && exclusive.fold(false)(_ => l.headOption.contains(options.length))) Some(value) else None
     }
 }

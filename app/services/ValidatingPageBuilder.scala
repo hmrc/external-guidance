@@ -156,7 +156,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
               val pages = pageGraph(findPageIds(List(id)), vertexMap, mainFlow)
               pages.nonEmpty && !pages.exists(_.endPage)
             }
-            .map(MissingUniqueFlowTerminator(_))
+            .map(MissingUniqueFlowTerminator)
 
   private def checkForSequencePageReuse(vertices: List[PageVertex], vertexMap: Map[String, PageVertex], mainFlow: List[String])
                                        (implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] = {

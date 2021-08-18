@@ -27,7 +27,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton()
-class ScratchController @Inject() (scratchService: ScratchService, timescalesService: TimescalesService, cc: ControllerComponents) extends BackendController(cc) {
+class ScratchController @Inject() (scratchService: ScratchService,
+                                   timescalesService: TimescalesService,
+                                   cc: ControllerComponents) extends BackendController(cc) {
   val logger: Logger = Logger(getClass)
   import Json._
 

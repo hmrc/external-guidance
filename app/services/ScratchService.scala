@@ -32,7 +32,7 @@ import config.AppConfig
 class ScratchService @Inject() (repository: ScratchRepository,
                                 pageBuilder: ValidatingPageBuilder,
                                 implicit val c: AppConfig) {
-  val logger = Logger(getClass)
+  val logger: Logger = Logger(getClass)
 
   def save(json: JsObject): Future[RequestOutcome[UUID]] =
     guidancePagesAndProcess(pageBuilder, json).fold(

@@ -22,8 +22,8 @@ import core.models.ocelot.errors._
 import play.api.Logger
 import scala.annotation.tailrec
 
-class ProcessPopulation(timescaleExpansion: TimescaleExpansion) {
-  val logger: Logger = Logger(getClass)
+abstract class ProcessPopulation(timescaleExpansion: TimescaleExpansion) {
+  val logger: Logger
 
   import timescaleExpansion._
 
@@ -36,9 +36,7 @@ class ProcessPopulation(timescaleExpansion: TimescaleExpansion) {
   private def populateStanza(id: String, stanza: Stanza, process: Process): Either[GuidanceError, Stanza] = {
 
     def populateInstruction(i: InstructionStanza): Either[GuidanceError, Instruction] =
-      phrase(i.text, id, process).fold(
-        Left(_),
-        text => {
+      phrase(i.text, id, process).fold(Left(_), text => {
           i.link match {
             case Some(linkIndex) => link(linkIndex).fold(Left(_), link => Right(Instruction(i, text, Some(link))))
             case None => Right(Instruction(i, text, None))

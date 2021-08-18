@@ -29,14 +29,8 @@ trait MockArchiveRepository extends MockFactory {
   val mockArchiveRepository: ArchiveRepository = mock[ArchiveRepository]
 
   object MockArchiveRepository {
-    def archive(id: String, user: String, processCode: String, process: PublishedProcess): CallHandler[Future[RequestOutcome[String]]] = {
+    def archive(id: String, user: String, processCode: String, process: PublishedProcess): CallHandler[Future[RequestOutcome[String]]] =
       (mockArchiveRepository.archive(_: String, _: String, _: String, _: PublishedProcess))
         .expects(id, user, processCode, process)
-    }
-
-    // def getByProcessCode(processCode: String): CallHandler[Future[List[JsObject]]] = {
-    //   (mockArchiveRepository.getByProcessCode(_: String)).expects(processCode)
-    // }
   }
-
 }

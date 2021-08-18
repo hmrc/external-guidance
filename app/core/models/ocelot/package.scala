@@ -78,7 +78,9 @@ package object ocelot {
     Option(m.group(LabelNameGroup)).fold{
       Option(m.group(ListLengthLabelNameGroup)).fold{
         Option(m.group(DateAddTimescaleIdGroup)).fold[Option[String]](None){tsId =>
-          Option(m.group(DateAddLabelNameGroup)).fold(dateAdd(Option(m.group(DateAddLiteralGroup)), tsId, labels)){daLabel => dateAdd(lbl(daLabel), tsId, labels)}
+          Option(m.group(DateAddLabelNameGroup)).fold(dateAdd(Option(m.group(DateAddLiteralGroup)), tsId, labels)){daLabel =>
+            dateAdd(lbl(daLabel), tsId, labels)
+          }
         }
       }{list => listLength(list, labels)}
     }{label => lbl(label)}
