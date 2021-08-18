@@ -44,7 +44,7 @@ package object ocelot {
   val listPattern: String = s"\\[list:($LabelNamePattern):length\\]"
   val operandPattern: String = s"^$LabelPattern|$listPattern|$DateAddPattern$$"
   val operandRegex: Regex = operandPattern.r
-  val labelsListDateAddPattern: String = s"$LabelPattern|$listPattern"
+  val labelsListDateAddPattern: String = s"$LabelPattern|$listPattern|$DateAddPattern"
   val labelsListDateAddRegex: Regex = labelsListDateAddPattern.r
   val hintRegex: Regex = "\\[hint:([^\\]]+)\\]".r
   val pageLinkRegex: Regex = pageLinkPattern.r
