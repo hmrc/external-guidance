@@ -32,12 +32,13 @@ import play.api.test.Helpers._
 import core.services.toProcessErr
 
 import scala.concurrent.Future
+import mocks.MockTimescalesService
 
 class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite {
 
-  private trait Test extends MockScratchService {
+  private trait Test extends MockScratchService with MockTimescalesService {
     val id: String = "7a2f7eb3-6f0d-4d7f-a9b9-44a7137820ad"
-    lazy val target: ScratchController = new ScratchController(mockScratchService, stubControllerComponents())
+    lazy val target: ScratchController = new ScratchController(mockScratchService, mockTimescalesService, stubControllerComponents())
   }
 
   "Calling the save action" when {
@@ -189,16 +190,19 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
       }
 
       "return an OK response" in new ValidGetTest {
+        MockTimescalesService.updateTimescaleTable(expectedProcess).returns(Future.successful(Right(expectedProcess)))
         private val result = target.get(id)(request)
         status(result) shouldBe OK
       }
 
       "return content as JSON" in new ValidGetTest {
+        MockTimescalesService.updateTimescaleTable(expectedProcess).returns(Future.successful(Right(expectedProcess)))
         private val result = target.get(id)(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "confirm returned content is a JSON object" in new ValidGetTest {
+        MockTimescalesService.updateTimescaleTable(expectedProcess).returns(Future.successful(Right(expectedProcess)))
         private val result = target.get(id)(request)
         contentAsJson(result).as[JsObject] shouldBe expectedProcess
       }

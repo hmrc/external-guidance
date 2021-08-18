@@ -29,7 +29,7 @@ object SecuredProcess {
   val PassPhraseResponseLabelName = "_GuidancePassPhraseResponse"
 }
 
-case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase], links: Vector[Link]) {
+case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase], links: Vector[Link], timescales: Map[String, Int] = Map()) {
   import SecuredProcess._
   import Process._
   lazy val phraseOption: Int => Option[Phrase] = phrases.lift
@@ -47,17 +47,22 @@ object Process {
   val StartStanzaId = "start"
   val EndStanzaId = "end"
 
+  def buildProcess(m: Meta, f: Map[String, Stanza], p: Vector[Phrase], l: Vector[Link], t: Option[Map[String, Int]]): Process =
+    Process(m, f, p, l, t.getOrElse(Map()))
+
   implicit val reads: Reads[Process] = (
     (__ \ "meta").read[Meta] and
       (__ \ "flow").read[Map[String, Stanza]] and
       (__ \ "phrases").read[Vector[Phrase]] and
-      (__ \ "links").read[Vector[Link]]
-  )(Process.apply _)
+      (__ \ "links").read[Vector[Link]] and
+      (__ \ "timescales").readNullable[Map[String, Int]]
+  )(buildProcess _)
 
   implicit val writes: OWrites[Process] = (
     (__ \ "meta").write[Meta] and
       (__ \ "flow").write[Map[String, Stanza]] and
       (__ \ "phrases").write[Vector[Phrase]] and
-      (__ \ "links").write[Vector[Link]]
+      (__ \ "links").write[Vector[Link]] and
+      (__ \ "timescales").write[Map[String, Int]]
   )(unlift(Process.unapply))
 }

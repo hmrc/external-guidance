@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-// FlowStack: Flow, Flow, Flow, Continuation, Flow, Flow, Flow, Continuation
-
-// Continuation: continuation next and post sequence, non-visual stanzas from page
-
-// The PageRenderer will add the current Continuation stanzas into this stanzaMap when Continuation followed
-
-
 package core.models.ocelot
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+
+// FlowStack: Flow, Flow, Flow, Continuation, Flow, Flow, Flow, Continuation
+// Continuation: continuation next and post sequence, non-visual stanzas from page
+// The PageRenderer will add the current Continuation stanzas into this stanzaMap when Continuation followed
 
 case class LabelValue(name: String, value: Phrase)
 

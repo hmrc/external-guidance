@@ -20,7 +20,6 @@ import models.requests.IdentifierRequest
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.Logger
-import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals

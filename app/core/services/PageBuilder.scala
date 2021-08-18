@@ -24,8 +24,8 @@ import play.api.Logger
 import scala.annotation.tailrec
 
 @Singleton
-class PageBuilder @Inject() (val timescales: Timescales) extends ProcessPopulation with TimescaleProvider {
-  val logger: Logger = Logger(this.getClass)
+class PageBuilder @Inject() (val timescales: Timescales) extends ProcessPopulation(timescales) {
+  val logger: Logger = Logger(getClass)
 
   def buildPage(key: String, process: Process): Either[GuidanceError, Page] = {
 
@@ -37,14 +37,14 @@ class PageBuilder @Inject() (val timescales: Timescales) extends ProcessPopulati
                        next: Seq[String] = Nil,
                        endFound: Boolean = false): Either[GuidanceError, (Option[PageStanza], Seq[String], Seq[Stanza], Seq[String], Boolean)] =
       keys match {
-        case Nil => Right((pageStanza, ids, stanzas, next, endFound))                                                  // End Page
-        case key +: xs if ids.contains(key) => collectStanzas(xs, pageStanza, ids, stanzas, next, endFound)            // Already encountered, but potentially more paths
+        case Nil => Right((pageStanza, ids, stanzas, next, endFound))                                        // End Page
+        case key +: xs if ids.contains(key) => collectStanzas(xs, pageStanza, ids, stanzas, next, endFound)  // Already encountered, possibly more paths
         case key +: xs =>
           (stanza(key, process), xs ) match {
-            case (Right(s: PageStanza), _) if ids.nonEmpty => collectStanzas(xs, pageStanza, ids, stanzas, key +: next, endFound) // End page but potentially more paths
+            case (Right(_: PageStanza), _) if ids.nonEmpty => collectStanzas(xs, pageStanza, ids, stanzas, key +: next, endFound) // End, possibly more paths
             case (Right(s: PageStanza), _) => collectStanzas(xs ++ s.next, Some(s), ids :+ key, stanzas :+ s, next, endFound)     // Beginning of page
-            case (Right(EndStanza), _) => collectStanzas(xs, pageStanza, ids :+ key, stanzas :+ EndStanza, next, true)            // End page but potentially more paths
-            case (Right(s: Stanza), _) if ids.isEmpty => Left(PageStanzaMissing(key))                                             // No PageStanza at start of page
+            case (Right(EndStanza), _) => collectStanzas(xs, pageStanza, ids :+ key, stanzas :+ EndStanza, next, true)            // End, possibly more paths
+            case (Right(_: Stanza), _) if ids.isEmpty => Left(PageStanzaMissing(key))                                             // No PageStanza at start
             case (Right(s: Stanza), _) => collectStanzas(xs ++ s.next, pageStanza, ids :+ key, stanzas :+ s, next, endFound)      // Within-page stanza
             case (Left(err), _) => Left(err)
           }

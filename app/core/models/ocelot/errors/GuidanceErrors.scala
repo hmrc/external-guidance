@@ -23,6 +23,7 @@ sealed trait MetaError extends GuidanceError
 sealed trait FlowError extends GuidanceError
 sealed trait PhrasesError extends GuidanceError
 sealed trait LinksError extends GuidanceError
+sealed trait TimescalesError extends GuidanceError
 
 // General and section parse errors
 case class ParseError(jsPath: JsPath, errs: Seq[JsonValidationError]) extends GuidanceError
@@ -30,6 +31,7 @@ case class FlowParseError(id: String, msg: String, arg: String) extends FlowErro
 case class MetaParseError(id: String, msg: String, arg: String) extends MetaError
 case class PhrasesParseError(id: String, msg: String, arg: String) extends PhrasesError
 case class LinksParseError(id: String, msg: String, arg: String) extends LinksError
+case class TimescalesParseError(id: String, msg: String, arg: String) extends TimescalesError
 // Guidance Flow errors
 case class UnknownStanza(id: String, typeName: String) extends FlowError
 case class UnknownCalloutType(id: String, typeName: String) extends FlowError
@@ -81,6 +83,7 @@ object GuidanceError {
       case "/meta" => MetaParseError(id, mainError.message, arg)
       case "/phrases" => PhrasesParseError(id.dropRight(1), mainError.message, arg)
       case "/links" => LinksParseError(id.dropRight(1), mainError.message, arg)
+      case "/timescales" => TimescalesParseError(id.dropRight(1), mainError.message, arg)
     }
   }
 

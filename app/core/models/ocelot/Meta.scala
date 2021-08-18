@@ -48,7 +48,7 @@ object Meta {
          passPhrase,
          ocelot,
          lastAuthor.getOrElse(""),
-         lastUpdate.getOrElse(ZonedDateTime.now.toInstant.toEpochMilli()),
+         lastUpdate.getOrElse(ZonedDateTime.now.toInstant.toEpochMilli),
          optionalVersion.getOrElse(1),
          fileName,
          titlePhrase,

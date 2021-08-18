@@ -91,7 +91,6 @@ class ApprovalService @Inject() (
       case _ => Left(InternalServerError)
     }
 
-
   def getById(id: String): Future[RequestOutcome[JsObject]] =
     repository.getById(id) map {
       case Left(NotFoundError) => Left(NotFoundError)
@@ -106,11 +105,9 @@ class ApprovalService @Inject() (
       case Right(result) => Right(result.process)
     }
 
-  def approvalSummaryList(roles: List[String]): Future[RequestOutcome[JsArray]] = {
+  def approvalSummaryList(roles: List[String]): Future[RequestOutcome[JsArray]] =
     repository.approvalSummaryList(roles).map {
       case Left(_) => Left(InternalServerError)
       case Right(success) => Right(Json.toJson(success).as[JsArray])
     }
-  }
-
 }

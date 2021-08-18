@@ -20,7 +20,7 @@ import java.time.ZonedDateTime
 import base.BaseSpec
 import controllers.actions.FakeAllRolesAction
 import controllers.actions.FakeAllRolesAction.credential
-import mocks.MockPublishedService
+import mocks.{MockPublishedService, MockTimescalesService}
 import models.PublishedProcess
 import core.models.errors.{BadRequestError, InternalServerError, NotFoundError}
 import core.models.ocelot.ProcessJson
@@ -35,12 +35,13 @@ import scala.concurrent.Future
 
 class PublishedControllerSpec extends BaseSpec with GuiceOneAppPerSuite with ProcessJson {
 
-  private trait Test extends MockPublishedService {
+  private trait Test extends MockPublishedService with MockTimescalesService  {
 
     val validId: String = "oct90005"
 
     lazy val target: PublishedController = new PublishedController(
       mockPublishedService,
+      mockTimescalesService,
       stubControllerComponents(),
       FakeAllRolesAction
     )
@@ -189,6 +190,10 @@ class PublishedControllerSpec extends BaseSpec with GuiceOneAppPerSuite with Pro
         val expectedProcess: JsObject = validOnePageJson.as[JsObject]
         val returnedPublishedProcess: PublishedProcess =
           PublishedProcess(validId, 1, ZonedDateTime.now(), validOnePageJson.as[JsObject], "user", processCode = "processCode")
+
+        MockTimescalesService
+          .updateTimescaleTable(expectedProcess)
+          .returns(Future.successful(Right(expectedProcess)))
 
         MockPublishedService
           .getByProcessCode(validId)

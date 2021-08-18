@@ -25,29 +25,41 @@ import config.AppConfig
 
 package object services {
 
-  def guidancePagesAndProcess(pageBuilder: ValidatingPageBuilder, jsObject: JsObject)
+  def guidancePagesAndProcess(pb: ValidatingPageBuilder, jsObject: JsObject)
                    (implicit c: AppConfig): RequestOutcome[(Process, Seq[Page], JsObject)] =
     jsObject.validate[Process].fold(errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
       incomingProcess => {
         // Transform process if fake welsh and/or secured process is indicated
-        val (p, js) = fakeWelshTextIfRequired _ tupled securedProcessIfRequired(incomingProcess, jsObject)
-        pageBuilder.pagesWithValidation(p, p.startPageId).fold(
+        val (p, js) = fakeWelshTextIfRequired _ tupled securedProcessIfRequired(incomingProcess, Some(jsObject))
+        pb.pagesWithValidation(p, p.startPageId).fold(
           errs => Left(Error(errs)),
-          pages => Right((p, pages, js))
+          pages => {
+            val timescaleIds = pages.toList.flatMap(p => pb.pageBuilder.timescales.referencedIds(p))
+            val (process, jsObject) = addTimescaleTableIfRequired(p, js, timescaleIds)
+            Right((process, pages, jsObject.fold(Json.toJsObject(process))(json => json)))
+          }
         )
       }
     )
 
-  private[services] def fakeWelshTextIfRequired(process: Process, jsObject: JsObject)(implicit c: AppConfig): (Process, JsObject) =
+  private[services] def fakeWelshTextIfRequired(process: Process, jsObject: Option[JsObject])(implicit c: AppConfig): (Process,  Option[JsObject]) =
     if (process.passPhrase.isDefined || c.fakeWelshInUnauthenticatedGuidance) {
       val fakedWelshProcess = process.copy(phrases = process.phrases.map(p => if (p.welsh.trim.isEmpty) Phrase(p.english, s"Welsh: ${p.english}") else p))
-      (fakedWelshProcess, Json.toJsObject(fakedWelshProcess))
+      (fakedWelshProcess, None)
     } else (process, jsObject)
 
-  private[services] def securedProcessIfRequired(p: Process, jsObject: JsObject): (Process, JsObject) =
+  private[services] def securedProcessIfRequired(p: Process, jsObject: Option[JsObject]): (Process, Option[JsObject]) =
     p.valueStanzaPassPhrase.fold((p, jsObject)){passPhrase =>
       // Add optional passphrase to process meta section
       val securedProcess = p.copy(meta = p.meta.copy(passPhrase = Some(passPhrase)))
-      (securedProcess, Json.toJsObject(securedProcess))
+      (securedProcess, None)
+    }
+
+  private[services] def addTimescaleTableIfRequired(p: Process, jsObject: Option[JsObject], timescaleIds: List[String]): (Process, Option[JsObject]) =
+    timescaleIds match {
+      case Nil => (p, jsObject)
+      case _ =>
+        val updatedProcess = p.copy(timescales = timescaleIds.map(id => (id, 0)).toMap)
+        (updatedProcess, None)
     }
 }

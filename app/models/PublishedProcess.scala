@@ -20,7 +20,11 @@ import java.time.ZonedDateTime
 import play.api.libs.json.{JsObject, Json, OFormat}
 
 case class PublishedProcess(id: String, version: Int, datePublished: ZonedDateTime, process: JsObject, publishedBy: String, processCode: String)
+case class PublishedSummary(id: String, datePublished: ZonedDateTime, processCode: String, publishedBy: String)
 
 object PublishedProcess {
   implicit val formats: OFormat[PublishedProcess] = Json.format[PublishedProcess]
+}
+object PublishedSummary {
+  implicit val formats: OFormat[PublishedSummary] = Json.format[PublishedSummary]
 }

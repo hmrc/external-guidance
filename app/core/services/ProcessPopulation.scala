@@ -22,10 +22,10 @@ import core.models.ocelot.errors._
 import play.api.Logger
 import scala.annotation.tailrec
 
-trait ProcessPopulation {
-  this: TimescaleProvider =>
-
+abstract class ProcessPopulation(timescaleExpansion: TimescaleExpansion) {
   val logger: Logger
+
+  import timescaleExpansion._
 
   def stanza(id: String, process: Process): Either[GuidanceError, Stanza] =
     process.flow.get(id) match {
@@ -36,9 +36,7 @@ trait ProcessPopulation {
   private def populateStanza(id: String, stanza: Stanza, process: Process): Either[GuidanceError, Stanza] = {
 
     def populateInstruction(i: InstructionStanza): Either[GuidanceError, Instruction] =
-      phrase(i.text, id, process).fold(
-        Left(_),
-        text => {
+      phrase(i.text, id, process).fold(Left(_), text => {
           i.link match {
             case Some(linkIndex) => link(linkIndex).fold(Left(_), link => Right(Instruction(i, text, Some(link))))
             case None => Right(Instruction(i, text, None))
@@ -48,7 +46,7 @@ trait ProcessPopulation {
 
     def populateQuestion(q: QuestionStanza): Either[GuidanceError, Question] =
       phrases(q.text +: q.answers, Nil, id, process) match {
-        case Right(texts) if q.answers.length != q.next.length => Left(InconsistentQuestion(id))
+        case Right(_) if q.answers.length != q.next.length => Left(InconsistentQuestion(id))
         case Right(texts) => Right(Question(q, texts.head, texts.tail))
         case Left(err) => Left(err)
       }
@@ -89,11 +87,13 @@ trait ProcessPopulation {
       case i: InputStanza => populateInput(i)
       case c: CalloutStanza => phrase(c.text, id, process).fold(Left(_), text => Right(Callout(c, text)))
       case c: ChoiceStanza =>
-        Right(Choice(c.copy(tests = c.tests.map(t => t.copy(left = timescales.expand(t.left), right = timescales.expand(t.right))))))
+        Right(Choice(c.copy(tests = c.tests.map(t => t.copy(left = expand(t.left, process.timescales),
+                                                            right = expand(t.right, process.timescales))))))
       case c: CalculationStanza =>
-        Right(Calculation(c.copy(calcs = c.calcs.map(op => op.copy(left = timescales.expand(op.left), right = timescales.expand(op.right))))))
+        Right(Calculation(c.copy(calcs = c.calcs.map(op => op.copy(left = expand(op.left, process.timescales),
+                                                                   right = expand(op.right, process.timescales))))))
       case s: SequenceStanza => populateSequence(id, s)
-      case vs: ValueStanza => Right(vs.copy(values = vs.values.map(v => v.copy(value = timescales.expand(v.value)))))
+      case vs: ValueStanza => Right(vs.copy(values = vs.values.map(v => v.copy(value = expand(v.value, process.timescales)))))
       case s: Stanza => Right(s)
     }
   }
@@ -107,9 +107,9 @@ trait ProcessPopulation {
       case Phrase(english, welsh) if welsh.trim.startsWith("Welsh,") =>
         logger.debug(s"Found obsolete faked Welsh prefix on phrase $english -- $welsh")
         val updatedWelsh = s"Welsh: ${welsh.trim.drop("Welsh, ".length)}"
-        Right(Phrase(timescales.expand(english), timescales.expand(updatedWelsh)))
+        Right(Phrase(expand(english, process.timescales), expand(updatedWelsh, process.timescales)))
       case p: Phrase =>
-        Right(Phrase(timescales.expand(p.english), timescales.expand(p.welsh)))
+        Right(Phrase(expand(p.english, process.timescales), expand(p.welsh, process.timescales)))
     }
 
   @tailrec

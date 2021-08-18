@@ -27,13 +27,15 @@ import controllers.actions.AllRolesAction
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton()
-class TimescalesController @Inject() (timescaleService: TimescalesService, cc: ControllerComponents, allRolesAction: AllRolesAction) extends BackendController(cc) {
+class TimescalesController @Inject() (timescaleService: TimescalesService,
+                                      cc: ControllerComponents,
+                                      allRolesAction: AllRolesAction) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass)
 
   def save(): Action[JsValue] = allRolesAction.async(parse.json) { implicit request =>
     val timescales: JsValue = request.body
-    logger.warn(s"Received timescales update")
+    logger.warn(s"TIMESCALES: Timescale definitions update received")
     timescaleService.save(timescales).map {
       case Right(id) => NoContent
       case Left(ValidationError) =>
@@ -47,7 +49,7 @@ class TimescalesController @Inject() (timescaleService: TimescalesService, cc: C
 
   def get(): Action[AnyContent] = Action.async { _ =>
     timescaleService.get().map {
-      case Right(timescales) => Ok(timescales)
+      case Right(timescales) => Ok(Json.toJson(timescales))
       case Left(_) => InternalServerError(Json.toJson(ServerError))
     }
   }

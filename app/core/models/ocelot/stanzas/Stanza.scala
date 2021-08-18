@@ -84,6 +84,6 @@ object Stanza {
     case c: Choice => Json.obj("type" -> "Choice") ++ Json.toJsObject[Choice](c)
     case c: Calculation => Json.obj( "type" -> "Calculation") ++ Json.toJsObject[Calculation](c)
     case EndStanza => Json.obj("type" -> "EndStanza")
-    case s => Json.toJson("")
+    case _ => Json.toJson("")
   }
 }

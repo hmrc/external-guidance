@@ -18,7 +18,7 @@ package core.models.ocelot
 
 import play.api.libs.json.Json
 
-object TimescaleDB {
+trait TestTimescaleDefnsDB {
   val timescaleMap: Map[String, Int] = Json.parse("""{
       "JRSRefCB": 15,
       "JRSBACs": 16,

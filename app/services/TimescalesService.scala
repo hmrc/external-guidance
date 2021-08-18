@@ -18,27 +18,48 @@ package services
 
 import javax.inject.{Inject, Singleton}
 import core.models.RequestOutcome
+import core.models.ocelot.Process
 import core.models.errors.{ValidationError, InternalServerError, NotFoundError}
-import play.api.libs.json.{Json, JsValue}
+import play.api.libs.json.{Json, JsValue, JsObject}
 import repositories.TimescalesRepository
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import config.AppConfig
+import play.api.Logger
 
 @Singleton
 class TimescalesService @Inject() (repository: TimescalesRepository, appConfig: AppConfig) {
+  val logger: Logger = Logger(getClass)
+
   def save(json: JsValue): Future[RequestOutcome[Unit]] =
     json.validate[Map[String, Int]].fold(_ => Future.successful(Left(ValidationError)), _ =>
       repository.save(json).map{
         case Left(_) => Left(InternalServerError)
-        case result => Right(())
+        case _ =>
+          logger.warn("TIMESCALES: update to timescales definitions saved")
+          Right(())
       }
     )
 
-  def get(): Future[RequestOutcome[JsValue]] =
+  def updateTimescaleTable(js: JsObject): Future[RequestOutcome[JsObject]] =
+    js.validate[Process].fold(_ => Future.successful(Left(ValidationError)),
+      process =>
+        if (process.timescales.isEmpty) Future.successful(Right(js))
+        else get().map{
+          case Right(ts) =>
+            val timescalesTable: Map[String, Int] = process.timescales.keys.toList.map(k => (k, ts(k))).toMap
+            Json.toJson(process.copy(timescales = timescalesTable)).validate[JsObject].fold(
+              _ => Left(ValidationError),
+              jsObj => Right(jsObj)
+            )
+          case Left(err) => Left(err)
+        }
+    )
+
+  def get(): Future[RequestOutcome[Map[String, Int]]] =
     repository.get(repository.CurrentTimescalesID) map {
-      case timescales @ Right(_) => timescales
-      case Left(NotFoundError) => Right(Json.toJson(appConfig.seedTimescales))
+      case Right(timescales) => timescales.validate[Map[String, Int]].fold(_ => Left(InternalServerError), mp => Right(mp))
+      case Left(NotFoundError) => Right(appConfig.seedTimescales)
       case Left(_) => Left(InternalServerError)
     }
 }

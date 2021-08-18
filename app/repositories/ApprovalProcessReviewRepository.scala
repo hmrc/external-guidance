@@ -58,8 +58,7 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
     )
   )
 
-  def save(review: ApprovalProcessReview): Future[RequestOutcome[UUID]] = {
-
+  def save(review: ApprovalProcessReview): Future[RequestOutcome[UUID]] =
     insert(review)
       .map { _ =>
         Right(review.id)
@@ -71,14 +70,10 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
           Left(DatabaseError)
       }
     //$COVERAGE-ON$
-  }
 
-  def getByIdVersionAndType(id: String, version: Int, reviewType: String): Future[RequestOutcome[ApprovalProcessReview]] = {
-
-    val selector = Json.obj("ocelotId" -> id, "version" -> version, "reviewType" -> reviewType)
-
+  def getByIdVersionAndType(id: String, version: Int, reviewType: String): Future[RequestOutcome[ApprovalProcessReview]] =
     collection
-      .find[JsObject, JsObject](selector)
+      .find[JsObject, JsObject](Json.obj("ocelotId" -> id, "version" -> version, "reviewType" -> reviewType))
       .one[ApprovalProcessReview]
       .map {
         case Some(review) => Right(review)
@@ -91,7 +86,6 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
           Left(DatabaseError)
       }
     //$COVERAGE-ON$
-  }
 
   def updatePageReview(id: String, version: Int, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] = {
 

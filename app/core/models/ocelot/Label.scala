@@ -43,7 +43,7 @@ object Label {
   implicit val writes: Writes[Label] = {
     case s: ScalarLabel => Json.obj("type" -> "scalar") ++ Json.toJsObject[ScalarLabel](s)
     case l: ListLabel => Json.obj("type" -> "list") ++ Json.toJsObject[ListLabel](l)
-    case unknown => Json.toJson("")
+    case _ => Json.toJson("")
   }
 }
 

@@ -17,7 +17,7 @@
 package controllers
 
 import controllers.actions.FakeAllRolesAction
-import mocks.MockApprovalService
+import mocks.{MockTimescalesService, MockApprovalService}
 import core.models.errors.{BadRequestError, DuplicateKeyError, Error, InternalServerError, NotFoundError, ProcessError, ValidationError}
 import core.models.ocelot.errors.DuplicatePageUrl
 import models.{ApprovalProcess, ApprovalProcessJson}
@@ -35,13 +35,13 @@ import models.Constants._
 
 import scala.concurrent.Future
 
-class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerSuite with MockApprovalService with ApprovalProcessJson {
+class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerSuite with MockApprovalService with MockTimescalesService with ApprovalProcessJson {
 
   private trait Test extends MockApprovalService {
     val invalidId: String = "ext95"
     val invalidProcess: JsObject = Json.obj("id" -> "ext0093")
 
-    lazy val controller: ApprovalController = new ApprovalController(FakeAllRolesAction, mockApprovalService, stubControllerComponents())
+    lazy val controller: ApprovalController = new ApprovalController(FakeAllRolesAction, mockApprovalService, mockTimescalesService, stubControllerComponents())
   }
 
   "Calling the saveFor2iReview action" when {
@@ -307,6 +307,10 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
     "the request is valid" should {
 
       trait ValidGetTest extends Test {
+        MockTimescalesService
+          .updateTimescaleTable(validApprovalProcessJson)
+          .returns(Future.successful(Right(validApprovalProcessJson)))
+
         MockApprovalService
           .getById(validId)
           .returns(Future.successful(Right(validApprovalProcessJson)))
@@ -421,6 +425,10 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
     "the request is valid" should {
 
       trait ValidGetTest extends Test {
+        MockTimescalesService
+          .updateTimescaleTable(validApprovalProcessJson)
+          .returns(Future.successful(Right(validApprovalProcessJson)))
+
         MockApprovalService
           .getByProcessCode(validId)
           .returns(Future.successful(Right(validApprovalProcessJson)))
