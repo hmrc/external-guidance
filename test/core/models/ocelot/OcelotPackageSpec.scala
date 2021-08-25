@@ -16,13 +16,14 @@
 
 package core.models.ocelot
 
-import core.models._
 import base.BaseSpec
+import core.models._
 import org.scalatest.Inspectors.forAll
 
 class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
 
   val labels: Labels = new LabelCacheImpl(Map(), Map(), Nil, Map(), Map(), timescaleMap)
+
 
   "Date conversion" must {
     "recognise a valid date" in {
@@ -57,7 +58,7 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
 
     "recognise 29th Feb is not valid in a non leap year" in {
       val invalidDates: List[String] = List("29/02/2021", "29/2/2100")
-      forAll (invalidDates) { invalidDate =>
+      forAll(invalidDates) { invalidDate =>
         asDate(invalidDate) match {
           case Some(d) => fail(s"$invalidDate returned $d when expecting None")
           case _ => succeed
@@ -67,7 +68,7 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
 
     "recognise the 31st is not valid in months that don't have 31 days" in {
       val invalidDates: List[String] = List("31/4/2000", "31/9/2000", "31/6/2000", "31/11/2036")
-      forAll (invalidDates) { invalidDate =>
+      forAll(invalidDates) { invalidDate =>
         asDate(invalidDate) match {
           case Some(d) => fail(s"$invalidDate returned $d when expecting None")
           case _ => succeed
@@ -122,7 +123,7 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
 
   "Positive Int conversion" must {
     "recognise a valid number" in {
-      List("30", "3  56", "300", "030", Int.MaxValue.toString).foreach{item =>
+      List("30", "3  56", "300", "030", Int.MaxValue.toString).foreach { item =>
         asPositiveInt(item) match {
           case Some(_) => succeed
           case _ => fail(s"Validation of $item failed - expected success")
@@ -132,7 +133,7 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
 
     "not recognise invalid numbers" in {
       val tooBig: Long = 1L + Int.MaxValue
-      List("A number", "", Int.MinValue.toString, "-2", "-030", "1,234,456", tooBig.toString).foreach{item =>
+      List("A number", "", Int.MinValue.toString, "-2", "-030", "1,234,456", tooBig.toString).foreach { item =>
         asPositiveInt(item) match {
           case Some(_) => fail(s"Validation of $item failed - expected failure")
           case _ => succeed
@@ -143,7 +144,7 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
 
   "Signed Int conversion" must {
     "recognise a valid number" in {
-      List("30", "3  56", "1,234", "1,234,456", "-300", "030", Int.MaxValue.toString, Int.MinValue.toString).foreach{item =>
+      List("30", "3  56", "1,234", "1,234,456", "-300", "030", Int.MaxValue.toString, Int.MinValue.toString).foreach { item =>
         asAnyInt(item) match {
           case Some(_) => succeed
           case _ => fail(s"Validation of $item failed - expected success")
@@ -154,7 +155,7 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
     "not recognise invalid numbers" in {
       val tooBig: Long = 1L + Int.MaxValue
       val tooNegative: Long = -1L + Int.MinValue
-      List("A number", "", "1,234456", tooBig.toString, tooNegative.toString).foreach{item =>
+      List("A number", "", "1,234456", tooBig.toString, tooNegative.toString).foreach { item =>
         asAnyInt(item) match {
           case Some(_) => fail(s"Validation of $item failed - expected failure")
           case _ => succeed
@@ -176,11 +177,11 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
       val tooNegative: Long = -1L + Int.MinValue
 
       List("30, 3  56, A number, 067",
-           "30, -3  56, 067",
-           "30, 3  56, -45, 067",
-           s"30, 3  56, ${tooBig.toString}, 067",
-           s"30, 3  56, ${tooNegative.toString}, 067"
-      ).foreach{item =>
+        "30, -3  56, 067",
+        "30, 3  56, -45, 067",
+        s"30, 3  56, ${tooBig.toString}, 067",
+        s"30, 3  56, ${tooNegative.toString}, 067"
+      ).foreach { item =>
         asListOfPositiveInt(item) match {
           case Some(_) => fail(s"Validation of $item failed - expected failure")
           case _ => succeed
@@ -195,7 +196,7 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
     }
 
     "Return Some(list) if all elements defined" in {
-      lOfOtoOofL(List(Some(1), Some(2), Some(5), Some(8))) shouldBe Some(List(1,2,5,8))
+      lOfOtoOofL(List(Some(1), Some(2), Some(5), Some(8))) shouldBe Some(List(1, 2, 5, 8))
     }
 
     "Return None if not all elements defined" in {
@@ -269,4 +270,117 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
     }
 
   }
+
+  "datePlaceholder" must {
+    val date: Option[String] = Some("12/12/2021")
+    val badDate: Option[String] = Some("1/2/-bad-date")
+
+    "Ignore values not in the format of a date placeholder" in {
+      val result = datePlaceholder(badDate, "dow_name")
+
+      result shouldBe None
+    }
+    "correctly convert a date place holder into a year" in {
+      val result = datePlaceholder(date, "year")
+
+      result shouldBe Some("2021")
+    }
+    "correctly convert a date place holder into a day name" in {
+      val result = datePlaceholder(date, "dow_name")
+
+      result shouldBe Some("SUNDAY")
+    }
+    "correctly convert a date place holder into a month number" in {
+      val monthNumber = datePlaceholder(date, "month")
+
+      monthNumber shouldBe Some("12")
+    }
+    "correctly convert a date place holder into a month start" in {
+      val monthStart = datePlaceholder(date, "month_start")
+
+      monthStart shouldBe Some("1/12/2021")
+    }
+    "correctly convert a date place holder into a month end" in {
+      val monthEnd = datePlaceholder(date, "month_end")
+
+      monthEnd shouldBe Some("31/12/2021")
+    }
+    "correctly convert a date place holder into a month name" in {
+      val monthName = datePlaceholder(date, "month_name")
+
+      monthName shouldBe Some("DECEMBER")
+    }
+    "correctly convert a date place holder into a day of the week number" in {
+      val dayOfTheWeekNumber = datePlaceholder(date, "dow")
+
+      dayOfTheWeekNumber shouldBe Some("7")
+    }
+    "correctly convert a date place holder into a day of the month" in {
+      val dayOfTheMonth = datePlaceholder(date, "day")
+
+      dayOfTheMonth shouldBe Some("12")
+    }
+  }
+
+  "operandValue date placholder function using date literal" must {
+    "Ignore the value if not in the format of a date placeholder" in {
+      operandValue("[date:1/2/-bad-date:dow_name]")(labels) shouldBe Some("[date:1/2/-bad-date:dow_name]")
+    }
+    "correctly convert a date place holder into a year" in {
+      operandValue("[date:12/12/2021:year]")(labels) shouldBe Some("2021")
+    }
+    "correctly convert a date place holder into a day name" in {
+      operandValue("[date:12/12/2021:dow_name]")(labels) shouldBe Some("SUNDAY")
+    }
+    "correctly convert a date place holder into a month number" in {
+      operandValue("[date:12/12/2021:month]")(labels) shouldBe Some("12")
+    }
+    "correctly convert a date place holder into a month start" in {
+      operandValue("[date:12/12/2021:month_start]")(labels) shouldBe Some("1/12/2021")
+    }
+    "correctly convert a date place holder into a month end" in {
+      operandValue("[date:12/12/2021:month_end]")(labels) shouldBe Some("31/12/2021")
+    }
+    "correctly convert a date place holder into a month name" in {
+      operandValue("[date:12/12/2021:month_name]")(labels) shouldBe Some("DECEMBER")
+    }
+    "correctly convert a date place holder into a day of the week number" in {
+      operandValue("[date:12/12/2021:dow]")(labels) shouldBe Some("7")
+    }
+    "correctly convert a date place holder into a day of the month" in {
+      operandValue("[date:12/12/2021:day]")(labels) shouldBe Some("12")
+    }
+  }
+
+  "operandValue date placholder function using date label" must {
+    val labelsWithMyDate = labels.update("MyDate", "12/12/2021")
+    "Ignore the value if not in the format of a date placeholder" in {
+      operandValue("[date:[label:AnotherDate]:dow_name]")(labelsWithMyDate) shouldBe None
+    }
+    "correctly convert a date place holder into a year" in {
+      operandValue("[date:[label:MyDate]:year]")(labelsWithMyDate) shouldBe Some("2021")
+    }
+    "correctly convert a date place holder into a day name" in {
+      operandValue("[date:[label:MyDate]:dow_name]")(labelsWithMyDate) shouldBe Some("SUNDAY")
+    }
+    "correctly convert a date place holder into a month number" in {
+      operandValue("[date:[label:MyDate]:month]")(labelsWithMyDate) shouldBe Some("12")
+    }
+    "correctly convert a date place holder into a month start" in {
+      operandValue("[date:[label:MyDate]:month_start]")(labelsWithMyDate) shouldBe Some("1/12/2021")
+    }
+    "correctly convert a date place holder into a month end" in {
+      operandValue("[date:[label:MyDate]:month_end]")(labelsWithMyDate) shouldBe Some("31/12/2021")
+    }
+    "correctly convert a date place holder into a month name" in {
+      operandValue("[date:[label:MyDate]:month_name]")(labelsWithMyDate) shouldBe Some("DECEMBER")
+    }
+    "correctly convert a date place holder into a day of the week number" in {
+      operandValue("[date:[label:MyDate]:dow]")(labelsWithMyDate) shouldBe Some("7")
+    }
+    "correctly convert a date place holder into a day of the month" in {
+      operandValue("[date:[label:MyDate]:day]")(labelsWithMyDate) shouldBe Some("12")
+    }
+  }
+
 }
