@@ -91,7 +91,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
               case Left(errors) => Future.successful(Left(errors))
             }
           case Left(errors) =>
-            logger.error(s"updateReviewOnCompletion: Could not change status of 2i review for process $id")
+            logger.error(s"updateReviewOnCompletion: Could not change status of 2i review for process $id, $errors")
             Future.successful(Left(errors))
         }
       case Left(errors) =>

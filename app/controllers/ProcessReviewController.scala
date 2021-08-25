@@ -79,6 +79,7 @@ class ProcessReviewController @Inject() (
         case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
         case Left(StaleDataError) => NotFound(Json.toJson(StaleDataError))
         case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
+        case Left(UpgradeRequiredError) => BadRequest(Json.toJson(UpgradeRequiredError))
         case Left(errors) => InternalServerError(Json.toJson(errors))
       }
     }
