@@ -22,7 +22,7 @@ import core.models.ocelot._
 import core.models.RequestOutcome
 import models.PublishedProcess
 import play.api.Logger
-import play.api.libs.json.{JsError, JsSuccess, JsObject}
+import play.api.libs.json.JsObject
 import repositories.{ApprovalRepository, ArchiveRepository, PublishedRepository}
 import core.services.validateProcessId
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -56,23 +56,26 @@ class PublishedService @Inject() (published: PublishedRepository,
     }
 
   def save(id: String, user: String, processCode: String, jsonProcess: JsObject): Future[RequestOutcome[String]] =
-    jsonProcess.validate[Process] match {
-      case JsError(_) =>
+    jsonProcess
+      .validate[Process]
+      .fold( _ => {
         logger.error(s"Publish process $id has failed - invalid process passed in")
         Future.successful(Left(BadRequestError))
-      case JsSuccess(process, _) if !process.timescales.isEmpty =>
-        // CURRENTLY prevent publish of guidance referencing timescale definitions
-        logger.error(s"UpgradeRequiredError: Attempt to publish process containing unsupported Timescale features")
-        Future.successful(Left(UpgradeRequiredError))
-      case JsSuccess(_, _) =>
-        published.save(id, user, processCode, jsonProcess) map {
-          case Left(DuplicateKeyError) => Left(DuplicateKeyError)
-          case Left(_) =>
-            logger.error(s"Request to publish $id has failed")
-            Left(InternalServerError)
-          case result => result
+      }, process =>
+        if (process.timescales.isEmpty)
+          published.save(id, user, processCode, jsonProcess).map{
+            case Left(DuplicateKeyError) => Left(DuplicateKeyError)
+            case Left(_) =>
+              logger.error(s"Request to publish $id has failed")
+              Left(InternalServerError)
+            case result => result
+          }
+        else {
+          // CURRENTLY prevent publish of guidance referencing timescale definitions
+          logger.error(s"UpgradeRequiredError: Attempt to publish process containing unsupported Timescale features")
+          Future.successful(Left(UpgradeRequiredError))
         }
-    }
+      )
 
   def archive(id: String, user: String): Future[RequestOutcome[String]] =
     published.getById(id).flatMap {
