@@ -68,7 +68,7 @@ package object ocelot {
 
   def matchGroup(m: Match)(grp: Int): Option[String] = Option(m.group(grp))
   def operandValue(str: String)(implicit labels: Labels): Option[String] =
-    operandRegex.findFirstMatchIn(str).fold[Option[String]](Some(str)){m => scalarMatch(matchGroup(m), labels, labels.value)}
+    operandRegex.findFirstMatchIn(str).fold[Option[String]](Some(str)){m => scalarMatch(matchGroup(m), labels.value)}
   val LabelNameGroup: Int = 1
   val LabelOutputFormatGroup: Int = 2
   val ListLengthLabelNameGroup: Int = 3
@@ -79,7 +79,7 @@ package object ocelot {
   val DatePlaceholderLabelNameGroup: Int = 8
   val DatePlaceholderFnGroup: Int = 10
 
-  def scalarMatch(capture: Int => Option[String], labels: Labels, lbl: String => Option[String]): Option[String] =
+  def scalarMatch(capture: Int => Option[String], lbl: String => Option[String])(implicit labels: Labels): Option[String] =
     capture(LabelNameGroup).fold{
       capture(ListLengthLabelNameGroup).fold{
         capture(DateAddTimescaleIdGroup).fold[Option[String]]{
@@ -121,16 +121,16 @@ package object ocelot {
   def asListOfPositiveInt(value: String): Option[List[Int]] = listOfPositiveIntRegex.findFirstIn(value.filterNot(_.equals(' ')))
     .flatMap(s => lOfOtoOofL(s.split(",").toList.map(asPositiveInt)))
 
-  def datePlaceholder(date: Option[String], applyFunction: String): Option[String] =
+  def datePlaceholder(date: Option[String], applyFunction: String)(implicit labels: Labels): Option[String] =
     date.flatMap { someDate =>
       asDate(someDate).flatMap(dte =>
         applyFunction match {
           case "year" => Some(dte.getYear.toString)
-          case "dow_name" => Some(dte.getDayOfWeek.toString)
+          case "dow_name" => Some(labels.msg(s"day.display.value.${dte.getDayOfWeek.getValue}"))
           case "month" => Some(dte.getMonthValue.toString)
           case "month_start" => Some(dte.withDayOfMonth(1).format(dateFormatter))
           case "month_end" => Some(dte.withDayOfMonth(dte.lengthOfMonth()).format(dateFormatter))
-          case "month_name" => Some(dte.getMonth.toString)
+          case "month_name" => Some(labels.msg(s"month.display.value.${dte.getMonth.getValue}"))
           case "dow" => Some(dte.getDayOfWeek.getValue.toString)
           case "day" => Some(dte.getDayOfMonth.toString)
           case _ => None

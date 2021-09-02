@@ -49,6 +49,56 @@ trait TestConstants {
   val fifteen = 15
 
   val oneHundred: Int = 100
+
+  val enmessages: Map[String, String] =
+    Map("month.display.value.1" -> "January",
+        "month.display.value.2" -> "February",
+        "month.display.value.3" -> "March",
+        "month.display.value.4" -> "April",
+        "month.display.value.5" -> "May",
+        "month.display.value.6" -> "June",
+        "month.display.value.7" -> "July",
+        "month.display.value.8" -> "August",
+        "month.display.value.9" -> "September",
+        "month.display.value.10" -> "October",
+        "month.display.value.11" -> "November",
+        "month.display.value.12" -> "December",
+        "day.display.value.1" -> "Monday",
+        "day.display.value.2" -> "Tuesday",
+        "day.display.value.3" -> "Wednesday",
+        "day.display.value.4" -> "Thursday",
+        "day.display.value.5" -> "Friday",
+        "day.display.value.6" -> "Saturday",
+        "day.display.value.7" -> "Sunday"
+      )
+
+  val cymessages: Map[String, String] =
+    Map("month.display.value.1" -> "Ionawr",
+        "month.display.value.2" -> "Chwefror",
+        "month.display.value.3" -> "Mawrth",
+        "month.display.value.4" -> "Ebrill",
+        "month.display.value.5" -> "Mai",
+        "month.display.value.6" -> "Mehefin",
+        "month.display.value.7" -> "Gorffennaf",
+        "month.display.value.8" -> "Awst",
+        "month.display.value.9" -> "Medi",
+        "month.display.value.10" -> "Hydref",
+        "month.display.value.11" -> "Tachwedd",
+        "month.display.value.12" -> "Rhagfyr",
+        "day.display.value.1" -> "Dydd Llun",
+        "day.display.value.2" -> "Dydd Mawrth",
+        "day.display.value.3" -> "Dydd Mercher",
+        "day.display.value.4" -> "Dydd Iau",
+        "day.display.value.5" -> "Dydd Gwener",
+        "day.display.value.6" -> "Dydd Sadwrn",
+        "day.display.value.7" -> "Dydd Sul"
+      )
+
+  def message(lang: Lang)(id: String, param: Any*): String =
+    lang.code match {
+      case "en" => enmessages(id)
+      case "cy" => cymessages(id)
+    }
 }
 
 trait BaseSpec extends WordSpec with Matchers with ScalaFutures with TestConstants {

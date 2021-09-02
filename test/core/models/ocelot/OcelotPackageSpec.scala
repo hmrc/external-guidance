@@ -19,11 +19,10 @@ package core.models.ocelot
 import base.BaseSpec
 import core.models._
 import org.scalatest.Inspectors.forAll
+import play.api.i18n.Lang
 
 class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
-
-  val labels: Labels = new LabelCacheImpl(Map(), Map(), Nil, Map(), Map(), timescaleMap)
-
+  implicit val labels: Labels = new LabelCacheImpl(Map(), Map(), Nil, Map(), Map(), timescaleMap, message(Lang("en")))
 
   "Date conversion" must {
     "recognise a valid date" in {
@@ -288,7 +287,7 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
     "correctly convert a date place holder into a day name" in {
       val result = datePlaceholder(date, "dow_name")
 
-      result shouldBe Some("SUNDAY")
+      result shouldBe Some("Sunday")
     }
     "correctly convert a date place holder into a month number" in {
       val monthNumber = datePlaceholder(date, "month")
@@ -308,7 +307,7 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
     "correctly convert a date place holder into a month name" in {
       val monthName = datePlaceholder(date, "month_name")
 
-      monthName shouldBe Some("DECEMBER")
+      monthName shouldBe Some("December")
     }
     "correctly convert a date place holder into a day of the week number" in {
       val dayOfTheWeekNumber = datePlaceholder(date, "dow")
@@ -330,7 +329,7 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
       operandValue("[date:12/12/2021:year]")(labels) shouldBe Some("2021")
     }
     "correctly convert a date place holder into a day name" in {
-      operandValue("[date:12/12/2021:dow_name]")(labels) shouldBe Some("SUNDAY")
+      operandValue("[date:12/12/2021:dow_name]")(labels) shouldBe Some("Sunday")
     }
     "correctly convert a date place holder into a month number" in {
       operandValue("[date:12/12/2021:month]")(labels) shouldBe Some("12")
@@ -342,7 +341,7 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
       operandValue("[date:12/12/2021:month_end]")(labels) shouldBe Some("31/12/2021")
     }
     "correctly convert a date place holder into a month name" in {
-      operandValue("[date:12/12/2021:month_name]")(labels) shouldBe Some("DECEMBER")
+      operandValue("[date:12/12/2021:month_name]")(labels) shouldBe Some("December")
     }
     "correctly convert a date place holder into a day of the week number" in {
       operandValue("[date:12/12/2021:dow]")(labels) shouldBe Some("7")
@@ -361,7 +360,7 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
       operandValue("[date:[label:MyDate]:year]")(labelsWithMyDate) shouldBe Some("2021")
     }
     "correctly convert a date place holder into a day name" in {
-      operandValue("[date:[label:MyDate]:dow_name]")(labelsWithMyDate) shouldBe Some("SUNDAY")
+      operandValue("[date:[label:MyDate]:dow_name]")(labelsWithMyDate) shouldBe Some("Sunday")
     }
     "correctly convert a date place holder into a month number" in {
       operandValue("[date:[label:MyDate]:month]")(labelsWithMyDate) shouldBe Some("12")
@@ -373,7 +372,7 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
       operandValue("[date:[label:MyDate]:month_end]")(labelsWithMyDate) shouldBe Some("31/12/2021")
     }
     "correctly convert a date place holder into a month name" in {
-      operandValue("[date:[label:MyDate]:month_name]")(labelsWithMyDate) shouldBe Some("DECEMBER")
+      operandValue("[date:[label:MyDate]:month_name]")(labelsWithMyDate) shouldBe Some("December")
     }
     "correctly convert a date place holder into a day of the week number" in {
       operandValue("[date:[label:MyDate]:dow]")(labelsWithMyDate) shouldBe Some("7")
