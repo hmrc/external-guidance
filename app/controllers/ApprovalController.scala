@@ -39,30 +39,35 @@ class ApprovalController @Inject() (allRolesAction: AllRolesAction,
   val logger: Logger = Logger(getClass)
 
   def saveFor2iReview: Action[JsValue] = Action.async(parse.json) { implicit request =>
-    saveProcess(request.body.as[JsObject], ReviewType2i)
+    saveProcess(request.body, ReviewType2i)
   }
 
   def saveForFactCheck: Action[JsValue] = Action.async(parse.json) { implicit request =>
-    saveProcess(request.body.as[JsObject], ReviewTypeFactCheck)
+    saveProcess(request.body, ReviewTypeFactCheck)
   }
 
-  def saveProcess(process: JsObject, reviewType: String): Future[Result] =
-    approvalService.save(process, reviewType, StatusSubmitted).map {
-      case Right(id) =>
-        logger.info(s"Saved process for $reviewType with id $id")
-        Created(Json.obj("id" -> id))
-      case Left(err @ Error(Error.UnprocessableEntity, _, Some(details))) =>
-        logger.error(s"Failed to save process for approval due to process errors $details")
-        UnprocessableEntity(toJson(err))
-      case Left(DuplicateKeyError) =>
-        logger.error(s"Failed to save process for approval due to duplicate processCode")
-        UnprocessableEntity(toJson(Error(Error.UnprocessableEntity, "Duplicate ProcessCode - the process has the same processCode as an existing process")))
-      case Left(ValidationError) =>
-        logger.error(s"Failed to save process for approval due to validation errors")
-        BadRequest(toJson(BadRequestError))
-      case Left(BadRequestError) => BadRequest(toJson(BadRequestError))
-      case Left(_) => InternalServerError(toJson(ServerError))
-    }
+  def saveProcess(jsProcess: JsValue, reviewType: String): Future[Result] =
+    jsProcess.validate[JsObject].fold(errs => {
+      logger.error(s"Unable to parse incoming json as a JsObject, Errors: $errs")
+      Future.successful(BadRequest(toJson(BadRequestError)))
+    }, process =>
+      approvalService.save(process, reviewType, StatusSubmitted).map {
+        case Right(id) =>
+          logger.info(s"Saved process for $reviewType with id $id")
+          Created(Json.obj("id" -> id))
+        case Left(err @ Error(Error.UnprocessableEntity, _, Some(details))) =>
+          logger.error(s"Failed to save process for approval due to process errors $details")
+          UnprocessableEntity(toJson(err))
+        case Left(DuplicateKeyError) =>
+          logger.error(s"Failed to save process for approval due to duplicate processCode")
+          UnprocessableEntity(toJson(Error(Error.UnprocessableEntity, "Duplicate ProcessCode - the process has the same processCode as an existing process")))
+        case Left(ValidationError) =>
+          logger.error(s"Failed to save process for approval due to validation errors")
+          BadRequest(toJson(BadRequestError))
+        case Left(BadRequestError) => BadRequest(toJson(BadRequestError))
+        case Left(_) => InternalServerError(toJson(ServerError))
+      }
+    )
 
   def get(id: String): Action[AnyContent] = Action.async { _ =>
     approvalService.getById(id).flatMap {

@@ -105,9 +105,9 @@ class ApprovalService @Inject() (
       case Right(result) => Right(result.process)
     }
 
-  def approvalSummaryList(roles: List[String]): Future[RequestOutcome[JsArray]] =
+  def approvalSummaryList(roles: List[String]): Future[RequestOutcome[JsValue]] =
     repository.approvalSummaryList(roles).map {
       case Left(_) => Left(InternalServerError)
-      case Right(success) => Right(Json.toJson(success).as[JsArray])
+      case Right(success) => Right(Json.toJson(success))
     }
 }

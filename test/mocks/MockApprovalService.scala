@@ -19,7 +19,7 @@ package mocks
 import core.models.RequestOutcome
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
-import play.api.libs.json.{JsArray, JsObject}
+import play.api.libs.json.{JsValue, JsObject}
 import services.ApprovalService
 import models.Constants._
 
@@ -52,7 +52,7 @@ trait MockApprovalService extends MockFactory {
         .expects(process, reviewType, status)
     }
 
-    def approvalSummaryList(roles: List[String]): CallHandler[Future[RequestOutcome[JsArray]]] = {
+    def approvalSummaryList(roles: List[String]): CallHandler[Future[RequestOutcome[JsValue]]] = {
       (mockApprovalService.approvalSummaryList(_: List[String]))
         .expects(roles)
     }

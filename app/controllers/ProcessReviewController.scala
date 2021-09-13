@@ -49,7 +49,7 @@ class ProcessReviewController @Inject() (
 
   private def getReviewInfo(id: String, reviewType: String): Future[Result] = {
     reviewService.approvalReviewInfo(id, reviewType).map {
-      case Right(data) => Ok(Json.toJson(data).as[JsObject])
+      case Right(data) => Ok(Json.toJson(data))
       case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
       case Left(DuplicateKeyError) => BadRequest(Json.toJson(DuplicateKeyError))
       case Left(StaleDataError) => NotFound(Json.toJson(StaleDataError))
@@ -119,7 +119,7 @@ class ProcessReviewController @Inject() (
 
   private def pageReviewInfo(id: String, pageUrl: String, reviewType: String): Future[Result] = {
     reviewService.approvalPageInfo(id, s"/$pageUrl", reviewType).map {
-      case Right(data) => Ok(Json.toJson(data).as[JsObject])
+      case Right(data) => Ok(Json.toJson(data))
       case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
       case Left(StaleDataError) => NotFound(Json.toJson(StaleDataError))
       case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
