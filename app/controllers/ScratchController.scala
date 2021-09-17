@@ -34,19 +34,22 @@ class ScratchController @Inject() (scratchService: ScratchService,
   import Json._
 
   def save(): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    val process = request.body.as[JsObject]
-
-    scratchService.save(process).map {
-      case Right(id) => Created(obj("id" -> id.toString))
-      case Left(err @ Error(Error.UnprocessableEntity, _, Some(details))) =>
-        logger.error(s"Failed to save scratch process due to process errors $details")
-        UnprocessableEntity(toJson(err))
-      case Left(ValidationError) =>
-        logger.error(s"Save on scratch service returned ValidationError")
-        BadRequest(toJson(BadRequestError))
-      case Left(BadRequestError) => BadRequest(toJson(BadRequestError))
-      case Left(_) => InternalServerError(toJson(ServerError))
-    }
+    request.body.validate[JsObject].fold(errs => {
+      logger.error(s"Unable to parse incoming json as a JsObject, Errors: $errs")
+      Future.successful(BadRequest(toJson(BadRequestError)))
+    }, process => {
+      scratchService.save(process).map {
+        case Right(id) => Created(obj("id" -> id.toString))
+        case Left(err @ Error(Error.UnprocessableEntity, _, Some(details))) =>
+          logger.error(s"Failed to save scratch process due to process errors $details")
+          UnprocessableEntity(toJson(err))
+        case Left(ValidationError) =>
+          logger.error(s"Save on scratch service returned ValidationError")
+          BadRequest(toJson(BadRequestError))
+        case Left(BadRequestError) => BadRequest(toJson(BadRequestError))
+        case Left(_) => InternalServerError(toJson(ServerError))
+      }
+    })
   }
 
   def get(id: String): Action[AnyContent] = Action.async { _ =>
