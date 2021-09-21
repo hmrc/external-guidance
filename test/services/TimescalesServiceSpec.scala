@@ -221,7 +221,7 @@ class TimescalesServiceSpec extends BaseSpec {
     val credId: String = "234324234"
     val user: String = "User Blah"
     val email: String = "user@blah.com"
-    val timescalesUpdate = TimescalesUpdate("1", timescalesJson, lastUpdateTime, credId, user, email)
+    val timescalesUpdate = TimescalesUpdate(timescalesJson, lastUpdateTime, credId, user, email)
     val updateDetail = UpdateDetails(lastUpdateTime, "234324234", "User Blah", "user@blah.com")
     val timescaleDetails = TimescalesDetail(timescales.size, Some(updateDetail))
   }

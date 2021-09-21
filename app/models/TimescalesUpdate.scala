@@ -21,28 +21,25 @@ import play.api.libs.json.{__, _}
 import play.api.libs.functional.syntax._
 import core.models.MongoDateTimeFormats
 
-case class TimescalesUpdate(id: String, timescales: JsValue, when: ZonedDateTime, credId: String, user: String, email: String)
+case class TimescalesUpdate(timescales: JsValue, when: ZonedDateTime, credId: String, user: String, email: String)
 
 object TimescalesUpdate {
 
   implicit val zonedDateTimeFormat = MongoDateTimeFormats.zonedDateTimeFormats
 
   implicit val reads: Reads[TimescalesUpdate] =
-    ((__ \ "id").read[String] and
-      (JsPath \ "timescales").read[JsValue] and
-      (JsPath \ "when").read[ZonedDateTime] and
-      (JsPath \ "credId").read[String] and
-      (JsPath \ "user").read[String] and
-      (JsPath \ "email").read[String])(TimescalesUpdate.apply _)
+    ((__ \ "timescales").read[JsValue] and
+      (__ \ "when").read[ZonedDateTime] and
+      (__ \ "credId").read[String] and
+      (__ \ "user").read[String] and
+      (__ \ "email").read[String])(TimescalesUpdate.apply _)
 
   implicit val writes: OWrites[TimescalesUpdate] =
-    (
-      (JsPath \ "id").write[String] and
-        (JsPath \ "timescales").write[JsValue] and
-        (JsPath \ "when").write[ZonedDateTime] and
-        (JsPath \ "credId").write[String] and
-        (JsPath \ "user").write[String] and
-        (JsPath \ "email").write[String]
+    ((__ \ "timescales").write[JsValue] and
+        (__ \ "when").write[ZonedDateTime] and
+        (__ \ "credId").write[String] and
+        (__ \ "user").write[String] and
+        (__ \ "email").write[String]
     )(unlift(TimescalesUpdate.unapply))
 
   val format: OFormat[TimescalesUpdate] = OFormat(reads, writes)

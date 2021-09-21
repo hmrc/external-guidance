@@ -42,7 +42,7 @@ class TimescalesControllerSpec extends WordSpec with Matchers with ScalaFutures 
     val credId: String = FakeAllRolesAction.credential
     val user: String = FakeAllRolesAction.name
     val email: String = FakeAllRolesAction.email
-    val timescalesUpdate = TimescalesUpdate("1", timescaleJson, lastUpdateTime, credId, user, email)
+    val timescalesUpdate = TimescalesUpdate(timescaleJson, lastUpdateTime, credId, user, email)
     val updateDetail = UpdateDetails(lastUpdateTime, credId, user, email)
     val timescaleDetails = TimescalesDetail(timescales.size, Some(updateDetail))
   }
@@ -56,9 +56,9 @@ class TimescalesControllerSpec extends WordSpec with Matchers with ScalaFutures 
 
     "the request is valid" should {
 
-      "return a no content response" in new ValidSaveTest {
+      "return an Accepted response" in new ValidSaveTest {
         private val result = target.save()(request)
-        status(result) shouldBe NO_CONTENT
+        status(result) shouldBe ACCEPTED
       }
     }
 

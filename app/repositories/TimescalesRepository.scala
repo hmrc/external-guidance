@@ -55,7 +55,7 @@ class TimescalesRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent
         "credId" -> credId,
         "user" -> user,
         "email" -> email
-      )), upsert = true).map{ update =>
+      )), fetchNewObject = true, upsert = true).map{ update =>
         update.result[TimescalesUpdate].fold[RequestOutcome[TimescalesUpdate]]{
           logger.error(s"Failed to find and update/insert TimescalesUpdate")
           Left(DatabaseError)
