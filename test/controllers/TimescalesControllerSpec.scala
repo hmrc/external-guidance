@@ -16,9 +16,9 @@
 
 package controllers
 
-import mocks.MockTimescalesService
-//import core.models.errors.{BadRequestError, Error, InternalServerError, ProcessError, ValidationError}
+import mocks.{MockTimescalesRepository, MockTimescalesService}
 import core.models.errors.{InternalServerError, ValidationError}
+import core.models.MongoDateTimeFormats
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -27,24 +27,34 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import controllers.actions.FakeAllRolesAction
-
+import java.time.ZonedDateTime
+import play.api.mvc._
 import scala.concurrent.Future
+import models.{UpdateDetails, TimescalesDetail, TimescalesUpdate}
 
 class TimescalesControllerSpec extends WordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite {
 
-  private trait Test extends MockTimescalesService {
+  trait Test extends MockTimescalesService with MockTimescalesRepository {
     val timescaleJson: JsValue = Json.parse("""{"First": 1, "Second": 2, "Third": 3}""")
     lazy val target: TimescalesController = new TimescalesController(mockTimescalesService, stubControllerComponents(), FakeAllRolesAction)
+    val lastUpdateTime: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, MongoDateTimeFormats.localZoneID)
+    val timescales: Map[String, Int] = Map("First" -> 1, "Second" -> 2, "Third" -> 3)
+    val credId: String = FakeAllRolesAction.credential
+    val user: String = FakeAllRolesAction.name
+    val email: String = FakeAllRolesAction.email
+    val timescalesUpdate = TimescalesUpdate("1", timescaleJson, lastUpdateTime, credId, user, email)
+    val updateDetail = UpdateDetails(lastUpdateTime, credId, user, email)
+    val timescaleDetails = TimescalesDetail(timescales.size, Some(updateDetail))
   }
 
   "Calling the save action" when {
 
-    "the request is valid" should {
+    trait ValidSaveTest extends Test {
+      MockTimescalesService.save(timescaleJson, credId, user, email).returns(Future.successful(Right(())))
+      lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(timescaleJson)
+    }
 
-      trait ValidSaveTest extends Test {
-        MockTimescalesService.save(timescaleJson).returns(Future.successful(Right(())))
-        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(timescaleJson)
-      }
+    "the request is valid" should {
 
       "return a no content response" in new ValidSaveTest {
         private val result = target.save()(request)
@@ -56,7 +66,7 @@ class TimescalesControllerSpec extends WordSpec with Matchers with ScalaFutures 
 
       trait InvalidSaveTest extends Test {
         val invalidTs: JsValue =  Json.parse("""{"Hello": "World"}""")
-        MockTimescalesService.save(invalidTs).returns(Future.successful(Left(ValidationError)))
+        MockTimescalesService.save(invalidTs, credId, user, email).returns(Future.successful(Left(ValidationError)))
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidTs)
       }
 
@@ -83,7 +93,7 @@ class TimescalesControllerSpec extends WordSpec with Matchers with ScalaFutures 
       trait ErrorSaveTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         val process: JsObject = Json.obj()
-        MockTimescalesService.save(process).returns(Future.successful(Left(InternalServerError)))
+        MockTimescalesService.save(process, credId, user, email).returns(Future.successful(Left(InternalServerError)))
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(process)
       }
 
@@ -104,4 +114,74 @@ class TimescalesControllerSpec extends WordSpec with Matchers with ScalaFutures 
       }
     }
   }
+
+  "Calling the details action" when {
+
+    "the request is valid" should {
+
+      trait ValidDetailsTest extends Test {
+        MockTimescalesService.details.returns(Future.successful(Right(timescaleDetails)))
+        lazy val request: FakeRequest[AnyContent] = FakeRequest()
+      }
+
+      "return a no content response" in new ValidDetailsTest {
+        private val result = target.details(request)
+        status(result) shouldBe OK
+        contentAsJson(result) shouldBe Json.toJson(timescaleDetails)
+      }
+    }
+
+    "the request is valid but the timescales are invalid" should {
+
+      trait InvalidSaveTest extends Test {
+        val invalidTs: JsValue =  Json.parse("""{"Hello": "World"}""")
+        MockTimescalesService.save(invalidTs, credId, user, email).returns(Future.successful(Left(ValidationError)))
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidTs)
+      }
+
+      "return a unsupportable entity response" in new InvalidSaveTest {
+        private val result = target.save()(request)
+        status(result) shouldBe BAD_REQUEST
+      }
+
+      "return content as JSON" in new InvalidSaveTest {
+        private val result = target.save()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return an error code of BAD_REQUEST" in new InvalidSaveTest {
+        private val result = target.save()(request)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe "VALIDATION_ERROR"
+      }
+
+    }
+
+    "a downstream error occurs" should {
+
+      trait ErrorSaveTest extends Test {
+        val expectedErrorCode = "INTERNAL_SERVER_ERROR"
+        val process: JsObject = Json.obj()
+        MockTimescalesService.save(process, credId, user, email).returns(Future.successful(Left(InternalServerError)))
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(process)
+      }
+
+      "return a internal server error response" in new ErrorSaveTest {
+        private val result = target.save()(request)
+        status(result) shouldBe INTERNAL_SERVER_ERROR
+      }
+
+      "return content as JSON" in new ErrorSaveTest {
+        private val result = target.save()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return an error code of INTERNAL_SERVER_ERROR" in new ErrorSaveTest {
+        private val result = target.save()(request)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe expectedErrorCode
+      }
+    }
+  }
+
 }

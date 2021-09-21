@@ -25,6 +25,7 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.Logger
 import controllers.actions.AllRolesAction
 import scala.concurrent.ExecutionContext.Implicits.global
+import models.requests.IdentifierRequest
 
 @Singleton()
 class TimescalesController @Inject() (timescaleService: TimescalesService,
@@ -33,11 +34,11 @@ class TimescalesController @Inject() (timescaleService: TimescalesService,
 
   val logger: Logger = Logger(getClass)
 
-  def save(): Action[JsValue] = allRolesAction.async(parse.json) { implicit request =>
-    val timescales: JsValue = request.body
-    logger.warn(s"TIMESCALES: Timescale definitions update received")
-    timescaleService.save(timescales).map {
-      case Right(id) => NoContent
+  def save(): Action[JsValue] = allRolesAction.async(parse.json) { implicit request: IdentifierRequest[JsValue] =>
+    timescaleService.save(request.body, request.credId, request.name, request.email).map {
+      case Right(id) =>
+        logger.warn(s"TIMESCALES: Timescale definitions update received")
+        Accepted
       case Left(ValidationError) =>
         logger.error(s"Failed to save of updated timescales due to ValidationError")
         BadRequest(Json.toJson(ValidationError))
@@ -47,10 +48,11 @@ class TimescalesController @Inject() (timescaleService: TimescalesService,
     }
   }
 
-  def get(): Action[AnyContent] = Action.async { _ =>
-    timescaleService.get().map {
-      case Right(timescales) => Ok(Json.toJson(timescales))
+  def details: Action[AnyContent] = Action.async { _ =>
+    timescaleService.details().map {
+      case Right(details) => Ok(Json.toJson(details))
       case Left(_) => InternalServerError(Json.toJson(ServerError))
     }
   }
+
 }

@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package repositories.formatters
+package models
 
 import base.BaseSpec
 import play.api.libs.json.{JsSuccess, Json}
 import java.time.{ZonedDateTime, Instant}
-import core.models.MongoDateTimeFormats
-import repositories.Timescales
 
-class TimescalesFormatterSpec extends BaseSpec with MongoDateTimeFormats {
-
+class TimescalesUpdateSpec extends BaseSpec {
+  val credId: String = "1234566789"
+  val user: String = "User Blah"
+  val email: String = "user@blah.com"
   val milliseconds: Long = 1586450476247L
-  val when: ZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(milliseconds), localZoneID)
-  private val timescales: Timescales = Timescales("1", Json.obj(), when)
+  val when: ZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(milliseconds), ZonedDateTime.now.getZone)
 
-  private val json = Json.parse("""{"_id":"1","timescales":{},"when":{"$date":1586450476247}}""")
+  private val timescales: TimescalesUpdate = TimescalesUpdate("1", Json.obj(), when, credId, user, email)
+  private val json = Json.parse("""{"id":"1","timescales":{},"when":{"$date":1586450476247},"credId":"1234566789","user":"User Blah","email":"user@blah.com"}""")
 
   "Formatting a valid JSON payload to a Timescales" should {
     "result in a successful conversion" in {
-      json.validate[Timescales](TimescalesFormatter.mongoFormat) match {
+      json.validate[TimescalesUpdate](TimescalesUpdate.format) match {
         case JsSuccess(result, _) if result == timescales => succeed
         case JsSuccess(_, _) => fail("JSON parsed with incorrect values")
         case _ => fail("Unable to parse valid JSON")
@@ -40,9 +40,9 @@ class TimescalesFormatterSpec extends BaseSpec with MongoDateTimeFormats {
     }
   }
 
-  "Serialising a Timescales to JSON" should {
+  "Serialising a TimescalesUpdate to JSON" should {
     "result in the correct JSON" in {
-      val result = Json.toJson(timescales)(TimescalesFormatter.mongoFormat)
+      val result = Json.toJson(timescales)(TimescalesUpdate.format)
       result shouldBe json
     }
   }

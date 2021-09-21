@@ -26,18 +26,18 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import config.AppConfig
 import play.api.Logger
+import java.time.ZonedDateTime
+import models.{UpdateDetails, TimescalesDetail}
 
 @Singleton
 class TimescalesService @Inject() (repository: TimescalesRepository, appConfig: AppConfig) {
   val logger: Logger = Logger(getClass)
 
-  def save(json: JsValue): Future[RequestOutcome[Unit]] =
+  def save(json: JsValue, credId: String, user: String, email: String): Future[RequestOutcome[Unit]] =
     json.validate[Map[String, Int]].fold(_ => Future.successful(Left(ValidationError)), _ =>
-      repository.save(json).map{
+      repository.save(json, ZonedDateTime.now, credId, user, email).map{
         case Left(_) => Left(InternalServerError)
-        case _ =>
-          logger.warn("TIMESCALES: update to timescales definitions saved")
-          Right(())
+        case Right(update) => Right(())
       }
     )
 
@@ -56,9 +56,22 @@ class TimescalesService @Inject() (repository: TimescalesRepository, appConfig: 
         }
     )
 
+  def details(): Future[RequestOutcome[TimescalesDetail]] =
+    repository.get(repository.CurrentTimescalesID) map {
+      case Right(update) =>
+        update.timescales
+              .validate[Map[String, Int]]
+              .fold(
+                _ => Left(InternalServerError),
+                mp => Right(TimescalesDetail(mp.size, Some(UpdateDetails(update.when, update.credId, update.user, update.email))))
+              )
+      case Left(NotFoundError) => Right(TimescalesDetail(appConfig.seedTimescales.size, None))
+      case Left(_) => Left(InternalServerError)
+    }
+
   def get(): Future[RequestOutcome[Map[String, Int]]] =
     repository.get(repository.CurrentTimescalesID) map {
-      case Right(timescales) => timescales.validate[Map[String, Int]].fold(_ => Left(InternalServerError), mp => Right(mp))
+      case Right(tsUpdate) => tsUpdate.timescales.validate[Map[String, Int]].fold(_ => Left(InternalServerError), mp => Right(mp))
       case Left(NotFoundError) => Right(appConfig.seedTimescales)
       case Left(_) => Left(InternalServerError)
     }

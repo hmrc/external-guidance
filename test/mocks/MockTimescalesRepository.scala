@@ -20,6 +20,8 @@ import core.models.RequestOutcome
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.JsValue
+import java.time.ZonedDateTime
+import models.TimescalesUpdate
 import repositories.TimescalesRepository
 
 import scala.concurrent.Future
@@ -29,15 +31,14 @@ trait MockTimescalesRepository extends MockFactory {
 
   object MockTimescalesRepository {
 
-    def save(timescales: JsValue): CallHandler[Future[RequestOutcome[Unit]]] =
+    def save(timescales: JsValue, when: ZonedDateTime, credId: String, user: String, email: String): CallHandler[Future[RequestOutcome[TimescalesUpdate]]] =
       (mockTimescalesRepository
-        .save(_: JsValue))
-        .expects(timescales)
+        .save(_: JsValue, _: ZonedDateTime, _: String, _: String, _: String))
+        .expects(timescales, *, credId, user, email)
 
-    def get(id: String): CallHandler[Future[RequestOutcome[JsValue]]] =
+    def get(id: String): CallHandler[Future[RequestOutcome[TimescalesUpdate]]] =
       (mockTimescalesRepository
         .get(_: String))
         .expects(id)
     }
 }
-

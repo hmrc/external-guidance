@@ -18,12 +18,14 @@ package services
 
 import base.BaseSpec
 import mocks.MockTimescalesRepository
-import core.models.RequestOutcome
+import core.models.{RequestOutcome, MongoDateTimeFormats}
 import core.models.errors._
 import play.api.libs.json.{JsValue, Json, JsObject}
 import mocks.MockAppConfig
 import scala.concurrent.Future
 import core.models.ocelot.Process
+import java.time.ZonedDateTime
+import models.{TimescalesDetail, UpdateDetails, TimescalesUpdate}
 
 class TimescalesServiceSpec extends BaseSpec {
   val jsonWithNoTsTable: JsObject = Json.parse(
@@ -213,8 +215,15 @@ class TimescalesServiceSpec extends BaseSpec {
 
   private trait Test extends MockTimescalesRepository {
     lazy val target: TimescalesService = new TimescalesService(mockTimescalesRepository, MockAppConfig)
+    val lastUpdateTime: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, MongoDateTimeFormats.localZoneID)
+    val timescalesJson: JsValue = Json.parse("""{"First": 1, "Second": 2, "Third": 3}""")
     val timescales: Map[String, Int] = Map("First" -> 1, "Second" -> 2, "Third" -> 3)
-    val timescaleJson: JsValue = Json.parse("""{"First": 1, "Second": 2, "Third": 3}""")
+    val credId: String = "234324234"
+    val user: String = "User Blah"
+    val email: String = "user@blah.com"
+    val timescalesUpdate = TimescalesUpdate("1", timescalesJson, lastUpdateTime, credId, user, email)
+    val updateDetail = UpdateDetails(lastUpdateTime, "234324234", "User Blah", "user@blah.com")
+    val timescaleDetails = TimescalesDetail(timescales.size, Some(updateDetail))
   }
 
   "Calling save method" when {
@@ -222,14 +231,15 @@ class TimescalesServiceSpec extends BaseSpec {
     "the JSON is valid" should {
       "return Unit" in new Test{
 
-        val expected: RequestOutcome[Unit] = Right(())
+        val expected: RequestOutcome[TimescalesUpdate] = Right(timescalesUpdate)
 
         MockTimescalesRepository
-          .save(timescaleJson)
+          .save(timescalesJson, lastUpdateTime, credId, user, email)
           .returns(Future.successful(expected))
 
-        whenReady(target.save(timescaleJson)) {
-          case result => result shouldBe expected
+        whenReady(target.save(timescalesJson, credId, user, email)) {
+          case Right(()) => succeed
+          case _ => fail
         }
       }
     }
@@ -238,7 +248,7 @@ class TimescalesServiceSpec extends BaseSpec {
       "return Validation error" in new Test {
         val invalidTs: JsValue =  Json.parse("""{"Hello": "World"}""")
 
-        whenReady(target.save(invalidTs)) {
+        whenReady(target.save(invalidTs, credId, user, email)) {
           case Right(_) => fail
           case Left(ValidationError) => succeed
           case err => fail
@@ -248,19 +258,19 @@ class TimescalesServiceSpec extends BaseSpec {
 
     "the JSON is invalid" should {
       "not call the scratch repository" in new Test {
-        MockTimescalesRepository.save(Json.parse("""{"Hello": "World"}""")).never()
+        MockTimescalesRepository.save(Json.parse("""{"Hello": "World"}"""), lastUpdateTime, credId, user, email).never()
 
-        target.save(Json.parse("""{"Hello": "World"}"""))
+        target.save(Json.parse("""{"Hello": "World"}"""), credId, user, email)
       }
     }
 
     "a database error occurs" should {
       "return a internal error" in new Test {
         MockTimescalesRepository
-          .save(timescaleJson)
+          .save(timescalesJson, lastUpdateTime, credId, user, email)
           .returns(Future.successful(Left(DatabaseError)))
 
-        whenReady(target.save(timescaleJson)) {
+        whenReady(target.save(timescalesJson, credId, user, email)) {
           case result @ Left(_) => result shouldBe Left(InternalServerError)
           case _ => fail
         }
@@ -273,7 +283,7 @@ class TimescalesServiceSpec extends BaseSpec {
     "return the timescales" in new Test {
       MockTimescalesRepository
         .get("1")
-        .returns(Future.successful(Right(timescaleJson)))
+        .returns(Future.successful(Right(timescalesUpdate)))
 
       whenReady(target.get) { result =>
         result shouldBe Right(timescales)
@@ -290,7 +300,6 @@ class TimescalesServiceSpec extends BaseSpec {
       }
     }
 
-
     "return an internal error when a database error occurs" in new Test {
       MockTimescalesRepository
         .get("1")
@@ -302,12 +311,46 @@ class TimescalesServiceSpec extends BaseSpec {
     }
   }
 
+  "Calling details method" should {
+    "Return complete details if timescales exist" in new Test {
+      MockTimescalesRepository
+        .get("1")
+        .returns(Future.successful(Right(timescalesUpdate)))
+
+      whenReady(target.details()) { result =>
+        result shouldBe Right(timescaleDetails)
+      }
+    }
+
+    "Return details with no datetime if only seed timescales exist" in new Test {
+      MockTimescalesRepository
+        .get("1")
+        .returns(Future.successful(Left(NotFoundError)))
+
+      whenReady(target.details()) { result =>
+        result shouldBe Right(TimescalesDetail(timescales.size, None))
+      }
+
+    }
+
+    "return an internal error when a database error occurs" in new Test {
+      MockTimescalesRepository
+        .get("1")
+        .returns(Future.successful(Left(DatabaseError)))
+
+      whenReady(target.details()) { result =>
+        result shouldBe Left(InternalServerError)
+      }
+    }
+
+  }
+
   "Calling updateTimescaleTable method" should {
 
     "Update table using mongo timescale defns" in new Test {
       MockTimescalesRepository
         .get("1")
-        .returns(Future.successful(Right(timescaleJson)))
+        .returns(Future.successful(Right(timescalesUpdate)))
 
       whenReady(target.updateTimescaleTable(jsonWithBlankTsTable)) { result =>
         result match {
@@ -327,7 +370,8 @@ class TimescalesServiceSpec extends BaseSpec {
     }
 
     "Update table using mongo timescale defns where json is not a valid Process" in new Test {
-      whenReady(target.updateTimescaleTable(Json.parse("{}").as[JsObject])) { result =>
+      val update = Json.parse("{}").as[JsObject]
+      whenReady(target.updateTimescaleTable(update)) { result =>
         result match {
           case Right(_) => fail
           case Left(err) => err shouldBe ValidationError
