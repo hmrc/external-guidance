@@ -33,11 +33,11 @@ import models.{UpdateDetails, TimescalesDetail}
 class TimescalesService @Inject() (repository: TimescalesRepository, appConfig: AppConfig) {
   val logger: Logger = Logger(getClass)
 
-  def save(json: JsValue, credId: String, user: String, email: String): Future[RequestOutcome[Unit]] =
-    json.validate[Map[String, Int]].fold(_ => Future.successful(Left(ValidationError)), _ =>
+  def save(json: JsValue, credId: String, user: String, email: String): Future[RequestOutcome[TimescalesDetail]] =
+    json.validate[Map[String, Int]].fold(_ => Future.successful(Left(ValidationError)), mp =>
       repository.save(json, ZonedDateTime.now, credId, user, email).map{
         case Left(_) => Left(InternalServerError)
-        case Right(update) => Right(())
+        case Right(update) => Right(TimescalesDetail(mp.size, Some(UpdateDetails(update.when, update.credId, update.user, update.email))))
       }
     )
 
