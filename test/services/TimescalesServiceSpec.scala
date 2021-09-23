@@ -238,7 +238,7 @@ class TimescalesServiceSpec extends BaseSpec {
           .returns(Future.successful(expected))
 
         whenReady(target.save(timescalesJson, credId, user, email)) {
-          case Right(()) => succeed
+          case Right(details) if details == timescaleDetails => succeed
           case _ => fail
         }
       }
@@ -345,14 +345,14 @@ class TimescalesServiceSpec extends BaseSpec {
 
   }
 
-  "Calling updateTimescaleTable method" should {
+  "Calling updateProcessTimescaleTable method" should {
 
     "Update table using mongo timescale defns" in new Test {
       MockTimescalesRepository
         .get("1")
         .returns(Future.successful(Right(timescalesUpdate)))
 
-      whenReady(target.updateTimescaleTable(jsonWithBlankTsTable)) { result =>
+      whenReady(target.updateProcessTimescaleTable(jsonWithBlankTsTable)) { result =>
         result match {
           case Right(json) => (json.as[Process]).timescales shouldBe timescales
           case _ => fail
@@ -361,7 +361,7 @@ class TimescalesServiceSpec extends BaseSpec {
     }
 
     "Update table using mongo timescale defns where json contains no timescale table" in new Test {
-      whenReady(target.updateTimescaleTable(jsonWithNoTsTable)) { result =>
+      whenReady(target.updateProcessTimescaleTable(jsonWithNoTsTable)) { result =>
         result match {
           case Right(json) => (json.as[Process]).timescales shouldBe Map()
           case _ => fail
@@ -371,7 +371,7 @@ class TimescalesServiceSpec extends BaseSpec {
 
     "Update table using mongo timescale defns where json is not a valid Process" in new Test {
       val update = Json.parse("{}").as[JsObject]
-      whenReady(target.updateTimescaleTable(update)) { result =>
+      whenReady(target.updateProcessTimescaleTable(update)) { result =>
         result match {
           case Right(_) => fail
           case Left(err) => err shouldBe ValidationError
@@ -384,7 +384,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .get("1")
         .returns(Future.successful(Left(NotFoundError)))
 
-      whenReady(target.updateTimescaleTable(jsonWithBlankTsTable)) { result =>
+      whenReady(target.updateProcessTimescaleTable(jsonWithBlankTsTable)) { result =>
         result match {
           case Right(json) => (json.as[Process]).timescales shouldBe timescales
           case _ => fail
@@ -398,7 +398,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .get("1")
         .returns(Future.successful(Left(DatabaseError)))
 
-      whenReady(target.updateTimescaleTable(jsonWithBlankTsTable)) { result =>
+      whenReady(target.updateProcessTimescaleTable(jsonWithBlankTsTable)) { result =>
         result shouldBe Left(InternalServerError)
       }
     }

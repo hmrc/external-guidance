@@ -33,15 +33,32 @@ import models.{UpdateDetails, TimescalesDetail}
 class TimescalesService @Inject() (repository: TimescalesRepository, appConfig: AppConfig) {
   val logger: Logger = Logger(getClass)
 
+  def details(): Future[RequestOutcome[TimescalesDetail]] =
+    repository.get(repository.CurrentTimescalesID) map {
+      case Right(update) =>
+        update.timescales.validate[Map[String, Int]].fold(_ => Left(InternalServerError),
+          mp => Right(TimescalesDetail(mp.size, Some(UpdateDetails(update.when, update.credId, update.user, update.email))))
+        )
+      case Left(NotFoundError) =>
+        logger.warn(s"No timescales found returning seed timescale details")
+        Right(TimescalesDetail(appConfig.seedTimescales.size, None))
+      case Left(err) =>
+        logger.error(s"Unbale to retrieve timescale update details due to error, $err")
+        Left(InternalServerError)
+    }
+
   def save(json: JsValue, credId: String, user: String, email: String): Future[RequestOutcome[TimescalesDetail]] =
-    json.validate[Map[String, Int]].fold(_ => Future.successful(Left(ValidationError)), mp =>
-      repository.save(json, ZonedDateTime.now, credId, user, email).map{
-        case Left(_) => Left(InternalServerError)
-        case Right(update) => Right(TimescalesDetail(mp.size, Some(UpdateDetails(update.when, update.credId, update.user, update.email))))
+    json.validate[Map[String, Int]].fold(_ => Future.successful(Left(ValidationError)),
+      mp => repository.save(json, ZonedDateTime.now, credId, user, email).map{
+        case Left(err) =>
+          logger.error(s"Unable to save timescale definitions due error, $err")
+          Left(InternalServerError)
+        case Right(update) =>
+          Right(TimescalesDetail(mp.size, Some(UpdateDetails(update.when, update.credId, update.user, update.email))))
       }
     )
 
-  def updateTimescaleTable(js: JsObject): Future[RequestOutcome[JsObject]] =
+  def updateProcessTimescaleTable(js: JsObject): Future[RequestOutcome[JsObject]] =
     js.validate[Process].fold(_ => Future.successful(Left(ValidationError)),
       process =>
         if (process.timescales.isEmpty) Future.successful(Right(js))
@@ -56,23 +73,14 @@ class TimescalesService @Inject() (repository: TimescalesRepository, appConfig: 
         }
     )
 
-  def details(): Future[RequestOutcome[TimescalesDetail]] =
-    repository.get(repository.CurrentTimescalesID) map {
-      case Right(update) =>
-        update.timescales
-              .validate[Map[String, Int]]
-              .fold(
-                _ => Left(InternalServerError),
-                mp => Right(TimescalesDetail(mp.size, Some(UpdateDetails(update.when, update.credId, update.user, update.email))))
-              )
-      case Left(NotFoundError) => Right(TimescalesDetail(appConfig.seedTimescales.size, None))
-      case Left(_) => Left(InternalServerError)
-    }
-
   def get(): Future[RequestOutcome[Map[String, Int]]] =
     repository.get(repository.CurrentTimescalesID) map {
       case Right(tsUpdate) => tsUpdate.timescales.validate[Map[String, Int]].fold(_ => Left(InternalServerError), mp => Right(mp))
-      case Left(NotFoundError) => Right(appConfig.seedTimescales)
-      case Left(_) => Left(InternalServerError)
+      case Left(NotFoundError) =>
+        logger.warn(s"No timescales found returning seed timescale details")
+        Right(appConfig.seedTimescales)
+      case Left(err) =>
+        logger.error(s"Unable to retrieve timescale table due error, $err")
+        Left(InternalServerError)
     }
 }

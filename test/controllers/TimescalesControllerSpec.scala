@@ -50,7 +50,7 @@ class TimescalesControllerSpec extends WordSpec with Matchers with ScalaFutures 
   "Calling the save action" when {
 
     trait ValidSaveTest extends Test {
-      MockTimescalesService.save(timescaleJson, credId, user, email).returns(Future.successful(Right(())))
+      MockTimescalesService.save(timescaleJson, credId, user, email).returns(Future.successful(Right(timescaleDetails)))
       lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(timescaleJson)
     }
 

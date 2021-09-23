@@ -59,13 +59,11 @@ class TimescalesRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent
         update.result[TimescalesUpdate].fold[RequestOutcome[TimescalesUpdate]]{
           logger.error(s"Failed to find and update/insert TimescalesUpdate")
           Left(DatabaseError)
-        }{ tsUpdate =>
-          Right(tsUpdate)
-        }
+        }(tsUpdate => Right(tsUpdate))
       }
       .recover {
         case e =>
-          logger.warn(e.getMessage)
+          logger.warn(s"Failed to save TimescalesUpdate due to error, ${e.getMessage}")
           Left(DatabaseError)
       }
       //$COVERAGE-ON$
@@ -79,7 +77,7 @@ class TimescalesRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent
       }
       .recover {
         case e =>
-          logger.warn(e.getMessage)
+          logger.warn(s"Failed to retrieve TimescalesUpdate due to error, ${e.getMessage}")
           Left(DatabaseError)
       }
     //$COVERAGE-ON$
