@@ -45,7 +45,7 @@ class PublishedController @Inject() (publishedService: PublishedService,
 
   def getByProcessCode(processCode: String): Action[AnyContent] = Action.async {
     publishedService.getByProcessCode(processCode).flatMap {
-      case Right(pp) => timescalesService.updateTimescaleTable(pp.process).map {
+      case Right(pp) => timescalesService.updateProcessTimescaleTable(pp.process).map {
         case Right(result) => Ok(result)
         case Left(_) => InternalServerError(toJson(ServerError))
       }

@@ -308,7 +308,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
 
       trait ValidGetTest extends Test {
         MockTimescalesService
-          .updateTimescaleTable(validApprovalProcessJson)
+          .updateProcessTimescaleTable(validApprovalProcessJson)
           .returns(Future.successful(Right(validApprovalProcessJson)))
 
         MockApprovalService
@@ -426,7 +426,7 @@ class ApprovalControllerSpec extends WordSpec with Matchers with GuiceOneAppPerS
 
       trait ValidGetTest extends Test {
         MockTimescalesService
-          .updateTimescaleTable(validApprovalProcessJson)
+          .updateProcessTimescaleTable(validApprovalProcessJson)
           .returns(Future.successful(Right(validApprovalProcessJson)))
 
         MockApprovalService

@@ -190,19 +190,19 @@ class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures wit
       }
 
       "return an OK response" in new ValidGetTest {
-        MockTimescalesService.updateTimescaleTable(expectedProcess).returns(Future.successful(Right(expectedProcess)))
+        MockTimescalesService.updateProcessTimescaleTable(expectedProcess).returns(Future.successful(Right(expectedProcess)))
         private val result = target.get(id)(request)
         status(result) shouldBe OK
       }
 
       "return content as JSON" in new ValidGetTest {
-        MockTimescalesService.updateTimescaleTable(expectedProcess).returns(Future.successful(Right(expectedProcess)))
+        MockTimescalesService.updateProcessTimescaleTable(expectedProcess).returns(Future.successful(Right(expectedProcess)))
         private val result = target.get(id)(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "confirm returned content is a JSON object" in new ValidGetTest {
-        MockTimescalesService.updateTimescaleTable(expectedProcess).returns(Future.successful(Right(expectedProcess)))
+        MockTimescalesService.updateProcessTimescaleTable(expectedProcess).returns(Future.successful(Right(expectedProcess)))
         private val result = target.get(id)(request)
         contentAsJson(result).as[JsObject] shouldBe expectedProcess
       }

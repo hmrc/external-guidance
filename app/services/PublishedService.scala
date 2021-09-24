@@ -27,7 +27,6 @@ import repositories.{ApprovalRepository, ArchiveRepository, PublishedRepository}
 import core.services.validateProcessId
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import core.models.errors.UpgradeRequiredError
 
 @Singleton
 class PublishedService @Inject() (published: PublishedRepository,
@@ -62,18 +61,12 @@ class PublishedService @Inject() (published: PublishedRepository,
         logger.error(s"Publish process $id has failed - invalid process passed in")
         Future.successful(Left(BadRequestError))
       }, process =>
-        if (process.timescales.isEmpty)
-          published.save(id, user, processCode, jsonProcess).map{
-            case Left(DuplicateKeyError) => Left(DuplicateKeyError)
-            case Left(_) =>
-              logger.error(s"Request to publish $id has failed")
-              Left(InternalServerError)
-            case result => result
-          }
-        else {
-          // CURRENTLY prevent publish of guidance referencing timescale definitions
-          logger.error(s"UpgradeRequiredError: Attempt to publish process containing unsupported Timescale features")
-          Future.successful(Left(UpgradeRequiredError))
+        published.save(id, user, processCode, jsonProcess).map{
+          case Left(DuplicateKeyError) => Left(DuplicateKeyError)
+          case Left(_) =>
+            logger.error(s"Request to publish $id has failed")
+            Left(InternalServerError)
+          case result => result
         }
       )
 

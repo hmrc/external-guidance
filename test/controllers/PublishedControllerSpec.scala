@@ -192,7 +192,7 @@ class PublishedControllerSpec extends BaseSpec with GuiceOneAppPerSuite with Pro
           PublishedProcess(validId, 1, ZonedDateTime.now(), validOnePageJson.as[JsObject], "user", processCode = "processCode")
 
         MockTimescalesService
-          .updateTimescaleTable(expectedProcess)
+          .updateProcessTimescaleTable(expectedProcess)
           .returns(Future.successful(Right(expectedProcess)))
 
         MockPublishedService
