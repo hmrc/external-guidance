@@ -48,7 +48,7 @@ class TimescalesController @Inject() (timescaleService: TimescalesService,
     }
   }
 
-  def details: Action[AnyContent] = Action.async { _ =>
+  def details: Action[AnyContent] = allRolesAction.async { _ =>
     timescaleService.details().map {
       case Right(details) => Ok(Json.toJson(details))
       case Left(_) => InternalServerError(Json.toJson(ServerError))

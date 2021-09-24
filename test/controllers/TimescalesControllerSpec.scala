@@ -70,17 +70,17 @@ class TimescalesControllerSpec extends WordSpec with Matchers with ScalaFutures 
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidTs)
       }
 
-      "return a unsupportable entity response" in new InvalidSaveTest {
+      "return Bad request response with invalid timescales" in new InvalidSaveTest {
         private val result = target.save()(request)
         status(result) shouldBe BAD_REQUEST
       }
 
-      "return content as JSON" in new InvalidSaveTest {
+      "return content as JSON with invalid timescales" in new InvalidSaveTest {
         private val result = target.save()(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
-      "return an error code of BAD_REQUEST" in new InvalidSaveTest {
+      "return an error code of VALIDATION_ERROR with invalid timescales" in new InvalidSaveTest {
         private val result = target.save()(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe "VALIDATION_ERROR"

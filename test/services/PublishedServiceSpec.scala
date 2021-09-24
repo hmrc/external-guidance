@@ -167,23 +167,6 @@ class PublishedServiceSpec extends BaseSpec {
       }
     }
 
-    // "the id and JSON are valid, however process references timescales" should {
-    //   "return valid Id" in new Test {
-
-    //     val expected: RequestOutcome[String] = Right(validId)
-
-    //     MockPublishedRepository
-    //       .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
-    //       .returns(Future.successful(expected))
-
-    //     whenReady(target.save(validId, "userId", "processCode", validOnePageWithTimescalesJson.as[JsObject])) {
-    //       case Right(id) => fail
-    //       case Left(UpgradeRequiredError) => succeed
-    //       case _ => fail
-    //     }
-    //   }
-    // }
-
     "the processCode already exists for another process" should {
       "return a DuplicateKeyError" in new Test {
 
