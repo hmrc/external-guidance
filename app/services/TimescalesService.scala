@@ -49,7 +49,9 @@ class TimescalesService @Inject() (repository: TimescalesRepository, appConfig: 
 
   def save(json: JsValue, credId: String, user: String, email: String): Future[RequestOutcome[TimescalesDetail]] =
     json.validate[Map[String, Int]].fold(_ => Future.successful(Left(ValidationError)),
-      mp => repository.save(json, ZonedDateTime.now, credId, user, email).map{
+      mp =>
+
+      repository.save(json, ZonedDateTime.now, credId, user, email).map{
         case Left(err) =>
           logger.error(s"Unable to save timescale definitions due error, $err")
           Left(InternalServerError)

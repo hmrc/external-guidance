@@ -17,7 +17,7 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-import core.models.errors.{ValidationError, InternalServerError => ServerError}
+import core.models.errors.{ValidationError, NotAcceptableError, InternalServerError => ServerError}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.TimescalesService
@@ -37,11 +37,14 @@ class TimescalesController @Inject() (timescaleService: TimescalesService,
   def save(): Action[JsValue] = allRolesAction.async(parse.json) { implicit request: IdentifierRequest[JsValue] =>
     timescaleService.save(request.body, request.credId, request.name, request.email).map {
       case Right(details) =>
-        logger.warn(s"TIMESCALES: Timescale definitions update received")
+        logger.warn(s"TIMESCALES: Timescale definitions update received from ${request.name} (${request.credId}), email ${request.email}")
         Accepted(Json.toJson(details))
       case Left(ValidationError) =>
         logger.error(s"Failed to save of updated timescales due to ValidationError")
         BadRequest(Json.toJson(ValidationError))
+      case Left(NotAcceptableError) =>
+        logger.error(s"Failed to save of updated timescales due to NotAcceptableError")
+        BadRequest(Json.toJson(NotAcceptableError))
       case Left(err) =>
         logger.error(s"Failed to save of updated timescales due to $err, returning internal server error")
         InternalServerError(Json.toJson(ServerError))
