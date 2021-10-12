@@ -37,7 +37,7 @@ class TimescalesController @Inject() (timescaleService: TimescalesService,
   def save(): Action[JsValue] = allRolesAction.async(parse.json) { implicit request: IdentifierRequest[JsValue] =>
     timescaleService.save(request.body, request.credId, request.name, request.email).map {
       case Right(details) =>
-        logger.warn(s"TIMESCALES: Timescale definitions update received")
+        logger.warn(s"TIMESCALES: ${details.count} Timescale definitions received from ${request.name} (${request.credId}), email ${request.email}")
         Accepted(Json.toJson(details))
       case Left(ValidationError) =>
         logger.error(s"Failed to save of updated timescales due to ValidationError")
