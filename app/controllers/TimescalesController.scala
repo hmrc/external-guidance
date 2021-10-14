@@ -37,7 +37,7 @@ class TimescalesController @Inject() (timescaleService: TimescalesService,
   def save(): Action[JsValue] = allRolesAction.async(parse.json) { implicit request: IdentifierRequest[JsValue] =>
     timescaleService.save(request.body, request.credId, request.name, request.email).map {
       case Right(response) if response.missingTimescales.isEmpty =>
-        logger.warn(s"TIMESCALES: Timescale definitions update received from ${request.name} (${request.credId}), email ${request.email}")
+        logger.warn(s"TIMESCALES: ${response.count} Timescale definitions received from ${request.name} (${request.credId}), email ${request.email}")
         Accepted(Json.toJson(response))
       case Right(response) =>
         logger.warn(s"TIMESCALES: Timescale definitions update rejected from ${request.name} (${request.credId}), email ${request.email}")
