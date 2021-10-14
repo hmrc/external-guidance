@@ -27,37 +27,41 @@ import scala.concurrent.Future
 import config.AppConfig
 import play.api.Logger
 import java.time.ZonedDateTime
-import models.{UpdateDetails, TimescalesDetail}
+import models.{UpdateDetails, TimescalesResponse}
 
 @Singleton
-class TimescalesService @Inject() (repository: TimescalesRepository, appConfig: AppConfig) {
+class TimescalesService @Inject() (repository: TimescalesRepository, publishService: PublishedService, appConfig: AppConfig) {
   val logger: Logger = Logger(getClass)
 
-  def details(): Future[RequestOutcome[TimescalesDetail]] =
+  def details(): Future[RequestOutcome[TimescalesResponse]] =
     repository.get(repository.CurrentTimescalesID) map {
       case Right(update) =>
         update.timescales.validate[Map[String, Int]].fold(_ => Left(InternalServerError),
-          mp => Right(TimescalesDetail(mp.size, Some(UpdateDetails(update.when, update.credId, update.user, update.email))))
+          mp => Right(TimescalesResponse(mp.size, Some(UpdateDetails(update.when, update.credId, update.user, update.email))))
         )
       case Left(NotFoundError) =>
         logger.warn(s"No timescales found returning seed timescale details")
-        Right(TimescalesDetail(appConfig.seedTimescales.size, None))
+        Right(TimescalesResponse(appConfig.seedTimescales.size, None))
       case Left(err) =>
         logger.error(s"Unbale to retrieve timescale update details due to error, $err")
         Left(InternalServerError)
     }
 
-  def save(json: JsValue, credId: String, user: String, email: String): Future[RequestOutcome[TimescalesDetail]] =
+  def save(json: JsValue, credId: String, user: String, email: String): Future[RequestOutcome[TimescalesResponse]] =
     json.validate[Map[String, Int]].fold(_ => Future.successful(Left(ValidationError)),
       mp =>
-
-      repository.save(json, ZonedDateTime.now, credId, user, email).map{
-        case Left(err) =>
-          logger.error(s"Unable to save timescale definitions due error, $err")
-          Left(InternalServerError)
-        case Right(update) =>
-          Right(TimescalesDetail(mp.size, Some(UpdateDetails(update.when, update.credId, update.user, update.email))))
-      }
+        publishService.getTimescalesInUse().flatMap{
+          case Right(inUse) if inUse.forall(mp.keys.toList.contains) =>
+            repository.save(json, ZonedDateTime.now, credId, user, email).map{
+              case Left(err) =>
+                logger.error(s"Unable to save timescale definitions due error, $err")
+                Left(InternalServerError)
+              case Right(update) =>
+                Right(TimescalesResponse(mp.size, Some(UpdateDetails(update.when, update.credId, update.user, update.email))))
+            }
+          case Right(inUse) => Future.successful(Right(TimescalesResponse(inUse)))
+          case Left(err) => Future.successful(Left(err))
+        }
     )
 
   def updateProcessTimescaleTable(js: JsObject): Future[RequestOutcome[JsObject]] =

@@ -31,29 +31,31 @@ trait MockPublishedService extends MockFactory {
 
   object MockPublishedService {
 
-    def getById(id: String): CallHandler[Future[RequestOutcome[PublishedProcess]]] = {
+    def getById(id: String): CallHandler[Future[RequestOutcome[PublishedProcess]]] =
       (mockPublishedService
         .getById(_: String))
         .expects(id)
-    }
 
-    def getByProcessCode(processCode: String): CallHandler[Future[RequestOutcome[PublishedProcess]]] = {
+    def getByProcessCode(processCode: String): CallHandler[Future[RequestOutcome[PublishedProcess]]] =
       (mockPublishedService
         .getByProcessCode(_: String))
         .expects(processCode)
-    }
 
-    def save(id: String, user: String, processCode: String, jsonProcess: JsObject): CallHandler[Future[RequestOutcome[String]]] = {
+    def save(id: String, user: String, processCode: String, jsonProcess: JsObject): CallHandler[Future[RequestOutcome[String]]] =
       (mockPublishedService
         .save(_: String, _: String, _: String, _: JsObject))
         .expects(id, user, processCode, jsonProcess)
-    }
 
-    def archive(id: String, user: String): CallHandler[Future[RequestOutcome[String]]] = {
+    def archive(id: String, user: String): CallHandler[Future[RequestOutcome[String]]] =
       (mockPublishedService
         .archive(_: String, _: String))
         .expects(id, user)
-    }
+
+    def getTimescalesInUse(): CallHandler[Future[RequestOutcome[List[String]]]] =
+      (mockPublishedService
+        .getTimescalesInUse _)
+        .expects()
+
   }
 
 }

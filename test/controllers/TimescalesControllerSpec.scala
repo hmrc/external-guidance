@@ -30,7 +30,7 @@ import controllers.actions.FakeAllRolesAction
 import java.time.ZonedDateTime
 import play.api.mvc._
 import scala.concurrent.Future
-import models.{UpdateDetails, TimescalesDetail, TimescalesUpdate}
+import models.{UpdateDetails, TimescalesResponse, TimescalesUpdate}
 
 class TimescalesControllerSpec extends WordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite {
 
@@ -44,13 +44,13 @@ class TimescalesControllerSpec extends WordSpec with Matchers with ScalaFutures 
     val email: String = FakeAllRolesAction.email
     val timescalesUpdate = TimescalesUpdate(timescaleJson, lastUpdateTime, credId, user, email)
     val updateDetail = UpdateDetails(lastUpdateTime, credId, user, email)
-    val timescaleDetails = TimescalesDetail(timescales.size, Some(updateDetail))
+    val timescalesResponse = TimescalesResponse(timescales.size, Some(updateDetail))
   }
 
   "Calling the save action" when {
 
     trait ValidSaveTest extends Test {
-      MockTimescalesService.save(timescaleJson, credId, user, email).returns(Future.successful(Right(timescaleDetails)))
+      MockTimescalesService.save(timescaleJson, credId, user, email).returns(Future.successful(Right(timescalesResponse)))
       lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(timescaleJson)
     }
 
@@ -59,6 +59,16 @@ class TimescalesControllerSpec extends WordSpec with Matchers with ScalaFutures 
       "return an Accepted response" in new ValidSaveTest {
         private val result = target.save()(request)
         status(result) shouldBe ACCEPTED
+      }
+    }
+
+    "the request is valid but the update is rejected due to missing in use timescales" should {
+
+      "return an NotAcceptable response" in new Test {
+        MockTimescalesService.save(timescaleJson, credId, user, email).returns(Future.successful(Right(TimescalesResponse(List("RebateRepay")))))
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(timescaleJson)
+        val result = target.save()(request)
+        status(result) shouldBe NOT_ACCEPTABLE
       }
     }
 
@@ -120,14 +130,14 @@ class TimescalesControllerSpec extends WordSpec with Matchers with ScalaFutures 
     "the request is valid" should {
 
       trait ValidDetailsTest extends Test {
-        MockTimescalesService.details.returns(Future.successful(Right(timescaleDetails)))
+        MockTimescalesService.details.returns(Future.successful(Right(timescalesResponse)))
         lazy val request: FakeRequest[AnyContent] = FakeRequest()
       }
 
       "return a no content response" in new ValidDetailsTest {
         private val result = target.details(request)
         status(result) shouldBe OK
-        contentAsJson(result) shouldBe Json.toJson(timescaleDetails)
+        contentAsJson(result) shouldBe Json.toJson(timescalesResponse)
       }
     }
 
@@ -162,24 +172,13 @@ class TimescalesControllerSpec extends WordSpec with Matchers with ScalaFutures 
       trait ErrorSaveTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         val process: JsObject = Json.obj()
-        MockTimescalesService.save(process, credId, user, email).returns(Future.successful(Left(InternalServerError)))
-        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(process)
+        MockTimescalesService.details().returns(Future.successful(Left(InternalServerError)))
+        lazy val request: FakeRequest[AnyContent] = FakeRequest()
       }
 
       "return a internal server error response" in new ErrorSaveTest {
-        private val result = target.save()(request)
+        val result = target.details()(request)
         status(result) shouldBe INTERNAL_SERVER_ERROR
-      }
-
-      "return content as JSON" in new ErrorSaveTest {
-        private val result = target.save()(request)
-        contentType(result) shouldBe Some(ContentTypes.JSON)
-      }
-
-      "return an error code of INTERNAL_SERVER_ERROR" in new ErrorSaveTest {
-        private val result = target.save()(request)
-        private val data = contentAsJson(result).as[JsObject]
-        (data \ "code").as[String] shouldBe expectedErrorCode
       }
     }
   }

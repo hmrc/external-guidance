@@ -17,7 +17,7 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-import core.models.errors.{ValidationError, NotAcceptableError, InternalServerError => ServerError}
+import core.models.errors.{ValidationError, InternalServerError => ServerError}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.TimescalesService
@@ -36,15 +36,16 @@ class TimescalesController @Inject() (timescaleService: TimescalesService,
 
   def save(): Action[JsValue] = allRolesAction.async(parse.json) { implicit request: IdentifierRequest[JsValue] =>
     timescaleService.save(request.body, request.credId, request.name, request.email).map {
-      case Right(details) =>
+      case Right(response) if response.missingTimescales.isEmpty =>
         logger.warn(s"TIMESCALES: Timescale definitions update received from ${request.name} (${request.credId}), email ${request.email}")
-        Accepted(Json.toJson(details))
+        Accepted(Json.toJson(response))
+      case Right(response) =>
+        logger.warn(s"TIMESCALES: Timescale definitions update rejected from ${request.name} (${request.credId}), email ${request.email}")
+        logger.warn(s"Timescale updated rejected as it would delete the following timescales currently in use: ${response.missingTimescales.mkString(",")}")
+        NotAcceptable(Json.toJson(response))
       case Left(ValidationError) =>
         logger.error(s"Failed to save of updated timescales due to ValidationError")
         BadRequest(Json.toJson(ValidationError))
-      case Left(NotAcceptableError) =>
-        logger.error(s"Failed to save of updated timescales due to NotAcceptableError")
-        BadRequest(Json.toJson(NotAcceptableError))
       case Left(err) =>
         logger.error(s"Failed to save of updated timescales due to $err, returning internal server error")
         InternalServerError(Json.toJson(ServerError))
@@ -53,7 +54,7 @@ class TimescalesController @Inject() (timescaleService: TimescalesService,
 
   def details: Action[AnyContent] = allRolesAction.async { _ =>
     timescaleService.details().map {
-      case Right(details) => Ok(Json.toJson(details))
+      case Right(response) => Ok(Json.toJson(response))
       case Left(_) => InternalServerError(Json.toJson(ServerError))
     }
   }

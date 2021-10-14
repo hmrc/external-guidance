@@ -25,8 +25,9 @@ object UpdateDetails {
   implicit val formats: OFormat[UpdateDetails] = Json.format[UpdateDetails]
 }
 
-case class TimescalesDetail(count: Int, lastUpdate: Option[UpdateDetails])
+case class TimescalesResponse(count: Int, lastUpdate: Option[UpdateDetails], missingTimescales: List[String] = Nil)
 
-object TimescalesDetail {
-  implicit val formats: OFormat[TimescalesDetail] = Json.format[TimescalesDetail]
+object TimescalesResponse {
+  def apply(missingTimescales: List[String]): TimescalesResponse = TimescalesResponse(0, None, missingTimescales)
+  implicit val formats: OFormat[TimescalesResponse] = Json.format[TimescalesResponse]
 }

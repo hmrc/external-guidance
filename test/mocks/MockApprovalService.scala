@@ -30,31 +30,27 @@ trait MockApprovalService extends MockFactory {
 
   object MockApprovalService {
 
-    def getById(id: String): CallHandler[Future[RequestOutcome[JsObject]]] = {
+    def getById(id: String): CallHandler[Future[RequestOutcome[JsObject]]] =
       (mockApprovalService
         .getById(_: String))
         .expects(id)
-    }
 
-    def getByProcessCode(processCode: String): CallHandler[Future[RequestOutcome[JsObject]]] = {
+    def getByProcessCode(processCode: String): CallHandler[Future[RequestOutcome[JsObject]]] =
       (mockApprovalService
         .getByProcessCode(_: String))
         .expects(processCode)
-    }
 
     def save(
         process: JsObject,
         reviewType: String = ReviewType2i,
         status: String = StatusSubmitted
-    ): CallHandler[Future[RequestOutcome[String]]] = {
+    ): CallHandler[Future[RequestOutcome[String]]] =
       (mockApprovalService
         .save(_: JsObject, _: String, _: String))
         .expects(process, reviewType, status)
-    }
 
-    def approvalSummaryList(roles: List[String]): CallHandler[Future[RequestOutcome[JsValue]]] = {
+    def approvalSummaryList(roles: List[String]): CallHandler[Future[RequestOutcome[JsValue]]] =
       (mockApprovalService.approvalSummaryList(_: List[String]))
         .expects(roles)
-    }
   }
 }

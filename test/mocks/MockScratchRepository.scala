@@ -31,17 +31,15 @@ trait MockScratchRepository extends MockFactory {
 
   object MockScratchRepository {
 
-    def save(process: JsObject): CallHandler[Future[RequestOutcome[UUID]]] = {
+    def save(process: JsObject): CallHandler[Future[RequestOutcome[UUID]]] =
       (mockScratchRepository
         .save(_: JsObject))
         .expects(process)
-    }
 
-    def getById(id: UUID): CallHandler[Future[RequestOutcome[JsObject]]] = {
+    def getById(id: UUID): CallHandler[Future[RequestOutcome[JsObject]]] =
       (mockScratchRepository
         .getById(_: UUID))
         .expects(where[UUID](_.toString == id.toString))
-    }
 
   }
 }

@@ -30,35 +30,34 @@ trait MockApprovalRepository extends MockFactory {
 
   object MockApprovalRepository {
 
-    def update(process: ApprovalProcess): CallHandler[Future[RequestOutcome[String]]] = {
+    def update(process: ApprovalProcess): CallHandler[Future[RequestOutcome[String]]] =
       (mockApprovalRepository
         .update(_: ApprovalProcess))
         .expects(*)
-    }
 
-    def getById(id: String): CallHandler[Future[RequestOutcome[ApprovalProcess]]] = {
+    def getById(id: String): CallHandler[Future[RequestOutcome[ApprovalProcess]]] =
       (mockApprovalRepository
         .getById(_: String))
         .expects(*)
-    }
 
-    def getByProcessCode(processCode: String): CallHandler[Future[RequestOutcome[ApprovalProcess]]] = {
+    def getByProcessCode(processCode: String): CallHandler[Future[RequestOutcome[ApprovalProcess]]] =
       (mockApprovalRepository
         .getByProcessCode(_: String))
         .expects(*)
-    }
 
-    def approvalSummaryList(roles: List[String]): CallHandler[Future[RequestOutcome[List[ApprovalProcessSummary]]]] = {
+    def approvalSummaryList(roles: List[String]): CallHandler[Future[RequestOutcome[List[ApprovalProcessSummary]]]] =
       (mockApprovalRepository.approvalSummaryList (_: List[String]))
         .expects(roles)
-    }
 
-    def changeStatus(id: String, status: String, user: String): CallHandler[Future[RequestOutcome[Unit]]] = {
+    def changeStatus(id: String, status: String, user: String): CallHandler[Future[RequestOutcome[Unit]]] =
       (mockApprovalRepository
         .changeStatus(_: String, _: String, _: String))
         .expects(id, status, user)
-    }
 
+    def getTimescalesInUse(): CallHandler[Future[RequestOutcome[List[String]]]] =
+      (mockApprovalRepository
+        .getTimescalesInUse _)
+        .expects()
   }
 
 }
