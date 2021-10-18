@@ -22,12 +22,11 @@ import play.api.libs.json._
 case class UpdateDetails(when: ZonedDateTime, credId: String, user: String, email: String)
 
 object UpdateDetails {
-  implicit val formats: OFormat[UpdateDetails] = Json.format[UpdateDetails]
+  implicit val format: OFormat[UpdateDetails] = Json.format[UpdateDetails]
 }
 
-case class TimescalesResponse(count: Int, lastUpdate: Option[UpdateDetails], missingTimescales: List[String] = Nil)
+case class TimescalesResponse(count: Int, lastUpdate: Option[UpdateDetails], retainedDeletions: List[String] = Nil)
 
 object TimescalesResponse {
-  def apply(missingTimescales: List[String]): TimescalesResponse = TimescalesResponse(0, None, missingTimescales)
-  implicit val formats: OFormat[TimescalesResponse] = Json.format[TimescalesResponse]
+  implicit val format: OFormat[TimescalesResponse] = Json.format[TimescalesResponse]
 }

@@ -36,13 +36,9 @@ class TimescalesController @Inject() (timescaleService: TimescalesService,
 
   def save(): Action[JsValue] = allRolesAction.async(parse.json) { implicit request: IdentifierRequest[JsValue] =>
     timescaleService.save(request.body, request.credId, request.name, request.email).map {
-      case Right(response) if response.missingTimescales.isEmpty =>
+      case Right(response) =>
         logger.warn(s"TIMESCALES: ${response.count} Timescale definitions received from ${request.name} (${request.credId}), email ${request.email}")
         Accepted(Json.toJson(response))
-      case Right(response) =>
-        logger.warn(s"TIMESCALES: Timescale definitions update rejected from ${request.name} (${request.credId}), email ${request.email}")
-        logger.warn(s"Timescale updated rejected as it would delete the following timescales currently in use: ${response.missingTimescales.mkString(",")}")
-        NotAcceptable(Json.toJson(response))
       case Left(ValidationError) =>
         logger.error(s"Failed to save of updated timescales due to ValidationError")
         BadRequest(Json.toJson(ValidationError))

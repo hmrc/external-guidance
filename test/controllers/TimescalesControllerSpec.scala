@@ -39,12 +39,14 @@ class TimescalesControllerSpec extends WordSpec with Matchers with ScalaFutures 
     lazy val target: TimescalesController = new TimescalesController(mockTimescalesService, stubControllerComponents(), FakeAllRolesAction)
     val lastUpdateTime: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, MongoDateTimeFormats.localZoneID)
     val timescales: Map[String, Int] = Map("First" -> 1, "Second" -> 2, "Third" -> 3)
+    val timescalesJsonWithDeletion: JsValue = Json.parse("""{"Second": 2, "Third": 3, "Fourth": 4}""")
     val credId: String = FakeAllRolesAction.credential
     val user: String = FakeAllRolesAction.name
     val email: String = FakeAllRolesAction.email
     val timescalesUpdate = TimescalesUpdate(timescaleJson, lastUpdateTime, credId, user, email)
     val updateDetail = UpdateDetails(lastUpdateTime, credId, user, email)
     val timescalesResponse = TimescalesResponse(timescales.size, Some(updateDetail))
+    val timescalesResponseWithRetention = TimescalesResponse(timescales.size, Some(updateDetail), List("First"))
   }
 
   "Calling the save action" when {
@@ -62,13 +64,13 @@ class TimescalesControllerSpec extends WordSpec with Matchers with ScalaFutures 
       }
     }
 
-    "the request is valid but the update is rejected due to missing in use timescales" should {
+    "the request is valid and contains deletions of in use timescales" should {
 
-      "return an NotAcceptable response" in new Test {
-        MockTimescalesService.save(timescaleJson, credId, user, email).returns(Future.successful(Right(TimescalesResponse(List("RebateRepay")))))
-        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(timescaleJson)
+      "Identify the retained in-use timescales in response" in new Test {
+        MockTimescalesService.save(timescalesJsonWithDeletion, credId, user, email).returns(Future.successful(Right(timescalesResponseWithRetention)))
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(timescalesJsonWithDeletion)
         val result = target.save()(request)
-        status(result) shouldBe NOT_ACCEPTABLE
+        status(result) shouldBe ACCEPTED
       }
     }
 

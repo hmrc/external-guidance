@@ -153,6 +153,7 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
     //$COVERAGE-ON$
   }
 
+  //$COVERAGE-OFF$
   def changeStatus(id: String, status: String, user: String): Future[RequestOutcome[Unit]] = {
 
     logger.warn(s"updating status of process $id to $status to collection $collectionName")
@@ -169,7 +170,6 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
           Left(NotFoundError)
         }
       }
-      //$COVERAGE-OFF$
       .recover {
         case error =>
           logger.error(s"Attempt to change status of process $id to collection $collectionName failed with error : ${error.getMessage}")
@@ -178,6 +178,7 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
     //$COVERAGE-ON$
   }
 
+  //$COVERAGE-OFF$
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]] =
     collection.find(TimescalesInUseQuery, projection = Option.empty[JsObject])
       .cursor[ApprovalProcess](ReadPreference.primaryPreferred)
@@ -185,7 +186,6 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
       .map{ list =>
         Right(list.flatMap(pps => pps.process.validate[Process].fold(_ => Nil, p => p.timescales.keys.toList)).distinct)
       }
-      //$COVERAGE-OFF$
       .recover{
         case error =>
           logger.error(s"Listing timescales used in the published processes failed with error : ${error.getMessage}")

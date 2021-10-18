@@ -52,5 +52,11 @@ trait MockApprovalService extends MockFactory {
     def approvalSummaryList(roles: List[String]): CallHandler[Future[RequestOutcome[JsValue]]] =
       (mockApprovalService.approvalSummaryList(_: List[String]))
         .expects(roles)
+
+    def getTimescalesInUse(): CallHandler[Future[RequestOutcome[List[String]]]] =
+      (mockApprovalService
+        .getTimescalesInUse _)
+        .expects()
+
   }
 }
