@@ -131,6 +131,6 @@ class TimescalesService @Inject() (
         logger.error(s"Unable to save timescale definitions due error, $err")
         Left(InternalServerError)
       case Right(update) =>
-        Right(TimescalesResponse(ts.size, Some(UpdateDetails(update.when, update.credId, update.user, update.email)), retained))
+        Right(TimescalesResponse(ts.size, Some(UpdateDetails(update.when, update.credId, update.user, update.email, retained))))
     }
 }

@@ -44,9 +44,9 @@ class TimescalesControllerSpec extends WordSpec with Matchers with ScalaFutures 
     val user: String = FakeAllRolesAction.name
     val email: String = FakeAllRolesAction.email
     val timescalesUpdate = TimescalesUpdate(timescaleJson, lastUpdateTime, credId, user, email)
-    val updateDetail = UpdateDetails(lastUpdateTime, credId, user, email)
+    val updateDetail = UpdateDetails(lastUpdateTime, credId, user, email, List("First"))
     val timescalesResponse = TimescalesResponse(timescales.size, Some(updateDetail))
-    val timescalesResponseWithRetention = TimescalesResponse(timescales.size, Some(updateDetail), List("First"))
+    val timescalesResponseWithRetention = TimescalesResponse(timescales.size, Some(updateDetail))
   }
 
   "Calling the save action" when {

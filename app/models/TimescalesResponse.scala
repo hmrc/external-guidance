@@ -19,13 +19,13 @@ package models
 import java.time.ZonedDateTime
 import play.api.libs.json._
 
-case class UpdateDetails(when: ZonedDateTime, credId: String, user: String, email: String)
+case class UpdateDetails(when: ZonedDateTime, credId: String, user: String, email: String, retainedDeletions: List[String] = Nil)
 
 object UpdateDetails {
   implicit val format: OFormat[UpdateDetails] = Json.format[UpdateDetails]
 }
 
-case class TimescalesResponse(count: Int, lastUpdate: Option[UpdateDetails], retainedDeletions: List[String] = Nil)
+case class TimescalesResponse(count: Int, lastUpdate: Option[UpdateDetails])
 
 object TimescalesResponse {
   implicit val format: OFormat[TimescalesResponse] = Json.format[TimescalesResponse]

@@ -280,7 +280,7 @@ class TimescalesServiceSpec extends BaseSpec {
           .returns(Future.successful(Right(List("First"))))
 
         whenReady(target.save(timescalesJsonWithDeletion, credId, user, email)) {
-          case Right(response) if response.retainedDeletions == List("First") => succeed
+          case Right(response) if response.lastUpdate.map(_.retainedDeletions) == Some(List("First")) => succeed
           case Right(response) =>
             println(response)
             fail

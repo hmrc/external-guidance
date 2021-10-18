@@ -28,12 +28,12 @@ class TimescalesResponseSpec extends BaseSpec {
   val when: ZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(milliseconds), ZonedDateTime.now.getZone)
 
   private val update: UpdateDetails = UpdateDetails(when, credId, user, email)
-  private val updateJson = Json.parse("""{"when":"2020-04-09T17:41:16.247+01:00[Europe/London]","credId":"1234566789","user":"User Blah","email":"user@blah.com"}""")
-  private val responseJson = Json.parse("""{"count":0,"lastUpdate":{"when":"2020-04-09T17:41:16.247+01:00[Europe/London]","credId":"1234566789","user":"User Blah","email":"user@blah.com"},"retainedDeletions":[]}""")
-  private val responseWithRetentionsJson = Json.parse("""{"count":0,"lastUpdate":{"when":"2020-04-09T17:41:16.247+01:00[Europe/London]","credId":"1234566789","user":"User Blah","email":"user@blah.com"},"retainedDeletions":["First"]}""")
+  private val updateJson = Json.parse("""{"when":"2020-04-09T17:41:16.247+01:00[Europe/London]","credId":"1234566789","user":"User Blah","email":"user@blah.com","retainedDeletions":[]}""")
+  private val responseJson = Json.parse("""{"count":0,"lastUpdate":{"when":"2020-04-09T17:41:16.247+01:00[Europe/London]","credId":"1234566789","user":"User Blah","email":"user@blah.com","retainedDeletions":[]}}""")
+  private val responseWithRetentionsJson = Json.parse("""{"count":0,"lastUpdate":{"when":"2020-04-09T17:41:16.247+01:00[Europe/London]","credId":"1234566789","user":"User Blah","email":"user@blah.com","retainedDeletions":["First"]}}""")
 
-  val response: TimescalesResponse = TimescalesResponse(0, Some(update), Nil)
-  val responseWithRetentions: TimescalesResponse = TimescalesResponse(0, Some(update), List("First"))
+  val response: TimescalesResponse = TimescalesResponse(0, Some(update))
+  val responseWithRetentions: TimescalesResponse = TimescalesResponse(0, Some(update.copy(retainedDeletions = List("First"))))
 
   "Formatting a valid UpdateDetails" should {
     "result in a successful conversion" in {
