@@ -18,19 +18,21 @@ package models
 
 import base.BaseSpec
 import play.api.libs.json.{JsSuccess, Json}
-import java.time.{ZonedDateTime, Instant}
+import java.time.{ZonedDateTime, Instant, ZoneId}
 
 class TimescalesResponseSpec extends BaseSpec {
   val credId: String = "1234566789"
   val user: String = "User Blah"
   val email: String = "user@blah.com"
   val milliseconds: Long = 1586450476247L
-  val when: ZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(milliseconds), ZonedDateTime.now.getZone)
+  val Utc = ZoneId.of("Etc/UTC")
+  val when: ZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(milliseconds), Utc)
+  val whenUtc: ZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(milliseconds), Utc)
 
   private val update: UpdateDetails = UpdateDetails(when, credId, user, email)
-  private val updateJson = Json.parse("""{"when":"2020-04-09T17:41:16.247+01:00[Europe/London]","credId":"1234566789","user":"User Blah","email":"user@blah.com","retainedDeletions":[]}""")
-  private val responseJson = Json.parse("""{"count":0,"lastUpdate":{"when":"2020-04-09T17:41:16.247+01:00[Europe/London]","credId":"1234566789","user":"User Blah","email":"user@blah.com","retainedDeletions":[]}}""")
-  private val responseWithRetentionsJson = Json.parse("""{"count":0,"lastUpdate":{"when":"2020-04-09T17:41:16.247+01:00[Europe/London]","credId":"1234566789","user":"User Blah","email":"user@blah.com","retainedDeletions":["First"]}}""")
+  private val updateJson = Json.parse("""{"when":"2020-04-09T16:41:16.247Z[Etc/UTC]","credId":"1234566789","user":"User Blah","email":"user@blah.com","retainedDeletions":[]}""")
+  private val responseJson = Json.parse("""{"count":0,"lastUpdate":{"when":"2020-04-09T16:41:16.247Z[Etc/UTC]","credId":"1234566789","user":"User Blah","email":"user@blah.com","retainedDeletions":[]}}""")
+  private val responseWithRetentionsJson = Json.parse("""{"count":0,"lastUpdate":{"when":"2020-04-09T16:41:16.247Z[Etc/UTC]","credId":"1234566789","user":"User Blah","email":"user@blah.com","retainedDeletions":["First"]}}""")
 
   val response: TimescalesResponse = TimescalesResponse(0, Some(update))
   val responseWithRetentions: TimescalesResponse = TimescalesResponse(0, Some(update.copy(retainedDeletions = List("First"))))
@@ -68,7 +70,6 @@ class TimescalesResponseSpec extends BaseSpec {
         case err => fail(s"Unable to parse valid JSON: $err")
       }
     }
-
   }
 
   "Serialising an TimescalesResponse to JSON" should {
@@ -81,7 +82,6 @@ class TimescalesResponseSpec extends BaseSpec {
       val result = Json.toJson(responseWithRetentions)(TimescalesResponse.format)
       result shouldBe responseWithRetentionsJson
     }
-
   }
 
 }
