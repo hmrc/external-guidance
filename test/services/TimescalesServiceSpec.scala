@@ -17,7 +17,7 @@
 package services
 
 import base.BaseSpec
-import mocks.MockTimescalesRepository
+import mocks.{MockTimescalesRepository, MockPublishedService}
 import core.models.{RequestOutcome, MongoDateTimeFormats}
 import core.models.errors._
 import play.api.libs.json.{JsValue, Json, JsObject}
@@ -25,7 +25,8 @@ import mocks.MockAppConfig
 import scala.concurrent.Future
 import core.models.ocelot.Process
 import java.time.ZonedDateTime
-import models.{TimescalesDetail, UpdateDetails, TimescalesUpdate}
+import models.{TimescalesResponse, UpdateDetails, TimescalesUpdate}
+import mocks.MockApprovalService
 
 class TimescalesServiceSpec extends BaseSpec {
   val jsonWithNoTsTable: JsObject = Json.parse(
@@ -213,33 +214,99 @@ class TimescalesServiceSpec extends BaseSpec {
   """.stripMargin
   ).as[JsObject]
 
-  private trait Test extends MockTimescalesRepository {
-    lazy val target: TimescalesService = new TimescalesService(mockTimescalesRepository, MockAppConfig)
+  private trait Test extends MockTimescalesRepository
+    with MockPublishedService
+    with MockApprovalService {
+
+    lazy val target: TimescalesService = new TimescalesService(mockTimescalesRepository, mockPublishedService, mockApprovalService, MockAppConfig)
     val lastUpdateTime: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, MongoDateTimeFormats.localZoneID)
     val timescalesJson: JsValue = Json.parse("""{"First": 1, "Second": 2, "Third": 3}""")
+    val timescalesJsonWithDeletion: JsValue = Json.parse("""{"Second": 2, "Third": 3, "Fourth": 4}""")
+
     val timescales: Map[String, Int] = Map("First" -> 1, "Second" -> 2, "Third" -> 3)
     val credId: String = "234324234"
     val user: String = "User Blah"
     val email: String = "user@blah.com"
     val timescalesUpdate = TimescalesUpdate(timescalesJson, lastUpdateTime, credId, user, email)
     val updateDetail = UpdateDetails(lastUpdateTime, "234324234", "User Blah", "user@blah.com")
-    val timescaleDetails = TimescalesDetail(timescales.size, Some(updateDetail))
+    val timescalesResponse = TimescalesResponse(timescales.size, Some(updateDetail))
+
+    val expected: RequestOutcome[TimescalesUpdate] = Right(timescalesUpdate)
   }
 
   "Calling save method" when {
 
     "the JSON is valid" should {
-      "return Unit" in new Test{
+      "return TimescalesResponse" in new Test{
 
-        val expected: RequestOutcome[TimescalesUpdate] = Right(timescalesUpdate)
+
+        MockTimescalesRepository
+          .get(mockTimescalesRepository.CurrentTimescalesID)
+          .returns(Future.successful(expected))
 
         MockTimescalesRepository
           .save(timescalesJson, lastUpdateTime, credId, user, email)
           .returns(Future.successful(expected))
 
+        MockPublishedService
+          .getTimescalesInUse()
+          .returns(Future.successful(Right(Nil)))
+
         whenReady(target.save(timescalesJson, credId, user, email)) {
-          case Right(details) if details == timescaleDetails => succeed
+          case Right(response) if response == timescalesResponse => succeed
           case _ => fail
+        }
+      }
+    }
+
+    "the JSON is valid but update contains deletions of inuse timescales" should {
+      "return TimescalesResponse" in new Test{
+        val timescalesWithRetainedDefn: JsValue = Json.parse("""{"First": 1, "Second": 2, "Third": 3, "Fourth": 4}""")
+
+        MockTimescalesRepository
+          .get(mockTimescalesRepository.CurrentTimescalesID)
+          .returns(Future.successful(expected))
+
+        MockTimescalesRepository
+          .save(timescalesWithRetainedDefn, lastUpdateTime, credId, user, email)
+          .returns(Future.successful(expected))
+
+        MockPublishedService
+          .getTimescalesInUse()
+          .returns(Future.successful(Right(List("First"))))
+
+        MockApprovalService
+          .getTimescalesInUse()
+          .returns(Future.successful(Right(List("First"))))
+
+        whenReady(target.save(timescalesJsonWithDeletion, credId, user, email)) {
+          case Right(response) if response.lastUpdate.map(_.retainedDeletions) == Some(List("First")) => succeed
+          case Right(response) =>
+            println(response)
+            fail
+          case Left(_) => fail
+        }
+      }
+    }
+
+    "the JSON is valid but published service call fails" should {
+      "return TimescalesResponse" in new Test{
+
+        MockTimescalesRepository
+          .get(mockTimescalesRepository.CurrentTimescalesID)
+          .returns(Future.successful(expected))
+
+        MockTimescalesRepository
+          .save(timescalesJson, lastUpdateTime, credId, user, email)
+          .returns(Future.successful(expected))
+
+        MockPublishedService
+          .getTimescalesInUse()
+          .returns(Future.successful(Left(DatabaseError)))
+
+        whenReady(target.save(timescalesJsonWithDeletion, credId, user, email)) {
+          case Right(response) => fail
+          case Left(_) => succeed
         }
       }
     }
@@ -266,6 +333,14 @@ class TimescalesServiceSpec extends BaseSpec {
 
     "a database error occurs" should {
       "return a internal error" in new Test {
+        MockTimescalesRepository
+          .get(mockTimescalesRepository.CurrentTimescalesID)
+          .returns(Future.successful(expected))
+
+        MockPublishedService
+          .getTimescalesInUse()
+          .returns(Future.successful(Right(Nil)))
+
         MockTimescalesRepository
           .save(timescalesJson, lastUpdateTime, credId, user, email)
           .returns(Future.successful(Left(DatabaseError)))
@@ -318,7 +393,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .returns(Future.successful(Right(timescalesUpdate)))
 
       whenReady(target.details()) { result =>
-        result shouldBe Right(timescaleDetails)
+        result shouldBe Right(timescalesResponse)
       }
     }
 
@@ -328,7 +403,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .returns(Future.successful(Left(NotFoundError)))
 
       whenReady(target.details()) { result =>
-        result shouldBe Right(TimescalesDetail(timescales.size, None))
+        result shouldBe Right(TimescalesResponse(timescales.size, None))
       }
 
     }

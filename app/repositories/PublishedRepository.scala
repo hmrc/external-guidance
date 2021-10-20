@@ -21,6 +21,7 @@ import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
 import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
 import core.models.RequestOutcome
+import core.models.ocelot.Process
 import models.{PublishedSummary, PublishedProcess}
 import play.api.libs.json.{Format, JsObject, JsResultException, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
@@ -30,6 +31,9 @@ import repositories.formatters.PublishedProcessFormatter
 import uk.gov.hmrc.mongo.ReactiveRepository
 import reactivemongo.api.WriteConcern
 import scala.concurrent.{ExecutionContext, Future}
+import reactivemongo.api.Cursor.FailOnError
+import reactivemongo.api.ReadPreference
+
 
 trait PublishedRepository {
   def save(id: String, user: String, processCode: String, process: JsObject): Future[RequestOutcome[String]]
@@ -37,6 +41,7 @@ trait PublishedRepository {
   def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]]
   def processSummaries(): Future[RequestOutcome[List[PublishedSummary]]]
   def delete(id: String): Future[RequestOutcome[String]]
+  def getTimescalesInUse(): Future[RequestOutcome[List[String]]]
 }
 
 @Singleton
@@ -103,6 +108,22 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
           Left(DatabaseError)
       }
     //$COVERAGE-ON$
+
+
+  //$COVERAGE-OFF$
+  def getTimescalesInUse(): Future[RequestOutcome[List[String]]] =
+    collection.find(TimescalesInUseQuery, projection = Option.empty[JsObject])
+      .cursor[PublishedProcess](ReadPreference.primaryPreferred)
+      .collect(maxDocs = -1, FailOnError[List[PublishedProcess]]())
+      .map{ list =>
+        Right(list.flatMap(pps => pps.process.validate[Process].fold(_ => Nil, p => p.timescales.keys.toList)).distinct)
+      }
+      .recover{
+        case error =>
+          logger.error(s"Listing timescales used in the published processes failed with error : ${error.getMessage}")
+          Left(DatabaseError)
+      }
+      //$COVERAGE-ON$
 
   def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]] =
     collection

@@ -14,9 +14,24 @@
  * limitations under the License.
  */
 
-import play.api.libs.json.JsResultException
+import play.api.libs.json.{JsResultException, Json}
 
 package object repositories {
+  val TimescalesInUseQuery =Json.obj(
+                              "$nor" -> Json.arr(
+                                Json.obj(
+                                  "$jsonSchema" -> Json.obj(
+                                    "properties" -> Json.obj(
+                                      "process.timescales" -> Json.obj(
+                                        "type" -> "object",
+                                        "properties" -> Json.obj(),
+                                        "additionalProperties" -> false
+                                      )
+                                    )
+                                  )
+                                )
+                              )
+                            )
   def hasDupeKeyViolation(ex: JsResultException): Boolean = (for {
     validationErrors <- ex.errors.flatMap(_._2)
     message <- validationErrors.messages

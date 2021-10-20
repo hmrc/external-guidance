@@ -27,36 +27,40 @@ import scala.concurrent.Future
 import config.AppConfig
 import play.api.Logger
 import java.time.ZonedDateTime
-import models.{UpdateDetails, TimescalesDetail}
+import models.{UpdateDetails, TimescalesResponse}
 
 @Singleton
-class TimescalesService @Inject() (repository: TimescalesRepository, appConfig: AppConfig) {
+class TimescalesService @Inject() (
+    repository: TimescalesRepository,
+    publishService: PublishedService,
+    approvalService: ApprovalService,
+    appConfig: AppConfig) {
+
   val logger: Logger = Logger(getClass)
 
-  def details(): Future[RequestOutcome[TimescalesDetail]] =
+  def details(): Future[RequestOutcome[TimescalesResponse]] =
     repository.get(repository.CurrentTimescalesID) map {
       case Right(update) =>
         update.timescales.validate[Map[String, Int]].fold(_ => Left(InternalServerError),
-          mp => Right(TimescalesDetail(mp.size, Some(UpdateDetails(update.when, update.credId, update.user, update.email))))
+          mp => Right(TimescalesResponse(mp.size, Some(UpdateDetails(update.when, update.credId, update.user, update.email))))
         )
       case Left(NotFoundError) =>
         logger.warn(s"No timescales found returning seed timescale details")
-        Right(TimescalesDetail(appConfig.seedTimescales.size, None))
+        Right(TimescalesResponse(appConfig.seedTimescales.size, None))
       case Left(err) =>
         logger.error(s"Unbale to retrieve timescale update details due to error, $err")
         Left(InternalServerError)
     }
 
-  def save(json: JsValue, credId: String, user: String, email: String): Future[RequestOutcome[TimescalesDetail]] =
-    json.validate[Map[String, Int]].fold(_ => Future.successful(Left(ValidationError)),
-      mp => repository.save(json, ZonedDateTime.now, credId, user, email).map{
-        case Left(err) =>
-          logger.error(s"Unable to save timescale definitions due error, $err")
-          Left(InternalServerError)
-        case Right(update) =>
-          Right(TimescalesDetail(mp.size, Some(UpdateDetails(update.when, update.credId, update.user, update.email))))
-      }
-    )
+  def getTimescalesInUse(): Future[RequestOutcome[List[String]]] =
+    publishService.getTimescalesInUse().flatMap{
+      case Right(publishedInUse) =>
+        approvalService.getTimescalesInUse().map{
+          case Right(approvalInUse) => Right((publishedInUse ++ approvalInUse).distinct)
+          case err => err
+        }
+      case err => Future.successful(err)
+    }
 
   def updateProcessTimescaleTable(js: JsObject): Future[RequestOutcome[JsObject]] =
     js.validate[Process].fold(_ => Future.successful(Left(ValidationError)),
@@ -82,5 +86,51 @@ class TimescalesService @Inject() (repository: TimescalesRepository, appConfig: 
       case Left(err) =>
         logger.error(s"Unable to retrieve timescale table due error, $err")
         Left(InternalServerError)
+    }
+
+  def save(json: JsValue, credId: String, user: String, email: String): Future[RequestOutcome[TimescalesResponse]] =
+    json.validate[Map[String, Int]].fold(_ => Future.successful(Left(ValidationError)),
+      mp =>
+        // Get the current timescale definitions
+        get().flatMap{
+          case Right(ts) =>
+            // Check for deletions from the exisiting list
+            ts.keys.toList.diff(mp.keys.toList) match {
+              case Nil => saveTimescales(mp, credId, user, email)
+              case deletions =>
+                logger.warn(s"Timescale update contains the following deletions: ${deletions.mkString(",")}")
+                getTimescalesInUse().flatMap{
+                  case Right(inUse) =>
+                    // Check if any of the deletions are currently in use
+                    deletions.intersect(inUse) match {
+                      case Nil => saveTimescales(mp, credId, user, email)
+                      case inUseDeletions =>
+                        logger.warn(s"Timescale deletions still in-use retained: ${inUseDeletions.mkString(",")}")
+                        // Save new timescales retaining the in-use deletions
+                        saveTimescales(ts.filterKeys(inUseDeletions.contains(_)) ++ mp, credId, user, email, inUseDeletions)
+                    }
+                  case Left(err) =>
+                    logger.error(s"Unable to determine the timescales currently in-use due to error: $err")
+                    Future.successful(Left(InternalServerError))
+                }
+            }
+          case Left(NotFoundError) => saveTimescales(mp, credId, user, email)
+          case Left(err) =>
+            logger.error(s"Unbale to retrieve timescale update details due to error, $err")
+            Future.successful(Left(InternalServerError))
+        }
+    )
+
+  private def saveTimescales(ts: Map[String, Int],
+                             credId: String,
+                             user: String,
+                             email: String,
+                             retained: List[String] = Nil): Future[RequestOutcome[TimescalesResponse]] =
+    repository.save(Json.toJson(ts), ZonedDateTime.now, credId, user, email).map{
+      case Left(err) =>
+        logger.error(s"Unable to save timescale definitions due error, $err")
+        Left(InternalServerError)
+      case Right(update) =>
+        Right(TimescalesResponse(ts.size, Some(UpdateDetails(update.when, update.credId, update.user, update.email, retained))))
     }
 }

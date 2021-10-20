@@ -91,6 +91,12 @@ class ApprovalService @Inject() (
       case _ => Left(InternalServerError)
     }
 
+  def getTimescalesInUse(): Future[RequestOutcome[List[String]]] =
+    repository.getTimescalesInUse().map{
+      case Right(timescalesInUse) => Right(timescalesInUse)
+      case err => err
+    }
+
   def getById(id: String): Future[RequestOutcome[JsObject]] =
     repository.getById(id) map {
       case Left(NotFoundError) => Left(NotFoundError)

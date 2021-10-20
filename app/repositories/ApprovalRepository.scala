@@ -29,7 +29,7 @@ import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.formatters.ApprovalProcessFormatter
 import repositories.formatters.ApprovalProcessMetaFormatter._
 import uk.gov.hmrc.mongo.ReactiveRepository
-
+import core.models.ocelot.Process
 import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -40,7 +40,7 @@ trait ApprovalRepository {
   def getByProcessCode(processCode: String): Future[RequestOutcome[ApprovalProcess]]
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]]
   def changeStatus(id: String, status: String, user: String): Future[RequestOutcome[Unit]]
-
+  def getTimescalesInUse(): Future[RequestOutcome[List[String]]]
   val TwoEyeRestriction: JsObject = Json.obj("meta.reviewType" -> Constants.ReviewType2i)
   val FactCheckRestriction: JsObject = Json.obj("meta.reviewType" -> Constants.ReviewTypeFactCheck)
 }
@@ -153,6 +153,7 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
     //$COVERAGE-ON$
   }
 
+  //$COVERAGE-OFF$
   def changeStatus(id: String, status: String, user: String): Future[RequestOutcome[Unit]] = {
 
     logger.warn(s"updating status of process $id to $status to collection $collectionName")
@@ -169,7 +170,6 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
           Left(NotFoundError)
         }
       }
-      //$COVERAGE-OFF$
       .recover {
         case error =>
           logger.error(s"Attempt to change status of process $id to collection $collectionName failed with error : ${error.getMessage}")
@@ -177,5 +177,20 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
       }
     //$COVERAGE-ON$
   }
+
+  //$COVERAGE-OFF$
+  def getTimescalesInUse(): Future[RequestOutcome[List[String]]] =
+    collection.find(TimescalesInUseQuery, projection = Option.empty[JsObject])
+      .cursor[ApprovalProcess](ReadPreference.primaryPreferred)
+      .collect(maxDocs = -1, FailOnError[List[ApprovalProcess]]())
+      .map{ list =>
+        Right(list.flatMap(pps => pps.process.validate[Process].fold(_ => Nil, p => p.timescales.keys.toList)).distinct)
+      }
+      .recover{
+        case error =>
+          logger.error(s"Listing timescales used in the published processes failed with error : ${error.getMessage}")
+          Left(DatabaseError)
+      }
+      //$COVERAGE-ON$
 
 }

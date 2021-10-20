@@ -70,6 +70,12 @@ class PublishedService @Inject() (published: PublishedRepository,
         }
       )
 
+  def getTimescalesInUse(): Future[RequestOutcome[List[String]]] =
+    published.getTimescalesInUse().map{
+      case Right(timescalesInUse) => Right(timescalesInUse)
+      case err => err
+    }
+
   def archive(id: String, user: String): Future[RequestOutcome[String]] =
     published.getById(id).flatMap {
       case Left(_) =>
