@@ -48,3 +48,4 @@ object AuthenticationError extends Error("AUTHENTICATION_ERROR", Some("Not authe
 object ExpectationFailedError extends Error("EXPECTATION_FAILED", Some("Session missing when expected"), None)
 object ForbiddenError extends Error("FORBIDDEN", Some("Access to the requested resource is not allowed in this context"), None)
 object UpgradeRequiredError extends Error("UPGRADE_REQUIRED", Some("Process references feature currently not supported"), None)
+object IllegalPageSubmissionError extends Error("ILLEGAL_PAGE_SUBMISSION", Some("Attempt to submit page out of sequence"), None)

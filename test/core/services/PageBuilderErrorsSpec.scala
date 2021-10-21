@@ -297,6 +297,28 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       }
     }
 
+    "detect and erroneous timescale" in {
+      val processErrors: List[ProcessError] =
+        List(ProcessError("TimescalesParseError: Process timescales section parse error, reason: error.expected.jsnumber, index: RepayReim", ""))
+
+      val jsObject = inValidOnePageWithTimescalesJson
+      val result = jsObject.as[JsObject].validate[Process].fold(
+        errs => Left(core.models.errors.Error(GuidanceError.fromJsonValidationErrors(errs))),
+        process => {
+          pageBuilder.pages(process, process.startPageId).fold(errs => Left(core.models.errors.Error(errs)),
+            pages => Right((process, pages, jsObject))
+          )}
+      )
+      result.fold(
+        {
+          case core.models.errors.Error(core.models.errors.Error.UnprocessableEntity, None, Some(errors)) if errors == processErrors => {
+            succeed
+          }
+          case errs => {
+            fail(s"Failed with errors: $errs")}
+        }, _ => fail)
+    }
+
     "detect UnknownCalloutType" in {
       val processErrors: List[ProcessError] =
         List(
