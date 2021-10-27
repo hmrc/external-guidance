@@ -47,7 +47,6 @@ object PageVertex {
 @Singleton
 class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
   val logger: Logger = Logger(getClass)
-  val ReservedUrls: List[String] = List("/session-timeout", "/session-restart", s"/${SecuredProcess.SecuredProcessStartUrl}")
 
   def pagesWithValidation(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] =
     pageBuilder.pages(process, start).fold[Either[List[GuidanceError], Seq[Page]]](Left(_),
@@ -133,7 +132,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
   private def checkForUseOfReservedUrls(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] =
     pages match {
       case Nil => errors
-      case x :: xs if ReservedUrls.contains(x.url) => checkForUseOfReservedUrls(xs, UseOfReservedUrl(x.id) :: errors)
+      case x :: xs if Process.ReservedUrls.contains(x.url) => checkForUseOfReservedUrls(xs, UseOfReservedUrl(x.id) :: errors)
       case _ :: xs => checkForUseOfReservedUrls(xs, errors)
     }
 
