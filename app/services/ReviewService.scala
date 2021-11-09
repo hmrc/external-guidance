@@ -69,7 +69,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
       case StatusPublished =>
         publishedService.save(id, info.userId, approvalProcess.meta.processCode, approvalProcess.process) map {
           case Right(_) =>
-            logger.warn(s"PUBLISH: Process $id successfully published with processCode ${approvalProcess.meta.processCode}")
+            logger.warn(s"PUBLISH: Process $id with processCode ${approvalProcess.meta.processCode} successfully published by ${info.userName}(${info.userId})")
             Right(approvalProcess)
           case Left(DuplicateKeyError) => Left(DuplicateKeyError)
           case Left(errors) =>

@@ -85,7 +85,7 @@ class PublishedService @Inject() (published: PublishedRepository,
         archive.archive(id, user, process.processCode, process).flatMap {
           case Left(_) => Future.successful(Left(InternalServerError))
           case _ =>
-            logger.warn(s"ARCHIVE: Process $id archived")
+            logger.warn(s"ARCHIVE: Process $id archived by $user")
             for {
               _       <- approval.changeStatus(id, "Archived", user)
               deleted <- published.delete(id)
