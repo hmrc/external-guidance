@@ -16,11 +16,12 @@
 
 package core.models.ocelot
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{Json, JsObject}
 import core.services.{DefaultTodayProvider, Timescales, PageBuilder}
 
-class PrototypeJsonSpec extends WordSpec with Matchers {
+class PrototypeJsonSpec extends AnyWordSpec with Matchers {
 
   trait Test {
     val jsObject: JsObject = Json.parse(PrototypeJson.json).as[JsObject]

@@ -50,20 +50,20 @@ class ProcessReviewController @Inject() (
   private def getReviewInfo(id: String, reviewType: String): Future[Result] = {
     reviewService.approvalReviewInfo(id, reviewType).map {
       case Right(data) => Ok(Json.toJson(data))
-      case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
-      case Left(DuplicateKeyError) => BadRequest(Json.toJson(DuplicateKeyError))
-      case Left(StaleDataError) => NotFound(Json.toJson(StaleDataError))
-      case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
-      case Left(_) => InternalServerError(Json.toJson(ServerError))
+      case Left(NotFoundError) => NotFound(Json.toJson[Error](NotFoundError))
+      case Left(DuplicateKeyError) => BadRequest(Json.toJson[Error](DuplicateKeyError))
+      case Left(StaleDataError) => NotFound(Json.toJson[Error](StaleDataError))
+      case Left(BadRequestError) => BadRequest(Json.toJson[Error](BadRequestError))
+      case Left(_) => InternalServerError(Json.toJson[Error](ServerError))
     }
   }
 
   def approval2iReviewConfirmAllPagesReviewed(id: String): Action[AnyContent] = twoEyeReviewerAction.async { _ =>
     reviewService.checkProcessInCorrectStateForCompletion(id, ReviewType2i).map {
       case Right(_) => NoContent
-      case Left(IncompleteDataError) => BadRequest(Json.toJson(IncompleteDataError))
-      case Left(StaleDataError) => NotFound(Json.toJson(StaleDataError))
-      case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
+      case Left(IncompleteDataError) => BadRequest(Json.toJson[Error](IncompleteDataError))
+      case Left(StaleDataError) => NotFound(Json.toJson[Error](StaleDataError))
+      case Left(NotFoundError) => NotFound(Json.toJson[Error](NotFoundError))
       case Left(errors) => InternalServerError(Json.toJson(errors))
     }
   }
@@ -74,12 +74,12 @@ class ProcessReviewController @Inject() (
         case Right(auditInfo) =>
           logger.warn(s"2i review of $id complete")
           Ok(Json.toJson(auditInfo))
-        case Left(IncompleteDataError) => BadRequest(Json.toJson(IncompleteDataError))
-        case Left(DuplicateKeyError) => BadRequest(Json.toJson(DuplicateKeyError))
-        case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
-        case Left(StaleDataError) => NotFound(Json.toJson(StaleDataError))
-        case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
-        case Left(UpgradeRequiredError) => BadRequest(Json.toJson(UpgradeRequiredError))
+        case Left(IncompleteDataError) => BadRequest(Json.toJson[Error](IncompleteDataError))
+        case Left(DuplicateKeyError) => BadRequest(Json.toJson[Error](DuplicateKeyError))
+        case Left(NotFoundError) => NotFound(Json.toJson[Error](NotFoundError))
+        case Left(StaleDataError) => NotFound(Json.toJson[Error](StaleDataError))
+        case Left(BadRequestError) => BadRequest(Json.toJson[Error](BadRequestError))
+        case Left(UpgradeRequiredError) => BadRequest(Json.toJson[Error](UpgradeRequiredError))
         case Left(errors) => InternalServerError(Json.toJson(errors))
       }
     }
@@ -95,10 +95,10 @@ class ProcessReviewController @Inject() (
         case Right(auditInfo) =>
           logger.info(s"Fact check of $id complete")
           Ok(Json.toJson(auditInfo))
-        case Left(IncompleteDataError) => BadRequest(Json.toJson(IncompleteDataError))
-        case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
-        case Left(StaleDataError) => NotFound(Json.toJson(StaleDataError))
-        case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
+        case Left(IncompleteDataError) => BadRequest(Json.toJson[Error](IncompleteDataError))
+        case Left(NotFoundError) => NotFound(Json.toJson[Error](NotFoundError))
+        case Left(StaleDataError) => NotFound(Json.toJson[Error](StaleDataError))
+        case Left(BadRequestError) => BadRequest(Json.toJson[Error](BadRequestError))
         case Left(errors) => InternalServerError(Json.toJson(errors))
       }
     }
@@ -120,10 +120,10 @@ class ProcessReviewController @Inject() (
   private def pageReviewInfo(id: String, pageUrl: String, reviewType: String): Future[Result] = {
     reviewService.approvalPageInfo(id, s"/$pageUrl", reviewType).map {
       case Right(data) => Ok(Json.toJson(data))
-      case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
-      case Left(StaleDataError) => NotFound(Json.toJson(StaleDataError))
-      case Left(BadRequestError) => BadRequest(Json.toJson(BadRequestError))
-      case Left(_) => InternalServerError(Json.toJson(ServerError))
+      case Left(NotFoundError) => NotFound(Json.toJson[Error](NotFoundError))
+      case Left(StaleDataError) => NotFound(Json.toJson[Error](StaleDataError))
+      case Left(BadRequestError) => BadRequest(Json.toJson[Error](BadRequestError))
+      case Left(_) => InternalServerError(Json.toJson[Error](ServerError))
     }
   }
 
@@ -139,7 +139,7 @@ class ProcessReviewController @Inject() (
     def save(reviewInfo: ApprovalProcessPageReview): Future[Result] =
       reviewService.approvalPageComplete(id, s"/$pageUrl", reviewType, reviewInfo).map {
         case Right(_) => NoContent
-        case Left(NotFoundError) => NotFound(Json.toJson(NotFoundError))
+        case Left(NotFoundError) => NotFound(Json.toJson[Error](NotFoundError))
         case Left(errors) => InternalServerError(Json.toJson(errors))
       }
 

@@ -21,6 +21,7 @@ import core.models.ocelot.stanzas._
 import core.models.ocelot._
 import play.api.libs.json._
 
+
 class GraphPageBuilderSpec extends BaseSpec with ProcessJson {
 
   // Define instance of class used in testing

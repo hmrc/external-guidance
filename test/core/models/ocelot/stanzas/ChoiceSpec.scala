@@ -22,11 +22,11 @@ import play.api.libs.json._
 class ChoiceSpec extends BaseSpec {
 
   def testJson(l: String, r: String, t: String) =
-    s"""{"left":"$l","right":"$r","type":"$t"}"""
+    s"""{"type":"$t","left":"$l","right":"$r"}"""
   def testTypeJson(l: String, r: String) =
     s"""{"left":"$l","right":"$r"}"""
-  def choiceJson(next: Seq[String], tests: Seq[String], typeAttr: String = "") =
-    s"""{"next":[${next.map(n => s""""$n"""").mkString(",")}],"tests":[${tests.mkString(",")}]${typeAttr}}"""
+  def choiceJson(next: Seq[String], tests: Seq[String], typeAttr: Option[String] = None) =
+    s"""{${typeAttr.getOrElse("")}"next":[${next.map(n => s""""$n"""").mkString(",")}],"tests":[${tests.mkString(",")}]}"""
 
   val EQ = "eq"
   val NEQ = "neq"
@@ -211,7 +211,7 @@ class ChoiceSpec extends BaseSpec {
                                        testJson("[label:X]", "[label:Y]", MTE),
                                        testJson("[label:X]", "[label:Y]", LT),
                                        testJson("[label:X]", "[label:Y]", LTE),
-                                       testJson("[label:X]", "[label:Y]", CNTNS)), ""","type":"Choice"""")
+                                       testJson("[label:X]", "[label:Y]", CNTNS)), Some(""""type":"Choice","""))
     val invalidJson = choiceJson(Seq("1"),Seq(testJson("[label:X]", "[label:Y]", "ad"),
                                               testJson("[label:X]", "[label:Y]", MT),
                                               testJson("[label:X]", "[label:Y]", MTE),

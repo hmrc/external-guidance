@@ -22,7 +22,7 @@ import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import testOnly.repositories.ScratchRepository
-
+import core.models.errors.Error
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
@@ -31,7 +31,7 @@ class ScratchController @Inject() (testRepo: ScratchRepository, cc: ControllerCo
   def delete(id: String): Action[AnyContent] = Action.async {
     testRepo.delete(id).map {
           case Right(_) => NoContent
-          case Left(_) => InternalServerError(Json.toJson(ServerError))
+          case Left(_) => InternalServerError(Json.toJson[Error](ServerError))
         }
   }
 }

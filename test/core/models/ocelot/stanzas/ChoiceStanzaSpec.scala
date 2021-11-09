@@ -99,6 +99,7 @@ class ChoiceStanzaSpec extends BaseSpec {
     .parse(
       s"""{
       |  "type": "$stanzaType",
+      |  "next": [${next.map(x => s""""$x"""").mkString(",")}],
       |  "tests": [
       |    {
       |      "left": "VAL-1",
@@ -111,7 +112,6 @@ class ChoiceStanzaSpec extends BaseSpec {
       |      "right": "VAL-4"
       |    }
       |  ],
-      |  "next": [${next.map(x => s""""$x"""").mkString(",")}],
       |  "stack": $stack
       |}
     """.stripMargin
@@ -122,6 +122,7 @@ class ChoiceStanzaSpec extends BaseSpec {
     .parse(
       s"""{
       |  "type": "$stanzaType",
+      |  "next": [${next.map(x => s""""$x"""").mkString(",")}],
       |  "tests": [
       |    {
       |      "left": "VAL-1",
@@ -134,7 +135,6 @@ class ChoiceStanzaSpec extends BaseSpec {
       |      "right": "VAL-4"
       |    }
       |  ],
-      |  "next": [${next.map(x => s""""$x"""").mkString(",")}],
       |  "stack": $stack
       |}
     """.stripMargin
@@ -168,9 +168,9 @@ class ChoiceStanzaSpec extends BaseSpec {
     "serialize to json from a Stanza reference" in {
       val stanza: Stanza =
         ChoiceStanza(next, Seq(ChoiceStanzaTest("VAL-1", LessThanOrEquals, "VAL-2"), ChoiceStanzaTest("VAL-3", LessThanOrEquals, "VAL-4")), false)
-      val expectedJson: String = s"""{"next":[${next
+      val expectedJson: String = s"""{"type":"ChoiceStanza","next":[${next
         .map(x => s""""$x"""")
-        .mkString(",")}],"stack":false,"tests":[{"left":"VAL-1","test":"lessThanOrEquals","right":"VAL-2"},{"left":"VAL-3","test":"lessThanOrEquals","right":"VAL-4"}],"type":"ChoiceStanza"}"""
+        .mkString(",")}],"tests":[{"left":"VAL-1","test":"lessThanOrEquals","right":"VAL-2"},{"left":"VAL-3","test":"lessThanOrEquals","right":"VAL-4"}],"stack":false}"""
       val json: String = Json.toJson(stanza).toString
       json shouldBe expectedJson
     }

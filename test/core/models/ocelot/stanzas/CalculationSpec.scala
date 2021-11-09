@@ -22,12 +22,12 @@ import play.api.libs.json._
 class CalculationSpec extends BaseSpec {
 
   def opJson(l: String, r: String, lbl: String, t: String) =
-    s"""{"left":"$l","right":"$r","label":"$lbl","type":"$t"}"""
+    s"""{"type":"$t","left":"$l","right":"$r","label":"$lbl"}"""
   def opTypeJson(l: String, r: String, lbl: String) =
     s"""{"left":"$l","right":"$r","label":"$lbl"}"""
 
   def calcJson(next: Seq[String], calcs: Seq[String], typeAttr: String = "") =
-    s"""{"next":[${next.map(n => s""""$n"""").mkString(",")}]${typeAttr},"calcs":[${calcs.mkString(",")}]}"""
+    s"""{${typeAttr}"next":[${next.map(n => s""""$n"""").mkString(",")}],"calcs":[${calcs.mkString(",")}]}"""
 
   val ADD = "add"
   val SUB = "sub"
@@ -186,7 +186,7 @@ class CalculationSpec extends BaseSpec {
                                      opJson("[label:X]", "[label:Y]", "label", MULT),
                                      opJson("[label:X]", "[label:Y]", "label", DIV),
                                      opJson("[label:X]", "[label:Y]", "label", CEIL),
-                                     opJson("[label:X]", "[label:Y]", "label", FLR)), ""","type":"Calculation"""")
+                                     opJson("[label:X]", "[label:Y]", "label", FLR)), """"type":"Calculation",""")
     val invalidJson = calcJson(Seq("1"),Seq(opJson("[label:X]", "[label:Y]", "label", "ad"),
                                             opJson("[label:X]", "[label:Y]", "label", SUB),
                                             opJson("[label:X]", "[label:Y]", "label", MULT),

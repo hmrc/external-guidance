@@ -22,7 +22,8 @@ import mocks.MockScratchService
 import core.models.errors.{BadRequestError, Error, InternalServerError, NotFoundError, ProcessError, ValidationError}
 import core.models.ocelot.errors._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.ContentTypes
 import play.api.libs.json.{JsObject, JsValue, Json}
@@ -34,7 +35,7 @@ import core.services.toProcessErr
 import scala.concurrent.Future
 import mocks.MockTimescalesService
 
-class ScratchControllerSpec extends WordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite {
+class ScratchControllerSpec extends AnyWordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite {
 
   private trait Test extends MockScratchService with MockTimescalesService {
     val id: String = "7a2f7eb3-6f0d-4d7f-a9b9-44a7137820ad"

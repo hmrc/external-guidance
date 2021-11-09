@@ -17,15 +17,17 @@
 package support
 
 import org.scalatest._
+import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import play.api.{Application, Environment, Mode}
+import org.scalatest.matchers.should.Matchers
 
 trait IntegrationSpec
-    extends WordSpecLike
+    extends AnyWordSpecLike
     with EitherValues
     with Matchers
     with FutureAwaits

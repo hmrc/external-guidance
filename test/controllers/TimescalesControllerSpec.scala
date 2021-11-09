@@ -20,7 +20,8 @@ import mocks.{MockTimescalesRepository, MockTimescalesService}
 import core.models.errors.{InternalServerError, ValidationError}
 import core.models.MongoDateTimeFormats
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.ContentTypes
 import play.api.libs.json.{JsObject, JsValue, Json}
@@ -32,7 +33,7 @@ import play.api.mvc._
 import scala.concurrent.Future
 import models.{UpdateDetails, TimescalesResponse, TimescalesUpdate}
 
-class TimescalesControllerSpec extends WordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite {
+class TimescalesControllerSpec extends AnyWordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite {
 
   trait Test extends MockTimescalesService with MockTimescalesRepository {
     val timescaleJson: JsValue = Json.parse("""{"First": 1, "Second": 2, "Third": 3}""")

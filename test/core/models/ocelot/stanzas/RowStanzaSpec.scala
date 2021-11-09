@@ -25,10 +25,10 @@ class RowStanzaSpec extends BaseSpec {
 
   def getRowStanzaWithMultipleCellsAsJsValue(): JsValue = Json.parse(
     s"""|{
-        | "next": [ "10" ],
-        | "stack": false,
+        | "type": "RowStanza",
         | "cells": [10, 11, 12, 13, 14, 15],
-        | "type": "RowStanza"
+        | "next": [ "10" ],
+        | "stack": false
         |}""".stripMargin
   )
 
@@ -38,28 +38,28 @@ class RowStanzaSpec extends BaseSpec {
 
     def getRowStanzaWithZeroCellsAsJsValue(): JsValue = Json.parse(
       s"""|{
-          | "next": [ "10" ],
-          | "stack": false,
+          | "type": "RowStanza",
           | "cells": [],
-          |  "type": "RowStanza"
+          | "next": [ "10" ],
+          | "stack": false
           |}""".stripMargin
     )
 
     def getRowStanzaWithSingleCellAsJsValue(): JsValue = Json.parse(
       s"""|{
-          | "next": [ "10" ],
-          | "stack": true,
+          | "type": "RowStanza",
           | "cells": [1],
-          |  "type": "RowStanza"
+          | "next": [ "10" ],
+          | "stack": true
           |}""".stripMargin
     )
 
     def getRowStanzaWithZeroEntryNextSequenceAsJsValue(): JsValue = Json.parse(
       s"""|{
-          | "next": [],
-          | "stack": false,
           | "type": "RowStanza",
-          | "cells": [10, 11, 12, 13, 14, 15]
+          | "cells": [10, 11, 12, 13, 14, 15],
+          | "next": [],
+          | "stack": false
           |}""".stripMargin
     )
 

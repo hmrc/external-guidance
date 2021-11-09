@@ -26,9 +26,9 @@ class InputStanzaSpec extends BaseSpec {
     s"""|{
         |    "type": "InputStanza",
         |    "ipt_type": "$inputType",
+        |    "next": ["1"],
         |    "name": 0,
         |    "help": 1,
-        |    "next": ["1"],
         |    "label": "Price",
         |    "placeholder": 2,
         |    "stack": false
@@ -252,7 +252,7 @@ class InputStanzaSpec extends BaseSpec {
   }
 
   def inputStanzaJsonFormat(typeName: String): String = s"""{"ipt_type":"$typeName","next":["1"],"name":0,"help":1,"label":"Price","placeholder":2,"stack":false}"""
-  def stanzaJsonFormat(typeName: String): String = s"""{"next":["1"],"help":1,"stack":false,"ipt_type":"$typeName","name":0,"label":"Price","placeholder":2,"type":"InputStanza"}"""
+  def stanzaJsonFormat(typeName: String): String = s"""{"type":"InputStanza","ipt_type":"$typeName","next":["1"],"name":0,"help":1,"label":"Price","placeholder":2,"stack":false}"""
 
   "serialise to json with ipt_type Currency" in {
     Json.toJson(expectedCurrencyStanza).toString shouldBe inputStanzaJsonFormat("Currency")

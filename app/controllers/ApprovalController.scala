@@ -26,7 +26,7 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import models.Constants._
 import core.models.errors.{BadRequestError, DuplicateKeyError, Error, NotFoundError, ValidationError, InternalServerError => ServerError}
 import play.api.libs.json.Json.toJson
-
+import Error._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -49,7 +49,7 @@ class ApprovalController @Inject() (allRolesAction: AllRolesAction,
   def saveProcess(jsProcess: JsValue, reviewType: String): Future[Result] =
     jsProcess.validate[JsObject].fold(errs => {
       logger.error(s"Unable to parse incoming json as a JsObject, Errors: $errs")
-      Future.successful(BadRequest(toJson(BadRequestError)))
+      Future.successful(BadRequest(toJson[Error](BadRequestError)))
     }, process =>
       approvalService.save(process, reviewType, StatusSubmitted).map {
         case Right(id) =>
@@ -60,12 +60,12 @@ class ApprovalController @Inject() (allRolesAction: AllRolesAction,
           UnprocessableEntity(toJson(err))
         case Left(DuplicateKeyError) =>
           logger.error(s"Failed to save process for approval due to duplicate processCode")
-          UnprocessableEntity(toJson(Error(Error.UnprocessableEntity, "Duplicate ProcessCode - the process has the same processCode as an existing process")))
+          UnprocessableEntity(toJson[Error](Error(Error.UnprocessableEntity, "Duplicate ProcessCode - the process has the same processCode as an existing process")))
         case Left(ValidationError) =>
           logger.error(s"Failed to save process for approval due to validation errors")
-          BadRequest(toJson(BadRequestError))
-        case Left(BadRequestError) => BadRequest(toJson(BadRequestError))
-        case Left(_) => InternalServerError(toJson(ServerError))
+          BadRequest(toJson[Error](BadRequestError))
+        case Left(BadRequestError) => BadRequest(toJson[Error](BadRequestError))
+        case Left(_) => InternalServerError(toJson[Error](ServerError))
       }
     )
 
@@ -74,11 +74,11 @@ class ApprovalController @Inject() (allRolesAction: AllRolesAction,
       case Right(approvalProcess) =>
         timescalesService.updateProcessTimescaleTable(approvalProcess).map{
           case Right(result) => Ok(result)
-          case Left(_) => InternalServerError(toJson(ServerError))
+          case Left(_) => InternalServerError(toJson[Error](ServerError))
         }
-      case Left(NotFoundError) => Future.successful(NotFound(toJson(NotFoundError)))
-      case Left(BadRequestError) => Future.successful(BadRequest(toJson(BadRequestError)))
-      case Left(_) => Future.successful(InternalServerError(toJson(ServerError)))
+      case Left(NotFoundError) => Future.successful(NotFound(toJson[Error](NotFoundError)))
+      case Left(BadRequestError) => Future.successful(BadRequest(toJson[Error](BadRequestError)))
+      case Left(_) => Future.successful(InternalServerError(toJson[Error](ServerError)))
     }
   }
 
@@ -87,18 +87,18 @@ class ApprovalController @Inject() (allRolesAction: AllRolesAction,
       case Right(approvalProcess) =>
         timescalesService.updateProcessTimescaleTable(approvalProcess).map{
           case Right(result) => Ok(result)
-          case Left(_) => InternalServerError(toJson(ServerError))
+          case Left(_) => InternalServerError(toJson[Error](ServerError))
         }
-      case Left(NotFoundError) => Future.successful(NotFound(toJson(NotFoundError)))
-      case Left(BadRequestError) => Future.successful(BadRequest(toJson(BadRequestError)))
-      case Left(_) => Future.successful(InternalServerError(toJson(ServerError)))
+      case Left(NotFoundError) => Future.successful(NotFound(toJson[Error](NotFoundError)))
+      case Left(BadRequestError) => Future.successful(BadRequest(toJson[Error](BadRequestError)))
+      case Left(_) => Future.successful(InternalServerError(toJson[Error](ServerError)))
     }
   }
 
   def approvalSummaryList: Action[AnyContent] = allRolesAction.async { implicit request =>
     approvalService.approvalSummaryList(request.roles).map {
       case Right(list) => Ok(list)
-      case _ => InternalServerError(toJson(ServerError))
+      case _ => InternalServerError(toJson[Error](ServerError))
     }
   }
 }

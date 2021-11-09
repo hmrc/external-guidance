@@ -19,7 +19,7 @@ package endpoints
 import java.time.ZonedDateTime
 
 import data.ExamplePayloads._
-import core.models.errors.IncompleteDataError
+import core.models.errors.{Error, IncompleteDataError}
 import core.models.ocelot.Process
 import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange, ApprovalProcessSummary}
 import play.api.http.Status._
@@ -158,7 +158,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
 
       "return INCOMPLETE_DATA_ERROR in the request Body" in {
         val json = response.body[JsValue].as[JsObject]
-        json shouldBe Json.toJson(IncompleteDataError)
+        json shouldBe Json.toJson[Error](IncompleteDataError)
       }
 
     }
@@ -304,7 +304,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
 
       "return INCOMPLETE_DATA_ERROR in the request Body" in {
         val json = response.body[JsValue].as[JsObject]
-        json shouldBe Json.toJson(IncompleteDataError)
+        json shouldBe Json.toJson[Error](IncompleteDataError)
       }
 
     }

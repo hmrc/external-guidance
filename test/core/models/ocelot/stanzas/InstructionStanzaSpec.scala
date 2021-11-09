@@ -83,11 +83,11 @@ class InstructionStanzaSpec extends BaseSpec {
 
     "serialise to json from a Stanza reference" in {
       val stanza: Stanza = InstructionStanza(0, Seq("4"), None, true)
-      val expectedJson: String = """{"next":["4"],"stack":true,"text":0,"type":"InstructionStanza"}"""
+      val expectedJson: String = """{"type":"InstructionStanza","text":0,"next":["4"],"stack":true}"""
       Json.toJson(stanza).toString shouldBe expectedJson
 
       val stanzaWithLink: Stanza = InstructionStanza(0, Seq("4"), Some(0), true)
-      val expectedJsonWithLink: String = """{"next":["4"],"stack":true,"link":0,"text":0,"type":"InstructionStanza"}"""
+      val expectedJsonWithLink: String = """{"type":"InstructionStanza","text":0,"next":["4"],"link":0,"stack":true}"""
       Json.toJson(stanzaWithLink).toString shouldBe expectedJsonWithLink
     }
 
