@@ -19,7 +19,7 @@ package controllers
 import controllers.actions.AllRolesAction
 
 import javax.inject.{Inject, Singleton}
-import core.models.errors.{BadRequestError, NotFoundError, InternalServerError => ServerError}
+import core.models.errors.{Error, BadRequestError, NotFoundError, InternalServerError => ServerError}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.{TimescalesService, PublishedService}
@@ -37,9 +37,9 @@ class PublishedController @Inject() (publishedService: PublishedService,
   def get(id: String): Action[AnyContent] = Action.async {
     publishedService.getById(id).map {
       case Right(process) => Ok(toJson(process))
-      case Left(BadRequestError) => BadRequest(toJson(BadRequestError))
-      case Left(NotFoundError) => NotFound(toJson(NotFoundError))
-      case Left(_) => InternalServerError(toJson(ServerError))
+      case Left(BadRequestError) => BadRequest(toJson[Error](BadRequestError))
+      case Left(NotFoundError) => NotFound(toJson[Error](NotFoundError))
+      case Left(_) => InternalServerError(toJson[Error](ServerError))
     }
   }
 
@@ -47,19 +47,19 @@ class PublishedController @Inject() (publishedService: PublishedService,
     publishedService.getByProcessCode(processCode).flatMap {
       case Right(pp) => timescalesService.updateProcessTimescaleTable(pp.process).map {
         case Right(result) => Ok(result)
-        case Left(_) => InternalServerError(toJson(ServerError))
+        case Left(_) => InternalServerError(toJson[Error](ServerError))
       }
-      case Left(BadRequestError) => Future.successful(BadRequest(toJson(BadRequestError)))
-      case Left(NotFoundError) => Future.successful(NotFound(toJson(NotFoundError)))
-      case Left(_) => Future.successful(InternalServerError(toJson(ServerError)))
+      case Left(BadRequestError) => Future.successful(BadRequest(toJson[Error](BadRequestError)))
+      case Left(NotFoundError) => Future.successful(NotFound(toJson[Error](NotFoundError)))
+      case Left(_) => Future.successful(InternalServerError(toJson[Error](ServerError)))
     }
   }
 
   def archive(id: String): Action[AnyContent] = identify.async { implicit request =>
     publishedService.archive(id, request.credId) map {
       case Right(_) => Ok
-      case Left(BadRequestError) => BadRequest(toJson(BadRequestError))
-      case _ => InternalServerError(toJson(ServerError))
+      case Left(BadRequestError) => BadRequest(toJson[Error](BadRequestError))
+      case _ => InternalServerError(toJson[Error](ServerError))
     }
   }
 

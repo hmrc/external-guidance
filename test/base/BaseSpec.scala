@@ -17,7 +17,8 @@
 package base
 
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json._
 import play.api.i18n.Lang
 
@@ -101,7 +102,7 @@ trait TestConstants {
     }
 }
 
-trait BaseSpec extends WordSpec with Matchers with ScalaFutures with TestConstants {
+trait BaseSpec extends AnyWordSpec with Matchers with ScalaFutures with TestConstants {
 
   def missingJsObjectAttrTests[T](jsObject: JsObject, attrsToIgnore: List[String] = Nil)(implicit objectReads: Reads[T]): Unit =
     jsObject.keys.filterNot(attrsToIgnore.contains(_)).foreach { attributeName =>

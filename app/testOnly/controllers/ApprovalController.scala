@@ -17,7 +17,7 @@
 package testOnly.controllers
 
 import javax.inject.{Inject, Singleton}
-import core.models.errors.{InternalServerError => ServerError}
+import core.models.errors.{Error, InternalServerError => ServerError}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import testOnly.repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
@@ -35,9 +35,9 @@ class ApprovalController @Inject() (testRepo: ApprovalRepository, testReviewRepo
       case Right(_) =>
         testReviewRepo.delete(id).map {
           case Right(_) => NoContent
-          case Left(_) => InternalServerError(Json.toJson(ServerError))
+          case Left(_) => InternalServerError(Json.toJson[Error](ServerError))
         }
-      case Left(_) => Future.successful(InternalServerError(Json.toJson(ServerError)))
+      case Left(_) => Future.successful(InternalServerError(Json.toJson[Error](ServerError)))
     }
   }
 }

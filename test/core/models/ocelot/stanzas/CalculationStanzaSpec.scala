@@ -25,8 +25,6 @@ class CalculationStanzaSpec extends BaseSpec {
 
   def getMultipleCalcCalculationStanzaAsJsValue: JsValue = Json.parse(
     s"""|{
-        | "next": [ "21" ],
-        | "stack": true,
         | "type": "CalculationStanza",
         | "calcs": [
         |            {"left":"[label:inputA]",
@@ -59,7 +57,9 @@ class CalculationStanzaSpec extends BaseSpec {
         |             "right":"2",
         |             "label":"outputD"
         |             }
-        |           ]
+        |           ],
+        | "next": [ "21" ],
+        | "stack": true
         |}""".stripMargin
 
   )
@@ -74,8 +74,6 @@ class CalculationStanzaSpec extends BaseSpec {
                                                  right: String,
                                                  label: String): JsValue = Json.parse(
       s"""|{
-          | "next": [ "1" ],
-          | "stack": false,
           | "type": "CalculationStanza",
           | "calcs": [
           |            {"left":"$left",
@@ -83,7 +81,9 @@ class CalculationStanzaSpec extends BaseSpec {
           |             "right":"$right",
           |             "label":"$label"
           |             }
-          |           ]
+          |           ],
+          | "next": [ "1" ],
+          | "stack": false
           |}""".stripMargin
     )
 
@@ -230,8 +230,6 @@ class CalculationStanzaSpec extends BaseSpec {
 
     def getIntegerScaleFactorCalculationStanzaAsJsValue: JsValue = Json.parse(
       s"""|{
-          | "next": [ "21" ],
-          | "stack": true,
           | "type": "CalculationStanza",
           | "calcs": [
           |             {"left":"[label:inputC]",
@@ -244,7 +242,9 @@ class CalculationStanzaSpec extends BaseSpec {
           |             "right":"-1",
           |             "label":"outputD"
           |             }
-          |           ]
+          |           ],
+          | "next": [ "21" ],
+          | "stack": true,
           |}""".stripMargin
     )
 

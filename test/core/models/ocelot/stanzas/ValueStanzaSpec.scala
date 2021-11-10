@@ -268,7 +268,7 @@ class ValueStanzaSpec extends BaseSpec {
 
     "serialize scalar label to json from a Stanza reference" in {
       val stanza: Stanza = ValueStanza(List(Value(ScalarType, "LabelName", "/")), Seq("4"), stack = true)
-      val expectedJson: String = """{"next":["4"],"stack":true,"values":[{"type":"scalar","label":"LabelName","value":"/"}],"type":"ValueStanza"}"""
+      val expectedJson: String = """{"type":"ValueStanza","values":[{"type":"scalar","label":"LabelName","value":"/"}],"next":["4"],"stack":true}"""
       val json: String = Json.toJson(stanza).toString
       json shouldBe expectedJson
     }
@@ -325,7 +325,7 @@ class ValueStanzaSpec extends BaseSpec {
       )
 
       val expectedJson: String =
-        s"""{"next":["2"],"stack":false,"values":[{"type":"$listType","label":"$listLabel","value":"$listValue"}],"type":"ValueStanza"}"""
+        s"""{"type":"ValueStanza","values":[{"type":"$listType","label":"$listLabel","value":"$listValue"}],"next":["2"],"stack":false}"""
 
       val json: String = Json.toJson(stanza).toString
 

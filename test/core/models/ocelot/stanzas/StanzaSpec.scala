@@ -19,6 +19,7 @@ package core.models.ocelot.stanzas
 import base.BaseSpec
 import play.api.libs.json._
 
+
 class StanzaSpec extends BaseSpec {
 
   val stanzaType = "ValueStanza"

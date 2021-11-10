@@ -20,6 +20,7 @@ import java.util.UUID
 
 import base.BaseSpec
 import core.services._
+
 import core.models.errors.{Error, ValidationError}
 
 class ValidatorsSpec extends BaseSpec {

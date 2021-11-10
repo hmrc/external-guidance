@@ -232,7 +232,7 @@ class CalloutStanzaSpec extends BaseSpec {
 
   "serialise to json noteType Title from a Stanza reference" in {
     val stanza: Stanza = expectedTitleCalloutStanza
-    Json.toJson(stanza).toString shouldBe """{"next":["1"],"noteType":"Title","stack":false,"text":0,"type":"CalloutStanza"}"""
+    Json.toJson(stanza).toString shouldBe """{"type":"CalloutStanza","noteType":"Title","text":0,"next":["1"],"stack":false}"""
   }
 
   "serialise to json with noteType SubTitle" in {
@@ -241,7 +241,7 @@ class CalloutStanzaSpec extends BaseSpec {
 
   "serialise to json noteType SubTitle from a Stanza reference" in {
     val stanza: Stanza = expectedSubTitleCalloutStanza
-    Json.toJson(stanza).toString shouldBe """{"next":["1"],"noteType":"SubTitle","stack":false,"text":0,"type":"CalloutStanza"}"""
+    Json.toJson(stanza).toString shouldBe """{"type":"CalloutStanza","noteType":"SubTitle","text":0,"next":["1"],"stack":false}"""
   }
 
   "serialise to json with noteType Lede" in {
@@ -250,7 +250,7 @@ class CalloutStanzaSpec extends BaseSpec {
 
   "serialise to json noteType Lede from a Stanza reference" in {
     val stanza: Stanza = expectedLedeCalloutStanza
-    Json.toJson(stanza).toString shouldBe """{"next":["1"],"noteType":"Lede","stack":false,"text":0,"type":"CalloutStanza"}"""
+    Json.toJson(stanza).toString shouldBe """{"type":"CalloutStanza","noteType":"Lede","text":0,"next":["1"],"stack":false}"""
   }
 
   "serialise to json with noteType Error" in {
@@ -267,17 +267,17 @@ class CalloutStanzaSpec extends BaseSpec {
 
   "serialise to json noteType Error from a Stanza reference" in {
     val stanza: Stanza = expectedErrorCalloutStatus
-    Json.toJson(stanza).toString shouldBe """{"next":["end"],"noteType":"Error","stack":false,"text":10,"type":"CalloutStanza"}"""
+    Json.toJson(stanza).toString shouldBe """{"type":"CalloutStanza","noteType":"Error","text":10,"next":["end"],"stack":false}"""
   }
 
   "serialise to json noteType NumberedList from a Stanza reference" in {
     val stanza: Stanza = expectedNumberedListItemCalloutStanza
-    Json.toJson(stanza).toString shouldBe """{"next":["1"],"noteType":"NumberedListItem","stack":false,"text":0,"type":"CalloutStanza"}"""
+    Json.toJson(stanza).toString shouldBe """{"type":"CalloutStanza","noteType":"NumberedListItem","text":0,"next":["1"],"stack":false}"""
   }
 
   "serialise to json noteType NumberedCircleList from a Stanza reference" in {
     val stanza: Stanza = expectedNumberedCircleListItemCalloutStanza
-    Json.toJson(stanza).toString shouldBe """{"next":["1"],"noteType":"NumberedCircleListItem","stack":false,"text":0,"type":"CalloutStanza"}"""
+    Json.toJson(stanza).toString shouldBe """{"type":"CalloutStanza","noteType":"NumberedCircleListItem","text":0,"next":["1"],"stack":false}"""
   }
 
   "serialise to json with noteType Section" in {
@@ -286,7 +286,7 @@ class CalloutStanzaSpec extends BaseSpec {
 
   "serialise to json noteType Section from a Stanza reference" in {
     val stanza: Stanza = expectedSectionCalloutStanza
-    Json.toJson(stanza).toString shouldBe """{"next":["1"],"noteType":"Section","stack":false,"text":0,"type":"CalloutStanza"}"""
+    Json.toJson(stanza).toString shouldBe """{"type":"CalloutStanza","noteType":"Section","text":0,"next":["1"],"stack":false}"""
   }
 
   "serialise to json with noteType SubSection" in {
@@ -295,7 +295,7 @@ class CalloutStanzaSpec extends BaseSpec {
 
   "serialise to json noteType SubSection from a Stanza reference" in {
     val stanza: Stanza = expectedSubSectionCalloutStanza
-    Json.toJson(stanza).toString shouldBe """{"next":["1"],"noteType":"SubSection","stack":false,"text":0,"type":"CalloutStanza"}"""
+    Json.toJson(stanza).toString shouldBe """{"type":"CalloutStanza","noteType":"SubSection","text":0,"next":["1"],"stack":false}"""
   }
 
   "serialise to json with noteType Important" in {
@@ -304,7 +304,7 @@ class CalloutStanzaSpec extends BaseSpec {
 
   "serialise to json noteType Important from a Stanza reference" in {
     val stanza: Stanza = expectedImportantCalloutStanza
-    Json.toJson(stanza).toString shouldBe """{"next":["1"],"noteType":"Important","stack":false,"text":0,"type":"CalloutStanza"}"""
+    Json.toJson(stanza).toString shouldBe """{"type":"CalloutStanza","noteType":"Important","text":0,"next":["1"],"stack":false}"""
   }
 
   "serialise to json with noteType YourCall" in {
@@ -313,12 +313,12 @@ class CalloutStanzaSpec extends BaseSpec {
 
   "serialise to json noteType YourCall from a Stanza reference" in {
     val stanza: Stanza = expectedYourCallCalloutStanza
-    Json.toJson(stanza).toString shouldBe """{"next":["1"],"noteType":"YourCall","stack":false,"text":0,"type":"CalloutStanza"}"""
+    Json.toJson(stanza).toString shouldBe """{"type":"CalloutStanza","noteType":"YourCall","text":0,"next":["1"],"stack":false}"""
   }
 
   "serialise to json noteType Note from a Stanza reference" in {
     val stanza: Stanza = expectedNoteCalloutStanza
-    Json.toJson(stanza).toString shouldBe """{"next":["1"],"noteType":"Note","stack":false,"text":0,"type":"CalloutStanza"}"""
+    Json.toJson(stanza).toString shouldBe """{"type":"CalloutStanza","noteType":"Note","text":0,"next":["1"],"stack":false}"""
   }
 
   /** Test for missing properties in Json object representing instruction stanzas */

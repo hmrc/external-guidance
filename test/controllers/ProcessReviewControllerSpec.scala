@@ -21,9 +21,11 @@ import data.ReviewData
 import mocks.MockReviewService
 import models._
 import core.models.errors._
+import org.scalatest.matchers.should.Matchers
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.ContentTypes
 import play.api.libs.json.{JsObject, JsValue, Json}
@@ -34,7 +36,7 @@ import models.Constants._
 
 import scala.concurrent.Future
 
-class ProcessReviewControllerSpec extends WordSpec
+class ProcessReviewControllerSpec extends AnyWordSpec
   with Matchers with ScalaFutures with GuiceOneAppPerSuite with MockFactory with ReviewData with ApprovalProcessJson {
 
   private trait Test extends MockReviewService {

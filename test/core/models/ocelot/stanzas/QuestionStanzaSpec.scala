@@ -131,7 +131,7 @@ class QuestionStanzaSpec extends BaseSpec with TestConstants {
 
     "serialise to json from a Stanza reference" in {
       val stanza: Stanza = QuestionStanza(0, Seq(1, 2), Seq("4", "5"), None, true)
-      val expectedJson: String = """{"next":["4","5"],"stack":true,"answers":[1,2],"text":0,"type":"QuestionStanza"}"""
+      val expectedJson: String = """{"type":"QuestionStanza","text":0,"answers":[1,2],"next":["4","5"],"stack":true}"""
       Json.toJson(stanza).toString shouldBe expectedJson
     }
 

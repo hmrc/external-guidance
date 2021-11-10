@@ -27,12 +27,12 @@ class LabelSpec extends BaseSpec with ProcessJson {
   trait Test {
     val englishLang: Lang = Lang("en")
     val welshLang: Lang = Lang("cy")
-    val label = """{"name":"BLAH","english":[],"type":"scalar","welsh":[]}"""
-    val labelWithSingleValue = """{"name":"BLAH","english":["39.99"],"type":"scalar","welsh":[]}"""
-    val labelWithValues = """{"name":"BLAH","english":["Hello"],"type":"scalar","welsh":["Welsh: Hello"]}"""
-    val listLabelWithEmptyLists = """{"name":"BLAH","english":[],"type":"list","welsh":[]}"""
-    val listLabelWithSingleEntryLists = """{"name":"BLAH","english":["March"],"type":"list","welsh":["Mawrth"]}"""
-    val listLabelWithSingleList = """{"name":"BLAH","english":["March,April,May,June"],"type":"list","welsh":[]}"""
+    val label = """{"type":"scalar","name":"BLAH","english":[],"welsh":[]}"""
+    val labelWithSingleValue = """{"type":"scalar","name":"BLAH","english":["39.99"],"welsh":[]}"""
+    val labelWithValues = """{"type":"scalar","name":"BLAH","english":["Hello"],"welsh":["Welsh: Hello"]}"""
+    val listLabelWithEmptyLists = """{"type":"list","name":"BLAH","english":[],"welsh":[]}"""
+    val listLabelWithSingleEntryLists = """{"type":"list","name":"BLAH","english":["March"],"welsh":["Mawrth"]}"""
+    val listLabelWithSingleList = """{"type":"list","name":"BLAH","english":["March,April,May,June"],"welsh":[]}"""
     val oneEn: String = "One"
     val oneCy: String = s"Welsh: $oneEn"
     val twoEn: String = "Two"

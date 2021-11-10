@@ -36,7 +36,7 @@ class ScratchController @Inject() (scratchService: ScratchService,
   def save(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     request.body.validate[JsObject].fold(errs => {
       logger.error(s"Unable to parse incoming json as a JsObject, Errors: $errs")
-      Future.successful(BadRequest(toJson(BadRequestError)))
+      Future.successful(BadRequest(toJson[Error](BadRequestError)))
     }, process => {
       scratchService.save(process).map {
         case Right(id) => Created(obj("id" -> id.toString))
@@ -45,9 +45,9 @@ class ScratchController @Inject() (scratchService: ScratchService,
           UnprocessableEntity(toJson(err))
         case Left(ValidationError) =>
           logger.error(s"Save on scratch service returned ValidationError")
-          BadRequest(toJson(BadRequestError))
-        case Left(BadRequestError) => BadRequest(toJson(BadRequestError))
-        case Left(_) => InternalServerError(toJson(ServerError))
+          BadRequest(toJson[Error](BadRequestError))
+        case Left(BadRequestError) => BadRequest(toJson[Error](BadRequestError))
+        case Left(_) => InternalServerError(toJson[Error](ServerError))
       }
     })
   }
@@ -56,11 +56,11 @@ class ScratchController @Inject() (scratchService: ScratchService,
     scratchService.getById(id).flatMap {
       case Right(process) => timescalesService.updateProcessTimescaleTable(process).map {
         case Right(result) => Ok(result)
-        case Left(_) => InternalServerError(toJson(ServerError))
+        case Left(_) => InternalServerError(toJson[Error](ServerError))
       }
-      case Left(NotFoundError) => Future.successful(NotFound(toJson(NotFoundError)))
-      case Left(BadRequestError) => Future.successful(BadRequest(toJson(BadRequestError)))
-      case Left(_) => Future.successful(InternalServerError(toJson(ServerError)))
+      case Left(NotFoundError) => Future.successful(NotFound(toJson[Error](NotFoundError)))
+      case Left(BadRequestError) => Future.successful(BadRequest(toJson[Error](BadRequestError)))
+      case Left(_) => Future.successful(InternalServerError(toJson[Error](ServerError)))
     }
   }
 }
