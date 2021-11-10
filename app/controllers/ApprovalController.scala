@@ -26,7 +26,6 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import models.Constants._
 import core.models.errors.{BadRequestError, DuplicateKeyError, Error, NotFoundError, ValidationError, InternalServerError => ServerError}
 import play.api.libs.json.Json.toJson
-import Error._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
