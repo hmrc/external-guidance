@@ -24,6 +24,8 @@ object ProcessError {
   implicit val formats: OFormat[ProcessError] = Json.format[ProcessError]
 }
 
+object DuplicateProcessCodeError extends ProcessError(s"Duplicate ProcessCode: process has the same processCode as an existing approval or published process", "")
+
 case class Error(code: String, message: Option[String], messages: Option[List[ProcessError]])
 
 object Error {

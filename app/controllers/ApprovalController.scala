@@ -24,7 +24,8 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.{TimescalesService, ApprovalService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import models.Constants._
-import core.models.errors.{BadRequestError, DuplicateKeyError, Error, NotFoundError, ValidationError, InternalServerError => ServerError}
+import core.models.errors.{DuplicateProcessCodeError, BadRequestError, DuplicateKeyError, Error}
+import core.models.errors.{NotFoundError, ValidationError, InternalServerError => ServerError}
 import play.api.libs.json.Json.toJson
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -59,7 +60,7 @@ class ApprovalController @Inject() (allRolesAction: AllRolesAction,
           UnprocessableEntity(toJson(err))
         case Left(DuplicateKeyError) =>
           logger.error(s"Failed to save process for approval due to duplicate processCode")
-          UnprocessableEntity(toJson[Error](Error(Error.UnprocessableEntity, "Duplicate ProcessCode - the process has the same processCode as an existing process")))
+          UnprocessableEntity(toJson[Error](Error(List(DuplicateProcessCodeError))))
         case Left(ValidationError) =>
           logger.error(s"Failed to save process for approval due to validation errors")
           BadRequest(toJson[Error](BadRequestError))
