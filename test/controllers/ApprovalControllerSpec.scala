@@ -35,6 +35,7 @@ import core.services.toProcessErr
 import models.Constants._
 
 import scala.concurrent.Future
+import core.models.errors.DuplicateProcessCodeError
 
 class ApprovalControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with MockApprovalService with MockTimescalesService with ApprovalProcessJson {
 
@@ -182,8 +183,10 @@ class ApprovalControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppP
 
       "return an error code of UNPROCESSABLE_ENTITY" in new InvalidSaveTest {
         private val result = controller.saveFor2iReview()(request)
-        private val data = contentAsJson(result).as[JsObject]
-        (data \ "code").as[String] shouldBe Error.UnprocessableEntity
+        private val data: Error = contentAsJson(result).as[Error]
+        data.code shouldBe Error.UnprocessableEntity
+        data.message shouldBe None
+        data.messages shouldBe Some(List(DuplicateProcessCodeError))
       }
     }
 
@@ -301,6 +304,36 @@ class ApprovalControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppP
         (data \ "code").as[String] shouldBe expectedErrorCode
       }
     }
+
+    "the request is invalid with a DuplicateKeyError" should {
+
+      trait InvalidSaveTest extends Test {
+        MockApprovalService
+          .save(validApprovalProcessJson, ReviewTypeFactCheck)
+          .returns(Future.successful(Left(DuplicateKeyError)))
+
+        lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(validApprovalProcessJson)
+      }
+
+      "return an unprocessable entity response" in new InvalidSaveTest {
+        private val result = controller.saveForFactCheck()(request)
+        status(result) shouldBe UNPROCESSABLE_ENTITY
+      }
+
+      "return content as JSON" in new InvalidSaveTest {
+        private val result = controller.saveForFactCheck()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return an error code of UNPROCESSABLE_ENTITY" in new InvalidSaveTest {
+        private val result = controller.saveForFactCheck()(request)
+        private val data: Error = contentAsJson(result).as[Error]
+        data.code shouldBe Error.UnprocessableEntity
+        data.message shouldBe None
+        data.messages shouldBe Some(List(DuplicateProcessCodeError))
+      }
+    }
+
   }
 
   "Calling the get action" when {
