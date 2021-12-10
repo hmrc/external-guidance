@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot.{labelReferences, Phrase}
+import core.models.ocelot.{labelReferences, pageLinkIds, Phrase}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -24,6 +24,7 @@ import play.api.libs.json._
 sealed trait Callout extends VisualStanza with Populated {
   val text: Phrase
   override val labelRefs: List[String] = labelReferences(text.english)
+  override val links: List[String] = pageLinkIds(text.english)
 }
 
 sealed trait Heading
