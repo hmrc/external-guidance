@@ -22,21 +22,35 @@ import core.models.RequestOutcome
 import core.models.ocelot.Process
 import play.api.libs.json._
 import config.AppConfig
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
+import core.models.errors.NotFoundError
 
 package object services {
 
-  def guidancePagesAndProcess(pb: ValidatingPageBuilder, jsObject: JsObject)
-                   (implicit c: AppConfig): RequestOutcome[(Process, Seq[Page], JsObject)] =
-    jsObject.validate[Process].fold(errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
+  def guidancePagesAndProcess(pb: ValidatingPageBuilder, jsObject: JsObject, timescalesService: TimescalesService)
+                   (implicit c: AppConfig, ec: ExecutionContext): Future[RequestOutcome[(Process, Seq[Page], JsObject)]] =
+    jsObject.validate[Process].fold(errs => Future.successful(Left(Error(GuidanceError.fromJsonValidationErrors(errs)))),
       incomingProcess => {
-        // Transform process if fake welsh and/or secured process is indicated
+        // Transform process if fake welsh, secured process or timescales are indicated
         val (p, js) = fakeWelshTextIfRequired _ tupled securedProcessIfRequired(incomingProcess, Some(jsObject))
         pb.pagesWithValidation(p, p.startPageId).fold(
-          errs => Left(Error(errs)),
+          errs => Future.successful(Left(Error(errs))),
           pages => {
-            val timescaleIds = pages.toList.flatMap(p => pb.pageBuilder.timescales.referencedIds(p))
-            val (process, jsObject) = addTimescaleTableIfRequired(p, js, timescaleIds)
-            Right((process, pages, jsObject.fold(Json.toJsObject(process))(json => json)))
+            pages.toList.flatMap(p => pb.pageBuilder.timescales.referencedIds(p)) match {
+              case Nil => Future.successful(Right((p, pages, js.fold(Json.toJsObject(p))(json => json))))
+              case timescaleIds =>
+                timescalesService.get().flatMap{
+                  case Left(err) => Future.successful(Left(err))
+                  case Right(timescales) if timescaleIds.forall(id => timescales.contains(id)) =>
+                    // All timescales used in process are currently available from the timescales service
+                    addTimescaleTable(p, js, timescaleIds).map{
+                      case Left(err) => Left(err)
+                      case Right(process) => Right((process, pages, Json.toJsObject(process)))
+                    }
+                  case _ => Future.successful(Left(NotFoundError))
+                }
+            }
           }
         )
       }
@@ -55,11 +69,8 @@ package object services {
       (securedProcess, None)
     }
 
-  private[services] def addTimescaleTableIfRequired(p: Process, jsObject: Option[JsObject], timescaleIds: List[String]): (Process, Option[JsObject]) =
-    timescaleIds match {
-      case Nil => (p, jsObject)
-      case _ =>
-        val updatedProcess = p.copy(timescales = timescaleIds.map(id => (id, 0)).toMap)
-        (updatedProcess, None)
-    }
+  private[services] def addTimescaleTable(p: Process, jsObject: Option[JsObject], timescaleIds: List[String]): Future[RequestOutcome[Process]] = {
+    Future.successful(Right(p.copy(timescales = timescaleIds.map(id => (id, 0)).toMap)))
+  }
+
 }

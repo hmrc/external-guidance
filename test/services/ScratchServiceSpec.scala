@@ -26,14 +26,17 @@ import core.models.errors._
 import core.models.ocelot.ProcessJson
 import play.api.libs.json.{JsObject, Json}
 import mocks.MockAppConfig
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
+import mocks.MockTimescalesService
 
 class ScratchServiceSpec extends BaseSpec {
 
-  private trait Test extends MockScratchRepository {
+  private trait Test extends MockScratchRepository with MockTimescalesService {
+    implicit def executionContext: ExecutionContext = ExecutionContext.global
     val pageBuilder = new ValidatingPageBuilder(new PageBuilder(new Timescales(new DefaultTodayProvider)))
     lazy val target: ScratchService = new ScratchService(mockScratchRepository,
                                                          pageBuilder,
+                                                         mockTimescalesService,
                                                          MockAppConfig)
   }
 
@@ -45,14 +48,19 @@ class ScratchServiceSpec extends BaseSpec {
         val id: UUID = UUID.fromString("bf8bf6bb-0894-4df6-8209-2467bc9af6ae")
         val expected: RequestOutcome[UUID] = Right(id)
         val json: JsObject = validOnePageJson.as[JsObject]
-        val Right((_, _, processedJson)) = guidancePagesAndProcess(pageBuilder, json)(MockAppConfig)
-        MockScratchRepository
-          .save(processedJson)
-          .returns(Future.successful(expected))
 
-        whenReady(target.save(json)) {
-          case Right(uuid) => uuid.toString shouldBe id.toString
-          case _ => fail
+        guidancePagesAndProcess(pageBuilder, json, mockTimescalesService)(MockAppConfig, executionContext).map{
+          case Left(err) => fail
+          case Right((_, _, processedJson)) =>
+
+            MockScratchRepository
+              .save(processedJson)
+              .returns(Future.successful(expected))
+
+            whenReady(target.save(json)) {
+              case Right(uuid) => uuid.toString shouldBe id.toString
+              case _ => fail
+            }
         }
       }
     }
@@ -97,14 +105,19 @@ class ScratchServiceSpec extends BaseSpec {
         val repositoryResponse: RequestOutcome[UUID] = Left(DatabaseError)
         val expected: RequestOutcome[UUID] = Left(InternalServerError)
         val json: JsObject = validOnePageJson.as[JsObject]
-        val Right((_, _, processedJson)) = guidancePagesAndProcess(pageBuilder, json)(MockAppConfig)
-        MockScratchRepository
-          .save(processedJson)
-          .returns(Future.successful(repositoryResponse))
 
-        whenReady(target.save(json)) {
-          case result @ Left(_) => result shouldBe expected
-          case _ => fail
+        guidancePagesAndProcess(pageBuilder, json, mockTimescalesService)(MockAppConfig, executionContext).map{
+          case Left(err) => fail
+          case Right((_, _, processedJson)) =>
+
+            MockScratchRepository
+              .save(processedJson)
+              .returns(Future.successful(repositoryResponse))
+
+            whenReady(target.save(json)) {
+              case result @ Left(_) => result shouldBe expected
+              case _ => fail
+            }
         }
       }
     }

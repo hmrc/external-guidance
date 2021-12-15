@@ -25,6 +25,7 @@ object ProcessError {
 }
 
 object DuplicateProcessCodeError extends ProcessError(s"Duplicate ProcessCode: process has the same processCode as an existing approval or published process", "")
+object MissingTimescalesError extends ProcessError(s"Unknown timescales: process is using unknown timescale definitions", "")
 
 case class Error(code: String, message: Option[String], messages: Option[List[ProcessError]])
 

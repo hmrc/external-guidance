@@ -218,7 +218,7 @@ class TimescalesServiceSpec extends BaseSpec {
     with MockPublishedService
     with MockApprovalService {
 
-    lazy val target: TimescalesService = new TimescalesService(mockTimescalesRepository, mockPublishedService, mockApprovalService, MockAppConfig)
+    lazy val target: TimescalesService = new TimescalesService(mockTimescalesRepository, MockAppConfig)
     val lastUpdateTime: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, MongoDateTimeFormats.localZoneID)
     val timescalesJson: JsValue = Json.parse("""{"First": 1, "Second": 2, "Third": 3}""")
     val timescalesJsonWithDeletion: JsValue = Json.parse("""{"Second": 2, "Third": 3, "Fourth": 4}""")
@@ -239,7 +239,6 @@ class TimescalesServiceSpec extends BaseSpec {
     "the JSON is valid" should {
       "return TimescalesResponse" in new Test{
 
-
         MockTimescalesRepository
           .get(mockTimescalesRepository.CurrentTimescalesID)
           .returns(Future.successful(expected))
@@ -252,7 +251,11 @@ class TimescalesServiceSpec extends BaseSpec {
           .getTimescalesInUse()
           .returns(Future.successful(Right(Nil)))
 
-        whenReady(target.save(timescalesJson, credId, user, email)) {
+        MockApprovalService
+          .getTimescalesInUse()
+          .returns(Future.successful(Right(Nil)))
+
+        whenReady(target.save(timescalesJson, credId, user, email, Nil)) {
           case Right(response) if response == timescalesResponse => succeed
           case _ => fail
         }
@@ -279,11 +282,9 @@ class TimescalesServiceSpec extends BaseSpec {
           .getTimescalesInUse()
           .returns(Future.successful(Right(List("First"))))
 
-        whenReady(target.save(timescalesJsonWithDeletion, credId, user, email)) {
-          case Right(response) if response.lastUpdate.map(_.retainedDeletions) == Some(List("First")) => succeed
-          case Right(response) =>
-            println(response)
-            fail
+        whenReady(target.save(timescalesJsonWithDeletion, credId, user, email, List("First"))) {
+          case Right(response) if response.lastUpdate.map(_.retainedDeletions).contains(List("First")) => succeed
+          case Right(response) => fail
           case Left(_) => fail
         }
       }
@@ -294,17 +295,13 @@ class TimescalesServiceSpec extends BaseSpec {
 
         MockTimescalesRepository
           .get(mockTimescalesRepository.CurrentTimescalesID)
-          .returns(Future.successful(expected))
+          .returns(Future.successful(Left(DatabaseError)))
 
         MockTimescalesRepository
           .save(timescalesJson, lastUpdateTime, credId, user, email)
-          .returns(Future.successful(expected))
-
-        MockPublishedService
-          .getTimescalesInUse()
           .returns(Future.successful(Left(DatabaseError)))
 
-        whenReady(target.save(timescalesJsonWithDeletion, credId, user, email)) {
+        whenReady(target.save(timescalesJsonWithDeletion, credId, user, email, Nil)) {
           case Right(response) => fail
           case Left(_) => succeed
         }
@@ -315,7 +312,7 @@ class TimescalesServiceSpec extends BaseSpec {
       "return Validation error" in new Test {
         val invalidTs: JsValue =  Json.parse("""{"Hello": "World"}""")
 
-        whenReady(target.save(invalidTs, credId, user, email)) {
+        whenReady(target.save(invalidTs, credId, user, email, Nil)) {
           case Right(_) => fail
           case Left(ValidationError) => succeed
           case err => fail
@@ -327,7 +324,7 @@ class TimescalesServiceSpec extends BaseSpec {
       "not call the scratch repository" in new Test {
         MockTimescalesRepository.save(Json.parse("""{"Hello": "World"}"""), lastUpdateTime, credId, user, email).never()
 
-        target.save(Json.parse("""{"Hello": "World"}"""), credId, user, email)
+        target.save(Json.parse("""{"Hello": "World"}"""), credId, user, email, Nil)
       }
     }
 
@@ -345,7 +342,7 @@ class TimescalesServiceSpec extends BaseSpec {
           .save(timescalesJson, lastUpdateTime, credId, user, email)
           .returns(Future.successful(Left(DatabaseError)))
 
-        whenReady(target.save(timescalesJson, credId, user, email)) {
+        whenReady(target.save(timescalesJson, credId, user, email, Nil)) {
           case result @ Left(_) => result shouldBe Left(InternalServerError)
           case _ => fail
         }
