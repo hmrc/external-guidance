@@ -27,7 +27,8 @@ class ErrorsSpec extends BaseSpec {
         """
           |{
           |  "code": "SOME_CODE",
-          |  "message": "some message"
+          |  "message": "some message",
+          |  "messages":[{"message":"some message","stanza":""}]
           |}
         """.stripMargin
       )

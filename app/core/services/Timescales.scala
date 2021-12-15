@@ -84,6 +84,7 @@ class Timescales @Inject() (tp: TodayProvider) extends TimescaleExpansion {
   private val LongOrShortGroup: Int = 6
 
   def expand(str: String, timescaleDefns: Map[String, Int]): String = expand(str, timescaleDefns, tp.now)
+
   private[services] def expand(str: String, timescaleDefns: Map[String, Int], todaysDate: LocalDate): String = {
     def longOrShort(m: Match, when: LocalDate): String = Option(m.group(LongOrShortGroup)).fold(stringFromDate(when)){
       case "long" => long(when).toString

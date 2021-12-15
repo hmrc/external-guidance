@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-import core.services._
 import core.models.ocelot._
 import core.models.errors.Error
+import core.models.errors.Error.MissingTimescales
 import core.models.ocelot.errors._
 import core.models.RequestOutcome
 import core.models.ocelot.Process
 import play.api.libs.json._
 import config.AppConfig
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext
-import core.models.errors.NotFoundError
+import scala.concurrent.{Future, ExecutionContext}
 
 package object services {
 
@@ -48,7 +46,8 @@ package object services {
                       case Left(err) => Left(err)
                       case Right(process) => Right((process, pages, Json.toJsObject(process)))
                     }
-                  case _ => Future.successful(Left(NotFoundError))
+                  case Right(timescales) =>
+                    Future.successful(Left(Error(MissingTimescales, timescaleIds.filterNot(timescales.contains).mkString(","))))
                 }
             }
           }

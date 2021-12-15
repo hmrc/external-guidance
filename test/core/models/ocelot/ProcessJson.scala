@@ -118,6 +118,25 @@ trait ProcessJson {
       |      "type": "InstructionStanza",
       |      "text": 0,
       |      "next": [
+      |        "33"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "33": {
+      |      "type": "ValueStanza",
+      |      "values": [
+      |        {
+      |          "type": "scalar",
+      |          "label": "SomeLabel",
+      |          "value": "[timescale:RepayReimb:days]"
+      |        },
+      |        {
+      |          "type": "scalar",
+      |          "label": "Blah",
+      |          "value": "[timescale:RepayReimb:days]"
+      |        }
+      |      ],
+      |      "next": [
       |        "end"
       |      ],
       |      "stack": true
@@ -128,7 +147,7 @@ trait ProcessJson {
       |  },
       |  "phrases": [
       |    ["Ask the customer if they have a tea bag", "Welsh: Ask the customer if they have a tea bag"],
-      |    ["Do you have a tea bag?", "Welsh: Do you have a tea bag?"],
+      |    ["Do you have a tea bag [timescale:RepayReimb:days]?", "Welsh: Do you have a tea bag [timescale:RepayReimb:days]?"],
       |    ["Yes - they do have a tea bag", "Welsh: Yes - they do have a tea bag"],
       |    ["No - they do not have a tea bag", "Welsh: No - they do not have a tea bag"],
       |    ["Ask the customer if they have a cup", "Welsh: Ask the customer if they have a cup"],

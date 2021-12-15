@@ -40,6 +40,11 @@ trait MockTimescalesService extends MockFactory {
           .updateProcessTimescaleTable(_: JsObject))
           .expects(js)
 
+    def get(): CallHandler[Future[RequestOutcome[Map[String, Int]]]] =
+      (mockTimescalesService
+        .get _)
+        .expects()
+
     def details(): CallHandler[Future[RequestOutcome[TimescalesResponse]]] =
       (mockTimescalesService
         .details _)
