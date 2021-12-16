@@ -43,26 +43,23 @@ class Timescales @Inject() (tp: TodayProvider) extends TimescaleExpansion {
   private val DateAddTimescaleId: Int = 3
   private val TimescaleId: Int = 4
 
+  def referencedIds(p: Phrase): List[String] = (referencedIds(p.english) ++ referencedIds(p.welsh)).distinct
+  def referencedIds(p: Seq[Phrase]): List[String] = p.toList.flatMap(referencedIds)
+
+  def referencedNonPhraseIds(flow: Map[String, Stanza]): List[String] =
+    flow.values.toList.flatMap{
+      case s: CalculationStanza => referencedIds(s.calcs.toList.flatMap(c => List(c.left, c .right)))
+      case s: ValueStanza => referencedIds(s.values.toList.flatMap(c => List(c.value)))
+      case s: ChoiceStanza => referencedIds(s.tests.toList.flatMap(c => List(c.left, c .right)))
+      case _ => Nil
+    }
+
+  private[services] def referencedIds(stringList: List[String]): List[String] = stringList.flatMap(referencedIds)
   private[services] def referencedIds(s: String): List[String] = TimescaleIdUsageRegex.findAllMatchIn(s).toList.flatMap{m =>
     Option(m.group(DateAddTimescaleId)).fold{
       Option(m.group(TimescaleId)).fold(List.empty[String]){id => List(id)}
     }(id => List(id))
   }
-
-  private[services] def referencedIds(p: Phrase): List[String] = (referencedIds(p.english) ++ referencedIds(p.welsh)).distinct
-
-  def referencedIds(page: Page): List[String] =
-    page.stanzas.toList.collect{
-      case s: Calculation => s.calcs.flatMap(o => referencedIds(o.left) ++ referencedIds(o.right))
-      case s: Choice => s.tests.flatMap(t => referencedIds(t.left) ++ referencedIds(t.right))
-      case s: ValueStanza => s.values.flatMap(v => referencedIds(v.value))
-      case s: Input => referencedIds(s.name) ++ s.help.map(referencedIds).getOrElse(Nil)
-      case s: Instruction => referencedIds(s.text)
-      case s: Sequence => referencedIds(s.text) ++ s.options.toList.flatMap(referencedIds) ++ s.exclusive.map(referencedIds).getOrElse(Nil)
-      case s: Question => referencedIds(s.text) ++ s.answers.toList.flatMap(referencedIds)
-      case s: Callout => referencedIds(s.text)
-      case s: Row => s.cells.toList.flatMap(referencedIds)
-    }.flatten.distinct
 
   private val TaxYearStartDay: Int = 6
   private val TaxYearStartMonth: Int = 4

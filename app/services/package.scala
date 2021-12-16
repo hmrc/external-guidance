@@ -35,7 +35,10 @@ package object services {
         pb.pagesWithValidation(p, p.startPageId).fold(
           errs => Future.successful(Left(Error(errs))),
           pages => {
-            pages.toList.flatMap(p => pb.pageBuilder.timescales.referencedIds(p)) match {
+            // If valid process, collect list of timescale ids from process flow and phrases
+            val timescaleIds = (pb.pageBuilder.timescales.referencedNonPhraseIds(incomingProcess.flow) ++
+                                pb.pageBuilder.timescales.referencedIds(incomingProcess.phrases)).distinct
+            timescaleIds match {
               case Nil => Future.successful(Right((p, pages, js.fold(Json.toJsObject(p))(json => json))))
               case timescaleIds =>
                 timescalesService.get().flatMap{

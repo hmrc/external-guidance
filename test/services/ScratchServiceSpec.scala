@@ -21,10 +21,8 @@ import base.BaseSpec
 import mocks.MockScratchRepository
 import core.services._
 import core.models.RequestOutcome
-import core.models.ocelot.errors._
-import core.models.errors._
 import core.models.ocelot.ProcessJson
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
 import mocks.MockAppConfig
 import scala.concurrent.{ExecutionContext, Future}
 import mocks.MockTimescalesService

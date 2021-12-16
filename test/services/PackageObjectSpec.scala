@@ -20,6 +20,10 @@ import base.BaseSpec
 import mocks.mockAppConfig
 import core.models.ocelot._
 import play.api.libs.json._
+import core.services._
+import mocks.MockAppConfig
+import mocks.MockTimescalesService
+import scala.concurrent.{Future, ExecutionContext}
 
 class PackageObjectSpec extends BaseSpec with ProcessJson {
   "Faking welsh text" should {
@@ -61,5 +65,29 @@ class PackageObjectSpec extends BaseSpec with ProcessJson {
       fakedJsObject shouldBe jsObject
     }
 
+  }
+
+  trait Test extends MockTimescalesService {
+    implicit val ec: ExecutionContext = ExecutionContext.global
+    val timescales = new Timescales(new DefaultTodayProvider)
+    val validatingPageBuilder = new ValidatingPageBuilder(new PageBuilder(timescales))
+  }
+
+  "guidancePagesAndProcess" should {
+    "Add a complete timescales table to process and json" in new Test {
+      val process: Process = rawOcelotTimescalesJson.as[Process]
+
+      process.timescales shouldBe Map()
+
+      MockTimescalesService.get().returns(Future.successful(Right(Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0))))
+
+      guidancePagesAndProcess(validatingPageBuilder, rawOcelotTimescalesJson.as[JsObject], mockTimescalesService)(MockAppConfig, ec).map{
+        case Left(_) => fail
+        case Right((updatedProcess, pages, updatedJsObject)) =>
+          updatedProcess.timescales shouldBe Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0)
+
+          (updatedJsObject.as[Process]).timescales shouldBe Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0)
+      }
+    }
   }
 }
