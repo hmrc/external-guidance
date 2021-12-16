@@ -34,7 +34,10 @@ package object services {
         pb.pagesWithValidation(p, p.startPageId).fold(
           errs => Left(Error(errs)),
           pages => {
-            val timescaleIds = pages.toList.flatMap(p => pb.pageBuilder.timescales.referencedIds(p))
+            // If valid process, collect list of timescale ids from process flow and phrases
+            val timescaleIds = (pb.pageBuilder.timescales.referencedNonPhraseIds(incomingProcess.flow) ++
+                                pb.pageBuilder.timescales.referencedIds(incomingProcess.phrases)).distinct
+
             val (process, jsObject) = addTimescaleTableIfRequired(p, js, timescaleIds)
             Right((process, pages, jsObject.fold(Json.toJsObject(process))(json => json)))
           }
