@@ -27,8 +27,8 @@ trait ProcessJson {
     """
       |{
       |  "meta": {
-      |    "title": "Customer wants to make a cup of tea",
       |    "id": "oct90001",
+      |    "title": "Customer wants to make a cup of tea",
       |    "ocelot": 1,
       |    "lastAuthor": "000000",
       |    "lastUpdate": 1500298931016,
@@ -37,9 +37,6 @@ trait ProcessJson {
       |    "titlePhrase": 8,
       |    "processCode": "cup-of-tea"
       |  },
-      |  "howto": [],
-      |  "contacts": [],
-      |  "links": [],
       |  "flow": {
       |    "start": {
       |      "type": "PageStanza",
@@ -77,7 +74,9 @@ trait ProcessJson {
       |    ["yes - they do have a cup ", "Welsh: yes - they do have a cup "],
       |    ["no - they don’t have a cup", "Welsh: no - they don’t have a cup"],
       |    ["Customer wants to make a cup of tea", "Welsh: Customer wants to make a cup of tea"]
-      |  ]
+      |  ],
+      |  "links": [],
+      |  "timescales": {}
       |}
     """.stripMargin
   )
@@ -155,10 +154,7 @@ trait ProcessJson {
       |    ["yes - they do have a cup ", "Welsh: yes - they do have a cup "],
       |    ["no - they don’t have a cup", "Welsh: no - they don’t have a cup"],
       |    ["Customer wants to make a cup of tea", "Welsh: Customer wants to make a cup of tea"]
-      |  ],
-      |  "timescales" : {
-      |      "RepayReimb" : 0
-      |  }
+      |  ]
       |}
     """.stripMargin
   )

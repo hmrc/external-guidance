@@ -43,7 +43,6 @@ object TransactionFaultError extends Error("TRANSACTION_FAULT")
 
 object Error {
   val UnprocessableEntity = "UNPROCESSABLE_ENTITY"
-  val MissingTimescales = "MISSING_TIMESCALES"
   def apply(code: String, msg: String): Error = Error(code, Some(msg), Some(List(ProcessError(msg, ""))))
   def apply(code: String, processErrors: List[ProcessError]): Error = Error(code, None, Some(processErrors))
   def apply(processError: ProcessError): Error = Error(UnprocessableEntity, None, Some(List(processError)))
@@ -86,6 +85,8 @@ object ProcessError {
       ProcessError(s"ErrorRedirectToFirstNonPageStanzaOnly: Invalid link to stanza ${e.id}. Page redisplay after a ValueError must link to the first stanza after the PageStanza", e.id)
     case e: MissingUniqueFlowTerminator =>
       ProcessError(s"MissingUniqueFlowTerminator: Flow doesn't have a unique termination page ${e.id}, possible main flow connection into a sequence flow", e.id)
+    case e: MissingTimescaleDefinition =>
+      ProcessError(s"MissingTimescaleDefinition: Process references unknown timescale ID \'${e.timescaleId}\'", "")
 
     case e: ParseError =>
       ProcessError(s"ParseError: Unknown parse error ${e.errs.map(_.messages.mkString(",")).mkString(",")} at location ${e.jsPath.toString}", "")

@@ -16,7 +16,7 @@
 
 import core.models.ocelot._
 import core.models.errors.Error
-import core.models.errors.Error.MissingTimescales
+//import core.models.errors.ProcessError.toProcessErr
 import core.models.ocelot.errors._
 import core.models.RequestOutcome
 import core.models.ocelot.Process
@@ -40,17 +40,15 @@ package object services {
                                 pb.pageBuilder.timescales.referencedIds(incomingProcess.phrases)).distinct
             timescaleIds match {
               case Nil => Future.successful(Right((p, pages, js.fold(Json.toJsObject(p))(json => json))))
-              case timescaleIds =>
+              case _ =>
                 timescalesService.get().flatMap{
                   case Left(err) => Future.successful(Left(err))
                   case Right(timescales) if timescaleIds.forall(id => timescales.contains(id)) =>
                     // All timescales used in process are currently available from the timescales service
-                    addTimescaleTable(p, js, timescaleIds).map{
-                      case Left(err) => Left(err)
-                      case Right(process) => Right((process, pages, Json.toJsObject(process)))
-                    }
+                    val updatedProcess = p.copy(timescales = timescaleIds.map(id => (id, 0)).toMap)
+                    Future.successful(Right((updatedProcess, pages, Json.toJsObject(updatedProcess))))
                   case Right(timescales) =>
-                    Future.successful(Left(Error(MissingTimescales, timescaleIds.filterNot(timescales.contains).mkString(","))))
+                    Future.successful(Left(Error(timescaleIds.filterNot(timescales.contains).map(MissingTimescaleDefinition))))
                 }
             }
           }
@@ -70,9 +68,4 @@ package object services {
       val securedProcess = p.copy(meta = p.meta.copy(passPhrase = Some(passPhrase)))
       (securedProcess, None)
     }
-
-  private[services] def addTimescaleTable(p: Process, jsObject: Option[JsObject], timescaleIds: List[String]): Future[RequestOutcome[Process]] = {
-    Future.successful(Right(p.copy(timescales = timescaleIds.map(id => (id, 0)).toMap)))
-  }
-
 }

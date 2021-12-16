@@ -81,8 +81,8 @@ class PackageObjectSpec extends BaseSpec with ProcessJson {
 
       MockTimescalesService.get().returns(Future.successful(Right(Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0))))
 
-      guidancePagesAndProcess(validatingPageBuilder, rawOcelotTimescalesJson.as[JsObject], mockTimescalesService)(MockAppConfig, ec).map{
-        case Left(_) => fail
+      whenReady(guidancePagesAndProcess(validatingPageBuilder, rawOcelotTimescalesJson.as[JsObject], mockTimescalesService)(MockAppConfig, ec)){
+        case Left(err) => fail
         case Right((updatedProcess, pages, updatedJsObject)) =>
           updatedProcess.timescales shouldBe Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0)
 
