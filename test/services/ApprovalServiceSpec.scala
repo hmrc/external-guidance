@@ -31,12 +31,14 @@ import models.Constants._
 import core.models.RequestOutcome
 import scala.concurrent.Future
 import core.services.DefaultTodayProvider
+import mocks.MockTimescalesService
 
 class ApprovalServiceSpec extends BaseSpec with MockFactory {
 
   private trait Test extends MockApprovalRepository
     with MockApprovalProcessReviewRepository
     with MockPublishedRepository
+    with MockTimescalesService
     with ApprovalProcessJson
     with ProcessJson {
 
@@ -49,6 +51,7 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
                           mockApprovalProcessReviewRepository,
                           mockPublishedRepository,
                           new ValidatingPageBuilder(new PageBuilder(new Timescales(new DefaultTodayProvider))),
+                          mockTimescalesService,
                           MockAppConfig)
 
     val processReview: ApprovalProcessReview =

@@ -20,31 +20,46 @@ import javax.inject.{Inject, Singleton}
 import core.models.errors.{Error, ValidationError, InternalServerError => ServerError}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import services.TimescalesService
+import services.{PublishedService, ApprovalService, TimescalesService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.Logger
 import controllers.actions.AllRolesAction
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import models.requests.IdentifierRequest
 
 @Singleton()
 class TimescalesController @Inject() (timescaleService: TimescalesService,
+                                      publishService: PublishedService,
+                                      approvalService: ApprovalService,
                                       cc: ControllerComponents,
                                       allRolesAction: AllRolesAction) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass)
 
   def save(): Action[JsValue] = allRolesAction.async(parse.json) { implicit request: IdentifierRequest[JsValue] =>
-    timescaleService.save(request.body, request.credId, request.name, request.email).map {
-      case Right(response) =>
-        logger.warn(s"TIMESCALES: ${response.count} Timescale definitions received from ${request.name} (${request.credId}), email ${request.email}")
-        Accepted(Json.toJson(response))
-      case Left(ValidationError) =>
-        logger.error(s"Failed to save of updated timescales due to ValidationError")
-        BadRequest(Json.toJson[Error](ValidationError))
+    publishService.getTimescalesInUse().flatMap{
       case Left(err) =>
-        logger.error(s"Failed to save of updated timescales due to $err, returning internal server error")
-        InternalServerError(Json.toJson[Error](ServerError))
+        logger.error(s"Unable to retreive list of timescales within published guidance, $err")
+        Future.successful(InternalServerError(Json.toJson[Error](ServerError)))
+      case Right(publishedInUse) =>
+        approvalService.getTimescalesInUse().flatMap{
+          case Left(err) =>
+            logger.error(s"Unable to retreive list of timescales within for-approval guidance, $err")
+            Future.successful(InternalServerError(Json.toJson[Error](ServerError)))
+          case Right(approvalInUse) =>
+            timescaleService.save(request.body, request.credId, request.name, request.email, (publishedInUse ++ approvalInUse).distinct).map {
+              case Right(response) =>
+                logger.warn(s"TIMESCALES: ${response.count} Timescale definitions received from ${request.name} (${request.credId}), email ${request.email}")
+                Accepted(Json.toJson(response))
+              case Left(ValidationError) =>
+                logger.error(s"Failed to save of updated timescales due to ValidationError")
+                BadRequest(Json.toJson[Error](ValidationError))
+              case Left(err) =>
+                logger.error(s"Failed to save of updated timescales due to $err, returning internal server error")
+                InternalServerError(Json.toJson[Error](ServerError))
+            }
+        }
     }
   }
 

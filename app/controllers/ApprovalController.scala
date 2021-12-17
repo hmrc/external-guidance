@@ -65,7 +65,9 @@ class ApprovalController @Inject() (allRolesAction: AllRolesAction,
           logger.error(s"Failed to save process for approval due to validation errors")
           BadRequest(toJson[Error](BadRequestError))
         case Left(BadRequestError) => BadRequest(toJson[Error](BadRequestError))
-        case Left(_) => InternalServerError(toJson[Error](ServerError))
+        case Left(err) =>
+          logger.error(s"Unexpected error $err, returning InternalServerError")
+          InternalServerError(toJson[Error](ServerError))
       }
     )
 

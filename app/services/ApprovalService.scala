@@ -36,16 +36,16 @@ class ApprovalService @Inject() (
     reviewRepository: ApprovalProcessReviewRepository,
     publishedRepository: PublishedRepository,
     pageBuilder: ValidatingPageBuilder,
+    timescalesService: TimescalesService,
     implicit val appConfig: AppConfig
 ) {
 
   val logger: Logger = Logger(this.getClass)
 
   def save(incomingJson: JsObject, reviewType: String, initialStatus: String): Future[RequestOutcome[String]] =
-    guidancePagesAndProcess(pageBuilder, incomingJson).fold(
-      err => Future.successful(Left(err)),
-      t => {
-        val (process, pages, json) = t
+    guidancePagesAndProcess(pageBuilder, incomingJson, timescalesService).flatMap{
+      case Left(err) => Future.successful(Left(err))
+      case Right((process, pages, json)) =>
         val processMetaSection =
           ApprovalProcessMeta(
             process.meta.id,
@@ -55,7 +55,7 @@ class ApprovalService @Inject() (
             processCode = process.meta.processCode)
 
         // Check no published process with this processCode for another processId
-        publishedRepository.getByProcessCode(process.meta.processCode) flatMap {
+        publishedRepository.getByProcessCode(process.meta.processCode).flatMap{
           case Right(p) if p.id != process.meta.id =>
             logger.error(s"Attempt to persist approval process ${process.meta.id} with code ${process.meta.processCode} " +
               s": duplicate key in published collection for process ${p.id}")
@@ -82,8 +82,7 @@ class ApprovalService @Inject() (
               case _ => Future.successful(Left(InternalServerError))
             }
         }
-      }
-    )
+    }
 
   private def saveReview(approvalProcessReview: ApprovalProcessReview): Future[RequestOutcome[String]] =
     reviewRepository.save(approvalProcessReview) map {

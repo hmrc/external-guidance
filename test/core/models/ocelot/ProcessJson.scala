@@ -27,8 +27,8 @@ trait ProcessJson {
     """
       |{
       |  "meta": {
-      |    "title": "Customer wants to make a cup of tea",
       |    "id": "oct90001",
+      |    "title": "Customer wants to make a cup of tea",
       |    "ocelot": 1,
       |    "lastAuthor": "000000",
       |    "lastUpdate": 1500298931016,
@@ -37,9 +37,6 @@ trait ProcessJson {
       |    "titlePhrase": 8,
       |    "processCode": "cup-of-tea"
       |  },
-      |  "howto": [],
-      |  "contacts": [],
-      |  "links": [],
       |  "flow": {
       |    "start": {
       |      "type": "PageStanza",
@@ -77,7 +74,9 @@ trait ProcessJson {
       |    ["yes - they do have a cup ", "Welsh: yes - they do have a cup "],
       |    ["no - they don’t have a cup", "Welsh: no - they don’t have a cup"],
       |    ["Customer wants to make a cup of tea", "Welsh: Customer wants to make a cup of tea"]
-      |  ]
+      |  ],
+      |  "links": [],
+      |  "timescales": {}
       |}
     """.stripMargin
   )
@@ -118,6 +117,25 @@ trait ProcessJson {
       |      "type": "InstructionStanza",
       |      "text": 0,
       |      "next": [
+      |        "33"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "33": {
+      |      "type": "ValueStanza",
+      |      "values": [
+      |        {
+      |          "type": "scalar",
+      |          "label": "SomeLabel",
+      |          "value": "[timescale:RepayReimb:days]"
+      |        },
+      |        {
+      |          "type": "scalar",
+      |          "label": "Blah",
+      |          "value": "[timescale:RepayReimb:days]"
+      |        }
+      |      ],
+      |      "next": [
       |        "end"
       |      ],
       |      "stack": true
@@ -128,7 +146,7 @@ trait ProcessJson {
       |  },
       |  "phrases": [
       |    ["Ask the customer if they have a tea bag", "Welsh: Ask the customer if they have a tea bag"],
-      |    ["Do you have a tea bag [timescale:RepayReimb:days]?", "Welsh: Do you have a tea bag [timescale:RepayReimb:days] ?"],
+      |    ["Do you have a tea bag [timescale:RepayReimb:days]?", "Welsh: Do you have a tea bag [timescale:RepayReimb:days]?"],
       |    ["Yes - they do have a tea bag", "Welsh: Yes - they do have a tea bag"],
       |    ["No - they do not have a tea bag", "Welsh: No - they do not have a tea bag"],
       |    ["Ask the customer if they have a cup", "Welsh: Ask the customer if they have a cup"],
@@ -136,10 +154,7 @@ trait ProcessJson {
       |    ["yes - they do have a cup ", "Welsh: yes - they do have a cup "],
       |    ["no - they don’t have a cup", "Welsh: no - they don’t have a cup"],
       |    ["Customer wants to make a cup of tea", "Welsh: Customer wants to make a cup of tea"]
-      |  ],
-      |  "timescales" : {
-      |      "RepayReimb" : 0
-      |  }
+      |  ]
       |}
     """.stripMargin
   )

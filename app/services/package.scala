@@ -14,32 +14,43 @@
  * limitations under the License.
  */
 
-import core.services._
 import core.models.ocelot._
 import core.models.errors.Error
+//import core.models.errors.ProcessError.toProcessErr
 import core.models.ocelot.errors._
 import core.models.RequestOutcome
 import core.models.ocelot.Process
 import play.api.libs.json._
 import config.AppConfig
+import scala.concurrent.{Future, ExecutionContext}
 
 package object services {
 
-  def guidancePagesAndProcess(pb: ValidatingPageBuilder, jsObject: JsObject)
-                   (implicit c: AppConfig): RequestOutcome[(Process, Seq[Page], JsObject)] =
-    jsObject.validate[Process].fold(errs => Left(Error(GuidanceError.fromJsonValidationErrors(errs))),
+  def guidancePagesAndProcess(pb: ValidatingPageBuilder, jsObject: JsObject, timescalesService: TimescalesService)
+                   (implicit c: AppConfig, ec: ExecutionContext): Future[RequestOutcome[(Process, Seq[Page], JsObject)]] =
+    jsObject.validate[Process].fold(errs => Future.successful(Left(Error(GuidanceError.fromJsonValidationErrors(errs)))),
       incomingProcess => {
-        // Transform process if fake welsh and/or secured process is indicated
+        // Transform process if fake welsh, secured process or timescales are indicated
         val (p, js) = fakeWelshTextIfRequired _ tupled securedProcessIfRequired(incomingProcess, Some(jsObject))
         pb.pagesWithValidation(p, p.startPageId).fold(
-          errs => Left(Error(errs)),
+          errs => Future.successful(Left(Error(errs))),
           pages => {
             // If valid process, collect list of timescale ids from process flow and phrases
             val timescaleIds = (pb.pageBuilder.timescales.referencedNonPhraseIds(incomingProcess.flow) ++
                                 pb.pageBuilder.timescales.referencedIds(incomingProcess.phrases)).distinct
-
-            val (process, jsObject) = addTimescaleTableIfRequired(p, js, timescaleIds)
-            Right((process, pages, jsObject.fold(Json.toJsObject(process))(json => json)))
+            timescaleIds match {
+              case Nil => Future.successful(Right((p, pages, js.fold(Json.toJsObject(p))(json => json))))
+              case _ =>
+                timescalesService.get().flatMap{
+                  case Left(err) => Future.successful(Left(err))
+                  case Right(timescales) if timescaleIds.forall(id => timescales.contains(id)) =>
+                    // All timescales used in process are currently available from the timescales service
+                    val updatedProcess = p.copy(timescales = timescaleIds.map(id => (id, 0)).toMap)
+                    Future.successful(Right((updatedProcess, pages, Json.toJsObject(updatedProcess))))
+                  case Right(timescales) =>
+                    Future.successful(Left(Error(timescaleIds.filterNot(timescales.contains).map(MissingTimescaleDefinition))))
+                }
+            }
           }
         )
       }
@@ -56,13 +67,5 @@ package object services {
       // Add optional passphrase to process meta section
       val securedProcess = p.copy(meta = p.meta.copy(passPhrase = Some(passPhrase)))
       (securedProcess, None)
-    }
-
-  private[services] def addTimescaleTableIfRequired(p: Process, jsObject: Option[JsObject], timescaleIds: List[String]): (Process, Option[JsObject]) =
-    timescaleIds match {
-      case Nil => (p, jsObject)
-      case _ =>
-        val updatedProcess = p.copy(timescales = timescaleIds.map(id => (id, 0)).toMap)
-        (updatedProcess, None)
     }
 }

@@ -31,20 +31,20 @@ import config.AppConfig
 @Singleton
 class ScratchService @Inject() (repository: ScratchRepository,
                                 pageBuilder: ValidatingPageBuilder,
+                                timescalesService: TimescalesService,
                                 implicit val c: AppConfig) {
   val logger: Logger = Logger(getClass)
 
   def save(json: JsObject): Future[RequestOutcome[UUID]] =
-    guidancePagesAndProcess(pageBuilder, json).fold(
-      err => Future.successful(Left(err)),
-      result => {
-        val (_, _, process) = result
+    guidancePagesAndProcess(pageBuilder, json, timescalesService).flatMap{
+      case Left(err) => Future.successful(Left(err))
+      case Right((_, _, process)) => {
         repository.save(process).map {
           case Left(_) => Left(InternalServerError)
           case result => result
         }
       }
-    )
+    }
 
   def getById(id: String): Future[RequestOutcome[JsObject]] =
     validateUUID(id) match {

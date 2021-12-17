@@ -30,15 +30,20 @@ trait MockTimescalesService extends MockFactory {
 
   object MockTimescalesService {
 
-    def save(timescales: JsValue, credId: String, user: String, email: String): CallHandler[Future[RequestOutcome[TimescalesResponse]]] =
+    def save(timescales: JsValue, credId: String, user: String, email: String, inUse: List[String]): CallHandler[Future[RequestOutcome[TimescalesResponse]]] =
       (mockTimescalesService
-        .save(_: JsValue, _: String, _: String, _: String))
-        .expects(timescales, credId, user, email)
+        .save(_: JsValue, _: String, _: String, _: String, _: List[String]))
+        .expects(timescales, credId, user, email, inUse)
 
     def updateProcessTimescaleTable(js: JsObject): CallHandler[Future[RequestOutcome[JsObject]]] =
         (mockTimescalesService
           .updateProcessTimescaleTable(_: JsObject))
           .expects(js)
+
+    def get(): CallHandler[Future[RequestOutcome[Map[String, Int]]]] =
+      (mockTimescalesService
+        .get _)
+        .expects()
 
     def details(): CallHandler[Future[RequestOutcome[TimescalesResponse]]] =
       (mockTimescalesService

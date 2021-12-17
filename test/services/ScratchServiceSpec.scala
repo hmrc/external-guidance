@@ -20,40 +20,59 @@ import java.util.UUID
 import base.BaseSpec
 import mocks.MockScratchRepository
 import core.services._
-import core.models.RequestOutcome
-import core.models.ocelot.errors._
 import core.models.errors._
+import core.models.ocelot.errors._
+import core.models.RequestOutcome
 import core.models.ocelot.ProcessJson
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import mocks.MockAppConfig
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
+import mocks.MockTimescalesService
 
 class ScratchServiceSpec extends BaseSpec {
 
-  private trait Test extends MockScratchRepository {
+  private trait Test extends MockScratchRepository with MockTimescalesService {
+    implicit def executionContext: ExecutionContext = ExecutionContext.global
     val pageBuilder = new ValidatingPageBuilder(new PageBuilder(new Timescales(new DefaultTodayProvider)))
     lazy val target: ScratchService = new ScratchService(mockScratchRepository,
                                                          pageBuilder,
+                                                         mockTimescalesService,
                                                          MockAppConfig)
   }
 
-  "Calling save method" when {
-
-    "the JSON is valid" should {
-      "return valid UUID" in new Test with ProcessJson {
+    "Calling save" should {
+      "Detect missing timescale defn Error" in new Test with ProcessJson {
 
         val id: UUID = UUID.fromString("bf8bf6bb-0894-4df6-8209-2467bc9af6ae")
         val expected: RequestOutcome[UUID] = Right(id)
-        val json: JsObject = validOnePageJson.as[JsObject]
-        val Right((_, _, processedJson)) = guidancePagesAndProcess(pageBuilder, json)(MockAppConfig)
+        val json: JsObject = validOnePageWithTimescalesJson.as[JsObject]
+
         MockScratchRepository
-          .save(processedJson)
+          .save(json)
           .returns(Future.successful(expected))
 
-        whenReady(target.save(json)) {
-          case Right(uuid) => uuid.toString shouldBe id.toString
-          case _ => fail
+        MockTimescalesService.get().returns(Future.successful(Right(Map())))
+
+        whenReady(target.save(json)) { result =>
+          result shouldBe Left(Error(Error.UnprocessableEntity,
+                                     None,
+                                     Some(List(ProcessError(s"MissingTimescaleDefinition: Process references unknown timescale ID 'RepayReimb'", "")))))
         }
+      }
+    }
+
+    "return valid UUID when the JSON is valid" in new Test with ProcessJson {
+
+      val id: UUID = UUID.fromString("bf8bf6bb-0894-4df6-8209-2467bc9af6ae")
+      val expected: RequestOutcome[UUID] = Right(id)
+      val json: JsObject = validOnePageJson.as[JsObject]
+
+      MockScratchRepository
+        .save(json)
+        .returns(Future.successful(expected))
+
+      whenReady(target.save(json)) { result =>
+        result shouldBe expected
       }
     }
 
@@ -97,9 +116,9 @@ class ScratchServiceSpec extends BaseSpec {
         val repositoryResponse: RequestOutcome[UUID] = Left(DatabaseError)
         val expected: RequestOutcome[UUID] = Left(InternalServerError)
         val json: JsObject = validOnePageJson.as[JsObject]
-        val Right((_, _, processedJson)) = guidancePagesAndProcess(pageBuilder, json)(MockAppConfig)
+
         MockScratchRepository
-          .save(processedJson)
+          .save(json)
           .returns(Future.successful(repositoryResponse))
 
         whenReady(target.save(json)) {
@@ -108,7 +127,6 @@ class ScratchServiceSpec extends BaseSpec {
         }
       }
     }
-  }
 
   "Calling getById method" when {
 
