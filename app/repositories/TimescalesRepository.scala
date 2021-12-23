@@ -21,12 +21,23 @@ import java.time.ZonedDateTime
 import core.models.errors.{DatabaseError, NotFoundError}
 import core.models.RequestOutcome
 import play.api.libs.json.{Format, Json, JsValue}
-import play.modules.reactivemongo.ReactiveMongoComponent
-import uk.gov.hmrc.mongo.ReactiveRepository
+import play.api.Logger
+// import play.modules.reactivemongo.ReactiveMongoComponent
+// import uk.gov.hmrc.mongo.ReactiveRepository
 import config.AppConfig
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import models.TimescalesUpdate
+
+import org.mongodb.scala._
+import org.mongodb.scala.bson.conversions.Bson
+import org.mongodb.scala.model.Filters._
+import org.mongodb.scala.model.Sorts._
+import org.mongodb.scala.model.Updates._
+import org.mongodb.scala.model._
+import uk.gov.hmrc.mongo._
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
 
 trait TimescalesRepository {
   val CurrentTimescalesID: String = "1"
@@ -35,31 +46,38 @@ trait TimescalesRepository {
 }
 
 @Singleton
-class TimescalesRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent, appConfig: AppConfig)
-    extends ReactiveRepository[TimescalesUpdate, String](
+class TimescalesRepositoryImpl @Inject() (component: MongoComponent, appConfig: AppConfig)
+    extends PlayMongoRepository[TimescalesUpdate](
       collectionName = "timescales",
-      mongo = mongoComponent.mongoConnector.db,
+      mongoComponent = component,
       domainFormat = TimescalesUpdate.format,
-      idFormat = implicitly[Format[String]]
+      indexes = Seq.empty
     )
     with TimescalesRepository {
+  val logger: Logger = Logger(getClass)
 
   def save(timescales: JsValue, when: ZonedDateTime, credId: String, user: String, email: String): Future[RequestOutcome[TimescalesUpdate]] =
     //$COVERAGE-OFF$
-    findAndUpdate(
-      Json.obj("_id" -> CurrentTimescalesID),
-      Json.obj(
-      "$set" -> Json.obj(
-        "timescales" -> timescales,
-        "when" -> Json.obj("$date" -> when.toInstant.toEpochMilli),
-        "credId" -> credId,
-        "user" -> user,
-        "email" -> email
-      )), fetchNewObject = true, upsert = true).map{ update =>
-        update.result[TimescalesUpdate].fold[RequestOutcome[TimescalesUpdate]]{
+    collection
+      .findOneAndUpdate(
+        equal("_id", CurrentTimescalesID),
+        combine(
+          set("timescales", timescales),
+          set("when", when.toInstant),
+          set("credId", credId),
+          set("user", user),
+          set("email", email)
+        ),
+        FindOneAndUpdateOptions()
+          .upsert(true)
+          .returnDocument(ReturnDocument.AFTER)
+      )
+      .toFutureOption
+      .map{
+        case None =>
           logger.error(s"Failed to find and update/insert TimescalesUpdate")
           Left(DatabaseError)
-        }(tsUpdate => Right(tsUpdate))
+        case Some(tsUpdate) => Right(tsUpdate)
       }
       .recover {
         case e =>
@@ -70,10 +88,12 @@ class TimescalesRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent
 
   def get(id: String): Future[RequestOutcome[TimescalesUpdate]] =
     //$COVERAGE-OFF$
-    findById(id)
+    collection
+      .find(equal("_id", id))
+      .toFuture
       .map {
-        case Some(tsUpdate) => Right(tsUpdate)
-        case None => Left(NotFoundError)
+        case Nil => Left(NotFoundError)
+        case tsUpdate :: _ => Right(tsUpdate)
       }
       .recover {
         case e =>

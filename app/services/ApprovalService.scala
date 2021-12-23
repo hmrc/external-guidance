@@ -29,6 +29,7 @@ import play.api.libs.json._
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository, PublishedRepository}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import play.api.libs.json.{Json, OFormat}
 
 @Singleton
 class ApprovalService @Inject() (
@@ -110,9 +111,12 @@ class ApprovalService @Inject() (
       case Right(result) => Right(result.process)
     }
 
-  def approvalSummaryList(roles: List[String]): Future[RequestOutcome[JsValue]] =
+  def approvalSummaryList(roles: List[String]): Future[RequestOutcome[JsValue]] = {
+    implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
+
     repository.approvalSummaryList(roles).map {
       case Left(_) => Left(InternalServerError)
       case Right(success) => Right(Json.toJson(success))
     }
+  }
 }

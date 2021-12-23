@@ -24,11 +24,23 @@ import core.models.errors.{DatabaseError, NotFoundError}
 import core.models.RequestOutcome
 import models.{ApprovalProcessPageReview, ApprovalProcessReview}
 import play.api.libs.json.{Format, JsObject, Json}
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import play.api.Logger
+
+// import play.modules.reactivemongo.ReactiveMongoComponent
+// import reactivemongo.api.indexes.{Index, IndexType}
+// import reactivemongo.play.json.ImplicitBSONHandlers._
+// import uk.gov.hmrc.mongo.ReactiveRepository
+
 import repositories.formatters.ApprovalProcessReviewFormatter
-import uk.gov.hmrc.mongo.ReactiveRepository
+import org.mongodb.scala._
+import org.mongodb.scala.bson.conversions.Bson
+import org.mongodb.scala.model.Filters._
+import org.mongodb.scala.model.Sorts._
+import org.mongodb.scala.model.Updates._
+import org.mongodb.scala.model._
+import uk.gov.hmrc.mongo._
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -41,25 +53,31 @@ trait ApprovalProcessReviewRepository {
 }
 
 @Singleton
-class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoComponent)
-    extends ReactiveRepository[ApprovalProcessReview, UUID](
+class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoComponent)
+    extends PlayMongoRepository[ApprovalProcessReview](
+      mongoComponent = mongo,
       collectionName = "approvalProcessReviews",
-      mongo = mongoComponent.mongoConnector.db,
       domainFormat = ApprovalProcessReviewFormatter.mongoFormat,
-      idFormat = implicitly[Format[UUID]]
+      indexes = Seq(IndexModel(ascending("ocelotId", "version", "reviewType"),
+                               IndexOptions()
+                                .name("review-secondary-Index")
+                                .unique(true))),
+      //extraCodecs = Seq(Codecs.playFormatCodec(SessionKey.format)),
+      replaceIndexes = true
     )
     with ApprovalProcessReviewRepository {
-
-  override def indexes: Seq[Index] = Seq(
-    Index(
-      key = Seq("ocelotId" -> IndexType.Ascending, "version" -> IndexType.Ascending, "reviewType" -> IndexType.Ascending),
-      name = Some("review-secondary-Index"),
-      unique = true
-    )
-  )
+  val logger: Logger = Logger(getClass)
+  // override def indexes: Seq[Index] = Seq(
+  //   Index(
+  //     key = Seq("ocelotId" -> IndexType.Ascending, "version" -> IndexType.Ascending, "reviewType" -> IndexType.Ascending),
+  //     name = Some("review-secondary-Index"),
+  //     unique = true
+  //   )
+  // )
 
   def save(review: ApprovalProcessReview): Future[RequestOutcome[UUID]] =
-    insert(review)
+    collection.insertOne(review)
+      .toFuture()
       .map { _ =>
         Right(review.id)
       }
@@ -73,11 +91,11 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
 
   def getByIdVersionAndType(id: String, version: Int, reviewType: String): Future[RequestOutcome[ApprovalProcessReview]] =
     collection
-      .find[JsObject, JsObject](Json.obj("ocelotId" -> id, "version" -> version, "reviewType" -> reviewType))
-      .one[ApprovalProcessReview]
+      .find(and(equal("ocelotId",id), equal("version", version), equal("reviewType", reviewType)))
+      .toFuture()
       .map {
-        case Some(review) => Right(review)
-        case None => Left(NotFoundError)
+        case Nil => Left(NotFoundError)
+        case review :: _ => Right(review)
       }
       //$COVERAGE-OFF$
       .recover {
@@ -89,22 +107,22 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
 
   def updatePageReview(id: String, version: Int, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] = {
 
-    val selector = Json.obj("ocelotId" -> id, "version" -> version, "reviewType" -> reviewType, "pages.pageUrl" -> pageUrl)
-    val modifier =
-      Json.obj(
-        "$set" -> Json.obj(
-          "pages.$.result" -> reviewInfo.result,
-          "pages.$.status" -> reviewInfo.status,
-          "pages.$.comment" -> reviewInfo.comment,
-          "pages.$.updateUser" -> reviewInfo.updateUser,
-          "pages.$.updateDate" -> Json.obj("$date" -> ZonedDateTime.now.toInstant.toEpochMilli)
-        )
-      )
+    val selector = and(equal("ocelotId", id),
+                       equal("version", version),
+                       equal("reviewType", reviewType),
+                       equal("pages.pageUrl", pageUrl))
+    val modifier = combine(
+      set("pages.$.result", reviewInfo.result),
+      set("pages.$.status",reviewInfo.status),
+      set("pages.$.comment",reviewInfo.comment),
+      set("pages.$.updateUser", reviewInfo.updateUser),
+      set("pages.$.updateDate", ZonedDateTime.now)
+    )
 
-    findAndUpdate(selector, modifier)
-      .map { _ =>
-        Right(())
-      }
+    collection
+      .findOneAndUpdate(selector, modifier)
+      .toFutureOption()
+      .map{_.fold[RequestOutcome[Unit]](Left(NotFoundError))( _ => Right(()))}
       //$COVERAGE-OFF$
       .recover {
         case error =>
@@ -116,20 +134,17 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongoComponent: Re
 
   def updateReview(id: String, version: Int, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]] = {
 
-    val selector = Json.obj("ocelotId" -> id, "version" -> version, "reviewType" -> reviewType)
-    val modifier =
-      Json.obj(
-        "$set" -> Json.obj(
-          "result" -> result,
-          "completionUser" -> updateUser,
-          "completionDate" -> Json.obj("$date" -> ZonedDateTime.now.toInstant.toEpochMilli)
-        )
-      )
+    val selector = and(equal("ocelotId", id), equal("version", version), equal("reviewType", reviewType))
+    val modifier = combine(
+      set("result", result),
+      set("completionUser", updateUser),
+      set("completionDate", ZonedDateTime.now)
+    )
 
-    findAndUpdate(selector, modifier)
-      .map { _ =>
-        Right(())
-      }
+    collection
+      .findOneAndUpdate(selector, modifier)
+      .toFutureOption
+      .map{_.fold[RequestOutcome[Unit]](Left(NotFoundError))( _ => Right(()))}
       //$COVERAGE-OFF$
       .recover {
         case error =>

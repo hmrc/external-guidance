@@ -20,6 +20,6 @@ import play.api.libs.json.{JsObject, Json, OFormat}
 
 case class ApprovalProcess(id: String, meta: ApprovalProcessMeta, process: JsObject, version: Int = 1)
 
-object ApprovalProcess {
-  implicit val formats: OFormat[ApprovalProcess] = Json.format[ApprovalProcess]
-}
+// object ApprovalProcess {
+//   implicit val formats: OFormat[ApprovalProcess] = Json.format[ApprovalProcess]
+// }

@@ -18,14 +18,14 @@ package repositories.formatters
 
 import java.time.{LocalDate, ZonedDateTime}
 import java.util.UUID
-import core.models.MongoDateTimeFormats
+//import core.models.MongoDateTimeFormats
 import models.{ApprovalProcessPageReview, ApprovalProcessReview}
 import play.api.libs.json._
 
 object ApprovalProcessReviewFormatter {
 
-  implicit val dateTimeFormat: Format[ZonedDateTime] = MongoDateTimeFormats.zonedDateTimeFormats
-  implicit val reviewFormatter: Format[ApprovalProcessPageReview] = ApprovalProcessPageReviewFormatter.mongoFormat
+  // implicit val dateTimeFormat: Format[ZonedDateTime] = MongoDateTimeFormats.zonedDateTimeFormats
+  // implicit val reviewFormatter: Format[ApprovalProcessPageReview] = ApprovalProcessPageReviewFormatter.mongoFormat
 
   val read: JsValue => JsResult[ApprovalProcessReview] = json =>
     for {

@@ -17,14 +17,14 @@
 package repositories.formatters
 
 import java.time.{LocalDate, ZonedDateTime}
-import core.models.MongoDateTimeFormats
+//import core.models.MongoDateTimeFormats
 import models.ApprovalProcessMeta
 import play.api.libs.json._
 
 object ApprovalProcessMetaFormatter {
 
-  implicit val dateFormat: Format[LocalDate] = MongoDateTimeFormats.localDateFormats
-  implicit val dateTimeFormat: Format[ZonedDateTime] = MongoDateTimeFormats.zonedDateTimeFormats
+  // implicit val dateFormat: Format[LocalDate] = MongoDateTimeFormats.localDateFormats
+  // implicit val dateTimeFormat: Format[ZonedDateTime] = MongoDateTimeFormats.zonedDateTimeFormats
 
   val read: JsValue => JsResult[ApprovalProcessMeta] = json =>
     for {

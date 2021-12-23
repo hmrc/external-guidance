@@ -19,13 +19,13 @@ package models
 import java.time.ZonedDateTime
 import play.api.libs.json.{__, _}
 import play.api.libs.functional.syntax._
-import core.models.MongoDateTimeFormats
+//import core.models.MongoDateTimeFormats
 
 case class TimescalesUpdate(timescales: JsValue, when: ZonedDateTime, credId: String, user: String, email: String)
 
 object TimescalesUpdate {
 
-  implicit val zonedDateTimeFormat = MongoDateTimeFormats.zonedDateTimeFormats
+  //implicit val zonedDateTimeFormat = MongoDateTimeFormats.zonedDateTimeFormats
 
   implicit val reads: Reads[TimescalesUpdate] =
     ((__ \ "timescales").read[JsValue] and

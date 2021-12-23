@@ -24,16 +24,25 @@ import core.models.RequestOutcome
 import core.models.ocelot.Process
 import models.{PublishedSummary, PublishedProcess}
 import play.api.libs.json.{Format, JsObject, JsResultException, Json}
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.formatters.PublishedProcessFormatter
-import uk.gov.hmrc.mongo.ReactiveRepository
-import reactivemongo.api.WriteConcern
+// import play.modules.reactivemongo.ReactiveMongoComponent
+// import reactivemongo.api.indexes.{Index, IndexType}
+// import reactivemongo.play.json.ImplicitBSONHandlers._
+// import uk.gov.hmrc.mongo.ReactiveRepository
+// import reactivemongo.api.WriteConcern
+// import reactivemongo.api.Cursor.FailOnError
+// import reactivemongo.api.ReadPreference
 import scala.concurrent.{ExecutionContext, Future}
-import reactivemongo.api.Cursor.FailOnError
-import reactivemongo.api.ReadPreference
-
+import play.api.Logger
+import org.mongodb.scala._
+import org.mongodb.scala.bson.conversions.Bson
+import org.mongodb.scala.model.Filters._
+import org.mongodb.scala.model.Sorts._
+import org.mongodb.scala.model.Updates._
+import org.mongodb.scala.model._
+import uk.gov.hmrc.mongo._
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
 
 trait PublishedRepository {
   def save(id: String, user: String, processCode: String, process: JsObject): Future[RequestOutcome[String]]
@@ -45,41 +54,36 @@ trait PublishedRepository {
 }
 
 @Singleton
-class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)(implicit ec: ExecutionContext)
-    extends ReactiveRepository[PublishedProcess, String](
+class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec: ExecutionContext)
+    extends PlayMongoRepository[PublishedProcess](
       collectionName = "publishedProcesses",
-      mongo = mongoComponent.mongoConnector.db,
+      mongoComponent = component,
       domainFormat = PublishedProcessFormatter.mongoFormat,
-      idFormat = implicitly[Format[String]]
+      indexes = Seq(IndexModel(ascending("processCode"),
+                               IndexOptions()
+                                .name("published-secondary-Index-process-code")
+                                .unique(true))),
     )
     with PublishedRepository {
 
-  private def processCodeIndexName = "published-secondary-Index-process-code"
-
-  override def indexes: Seq[Index] = Seq(
-    Index(
-      key = Seq("processCode" -> IndexType.Ascending),
-      name = Some(processCodeIndexName),
-      unique = true
-    )
-  )
+  val logger: Logger = Logger(getClass)
 
   def save(id: String, user: String, processCode: String, process: JsObject): Future[RequestOutcome[String]] = {
 
     logger.warn(s"Saving process $id to collection published")
 
-    val selector = Json.obj("_id" -> id)
-    val modifier = Json.obj(
-      "$inc" -> Json.obj("version" -> 1),
-      "$set" -> Json.obj(
-        "process" -> process,
-        "publishedBy" -> user,
-        "processCode" -> processCode,
-        "datePublished" -> Json.obj("$date" -> ZonedDateTime.now.toInstant.toEpochMilli)
+    val selector = equal("_id", id)
+    val modifier = combine(
+      inc("version",1),
+      set("process", process),
+      set("publishedBy", user),
+      set("processCode", processCode),
+      set("datePublished", ZonedDateTime.now)
       )
-    )
 
-    findAndUpdate(selector, modifier, upsert = true)
+    collection
+      .findOneAndUpdate(selector, modifier, FindOneAndUpdateOptions().upsert(true))
+      .toFuture
       .map { _ =>
         Right(id)
       }
@@ -96,10 +100,12 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
   }
 
   def getById(id: String): Future[RequestOutcome[PublishedProcess]] =
-    findById(id)
+    collection
+      .find(equal("_id", id))
+      .toFuture()
       .map {
-        case Some(publishedProcess) => Right(publishedProcess)
-        case None => Left(NotFoundError)
+        case Nil => Left(NotFoundError)
+        case publishedProcess :: _ => Right(publishedProcess)
       }
       //$COVERAGE-OFF$
       .recover {
@@ -109,14 +115,14 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
       }
     //$COVERAGE-ON$
 
-
   //$COVERAGE-OFF$
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]] =
-    collection.find(TimescalesInUseQuery, projection = Option.empty[JsObject])
-      .cursor[PublishedProcess](ReadPreference.primaryPreferred)
-      .collect(maxDocs = -1, FailOnError[List[PublishedProcess]]())
-      .map{ list =>
-        Right(list.flatMap(pps => pps.process.validate[Process].fold(_ => Nil, p => p.timescales.keys.toList)).distinct)
+    collection
+      .withReadPreference(ReadPreference.primaryPreferred)
+      .find(TimescalesInUseQuery)
+      .toFuture()
+      .map{ seq =>
+        Right(seq.flatMap(pps => pps.process.validate[Process].fold(_ => Nil, p => p.timescales.keys.toList)).distinct.toList)
       }
       .recover{
         case error =>
@@ -127,11 +133,11 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
 
   def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]] =
     collection
-      .find[JsObject, JsObject](Json.obj("processCode" -> processCode))
-      .one[PublishedProcess]
+      .find(equal("processCode", processCode))
+      .toFuture
       .map {
-        case Some(publishedProcess) => Right(publishedProcess)
-        case None => Left(NotFoundError)
+        case Nil => Left(NotFoundError)
+        case publishedProcess :: _ => Right(publishedProcess)
       }
       //$COVERAGE-OFF$
       .recover {
@@ -142,13 +148,16 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
     //$COVERAGE-ON$
 
   def delete(id: String): Future[RequestOutcome[String]] =
-    collection.findAndRemove(Json.obj("_id" -> id),
-                             sort = None,
-                             fields = None,
-                             writeConcern = WriteConcern.Acknowledged,
-                             maxTime = None,
-                             collation = None,
-                             arrayFilters = Seq.empty)
+    collection
+      .deleteOne(equal("id", id))
+    // collection.findAndRemove(Json.obj("_id" -> id),
+    //                          sort = None,
+    //                          fields = None,
+    //                          writeConcern = WriteConcern.Acknowledged,
+    //                          maxTime = None,
+    //                          collation = None,
+    //                          arrayFilters = Seq.empty)
+      .toFuture
       .map { _ => Right(id) }
       //$COVERAGE-OFF$
       .recover {
@@ -160,7 +169,11 @@ class PublishedRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)
 
   //$COVERAGE-OFF$
   def processSummaries(): Future[RequestOutcome[List[PublishedSummary]]] =
-    findAll().map(res => Right(res.map(doc => PublishedSummary(doc.id, doc.datePublished, doc.processCode, doc.publishedBy))))
+    collection
+      .withReadPreference(ReadPreference.primaryPreferred())
+      .find()
+      .toFuture
+      .map(res => Right(res.map(doc => PublishedSummary(doc.id, doc.datePublished, doc.processCode, doc.publishedBy)).toList))
       .recover {
         case error =>
           logger.error(s"Attempt to retrieve published process summaries failed with error : ${error.getMessage}")

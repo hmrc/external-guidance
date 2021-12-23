@@ -33,6 +33,6 @@ case class ApprovalProcessMeta(
     processCode: String
 )
 
-object ApprovalProcessMeta {
-  implicit val formats: OFormat[ApprovalProcessMeta] = Json.format[ApprovalProcessMeta]
-}
+// object ApprovalProcessMeta {
+//   implicit val formats: OFormat[ApprovalProcessMeta] = Json.format[ApprovalProcessMeta]
+// }

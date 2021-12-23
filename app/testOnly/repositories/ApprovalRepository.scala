@@ -21,27 +21,37 @@ import core.models.errors.DatabaseError
 import core.models.RequestOutcome
 import models.ApprovalProcess
 import play.api.libs.json.Format
-import play.modules.reactivemongo.ReactiveMongoComponent
+import play.api.Logger
 import repositories.formatters.ApprovalProcessFormatter
-import uk.gov.hmrc.mongo.ReactiveRepository
-
+import org.mongodb.scala._
+import org.mongodb.scala.bson.conversions.Bson
+import org.mongodb.scala.model.Filters._
+import org.mongodb.scala.model.Sorts._
+import org.mongodb.scala.model.Updates._
+import org.mongodb.scala.model._
+import uk.gov.hmrc.mongo._
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ApprovalRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-    extends ReactiveRepository[ApprovalProcess, String](
+class ApprovalRepository @Inject() (component: MongoComponent)
+    extends PlayMongoRepository[ApprovalProcess](
       collectionName = "approvalProcesses",
-      mongo = mongoComponent.mongoConnector.db,
+      mongoComponent = component,
       domainFormat = ApprovalProcessFormatter.mongoFormat,
-      idFormat = implicitly[Format[String]]
+      indexes = Seq.empty
     ) {
 
+  val logger: Logger = Logger(getClass)
   def delete(id: String): Future[RequestOutcome[String]] = {
 
     logger.info(s"[test-only] Deleting approval process with the ID $id")
 
-    removeById(id)
+    collection
+      .deleteOne(equal("_id", id))
+      .toFuture
       .map { _ =>
         Right(id)
       }

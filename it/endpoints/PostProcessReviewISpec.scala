@@ -28,8 +28,10 @@ import play.api.libs.ws.WSResponse
 import stubs.{AuditStub, AuthStub}
 import support.IntegrationSpec
 import models.Constants._
+import play.api.libs.json.{Json, OFormat}
 
 class PostProcessReviewISpec extends IntegrationSpec {
+implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
 
   val statusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusComplete)
 
