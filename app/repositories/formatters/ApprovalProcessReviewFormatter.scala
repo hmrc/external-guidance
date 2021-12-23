@@ -21,6 +21,7 @@ import java.util.UUID
 //import core.models.MongoDateTimeFormats
 import models.{ApprovalProcessPageReview, ApprovalProcessReview}
 import play.api.libs.json._
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
 
 object ApprovalProcessReviewFormatter {
 

@@ -34,19 +34,17 @@ import scala.concurrent.Future
 
 @Singleton
 class ScratchRepository @Inject() (component: MongoComponent)
-    extends PlayMongoRepository[ScratchProcess](
-      collectionName = "scratchProcesses",
-      mongoComponent = component,
-      domainFormat = ScratchProcessFormatter.mongoFormat,
-      indexes = Seq.empty
-    ) {
+  extends PlayMongoRepository[ScratchProcess](
+    collectionName = "scratchProcesses",
+    mongoComponent = component,
+    domainFormat = ScratchProcessFormatter.mongoFormat,
+    indexes = Seq.empty
+  ) {
 
   val logger: Logger = Logger(getClass)
 
   def delete(id: String): Future[RequestOutcome[String]] = {
-
     logger.info(s"[test-only] Deleting scratch process with the ID $id")
-
     collection
       .deleteOne(equal("_id", id))
       .toFuture

@@ -18,12 +18,13 @@ package repositories.formatters
 
 import models.{ApprovalProcess, ApprovalProcessMeta}
 import play.api.libs.json._
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
 
 object ApprovalProcessFormatter {
 
   implicit val metaFormatter: Format[ApprovalProcessMeta] = ApprovalProcessMetaFormatter.mongoFormat
 
-  val read: JsValue => JsResult[ApprovalProcess] = json =>
+  implicit val read: JsValue => JsResult[ApprovalProcess] = json =>
     for {
       id <- (json \ "_id").validateOpt[String]
       meta <- (json \ "meta").validate[ApprovalProcessMeta]
@@ -31,10 +32,10 @@ object ApprovalProcessFormatter {
       version <- (json \ "version").validateOpt[Int]
     } yield ApprovalProcess(id.getOrElse(meta.id), meta, process, version.getOrElse(1))
 
-  val write: ApprovalProcess => JsObject = approvalProcess =>
+  implicit val write: ApprovalProcess => JsObject = approvalProcess =>
     Json.obj(
       "_id" -> approvalProcess.id,
-      "meta" -> Json.toJson(approvalProcess.meta),
+      "meta" -> approvalProcess.meta,
       "process" -> Json.toJson(approvalProcess.process),
       "version" -> approvalProcess.version
     )
