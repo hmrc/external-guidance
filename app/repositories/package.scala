@@ -14,16 +14,9 @@
  * limitations under the License.
  */
 
-import play.api.libs.json.{JsResultException, Json}
+import play.api.libs.json.JsResultException
 import org.mongodb.scala._
-import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters._
-import org.mongodb.scala.model.Sorts._
-import org.mongodb.scala.model.Updates._
-import org.mongodb.scala.model._
-import uk.gov.hmrc.mongo._
-import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
 
 package object repositories {
   // val TimescalesInUseQuery =Json.obj(

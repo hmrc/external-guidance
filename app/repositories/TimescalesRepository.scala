@@ -20,24 +20,19 @@ import javax.inject.{Inject, Singleton}
 import java.time.ZonedDateTime
 import core.models.errors.{DatabaseError, NotFoundError}
 import core.models.RequestOutcome
-import play.api.libs.json.{Format, Json, JsValue}
+import play.api.libs.json.JsValue
 import play.api.Logger
-// import play.modules.reactivemongo.ReactiveMongoComponent
-// import uk.gov.hmrc.mongo.ReactiveRepository
 import config.AppConfig
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import models.TimescalesUpdate
 
 import org.mongodb.scala._
-import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters._
-import org.mongodb.scala.model.Sorts._
 import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
-import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 trait TimescalesRepository {
   val CurrentTimescalesID: String = "1"

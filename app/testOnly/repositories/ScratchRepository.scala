@@ -24,10 +24,7 @@ import repositories.formatters.ScratchProcessFormatter
 import play.api.Logger
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
-import org.mongodb.scala.model.Sorts._
-import org.mongodb.scala.model.Updates._
 import uk.gov.hmrc.mongo._
-import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

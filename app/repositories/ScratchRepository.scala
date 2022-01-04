@@ -22,27 +22,19 @@ import javax.inject.{Inject, Singleton}
 import core.models.errors.{DatabaseError, NotFoundError}
 import core.models.RequestOutcome
 import models.ScratchProcess
-import play.api.libs.json.{Format, JsObject}
+import play.api.libs.json.JsObject
 import repositories.formatters.ScratchProcessFormatter
-// import play.modules.reactivemongo.ReactiveMongoComponent
-// import uk.gov.hmrc.mongo.ReactiveRepository
-// import reactivemongo.api.indexes.IndexType
-// import reactivemongo.api.indexes.Index
-// import reactivemongo.bson.BSONDocument
 import config.AppConfig
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import play.api.Logger
 import java.util.concurrent.TimeUnit
 import org.mongodb.scala._
-import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Sorts._
-import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
-import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 
 trait ScratchRepository {

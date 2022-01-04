@@ -25,7 +25,7 @@ import play.api.libs.json.{JsValue, Json, JsObject}
 import mocks.MockAppConfig
 import scala.concurrent.Future
 import core.models.ocelot.Process
-import java.time.ZonedDateTime
+import java.time.{ZoneId, ZonedDateTime}
 import models.{TimescalesResponse, UpdateDetails, TimescalesUpdate}
 import mocks.MockApprovalService
 
@@ -220,7 +220,7 @@ class TimescalesServiceSpec extends BaseSpec {
     with MockApprovalService {
 
     lazy val target: TimescalesService = new TimescalesService(mockTimescalesRepository, MockAppConfig)
-    val lastUpdateTime: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, MongoDateTimeFormats.localZoneID)
+    val lastUpdateTime: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, ZoneId.of("UTC"))
     val timescalesJson: JsValue = Json.parse("""{"First": 1, "Second": 2, "Third": 3}""")
     val timescalesJsonWithDeletion: JsValue = Json.parse("""{"Second": 2, "Third": 3, "Fourth": 4}""")
 

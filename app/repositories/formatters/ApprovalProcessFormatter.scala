@@ -24,21 +24,23 @@ object ApprovalProcessFormatter {
 
   implicit val metaFormatter: Format[ApprovalProcessMeta] = ApprovalProcessMetaFormatter.mongoFormat
 
-  implicit val read: JsValue => JsResult[ApprovalProcess] = json =>
-    for {
-      id <- (json \ "_id").validateOpt[String]
-      meta <- (json \ "meta").validate[ApprovalProcessMeta]
-      process <- (json \ "process").validate[JsObject]
-      version <- (json \ "version").validateOpt[Int]
-    } yield ApprovalProcess(id.getOrElse(meta.id), meta, process, version.getOrElse(1))
+  // implicit val read: JsValue => JsResult[ApprovalProcess] = json =>
+  //   for {
+  //     id <- (json \ "_id").validateOpt[String]
+  //     meta <- (json \ "meta").validate[ApprovalProcessMeta]
+  //     process <- (json \ "process").validate[JsObject]
+  //     version <- (json \ "version").validateOpt[Int]
+  //   } yield ApprovalProcess(id.getOrElse(meta.id), meta, process, version.getOrElse(1))
 
-  implicit val write: ApprovalProcess => JsObject = approvalProcess =>
-    Json.obj(
-      "_id" -> approvalProcess.id,
-      "meta" -> approvalProcess.meta,
-      "process" -> Json.toJson(approvalProcess.process),
-      "version" -> approvalProcess.version
-    )
-
-  implicit val mongoFormat: OFormat[ApprovalProcess] = OFormat(read, write)
+  // implicit val write: ApprovalProcess => JsObject = approvalProcess => {
+  //   println(s"******** ApprovalProcessFormatter write $approvalProcess")
+  //   Json.obj(
+  //     "_id" -> approvalProcess.id,
+  //     "meta" -> approvalProcess.meta,
+  //     "process" -> Json.toJson(approvalProcess.process),
+  //     "version" -> approvalProcess.version
+  //   )
+  // }
+  //implicit val mongoFormat: OFormat[ApprovalProcess] = OFormat(read, write)
+  implicit val mongoFormat: OFormat[ApprovalProcess] = Json.format[ApprovalProcess]
 }

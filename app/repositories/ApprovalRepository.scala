@@ -20,11 +20,9 @@ import config.AppConfig
 import core.models.RequestOutcome
 import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
 import models.{ApprovalProcess, ApprovalProcessSummary, Constants}
-import play.api.libs.json.{Format, JsObject, JsResultException, Json}
+import play.api.libs.json.JsResultException
 import play.api.Logger
-import models.ApprovalProcessMeta
 import org.mongodb.scala._
-import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Sorts._
 import org.mongodb.scala.model.Updates._
@@ -32,7 +30,6 @@ import org.mongodb.scala.model.Projections._
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
 import repositories.formatters.ApprovalProcessFormatter
 import repositories.formatters.ApprovalProcessMetaFormatter
 import core.models.ocelot.Process

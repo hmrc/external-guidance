@@ -21,14 +21,13 @@ import java.util.UUID
 import base.BaseSpec
 import models.ScratchProcess
 import play.api.libs.json.{JsSuccess, Json}
-import java.time.{ZonedDateTime, Instant}
-import core.models.MongoDateTimeFormats
+import java.time.{ZonedDateTime, Instant, ZoneId}
 
-class ScratchProcessFormatterSpec extends BaseSpec with MongoDateTimeFormats {
+class ScratchProcessFormatterSpec extends BaseSpec {
 
   private val id = "3475e5c5-343d-4214-9efc-58270867214c"
   val milliseconds: Long = 1586450476247L
-  val when: ZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(milliseconds), localZoneID)
+  val when: ZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(milliseconds), ZoneId.of("UTC"))
   private val process = ScratchProcess(UUID.fromString(id), Json.obj(), when)
 
   private val json = Json.parse("""{"_id":"3475e5c5-343d-4214-9efc-58270867214c","process":{},"expireAt":{"$date":1586450476247}}""")

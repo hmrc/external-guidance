@@ -28,7 +28,7 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import controllers.actions.FakeAllRolesAction
-import java.time.ZonedDateTime
+import java.time.{ZoneId, ZonedDateTime}
 import play.api.mvc._
 import scala.concurrent.Future
 import models.{UpdateDetails, TimescalesResponse, TimescalesUpdate}

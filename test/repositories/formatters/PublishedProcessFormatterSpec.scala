@@ -16,20 +16,19 @@
 
 package repositories.formatters
 
-import java.time.ZonedDateTime
+import java.time.{ZoneId, ZonedDateTime}
 
 import base.BaseSpec
-import core.models.MongoDateTimeFormats
 import models.PublishedProcess
 import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
 import repositories.formatters.PublishedProcessFormatter.mongoFormat
 
-class PublishedProcessFormatterSpec extends BaseSpec with MongoDateTimeFormats {
+class PublishedProcessFormatterSpec extends BaseSpec {
 
   private val process: JsObject = Json.obj()
   private val id: String = "ext90002"
 
-  private val datePublished: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, localZoneID)
+  private val datePublished: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, ZoneId.of("UTC"))
   private val publishedProcess: PublishedProcess = PublishedProcess(id, 1, datePublished, process, "user", processCode = "processCode")
 
   private val json = Json.parse(

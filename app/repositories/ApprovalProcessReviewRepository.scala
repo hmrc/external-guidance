@@ -23,25 +23,16 @@ import javax.inject.{Inject, Singleton}
 import core.models.errors.{DatabaseError, NotFoundError}
 import core.models.RequestOutcome
 import models.{ApprovalProcessPageReview, ApprovalProcessReview}
-import play.api.libs.json.{Format, JsObject, Json}
 import play.api.Logger
-
-// import play.modules.reactivemongo.ReactiveMongoComponent
-// import reactivemongo.api.indexes.{Index, IndexType}
-// import reactivemongo.play.json.ImplicitBSONHandlers._
-// import uk.gov.hmrc.mongo.ReactiveRepository
 
 import repositories.formatters.ApprovalProcessReviewFormatter
 import org.mongodb.scala._
-import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Sorts._
 import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
-import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
-
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

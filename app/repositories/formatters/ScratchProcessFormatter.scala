@@ -18,9 +18,8 @@ package repositories.formatters
 
 import java.util.UUID
 import java.time.ZonedDateTime
-//import core.models.MongoDateTimeFormats
 import models.ScratchProcess
-import play.api.libs.json.{JsObject, JsResult, JsValue, Json, OFormat, Format}
+import play.api.libs.json.{JsObject, JsResult, JsValue, Json, OFormat}
 
 object ScratchProcessFormatter {
 

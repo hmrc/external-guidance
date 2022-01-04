@@ -32,7 +32,12 @@ class ApprovalProcessFormatterSpec extends BaseSpec with ApprovalProcessJson {
       validApprovalProcessJson.validate[ApprovalProcess] match {
         case JsSuccess(result, _) if result == approvalProcess => succeed
         case JsSuccess(_, _) => fail("Deserializing valid JSON did not create correct process")
-        case _ => fail("Unable to parse valid Json")
+        case err =>
+          println(err)
+          val json = Json.toJson(approvalProcess)
+          println(json)
+          println(json.validate[ApprovalProcess])
+          fail("Unable to parse valid Json")
       }
     }
 
@@ -41,7 +46,9 @@ class ApprovalProcessFormatterSpec extends BaseSpec with ApprovalProcessJson {
       validApprovalProcessWithoutAnIdJson.validate[ApprovalProcess] match {
         case JsSuccess(result, _) if result == approvalProcess => succeed
         case JsSuccess(_, _) => fail("Deserializing valid JSON did not create correct process")
-        case _ => fail("Unable to parse valid Json")
+        case err =>
+          println(err)
+          fail("Unable to parse valid Json")
       }
     }
 

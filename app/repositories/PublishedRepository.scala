@@ -23,26 +23,17 @@ import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
 import core.models.RequestOutcome
 import core.models.ocelot.Process
 import models.{PublishedSummary, PublishedProcess}
-import play.api.libs.json.{Format, JsObject, JsResultException, Json}
+import play.api.libs.json.{JsObject, JsResultException}
 import repositories.formatters.PublishedProcessFormatter
-// import play.modules.reactivemongo.ReactiveMongoComponent
-// import reactivemongo.api.indexes.{Index, IndexType}
-// import reactivemongo.play.json.ImplicitBSONHandlers._
-// import uk.gov.hmrc.mongo.ReactiveRepository
-// import reactivemongo.api.WriteConcern
-// import reactivemongo.api.Cursor.FailOnError
-// import reactivemongo.api.ReadPreference
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.Logger
 import org.mongodb.scala._
-import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Sorts._
 import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
-import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 trait PublishedRepository {
   def save(id: String, user: String, processCode: String, process: JsObject): Future[RequestOutcome[String]]

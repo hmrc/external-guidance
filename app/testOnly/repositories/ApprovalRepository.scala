@@ -20,18 +20,12 @@ import javax.inject.{Inject, Singleton}
 import core.models.errors.DatabaseError
 import core.models.RequestOutcome
 import models.ApprovalProcess
-import play.api.libs.json.Format
 import play.api.Logger
 import repositories.formatters.ApprovalProcessFormatter
 import org.mongodb.scala._
-import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters._
-import org.mongodb.scala.model.Sorts._
-import org.mongodb.scala.model.Updates._
-import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
-import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
