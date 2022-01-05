@@ -20,10 +20,9 @@ import java.util.UUID
 import java.time.ZonedDateTime
 import models.ScratchProcess
 import play.api.libs.json.{JsObject, JsResult, JsValue, Json, OFormat}
+import core.models.MongoDateTimeFormats.MongoImplicits._
 
 object ScratchProcessFormatter {
-
-  //implicit val dateFormat: Format[ZonedDateTime] = MongoDateTimeFormats.zonedDateTimeFormats
 
   val read: JsValue => JsResult[ScratchProcess] = json =>
     for {

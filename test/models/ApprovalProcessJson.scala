@@ -160,7 +160,7 @@ trait ApprovalProcessJson {
        |			"result" : "",
        |			"status" : "$InitialPageReviewStatus",
        |			"comment" : "",
-       |			"updateDate" : {"$$date":1590760487000},
+       |			"updateDate" : {"$$date": {"$$numberLong":"1590760487000"}},
        |			"updateUser" : ""
        |		}
        |	]

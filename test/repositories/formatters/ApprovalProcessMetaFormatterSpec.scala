@@ -38,8 +38,8 @@ class ApprovalProcessMetaFormatterSpec extends BaseSpec with ApprovalProcessJson
     |    "id" : "oct90001",
     |    "title" : "This is the title",
     |    "status" : "$StatusSubmitted",
-    |    "dateSubmitted" : {"$$date": $dateLong},
-    |    "lastModified" : {"$$date": $dateLong},
+    |    "dateSubmitted" : {"$$date": {"$$numberLong": "$dateLong"}},
+    |    "lastModified" : {"$$date": {"$$numberLong": "$dateLong"}},
     |    "ocelotDateSubmitted" : 1,
     |    "ocelotVersion" : 1,
     |    "reviewType" : "$ReviewType2i",
@@ -53,7 +53,7 @@ class ApprovalProcessMetaFormatterSpec extends BaseSpec with ApprovalProcessJson
     |    "id" : "oct90001",
     |    "title" : "This is the title",
     |    "status" : "$StatusSubmitted",
-    |    "dateSubmitted" : {"$$date": $dateLong},
+    |    "dateSubmitted" : {"$$date": {"$$numberLong": "$dateLong"}},
     |    "reviewType" : "$ReviewType2i",
     |    "processCode" : "$processCode"
     |  }

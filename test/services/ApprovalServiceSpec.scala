@@ -26,7 +26,7 @@ import core.models._
 import core.models.errors._
 import core.models.ocelot.ProcessJson
 import org.scalamock.scalatest.MockFactory
-import play.api.libs.json.{JsArray, JsObject, Json}
+import play.api.libs.json.{JsArray, JsObject, Json, OFormat}
 import models.Constants._
 import core.models.RequestOutcome
 import scala.concurrent.Future
@@ -352,6 +352,7 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
   "Calling the approvalSummaryList method" when {
     "there are entries to return" should {
       "return a List of approval processes" in new Test {
+        implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
 
         val expected: RequestOutcome[List[ApprovalProcessSummary]] = Right(List(approvalProcessSummary))
 

@@ -52,7 +52,9 @@ implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProc
           Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), ZonedDateTime.now(), Some("user id"))
       AuditStub.audit()
       AuthStub.authorise()
-      await(pageUpdateRequest.post(Json.toJson(content)))
+      val j = Json.toJson(content)
+      println(j)
+      await(pageUpdateRequest.post(j))
 
       id
     }

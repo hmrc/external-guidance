@@ -18,49 +18,47 @@ package repositories.formatters
 
 import java.time.{LocalDate, ZonedDateTime}
 import models.ApprovalProcessMeta
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
+import core.models.MongoDateTimeFormats.MongoImplicits._
 import play.api.libs.json._
 
 
 object ApprovalProcessMetaFormatter {
 
-  // implicit val read: JsValue => JsResult[ApprovalProcessMeta] = json =>
-  //   for {
-  //     id <- (json \ "id").validate[String]
-  //     status <- (json \ "status").validate[String]
-  //     title <- (json \ "title").validate[String]
-  //     dateSubmitted <- (json \ "dateSubmitted").validate[LocalDate]
-  //     lastModified <- (json \ "lastModified").validateOpt[ZonedDateTime]
-  //     ocelotDateSubmitted <- (json \ "ocelotDateSubmitted").validateOpt[Long]
-  //     ocelotVersion <- (json \ "ocelotVersion").validateOpt[Int]
-  //     reviewType <- (json \ "reviewType").validate[String]
-  //     processCode <- (json \ "processCode").validate[String]
-  //   } yield ApprovalProcessMeta(
-  //     id,
-  //     title,
-  //     status,
-  //     dateSubmitted,
-  //     lastModified.getOrElse(ZonedDateTime.now()),
-  //     ocelotDateSubmitted.getOrElse(1),
-  //     ocelotVersion.getOrElse(1),
-  //     reviewType,
-  //     processCode
-  //   )
+  implicit val read: JsValue => JsResult[ApprovalProcessMeta] = json =>
+    for {
+      id <- (json \ "id").validate[String]
+      status <- (json \ "status").validate[String]
+      title <- (json \ "title").validate[String]
+      dateSubmitted <- (json \ "dateSubmitted").validate[LocalDate]
+      lastModified <- (json \ "lastModified").validateOpt[ZonedDateTime]
+      ocelotDateSubmitted <- (json \ "ocelotDateSubmitted").validateOpt[Long]
+      ocelotVersion <- (json \ "ocelotVersion").validateOpt[Int]
+      reviewType <- (json \ "reviewType").validate[String]
+      processCode <- (json \ "processCode").validate[String]
+    } yield ApprovalProcessMeta(
+      id,
+      title,
+      status,
+      dateSubmitted,
+      lastModified.getOrElse(ZonedDateTime.now()),
+      ocelotDateSubmitted.getOrElse(1),
+      ocelotVersion.getOrElse(1),
+      reviewType,
+      processCode
+    )
 
-  // implicit val write: ApprovalProcessMeta => JsObject = meta => {
-  //   println(s"******** ApprovalProcessMetaFormatter write $meta")
-  //   Json.obj(
-  //     "id" -> meta.id,
-  //     "status" -> meta.status,
-  //     "title" -> meta.title,
-  //     "dateSubmitted" -> meta.dateSubmitted,
-  //     "lastModified" -> meta.lastModified,
-  //     "ocelotDateSubmitted" -> meta.ocelotDateSubmitted,
-  //     "ocelotVersion" -> meta.ocelotVersion,
-  //     "reviewType" -> meta.reviewType,
-  //     "processCode" -> meta.processCode
-  //   )
-  // }
-  //implicit val mongoFormat: OFormat[ApprovalProcessMeta] = OFormat(read, write)
-  implicit val mongoFormat: OFormat[ApprovalProcessMeta] = Json.format[ApprovalProcessMeta]
+  implicit val write: ApprovalProcessMeta => JsObject = meta =>
+    Json.obj(
+      "id" -> meta.id,
+      "status" -> meta.status,
+      "title" -> meta.title,
+      "dateSubmitted" -> meta.dateSubmitted,
+      "lastModified" -> meta.lastModified,
+      "ocelotDateSubmitted" -> meta.ocelotDateSubmitted,
+      "ocelotVersion" -> meta.ocelotVersion,
+      "reviewType" -> meta.reviewType,
+      "processCode" -> meta.processCode
+    )
+
+  implicit val mongoFormat: OFormat[ApprovalProcessMeta] = OFormat(read, write)
 }

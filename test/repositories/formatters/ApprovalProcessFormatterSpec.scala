@@ -19,11 +19,13 @@ package repositories.formatters
 import base.BaseSpec
 import models.{ApprovalProcess, ApprovalProcessJson}
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
-import repositories.formatters.ApprovalProcessFormatter.mongoFormat
 
 class ApprovalProcessFormatterSpec extends BaseSpec with ApprovalProcessJson {
 
+  import repositories.formatters.ApprovalProcessFormatter.mongoFormat
+
   private val invalidJson = Json.parse("{}")
+
 
   "Deserializing a JSON payload into an instance of ApprovalProcess" should {
 
@@ -31,13 +33,8 @@ class ApprovalProcessFormatterSpec extends BaseSpec with ApprovalProcessJson {
 
       validApprovalProcessJson.validate[ApprovalProcess] match {
         case JsSuccess(result, _) if result == approvalProcess => succeed
-        case JsSuccess(_, _) => fail("Deserializing valid JSON did not create correct process")
-        case err =>
-          println(err)
-          val json = Json.toJson(approvalProcess)
-          println(json)
-          println(json.validate[ApprovalProcess])
-          fail("Unable to parse valid Json")
+        case JsSuccess(result, _) => fail("Deserializing valid JSON did not create correct process")
+        case JsError(errs) => fail("Unable to parse valid Json")
       }
     }
 
@@ -46,9 +43,7 @@ class ApprovalProcessFormatterSpec extends BaseSpec with ApprovalProcessJson {
       validApprovalProcessWithoutAnIdJson.validate[ApprovalProcess] match {
         case JsSuccess(result, _) if result == approvalProcess => succeed
         case JsSuccess(_, _) => fail("Deserializing valid JSON did not create correct process")
-        case err =>
-          println(err)
-          fail("Unable to parse valid Json")
+        case err => fail("Unable to parse valid Json")
       }
     }
 

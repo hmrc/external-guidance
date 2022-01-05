@@ -17,13 +17,11 @@
 package repositories.formatters
 
 import java.time.ZonedDateTime
-//import core.models.MongoDateTimeFormats
+import core.models.MongoDateTimeFormats.MongoImplicits._
 import models.PublishedProcess
 import play.api.libs.json._
 
 object PublishedProcessFormatter {
-
-  //implicit val dateTimeFormat: Format[ZonedDateTime] = MongoDateTimeFormats.zonedDateTimeFormats
 
   val read: JsValue => JsResult[PublishedProcess] = json =>
     for {
