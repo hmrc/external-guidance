@@ -19,8 +19,8 @@ package endpoints
 import java.time.ZonedDateTime
 
 import data.ExamplePayloads._
-import core.models.errors.{Error, IncompleteDataError}
 import core.models.ocelot.Process
+import core.models.errors.{Error, IncompleteDataError}
 import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange, ApprovalProcessSummary}
 import play.api.http.Status._
 import play.api.libs.json.{JsObject, JsValue, Json}
@@ -52,9 +52,7 @@ implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProc
           Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), ZonedDateTime.now(), Some("user id"))
       AuditStub.audit()
       AuthStub.authorise()
-      val j = Json.toJson(content)
-      println(j)
-      await(pageUpdateRequest.post(j))
+      await(pageUpdateRequest.post(Json.toJson(content)))
 
       id
     }

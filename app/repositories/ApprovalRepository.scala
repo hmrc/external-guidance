@@ -20,7 +20,6 @@ import config.AppConfig
 import core.models.RequestOutcome
 import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
 import models.{ApprovalProcess, ApprovalProcessSummary, Constants}
-import play.api.libs.json.JsResultException
 import play.api.Logger
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
@@ -32,10 +31,13 @@ import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import repositories.formatters.ApprovalProcessFormatter
 import repositories.formatters.ApprovalProcessMetaFormatter
+import repositories.formatters.ApprovalProcessMetaFormatter.mongoFormat
 import core.models.ocelot.Process
 import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import core.models.MongoDateTimeFormats.zonedDateTimeFormat
+import core.models.MongoDateTimeFormats.MongoImplicits._
 
 trait ApprovalRepository {
   def update(process: ApprovalProcess): Future[RequestOutcome[String]]
@@ -56,7 +58,8 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
                                IndexOptions()
                                 .name("approval-secondary-Index-process-code")
                                 .unique(true))),
-      extraCodecs = Seq(Codecs.playFormatCodec(ApprovalProcessMetaFormatter.mongoFormat)),
+      extraCodecs = Seq(Codecs.playFormatCodec(ApprovalProcessMetaFormatter.mongoFormat),
+                        Codecs.playFormatCodec(zonedDateTimeFormat)),
       replaceIndexes = true
     )
     with ApprovalRepository {
@@ -67,7 +70,7 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
     logger.warn(s"Saving process ${approvalProcess.id} to collection $collectionName")
     val selector = equal("_id", approvalProcess.id)
     val modifier = combine(Updates.inc("version",1),
-                           Updates.set("meta", approvalProcess.meta),
+                           Updates.set("meta", Codecs.toBson(approvalProcess.meta)),
                            Updates.set("process", Codecs.toBson(approvalProcess.process)))
 
     collection
@@ -78,11 +81,11 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
       }
       //$COVERAGE-OFF$
       .recover {
-        case e: JsResultException if hasDupeKeyViolation(e) =>
-          logger.error(s"Attempt to persist approval process ${approvalProcess.id} with duplicate processCode : ${approvalProcess.meta.processCode}")
+        case ex: MongoCommandException if ex.getErrorCode == 11000 =>
+          logger.error(s"Attempt to persist approval process ${approvalProcess.id} with duplicate processCode: ${approvalProcess.meta.processCode}")
           Left(DuplicateKeyError)
-        case error =>
-          logger.error(s"Attempt to persist process ${approvalProcess.id} to collection $collectionName failed with error : ${error.getMessage}")
+        case ex =>
+          logger.error(s"Attempt to persist process ${approvalProcess.id} to collection $collectionName failed with error : ${ex.getMessage}")
           Left(DatabaseError)
       }
     //$COVERAGE-ON$
@@ -134,13 +137,10 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
       .withReadPreference(ReadPreference.primaryPreferred)
       .find(or(restrictions.toArray: _*))
       .projection(fields(include("meta", "process.meta.id"), excludeId()))
-      // .cursor[ApprovalProcess]{ReadPreference.primaryPreferred}
-      // .collect(maxDocs = -1, FailOnError[List[ApprovalProcess]]())
       .toFuture()
       .map { l =>
         Right(l.map(doc =>ApprovalProcessSummary(doc.meta.id, doc.meta.title, doc.meta.dateSubmitted, doc.meta.status, doc.meta.reviewType)).toList)
       }
-      //.map(_ => Right(_.toList))
       //$COVERAGE-OFF$
       .recover {
         case error =>
@@ -155,7 +155,7 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
 
     logger.warn(s"updating status of process $id to $status to collection $collectionName")
     val selector = equal("_id", id)
-    val modifier = combine(set("meta.status", status), set("meta.updateUser", user), set("meta.lastModified", ZonedDateTime.now))
+    val modifier = combine(set("meta.status", status), set("meta.updateUser", user), set("meta.lastModified", Codecs.toBson(ZonedDateTime.now)))
 
     collection
       .findOneAndUpdate(selector, modifier)

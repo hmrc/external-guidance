@@ -47,7 +47,9 @@ class ArchiveISpec extends IntegrationSpec {
       AuditStub.audit()
       val request = buildRequest(s"/external-guidance/archive/$testId").get()
 
-      await(request).status shouldBe OK
+      val response = await(request)
+
+      response.status shouldBe OK
     }
 
     "return a BAD REQUEST" in {

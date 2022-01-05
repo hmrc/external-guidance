@@ -34,8 +34,8 @@ import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Sorts._
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+import uk.gov.hmrc.mongo.play.json.formats.MongoUuidFormats.Implicits.uuidFormat
 
 trait ScratchRepository {
   def save(process: JsObject): Future[RequestOutcome[UUID]]
@@ -52,7 +52,8 @@ class ScratchRepositoryImpl @Inject() (component: MongoComponent, appConfig: App
                                IndexOptions()
                                 .name("expiryIndex")
                                 .unique(false)
-                                .expireAfter(0, TimeUnit.SECONDS)))
+                                .expireAfter(0, TimeUnit.SECONDS))),
+      extraCodecs = Seq(Codecs.playFormatCodec(uuidFormat))
     )
     with ScratchRepository {
   val logger: Logger = Logger(getClass)

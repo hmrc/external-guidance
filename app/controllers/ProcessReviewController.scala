@@ -136,6 +136,7 @@ class ProcessReviewController @Inject() (
   }
 
   private def pageReviewComplete(id: String, pageUrl: String, reviewType: String, reviewJson: JsValue): Future[Result] = {
+
     def save(reviewInfo: ApprovalProcessPageReview): Future[Result] =
       reviewService.approvalPageComplete(id, s"/$pageUrl", reviewType, reviewInfo).map {
         case Right(_) => NoContent
@@ -145,7 +146,7 @@ class ProcessReviewController @Inject() (
 
     reviewJson.validate[ApprovalProcessPageReview] match {
       case JsSuccess(pageInfo, _) => save(pageInfo)
-      case errors: JsError => Future.successful(BadRequest(JsError.toJson(errors)))
+      case JsError(errors) => Future.successful(BadRequest(JsError.toJson(errors)))
     }
   }
 }

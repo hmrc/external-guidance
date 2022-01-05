@@ -24,7 +24,6 @@ import core.models.MongoDateTimeFormats.MongoImplicits._
 
 object ApprovalProcessReviewFormatter {
 
-  // implicit val dateTimeFormat: Format[ZonedDateTime] = MongoDateTimeFormats.zonedDateTimeFormats
   implicit val reviewFormatter: Format[ApprovalProcessPageReview] = ApprovalProcessPageReviewFormatter.mongoFormat
 
   val read: JsValue => JsResult[ApprovalProcessReview] = json =>

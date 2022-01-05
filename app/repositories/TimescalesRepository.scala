@@ -32,7 +32,10 @@ import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+import core.models.MongoDateTimeFormats.zonedDateTimeFormat
+import core.models.MongoDateTimeFormats.MongoImplicits._
+
 
 trait TimescalesRepository {
   val CurrentTimescalesID: String = "1"
@@ -46,6 +49,7 @@ class TimescalesRepositoryImpl @Inject() (component: MongoComponent, appConfig: 
       collectionName = "timescales",
       mongoComponent = component,
       domainFormat = TimescalesUpdate.format,
+      extraCodecs = Seq(Codecs.playFormatCodec(zonedDateTimeFormat)),
       indexes = Seq.empty
     )
     with TimescalesRepository {
@@ -58,7 +62,7 @@ class TimescalesRepositoryImpl @Inject() (component: MongoComponent, appConfig: 
         equal("_id", CurrentTimescalesID),
         combine(
           set("timescales", timescales),
-          set("when", when.toInstant),
+          set("when", Codecs.toBson(when.toInstant)),
           set("credId", credId),
           set("user", user),
           set("email", email)

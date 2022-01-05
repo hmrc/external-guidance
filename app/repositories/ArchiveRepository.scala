@@ -28,11 +28,13 @@ import org.mongodb.scala.model.Sorts._
 import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
-import core.models.errors.NotFoundError
 import scala.concurrent.{ExecutionContext, Future}
+import core.models.MongoDateTimeFormats.zonedDateTimeFormat
+import core.models.MongoDateTimeFormats.MongoImplicits._
+
 
 trait ArchiveRepository {
   def archive(id: String, user: String, processCode: String, process: PublishedProcess): Future[RequestOutcome[String]]
@@ -48,6 +50,7 @@ class ArchiveRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: Execu
                                IndexOptions()
                                 .name("archived-secondary-Index-process-code")
                                 .unique(false))),
+      extraCodecs = Seq(Codecs.playFormatCodec(zonedDateTimeFormat)),
       replaceIndexes = true
     )
     with ArchiveRepository {
@@ -62,16 +65,16 @@ class ArchiveRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: Execu
     val selector = equal("_id", date.toInstant.toEpochMilli)
     val modifier = combine(
                     set("processId", id),
-                    set("process", process.process),
+                    set("process", Codecs.toBson(process.process)),
                     set("archivedBy", user),
                     set("processCode", processCode),
-                    set("dateArchived", date)
+                    set("dateArchived", Codecs.toBson(date))
                    )
 
     collection
       .findOneAndUpdate(selector, modifier, FindOneAndUpdateOptions().upsert(true))
       .toFutureOption
-      .map ( _.fold[RequestOutcome[String]](Left(NotFoundError))( _ => Right(id)) )
+      .map (_ => Right(id))
       //$COVERAGE-OFF$
       .recover {
         case error =>

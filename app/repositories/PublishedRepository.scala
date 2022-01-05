@@ -17,13 +17,12 @@
 package repositories
 
 import java.time.ZonedDateTime
-
 import javax.inject.{Inject, Singleton}
 import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
 import core.models.RequestOutcome
 import core.models.ocelot.Process
 import models.{PublishedSummary, PublishedProcess}
-import play.api.libs.json.{JsObject, JsResultException}
+import play.api.libs.json.JsObject
 import repositories.formatters.PublishedProcessFormatter
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.Logger
@@ -33,7 +32,9 @@ import org.mongodb.scala.model.Sorts._
 import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+import core.models.MongoDateTimeFormats.zonedDateTimeFormat
+import core.models.MongoDateTimeFormats.MongoImplicits._
 
 trait PublishedRepository {
   def save(id: String, user: String, processCode: String, process: JsObject): Future[RequestOutcome[String]]
@@ -54,6 +55,7 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
                                IndexOptions()
                                 .name("published-secondary-Index-process-code")
                                 .unique(true))),
+      extraCodecs = Seq(Codecs.playFormatCodec(zonedDateTimeFormat))
     )
     with PublishedRepository {
 
@@ -66,10 +68,10 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
     val selector = equal("_id", id)
     val modifier = combine(
       inc("version",1),
-      set("process", process),
+      set("process", Codecs.toBson(process)),
       set("publishedBy", user),
       set("processCode", processCode),
-      set("datePublished", ZonedDateTime.now)
+      set("datePublished", Codecs.toBson(ZonedDateTime.now))
       )
 
     collection
@@ -80,7 +82,7 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
       }
       //$COVERAGE-OFF$
       .recover {
-        case e: JsResultException if hasDupeKeyViolation(e) =>
+        case ex: MongoCommandException if ex.getErrorCode == 11000 =>
           logger.error(s"Failed to publish $id due to duplicate key violation on processCode : $processCode")
           Left(DuplicateKeyError)
         case error =>
@@ -141,13 +143,6 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
   def delete(id: String): Future[RequestOutcome[String]] =
     collection
       .deleteOne(equal("id", id))
-    // collection.findAndRemove(Json.obj("_id" -> id),
-    //                          sort = None,
-    //                          fields = None,
-    //                          writeConcern = WriteConcern.Acknowledged,
-    //                          maxTime = None,
-    //                          collation = None,
-    //                          arrayFilters = Seq.empty)
       .toFuture
       .map { _ => Right(id) }
       //$COVERAGE-OFF$

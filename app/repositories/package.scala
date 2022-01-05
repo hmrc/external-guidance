@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import play.api.libs.json.JsResultException
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
 
@@ -38,11 +37,4 @@ package object repositories {
   val TimescalesInUseQuery = nor(
     jsonSchema(Document(""""{properties": {"process.timescales": {"type": "object", "properties": {"additionalProperties": false}}}}"""))
   )
-
-  // { "$nor"}
-  def hasDupeKeyViolation(ex: JsResultException): Boolean = (for {
-    validationErrors <- ex.errors.flatMap(_._2)
-    message <- validationErrors.messages
-    dupeKey = message.matches(".*code=11000[^\\w\\d].*")
-  } yield dupeKey).contains(true)
 }

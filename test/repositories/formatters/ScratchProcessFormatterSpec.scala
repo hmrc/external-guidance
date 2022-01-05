@@ -32,7 +32,7 @@ class ScratchProcessFormatterSpec extends BaseSpec {
   val when: ZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(milliseconds), localZoneID)
   private val process = ScratchProcess(UUID.fromString(id), Json.obj(), when)
 
-  private val json = Json.parse("""{"_id":"3475e5c5-343d-4214-9efc-58270867214c","process":{},"expireAt":{"$date": {"$numberLong": "1586450476247"}}}""")
+  private val json = Json.parse("""{"_id":{"$binary":{"base64":"NHXlxTQ9QhSe/FgnCGchTA==","subType":"04"}},"process":{},"expireAt":{"$date":{"$numberLong":"1586450476247"}}}""")
 
   "Formatting a valid JSON payload to a ScratchProcess" should {
     "result in a successful conversion" in {
@@ -41,7 +41,7 @@ class ScratchProcessFormatterSpec extends BaseSpec {
         case JsSuccess(result, _) =>
           fail("JSON parsed with incorrect values")
         case JsError(errs) =>
-          fail("Unable to parse valid JSON")
+          fail(s"Unable to parse valid JSON, $errs")
       }
     }
   }

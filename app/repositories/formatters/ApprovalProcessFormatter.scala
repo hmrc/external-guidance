@@ -39,5 +39,4 @@ object ApprovalProcessFormatter {
       "version" -> approvalProcess.version
     )
   implicit val mongoFormat: OFormat[ApprovalProcess] = OFormat(read, write)
-  // implicit val mongoFormat: OFormat[ApprovalProcess] = Json.format[ApprovalProcess]
 }

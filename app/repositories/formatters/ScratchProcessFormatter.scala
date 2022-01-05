@@ -21,6 +21,7 @@ import java.time.ZonedDateTime
 import models.ScratchProcess
 import play.api.libs.json.{JsObject, JsResult, JsValue, Json, OFormat}
 import core.models.MongoDateTimeFormats.MongoImplicits._
+import uk.gov.hmrc.mongo.play.json.formats.MongoUuidFormats.Implicits.uuidFormat
 
 object ScratchProcessFormatter {
 

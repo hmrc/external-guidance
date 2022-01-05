@@ -24,7 +24,7 @@ import core.models.errors.{DatabaseError, NotFoundError}
 import core.models.RequestOutcome
 import models.{ApprovalProcessPageReview, ApprovalProcessReview}
 import play.api.Logger
-
+import core.models.MongoDateTimeFormats.MongoImplicits._
 import repositories.formatters.ApprovalProcessReviewFormatter
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
@@ -32,7 +32,7 @@ import org.mongodb.scala.model.Sorts._
 import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -53,18 +53,11 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoCompon
                                IndexOptions()
                                 .name("review-secondary-Index")
                                 .unique(true))),
-      //extraCodecs = Seq(Codecs.playFormatCodec(SessionKey.format)),
+      extraCodecs = Seq(Codecs.playFormatCodec(mdZonedDateTimeFormat)),
       replaceIndexes = true
     )
     with ApprovalProcessReviewRepository {
   val logger: Logger = Logger(getClass)
-  // override def indexes: Seq[Index] = Seq(
-  //   Index(
-  //     key = Seq("ocelotId" -> IndexType.Ascending, "version" -> IndexType.Ascending, "reviewType" -> IndexType.Ascending),
-  //     name = Some("review-secondary-Index"),
-  //     unique = true
-  //   )
-  // )
 
   def save(review: ApprovalProcessReview): Future[RequestOutcome[UUID]] =
     collection.insertOne(review)
@@ -97,17 +90,16 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoCompon
     //$COVERAGE-ON$
 
   def updatePageReview(id: String, version: Int, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] = {
-
     val selector = and(equal("ocelotId", id),
                        equal("version", version),
                        equal("reviewType", reviewType),
                        equal("pages.pageUrl", pageUrl))
     val modifier = combine(
-      set("pages.$.result", reviewInfo.result),
+      set("pages.$.result", reviewInfo.result.getOrElse("")),
       set("pages.$.status",reviewInfo.status),
-      set("pages.$.comment",reviewInfo.comment),
-      set("pages.$.updateUser", reviewInfo.updateUser),
-      set("pages.$.updateDate", ZonedDateTime.now)
+      set("pages.$.comment",reviewInfo.comment.getOrElse("")),
+      set("pages.$.updateUser", reviewInfo.updateUser.getOrElse("")),
+      set("pages.$.updateDate", Codecs.toBson(ZonedDateTime.now))
     )
 
     collection
@@ -129,7 +121,7 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoCompon
     val modifier = combine(
       set("result", result),
       set("completionUser", updateUser),
-      set("completionDate", ZonedDateTime.now)
+      set("completionDate", Codecs.toBson(ZonedDateTime.now))
     )
 
     collection
