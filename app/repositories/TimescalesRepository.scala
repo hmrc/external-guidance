@@ -61,7 +61,7 @@ class TimescalesRepositoryImpl @Inject() (component: MongoComponent, appConfig: 
       .findOneAndUpdate(
         equal("_id", CurrentTimescalesID),
         combine(
-          set("timescales", timescales),
+          set("timescales", Codecs.toBson(timescales)),
           set("when", Codecs.toBson(when.toInstant)),
           set("credId", credId),
           set("user", user),

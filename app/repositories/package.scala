@@ -16,6 +16,7 @@
 
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
+import play.api.libs.json.Json
 
 package object repositories {
   // val TimescalesInUseQuery =Json.obj(
@@ -34,7 +35,12 @@ package object repositories {
   //                             )
   //                           )
 
-  val TimescalesInUseQuery = nor(
-    jsonSchema(Document(""""{properties": {"process.timescales": {"type": "object", "properties": {"additionalProperties": false}}}}"""))
-  )
+  val json: String = Json.obj("properties" -> Json.obj(
+                                "process.timescales" -> Json.obj(
+                                  "type" -> "object",
+                                  "properties" -> Json.obj(),
+                                  "additionalProperties" -> false
+                                )
+                              )).toString
+  val TimescalesInUseQuery = nor(jsonSchema(Document(json)))
 }

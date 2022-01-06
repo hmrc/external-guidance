@@ -31,6 +31,7 @@ import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Sorts._
 import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.model._
+import org.mongodb.scala.result.DeleteResult
 import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
@@ -113,9 +114,16 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
     collection
       .withReadPreference(ReadPreference.primaryPreferred)
       .find(TimescalesInUseQuery)
-      .toFuture()
-      .map{ seq =>
-        Right(seq.flatMap(pps => pps.process.validate[Process].fold(_ => Nil, p => p.timescales.keys.toList)).distinct.toList)
+      .toFuture
+      .map{res =>
+        Option(res) match {
+          case Some(result) =>
+            logger.debug(s"getTimescalesInUse returned a result: $result")
+            Right(result.flatMap(pps => pps.process.validate[Process].fold(_ => Nil, p => p.timescales.keys.toList)).distinct.toList)
+          case None =>
+            logger.debug(s"getTimescalesInUse returned no result")
+            Right(Nil)
+          }
       }
       .recover{
         case error =>
@@ -142,9 +150,14 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
 
   def delete(id: String): Future[RequestOutcome[String]] =
     collection
-      .deleteOne(equal("id", id))
-      .toFuture
-      .map { _ => Right(id) }
+      .deleteOne(equal("_id", id))
+      .toFutureOption
+      .map {
+        case Some(result: DeleteResult) if result.getDeletedCount > 0 => Right(id)
+        case None =>
+          logger.error(s"Attempt to delete process $id from collection published failed")
+          Left(DatabaseError)
+      }
       //$COVERAGE-OFF$
       .recover {
         case error =>
