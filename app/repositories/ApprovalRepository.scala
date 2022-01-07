@@ -37,7 +37,7 @@ import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
-import core.models.MongoDateTimeFormats.MongoImplicits._
+import core.models.MongoDateTimeFormats.Implicits._
 
 trait ApprovalRepository {
   def update(process: ApprovalProcess): Future[RequestOutcome[String]]
@@ -92,11 +92,12 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
   }
 
   def getById(id: String): Future[RequestOutcome[ApprovalProcess]] =
-    collection.find(equal("_id", id))
-      .toFuture()
+    collection
+      .find(equal("_id", id))
+      .headOption()
       .map {
-        case Nil => Left(NotFoundError)
-        case approvalProcess :: _  => Right(approvalProcess)
+        case None => Left(NotFoundError)
+        case Some(approvalProcess) => Right(approvalProcess)
       }
       //$COVERAGE-OFF$
       .recover {
@@ -109,10 +110,10 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
   def getByProcessCode(processCode: String): Future[RequestOutcome[ApprovalProcess]] =
     collection
       .find(equal("meta.processCode", processCode))
-      .toFuture()
+      .headOption()
       .map {
-        case Nil => Left(NotFoundError)
-        case approvalProcess :: _ => Right(approvalProcess)
+        case None => Left(NotFoundError)
+        case Some(approvalProcess) => Right(approvalProcess)
       }
       //$COVERAGE-OFF$
       .recover {
@@ -137,9 +138,11 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
       .withReadPreference(ReadPreference.primaryPreferred)
       .find(or(restrictions.toArray: _*))
       .projection(fields(include("meta", "process.meta.id"), excludeId()))
-      .toFuture()
-      .map { l =>
-        Right(l.map(doc =>ApprovalProcessSummary(doc.meta.id, doc.meta.title, doc.meta.dateSubmitted, doc.meta.status, doc.meta.reviewType)).toList)
+      .collect.toFutureOption
+      .map {
+        case None => Right(Nil)
+        case Some(approvals) =>
+          Right(approvals.map(doc => ApprovalProcessSummary(doc.meta.id, doc.meta.title, doc.meta.dateSubmitted, doc.meta.status, doc.meta.reviewType)).toList)
       }
       //$COVERAGE-OFF$
       .recover {
@@ -179,9 +182,10 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
     collection
       .withReadPreference(ReadPreference.primaryPreferred)
       .find(TimescalesInUseQuery)
-      .toFuture()
-      .map{ seq =>
-        Right(seq.flatMap(pps => pps.process.validate[Process].fold(_ => Nil, p => p.timescales.keys.toList)).distinct.toList)
+      .collect.toFutureOption()
+      .map{
+        case None => Right(Nil)
+        case Some(ids) => Right(ids.flatMap(pps => pps.process.validate[Process].fold(_ => Nil, p => p.timescales.keys.toList)).distinct.toList)
       }
       .recover{
         case error =>

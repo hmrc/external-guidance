@@ -36,6 +36,7 @@ import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import uk.gov.hmrc.mongo.play.json.formats.MongoUuidFormats.Implicits.uuidFormat
+import org.mongodb.scala.result.InsertOneResult
 
 trait ScratchRepository {
   def save(process: JsObject): Future[RequestOutcome[UUID]]
@@ -53,7 +54,8 @@ class ScratchRepositoryImpl @Inject() (component: MongoComponent, appConfig: App
                                 .name("expiryIndex")
                                 .unique(false)
                                 .expireAfter(0, TimeUnit.SECONDS))),
-      extraCodecs = Seq(Codecs.playFormatCodec(uuidFormat))
+      extraCodecs = Seq(Codecs.playFormatCodec(uuidFormat)),
+      replaceIndexes = true
     )
     with ScratchRepository {
   val logger: Logger = Logger(getClass)
@@ -65,8 +67,13 @@ class ScratchRepositoryImpl @Inject() (component: MongoComponent, appConfig: App
 
     collection
       .insertOne(document)
-      .toFuture
-      .map( _ => Right(document.id))
+      .toFutureOption
+      .map {
+        case Some(r: InsertOneResult) if r.wasAcknowledged => Right(document.id)
+        case _ =>
+          logger.error(s"Failed to save scratch process")
+          Left(DatabaseError)
+      }
       .recover {
         case e =>
           logger.warn(e.getMessage)
@@ -78,10 +85,10 @@ class ScratchRepositoryImpl @Inject() (component: MongoComponent, appConfig: App
   def getById(id: UUID): Future[RequestOutcome[JsObject]] =
     collection
       .find(equal("_id", id))
-      .toFuture
+      .headOption()
       .map {
-        case Nil => Left(NotFoundError)
-        case data :: _ => Right(data.process)
+        case None => Left(NotFoundError)
+        case Some(data) => Right(data.process)
       }
       //$COVERAGE-OFF$
       .recover {

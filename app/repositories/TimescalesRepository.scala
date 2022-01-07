@@ -34,7 +34,7 @@ import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
-import core.models.MongoDateTimeFormats.MongoImplicits._
+import core.models.MongoDateTimeFormats.Implicits._
 
 
 trait TimescalesRepository {
@@ -89,10 +89,10 @@ class TimescalesRepositoryImpl @Inject() (component: MongoComponent, appConfig: 
     //$COVERAGE-OFF$
     collection
       .find(equal("_id", id))
-      .toFuture
+      .headOption()
       .map {
-        case Nil => Left(NotFoundError)
-        case tsUpdate :: _ => Right(tsUpdate)
+        case None => Left(NotFoundError)
+        case Some(tsUpdate) => Right(tsUpdate)
       }
       .recover {
         case e =>

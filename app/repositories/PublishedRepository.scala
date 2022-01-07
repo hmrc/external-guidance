@@ -35,7 +35,7 @@ import org.mongodb.scala.result.DeleteResult
 import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
-import core.models.MongoDateTimeFormats.MongoImplicits._
+import core.models.MongoDateTimeFormats.Implicits._
 
 trait PublishedRepository {
   def save(id: String, user: String, processCode: String, process: JsObject): Future[RequestOutcome[String]]
@@ -56,7 +56,8 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
                                IndexOptions()
                                 .name("published-secondary-Index-process-code")
                                 .unique(true))),
-      extraCodecs = Seq(Codecs.playFormatCodec(zonedDateTimeFormat))
+      extraCodecs = Seq(Codecs.playFormatCodec(zonedDateTimeFormat)),
+      replaceIndexes = true
     )
     with PublishedRepository {
 
@@ -77,7 +78,7 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
 
     collection
       .findOneAndUpdate(selector, modifier, FindOneAndUpdateOptions().upsert(true))
-      .toFuture
+      .toFutureOption
       .map { _ =>
         Right(id)
       }
@@ -96,10 +97,10 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
   def getById(id: String): Future[RequestOutcome[PublishedProcess]] =
     collection
       .find(equal("_id", id))
-      .toFuture()
+      .headOption()
       .map {
-        case Nil => Left(NotFoundError)
-        case publishedProcess :: _ => Right(publishedProcess)
+        case None => Left(NotFoundError)
+        case Some(publishedProcess) => Right(publishedProcess)
       }
       //$COVERAGE-OFF$
       .recover {
@@ -114,16 +115,11 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
     collection
       .withReadPreference(ReadPreference.primaryPreferred)
       .find(TimescalesInUseQuery)
-      .toFuture
-      .map{res =>
-        Option(res) match {
-          case Some(result) =>
-            logger.debug(s"getTimescalesInUse returned a result: $result")
-            Right(result.flatMap(pps => pps.process.validate[Process].fold(_ => Nil, p => p.timescales.keys.toList)).distinct.toList)
-          case None =>
-            logger.debug(s"getTimescalesInUse returned no result")
-            Right(Nil)
-          }
+      .collect
+      .toFutureOption
+      .map{
+        case None => Right(Nil)
+        case Some(ids) => Right(ids.flatMap(pps => pps.process.validate[Process].fold(_ => Nil, p => p.timescales.keys.toList)).distinct.toList)
       }
       .recover{
         case error =>
@@ -135,10 +131,10 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
   def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]] =
     collection
       .find(equal("processCode", processCode))
-      .toFuture
+      .headOption
       .map {
-        case Nil => Left(NotFoundError)
-        case publishedProcess :: _ => Right(publishedProcess)
+        case None => Left(NotFoundError)
+        case Some(publishedProcess) => Right(publishedProcess)
       }
       //$COVERAGE-OFF$
       .recover {
@@ -171,8 +167,12 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
     collection
       .withReadPreference(ReadPreference.primaryPreferred())
       .find()
-      .toFuture
-      .map(res => Right(res.map(doc => PublishedSummary(doc.id, doc.datePublished, doc.processCode, doc.publishedBy)).toList))
+      .collect
+      .toFutureOption
+      .map{
+        case None => Right(Nil)
+        case Some(res) => Right(res.map(doc => PublishedSummary(doc.id, doc.datePublished, doc.processCode, doc.publishedBy)).toList)
+      }
       .recover {
         case error =>
           logger.error(s"Attempt to retrieve published process summaries failed with error : ${error.getMessage}")

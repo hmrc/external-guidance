@@ -20,7 +20,7 @@ import java.time.{LocalDate, ZonedDateTime}
 import java.util.UUID
 import models.{ApprovalProcessPageReview, ApprovalProcessReview}
 import play.api.libs.json._
-import core.models.MongoDateTimeFormats.MongoImplicits._
+import core.models.MongoDateTimeFormats.Implicits._
 
 object ApprovalProcessReviewFormatter {
 

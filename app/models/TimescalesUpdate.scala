@@ -19,7 +19,7 @@ package models
 import java.time.ZonedDateTime
 import play.api.libs.json.{__, _}
 import play.api.libs.functional.syntax._
-import core.models.MongoDateTimeFormats.MongoImplicits._
+import core.models.MongoDateTimeFormats.Implicits._
 
 case class TimescalesUpdate(timescales: JsValue, when: ZonedDateTime, credId: String, user: String, email: String)
 

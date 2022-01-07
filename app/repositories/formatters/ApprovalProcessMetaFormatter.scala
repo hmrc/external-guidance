@@ -18,7 +18,7 @@ package repositories.formatters
 
 import java.time.{LocalDate, ZonedDateTime}
 import models.ApprovalProcessMeta
-import core.models.MongoDateTimeFormats.MongoImplicits._
+import core.models.MongoDateTimeFormats.Implicits._
 import play.api.libs.json._
 
 

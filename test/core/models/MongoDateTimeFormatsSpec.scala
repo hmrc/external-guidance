@@ -20,7 +20,7 @@ import base.BaseSpec
 import play.api.libs.json._
 import java.time.{Instant, ZonedDateTime, LocalDate}
 import MongoDateTimeFormats.localZoneID
-import MongoDateTimeFormats.MongoImplicits._
+import MongoDateTimeFormats.Implicits._
 
 class MongoDateTimeSpec extends  BaseSpec {
   "a LocalDate" must {

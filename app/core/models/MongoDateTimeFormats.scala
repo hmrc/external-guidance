@@ -16,12 +16,11 @@
 
 package core.models
 
-import java.time.{ZonedDateTime, ZoneOffset, Instant, LocalDate}
+import java.time.{ZonedDateTime, LocalDateTime, ZoneOffset, Instant, LocalDate}
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 import play.api.libs.json._
 
-trait MongoDateTimeFormats extends MongoJavatimeFormats {
-  outer =>
+trait MongoDateTimeFormats {
   val localZoneID = ZonedDateTime.now.getZone
 
   final val zonedDateTimeReads: Reads[ZonedDateTime] =
@@ -47,15 +46,16 @@ trait MongoDateTimeFormats extends MongoJavatimeFormats {
       }
 
   final val tolerantLocalDateFormat: Format[LocalDate] =
-    Format(tolerantLocalDateReads, localDateWrites)
+    Format(tolerantLocalDateReads, MongoJavatimeFormats.localDateWrites)
 
-  trait MongoImplicits {
-    implicit val mdInstantFormat: Format[Instant] = outer.instantFormat
-    implicit val mdLocalDateFormat: Format[LocalDate] = outer.tolerantLocalDateFormat
-    implicit val mdZonedDateTimeFormat: Format[ZonedDateTime] = outer.zonedDateTimeFormat
+  trait Implicits {
+    implicit val mdInstantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
+    implicit val mdLocalDateTimeFormat: Format[LocalDateTime] = MongoJavatimeFormats.localDateTimeFormat
+    implicit val mdLocalDateFormat: Format[LocalDate] = tolerantLocalDateFormat
+    implicit val mdZonedDateTimeFormat: Format[ZonedDateTime] = zonedDateTimeFormat
   }
 
-  object MongoImplicits extends MongoImplicits
+  object Implicits extends Implicits
 }
 
 object MongoDateTimeFormats extends MongoDateTimeFormats

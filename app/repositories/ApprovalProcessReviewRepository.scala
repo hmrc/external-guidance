@@ -24,7 +24,7 @@ import core.models.errors.{DatabaseError, NotFoundError}
 import core.models.RequestOutcome
 import models.{ApprovalProcessPageReview, ApprovalProcessReview}
 import play.api.Logger
-import core.models.MongoDateTimeFormats.MongoImplicits._
+import core.models.MongoDateTimeFormats.Implicits._
 import repositories.formatters.ApprovalProcessReviewFormatter
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
@@ -35,6 +35,7 @@ import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import org.mongodb.scala.result.InsertOneResult
 
 trait ApprovalProcessReviewRepository {
   def save(review: ApprovalProcessReview): Future[RequestOutcome[UUID]]
@@ -60,10 +61,14 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoCompon
   val logger: Logger = Logger(getClass)
 
   def save(review: ApprovalProcessReview): Future[RequestOutcome[UUID]] =
-    collection.insertOne(review)
-      .toFuture()
-      .map { _ =>
-        Right(review.id)
+    collection
+      .insertOne(review)
+      .toFutureOption
+      .map {
+        case Some(r: InsertOneResult) if r.wasAcknowledged => Right(review.id)
+        case _ =>
+          logger.error(s"Failed to insert ApprovalProcessReview: $review")
+          Left(DatabaseError)
       }
       //$COVERAGE-OFF$
       .recover {
@@ -76,10 +81,10 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoCompon
   def getByIdVersionAndType(id: String, version: Int, reviewType: String): Future[RequestOutcome[ApprovalProcessReview]] =
     collection
       .find(and(equal("ocelotId",id), equal("version", version), equal("reviewType", reviewType)))
-      .toFuture()
+      .headOption()
       .map {
-        case Nil => Left(NotFoundError)
-        case review :: _ => Right(review)
+        case None => Left(NotFoundError)
+        case Some(review) => Right(review)
       }
       //$COVERAGE-OFF$
       .recover {
