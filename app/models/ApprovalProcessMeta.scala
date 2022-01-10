@@ -17,8 +17,6 @@
 package models
 
 import java.time.{LocalDate, ZonedDateTime}
-
-import play.api.libs.json.{Json, OFormat}
 import models.Constants._
 
 case class ApprovalProcessMeta(
@@ -32,7 +30,3 @@ case class ApprovalProcessMeta(
     reviewType: String = ReviewType2i,
     processCode: String
 )
-
-object ApprovalProcessMeta {
-  implicit val formats: OFormat[ApprovalProcessMeta] = Json.format[ApprovalProcessMeta]
-}

@@ -20,29 +20,31 @@ import javax.inject.{Inject, Singleton}
 import core.models.errors.DatabaseError
 import core.models.RequestOutcome
 import models.ScratchProcess
-import play.api.libs.json.Format
-import play.modules.reactivemongo.ReactiveMongoComponent
 import repositories.formatters.ScratchProcessFormatter
-import uk.gov.hmrc.mongo.ReactiveRepository
-
+import play.api.Logger
+import org.mongodb.scala._
+import org.mongodb.scala.model.Filters._
+import uk.gov.hmrc.mongo._
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-
 @Singleton
-class ScratchRepository  @Inject() (mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[ScratchProcess, String](
+class ScratchRepository @Inject() (component: MongoComponent)
+  extends PlayMongoRepository[ScratchProcess](
     collectionName = "scratchProcesses",
-    mongo = mongoComponent.mongoConnector.db,
+    mongoComponent = component,
     domainFormat = ScratchProcessFormatter.mongoFormat,
-    idFormat = implicitly[Format[String]]
-    ) {
+    indexes = Seq.empty
+  ) {
+
+  val logger: Logger = Logger(getClass)
 
   def delete(id: String): Future[RequestOutcome[String]] = {
-
     logger.info(s"[test-only] Deleting scratch process with the ID $id")
-
-    removeById(id)
+    collection
+      .deleteOne(equal("_id", id))
+      .toFuture
       .map { _ =>
         Right(id)
       }

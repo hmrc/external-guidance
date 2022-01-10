@@ -19,16 +19,17 @@ package models
 import base.BaseSpec
 import play.api.libs.json.{JsSuccess, Json}
 import java.time.{ZonedDateTime, Instant}
+import core.models.MongoDateTimeFormats.localZoneID
 
 class TimescalesUpdateSpec extends BaseSpec {
   val credId: String = "1234566789"
   val user: String = "User Blah"
   val email: String = "user@blah.com"
   val milliseconds: Long = 1586450476247L
-  val when: ZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(milliseconds), ZonedDateTime.now.getZone)
+  val when: ZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(milliseconds), localZoneID)
 
   private val timescales: TimescalesUpdate = TimescalesUpdate(Json.obj(), when, credId, user, email)
-  private val json = Json.parse("""{"timescales":{},"when":{"$date":1586450476247},"credId":"1234566789","user":"User Blah","email":"user@blah.com"}""")
+  private val json = Json.parse("""{"timescales":{},"when":{"$date":  {"$numberLong": "1586450476247"}},"credId":"1234566789","user":"User Blah","email":"user@blah.com"}""")
 
   "Formatting a valid JSON payload to a Timescales" should {
     "result in a successful conversion" in {

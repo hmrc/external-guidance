@@ -18,13 +18,12 @@ package repositories.formatters
 
 import java.util.UUID
 import java.time.ZonedDateTime
-import core.models.MongoDateTimeFormats
 import models.ScratchProcess
-import play.api.libs.json.{JsObject, JsResult, JsValue, Json, OFormat, Format}
+import play.api.libs.json.{JsObject, JsResult, JsValue, Json, OFormat}
+import core.models.MongoDateTimeFormats.Implicits._
+import uk.gov.hmrc.mongo.play.json.formats.MongoUuidFormats.Implicits.uuidFormat
 
 object ScratchProcessFormatter {
-
-  implicit val dateFormat: Format[ZonedDateTime] = MongoDateTimeFormats.zonedDateTimeFormats
 
   val read: JsValue => JsResult[ScratchProcess] = json =>
     for {

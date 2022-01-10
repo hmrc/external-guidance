@@ -16,6 +16,7 @@
 
 package controllers
 
+import models.ApprovalProcessSummary
 import controllers.actions.FakeAllRolesAction
 import mocks.{MockTimescalesService, MockApprovalService}
 import core.models.errors.{BadRequestError, DuplicateKeyError, Error, InternalServerError, NotFoundError, ProcessError, ValidationError}
@@ -26,7 +27,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.ContentTypes
 import play.api.http.Status.UNPROCESSABLE_ENTITY
-import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
+import play.api.libs.json.{JsArray, JsObject, JsValue, Json, OFormat}
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -577,6 +578,7 @@ class ApprovalControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppP
     "the request is valid" should {
 
       trait ValidListTest extends Test {
+        implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
         MockApprovalService
           .approvalSummaryList(List("FactChecker", "2iReviewer"))
           .returns(Future.successful(Right(Json.toJson(List(approvalProcessSummary)).as[JsArray])))

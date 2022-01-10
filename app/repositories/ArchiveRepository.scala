@@ -19,60 +19,62 @@ package repositories
 import core.models.RequestOutcome
 import core.models.errors.DatabaseError
 import models.PublishedProcess
-import play.api.libs.json.{Format, Json}
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import play.api.Logger
 import repositories.formatters.PublishedProcessFormatter
-import uk.gov.hmrc.mongo.ReactiveRepository
 
+import org.mongodb.scala._
+import org.mongodb.scala.model.Filters._
+import org.mongodb.scala.model.Sorts._
+import org.mongodb.scala.model.Updates._
+import org.mongodb.scala.model._
+import uk.gov.hmrc.mongo._
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import core.models.MongoDateTimeFormats.zonedDateTimeFormat
+import core.models.MongoDateTimeFormats.Implicits._
+
 
 trait ArchiveRepository {
   def archive(id: String, user: String, processCode: String, process: PublishedProcess): Future[RequestOutcome[String]]
 }
 
 @Singleton
-class ArchiveRepositoryImpl @Inject() (mongoComponent: ReactiveMongoComponent)(implicit ec: ExecutionContext)
-    extends ReactiveRepository[PublishedProcess, String](
+class ArchiveRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
+    extends PlayMongoRepository[PublishedProcess](
       collectionName = "archivedProcesses",
-      mongo = mongoComponent.mongoConnector.db,
+      mongoComponent = mongo,
       domainFormat = PublishedProcessFormatter.mongoFormat,
-      idFormat = implicitly[Format[String]]
+      indexes = Seq(IndexModel(ascending("processCode"),
+                               IndexOptions()
+                                .name("archived-secondary-Index-process-code")
+                                .unique(false))),
+      extraCodecs = Seq(Codecs.playFormatCodec(zonedDateTimeFormat)),
+      replaceIndexes = true
     )
     with ArchiveRepository {
-
-  private def processCodeIndexName = "archived-secondary-Index-process-code"
-
-  override def indexes: Seq[Index] = Seq(
-    Index(
-      key = Seq("processCode" -> IndexType.Ascending),
-      name = Some(processCodeIndexName),
-      unique = false
-    )
-  )
+  val logger: Logger = Logger(getClass)
 
   def archive(id: String, user: String, processCode: String, process: PublishedProcess): Future[RequestOutcome[String]] = {
 
     logger.warn(s"Archiving process $id")
 
-    val date = ZonedDateTime.now.toInstant.toEpochMilli
+    val date = ZonedDateTime.now
 
-    val selector = Json.obj("_id" -> date)
-    val modifier = Json.obj(
-      "$set" -> Json.obj(
-        "processId" -> id,
-        "process" -> process.process,
-        "archivedBy" -> user,
-        "processCode" -> processCode,
-        "dateArchived" -> Json.obj("$" + "date" -> date)
-      )
-    )
+    val selector = equal("_id", date.toInstant.toEpochMilli)
+    val modifier = combine(
+                    set("processId", id),
+                    set("process", Codecs.toBson(process.process)),
+                    set("archivedBy", user),
+                    set("processCode", processCode),
+                    set("dateArchived", Codecs.toBson(date))
+                   )
 
-    findAndUpdate(selector, modifier, upsert = true)
-      .map ( _ => Right(id) )
+    collection
+      .findOneAndUpdate(selector, modifier, FindOneAndUpdateOptions().upsert(true))
+      .toFutureOption
+      .map (_ => Right(id))
       //$COVERAGE-OFF$
       .recover {
         case error =>

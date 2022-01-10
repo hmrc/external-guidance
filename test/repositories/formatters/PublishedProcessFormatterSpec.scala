@@ -19,12 +19,12 @@ package repositories.formatters
 import java.time.ZonedDateTime
 
 import base.BaseSpec
-import core.models.MongoDateTimeFormats
 import models.PublishedProcess
 import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
 import repositories.formatters.PublishedProcessFormatter.mongoFormat
+import core.models.MongoDateTimeFormats.localZoneID
 
-class PublishedProcessFormatterSpec extends BaseSpec with MongoDateTimeFormats {
+class PublishedProcessFormatterSpec extends BaseSpec {
 
   private val process: JsObject = Json.obj()
   private val id: String = "ext90002"
@@ -37,7 +37,7 @@ class PublishedProcessFormatterSpec extends BaseSpec with MongoDateTimeFormats {
        |{
        | "_id": "$id",
        | "version": 1,
-       | "datePublished": {"$$date": ${datePublished.toInstant.toEpochMilli}},
+       | "datePublished": {"$$date": {"$$numberLong": "${datePublished.toInstant.toEpochMilli}"}},
        | "process": {},
        | "publishedBy": "user",
        | "processCode" : "processCode"

@@ -48,8 +48,8 @@ trait ApprovalProcessJson {
       |    "id" : "$validId",
       |    "title" : "This is the title",
       |    "status" : "$StatusSubmitted",
-      |    "dateSubmitted" : {"$$date": $submittedDateInMilliseconds},
-      |    "lastModified" : {"$$date": $submittedDateInMilliseconds},
+      |    "dateSubmitted" : {"$$date": {"$$numberLong":"$submittedDateInMilliseconds"}},
+      |    "lastModified" : {"$$date": {"$$numberLong":"$submittedDateInMilliseconds"}},
       |    "ocelotDateSubmitted" : 1,
       |    "ocelotVersion" : 1,
       |    "reviewType" : "$ReviewType2i",
@@ -71,8 +71,8 @@ trait ApprovalProcessJson {
         |    "id" : "$validId",
         |    "title" : "This is the title",
         |    "status" : "$StatusSubmitted",
-        |    "dateSubmitted" : {"$$date": $submittedDateInMilliseconds},
-        |    "lastModified" : {"$$date": $submittedDateInMilliseconds},
+        |    "dateSubmitted" : {"$$date": {"$$numberLong":"$submittedDateInMilliseconds"}},
+        |    "lastModified" : {"$$date": {"$$numberLong":"$submittedDateInMilliseconds"}},
         |    "reviewType" : "$ReviewType2i",
         |    "processCode" : "processCode"
         |  },
@@ -160,7 +160,7 @@ trait ApprovalProcessJson {
        |			"result" : "",
        |			"status" : "$InitialPageReviewStatus",
        |			"comment" : "",
-       |			"updateDate" : {"$$date":1590760487000},
+       |			"updateDate" : {"$$date": {"$$numberLong":"1590760487000"}},
        |			"updateUser" : ""
        |		}
        |	]

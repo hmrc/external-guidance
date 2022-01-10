@@ -128,7 +128,7 @@ object ExamplePayloads {
       |    "id" : "oct90001",
       |    "title" : "This is the title",
       |    "status" : "$StatusSubmittedFor2iReview",
-      |    "dateSubmitted" : {"$$date": $submittedDateInMilliseconds}
+      |    "dateSubmitted" : {"$$date": {"$$numberLong":"$submittedDateInMilliseconds"}}
       |  },
       |  "process" : $simpleValidProcessString
       |}
@@ -143,7 +143,7 @@ object ExamplePayloads {
       |    "id" : "oct90001",
       |    "title" : "This is the title",
       |    "status" : "$StatusSubmitted",
-      |    "dateSubmitted" : {"$$date": $submittedDateInMilliseconds},
+      |    "dateSubmitted" : {"$$date": {"$$numberLong":"$submittedDateInMilliseconds"}},
       |    "reviewType" : "$ReviewType2i"
       |  },
       |  "process" : $simpleValidProcessString

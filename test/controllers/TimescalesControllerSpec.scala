@@ -18,7 +18,7 @@ package controllers
 
 import mocks.{MockTimescalesRepository, MockTimescalesService}
 import core.models.errors.{InternalServerError, ValidationError}
-import core.models.MongoDateTimeFormats
+//import core.models.MongoDateTimeFormats
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -28,7 +28,7 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import controllers.actions.FakeAllRolesAction
-import java.time.ZonedDateTime
+import java.time.{ZoneId, ZonedDateTime}
 import play.api.mvc._
 import scala.concurrent.Future
 import models.{UpdateDetails, TimescalesResponse, TimescalesUpdate}
@@ -44,7 +44,7 @@ class TimescalesControllerSpec extends AnyWordSpec with Matchers with ScalaFutur
                                                                      mockApprovalService,
                                                                      stubControllerComponents(),
                                                                      FakeAllRolesAction)
-    val lastUpdateTime: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, MongoDateTimeFormats.localZoneID)
+    val lastUpdateTime: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, ZoneId.of("UTC"))
     val timescales: Map[String, Int] = Map("First" -> 1, "Second" -> 2, "Third" -> 3)
     val timescalesJsonWithDeletion: JsValue = Json.parse("""{"Second": 2, "Third": 3, "Fourth": 4}""")
     val credId: String = FakeAllRolesAction.credential

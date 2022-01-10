@@ -20,19 +20,24 @@ import config.AppConfig
 import core.models.RequestOutcome
 import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
 import models.{ApprovalProcess, ApprovalProcessSummary, Constants}
-import play.api.libs.json.{Format, JsObject, JsResultException, Json}
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.Cursor.FailOnError
-import reactivemongo.api.ReadPreference
-import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import play.api.Logger
+import org.mongodb.scala._
+import org.mongodb.scala.model.Filters._
+import org.mongodb.scala.model.Sorts._
+import org.mongodb.scala.model.Updates._
+import org.mongodb.scala.model.Projections._
+import org.mongodb.scala.model._
+import uk.gov.hmrc.mongo._
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import repositories.formatters.ApprovalProcessFormatter
-import repositories.formatters.ApprovalProcessMetaFormatter._
-import uk.gov.hmrc.mongo.ReactiveRepository
+import repositories.formatters.ApprovalProcessMetaFormatter
+import repositories.formatters.ApprovalProcessMetaFormatter.mongoFormat
 import core.models.ocelot.Process
 import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import core.models.MongoDateTimeFormats.zonedDateTimeFormat
+import core.models.MongoDateTimeFormats.Implicits._
 
 trait ApprovalRepository {
   def update(process: ApprovalProcess): Future[RequestOutcome[String]]
@@ -41,59 +46,58 @@ trait ApprovalRepository {
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]]
   def changeStatus(id: String, status: String, user: String): Future[RequestOutcome[Unit]]
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]]
-  val TwoEyeRestriction: JsObject = Json.obj("meta.reviewType" -> Constants.ReviewType2i)
-  val FactCheckRestriction: JsObject = Json.obj("meta.reviewType" -> Constants.ReviewTypeFactCheck)
 }
 
 @Singleton
-class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoComponent, appConfig: AppConfig, ec: ExecutionContext)
-    extends ReactiveRepository[ApprovalProcess, String](
+class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appConfig: AppConfig, ec: ExecutionContext) extends
+  PlayMongoRepository[ApprovalProcess](
+      mongoComponent = component,
       collectionName = "approvalProcesses",
-      mongo = mongoComponent.mongoConnector.db,
       domainFormat = ApprovalProcessFormatter.mongoFormat,
-      idFormat = implicitly[Format[String]]
+      indexes = Seq(IndexModel(ascending("meta.processCode"),
+                               IndexOptions()
+                                .name("approval-secondary-Index-process-code")
+                                .unique(true))),
+      extraCodecs = Seq(Codecs.playFormatCodec(ApprovalProcessMetaFormatter.mongoFormat),
+                        Codecs.playFormatCodec(zonedDateTimeFormat)),
+      replaceIndexes = true
     )
     with ApprovalRepository {
 
-  private def processCodeIndexName = "approval-secondary-Index-process-code"
-
-  override def indexes: Seq[Index] = Seq(
-    Index(
-      key = Seq("meta.processCode" -> IndexType.Ascending),
-      name = Some(processCodeIndexName),
-      unique = true
-    )
-  )
-
+  val logger: Logger = Logger(getClass)
   def update(approvalProcess: ApprovalProcess): Future[RequestOutcome[String]] = {
 
     logger.warn(s"Saving process ${approvalProcess.id} to collection $collectionName")
-    val selector = Json.obj("_id" -> approvalProcess.id)
-    val metaJson = Json.toJson(approvalProcess.meta)
-    val modifier = Json.obj("$inc" -> Json.obj("version" -> 1), "$set" -> Json.obj("meta" -> metaJson, "process" -> approvalProcess.process))
+    val selector = equal("_id", approvalProcess.id)
+    val modifier = combine(Updates.inc("version",1),
+                           Updates.set("meta", Codecs.toBson(approvalProcess.meta)),
+                           Updates.set("process", Codecs.toBson(approvalProcess.process)))
 
-    this
-      .findAndUpdate(selector, modifier, upsert = true)
+    collection
+      .findOneAndUpdate(selector, modifier, FindOneAndUpdateOptions().upsert(true))
+      .toFutureOption()
       .map { _ =>
         Right(approvalProcess.id)
       }
       //$COVERAGE-OFF$
       .recover {
-        case e: JsResultException if hasDupeKeyViolation(e) =>
-          logger.error(s"Attempt to persist approval process ${approvalProcess.id} with duplicate processCode : ${approvalProcess.meta.processCode}")
+        case ex: MongoCommandException if ex.getErrorCode == 11000 =>
+          logger.error(s"Attempt to persist approval process ${approvalProcess.id} with duplicate processCode: ${approvalProcess.meta.processCode}")
           Left(DuplicateKeyError)
-        case error =>
-          logger.error(s"Attempt to persist process ${approvalProcess.id} to collection $collectionName failed with error : ${error.getMessage}")
+        case ex =>
+          logger.error(s"Attempt to persist process ${approvalProcess.id} to collection $collectionName failed with error : ${ex.getMessage}")
           Left(DatabaseError)
       }
     //$COVERAGE-ON$
   }
 
   def getById(id: String): Future[RequestOutcome[ApprovalProcess]] =
-    findById(id)
+    collection
+      .find(equal("_id", id))
+      .headOption()
       .map {
-        case Some(approvalProcess) => Right(approvalProcess)
         case None => Left(NotFoundError)
+        case Some(approvalProcess) => Right(approvalProcess)
       }
       //$COVERAGE-OFF$
       .recover {
@@ -105,11 +109,11 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
 
   def getByProcessCode(processCode: String): Future[RequestOutcome[ApprovalProcess]] =
     collection
-      .find[JsObject, JsObject](Json.obj("meta.processCode" -> processCode))
-      .one[ApprovalProcess]
+      .find(equal("meta.processCode", processCode))
+      .headOption()
       .map {
-        case Some(approvalProcess) => Right(approvalProcess)
         case None => Left(NotFoundError)
+        case Some(approvalProcess) => Right(approvalProcess)
       }
       //$COVERAGE-OFF$
       .recover {
@@ -120,30 +124,26 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
     //$COVERAGE-ON$
 
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]] = {
+    val TwoEyeRestriction = equal("meta.reviewType", Constants.ReviewType2i)
+    val FactCheckRestriction = equal("meta.reviewType", Constants.ReviewTypeFactCheck)
 
-    val restrictions: List[JsObject] = roles.flatMap {
+    val restrictions  = roles.flatMap {
       case appConfig.twoEyeReviewerRole => List(TwoEyeRestriction)
       case appConfig.factCheckerRole => List(FactCheckRestriction)
       case appConfig.designerRole => List(FactCheckRestriction, TwoEyeRestriction)
       case _ => Nil
     }.distinct
 
-    val selector = Json.obj("$or" -> restrictions)
-    val projection = Some(Json.obj("meta" -> 1, "process.meta.id" -> 1))
-
     collection
-      .find(
-        selector,
-        projection
-      )
-      .cursor[ApprovalProcess](ReadPreference.primaryPreferred)
-      .collect(maxDocs = -1, FailOnError[List[ApprovalProcess]]())
+      .withReadPreference(ReadPreference.primaryPreferred)
+      .find(or(restrictions.toArray: _*))
+      .projection(fields(include("meta", "process.meta.id"), excludeId()))
+      .collect.toFutureOption
       .map {
-        _.map { doc =>
-          ApprovalProcessSummary(doc.meta.id, doc.meta.title, doc.meta.dateSubmitted, doc.meta.status, doc.meta.reviewType)
-        }
+        case None => Right(Nil)
+        case Some(approvals) =>
+          Right(approvals.map(doc => ApprovalProcessSummary(doc.meta.id, doc.meta.title, doc.meta.dateSubmitted, doc.meta.status, doc.meta.reviewType)).toList)
       }
-      .map(list => Right(list))
       //$COVERAGE-OFF$
       .recover {
         case error =>
@@ -157,18 +157,17 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
   def changeStatus(id: String, status: String, user: String): Future[RequestOutcome[Unit]] = {
 
     logger.warn(s"updating status of process $id to $status to collection $collectionName")
-    val selector = Json.obj("_id" -> id)
-    val modifier = Json.obj("$set" -> Json.obj("meta.status" -> status, "meta.updateUser" -> user, "meta.lastModified" ->ZonedDateTime.now))
+    val selector = equal("_id", id)
+    val modifier = combine(set("meta.status", status), set("meta.updateUser", user), set("meta.lastModified", Codecs.toBson(ZonedDateTime.now)))
 
-    this
-      .findAndUpdate(selector, modifier)
-      .map { result =>
-        if (result.result[ApprovalProcess].isDefined) {
-          Right(())
-        } else {
+    collection
+      .findOneAndUpdate(selector, modifier)
+      .toFutureOption
+      .map {
+        _.fold[RequestOutcome[Unit]]{
           logger.error(s"Invalid Request - could not find process $id")
           Left(NotFoundError)
-        }
+        }( _ => Right(()))
       }
       .recover {
         case error =>
@@ -180,15 +179,17 @@ class ApprovalRepositoryImpl @Inject() (implicit mongoComponent: ReactiveMongoCo
 
   //$COVERAGE-OFF$
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]] =
-    collection.find(TimescalesInUseQuery, projection = Option.empty[JsObject])
-      .cursor[ApprovalProcess](ReadPreference.primaryPreferred)
-      .collect(maxDocs = -1, FailOnError[List[ApprovalProcess]]())
-      .map{ list =>
-        Right(list.flatMap(pps => pps.process.validate[Process].fold(_ => Nil, p => p.timescales.keys.toList)).distinct)
+    collection
+      .withReadPreference(ReadPreference.primaryPreferred)
+      .find(TimescalesInUseQuery)
+      .collect.toFutureOption()
+      .map{
+        case None => Right(Nil)
+        case Some(ids) => Right(ids.flatMap(pps => pps.process.validate[Process].fold(_ => Nil, p => p.timescales.keys.toList)).distinct.toList)
       }
       .recover{
         case error =>
-          logger.error(s"Listing timescales used in the published processes failed with error : ${error.getMessage}")
+          logger.error(s"Listing timescales used in the approval processes failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
       //$COVERAGE-ON$

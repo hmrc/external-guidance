@@ -17,16 +17,14 @@
 package repositories.formatters
 
 import java.time.{LocalDate, ZonedDateTime}
-import core.models.MongoDateTimeFormats
 import models.ApprovalProcessMeta
+import core.models.MongoDateTimeFormats.Implicits._
 import play.api.libs.json._
+
 
 object ApprovalProcessMetaFormatter {
 
-  implicit val dateFormat: Format[LocalDate] = MongoDateTimeFormats.localDateFormats
-  implicit val dateTimeFormat: Format[ZonedDateTime] = MongoDateTimeFormats.zonedDateTimeFormats
-
-  val read: JsValue => JsResult[ApprovalProcessMeta] = json =>
+  implicit val read: JsValue => JsResult[ApprovalProcessMeta] = json =>
     for {
       id <- (json \ "id").validate[String]
       status <- (json \ "status").validate[String]
@@ -49,7 +47,7 @@ object ApprovalProcessMetaFormatter {
       processCode
     )
 
-  val write: ApprovalProcessMeta => JsObject = meta =>
+  implicit val write: ApprovalProcessMeta => JsObject = meta =>
     Json.obj(
       "id" -> meta.id,
       "status" -> meta.status,

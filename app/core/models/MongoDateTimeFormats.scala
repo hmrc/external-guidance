@@ -16,25 +16,46 @@
 
 package core.models
 
-import java.time.{Instant, LocalDate, ZonedDateTime}
+import java.time.{ZonedDateTime, LocalDateTime, ZoneOffset, Instant, LocalDate}
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 import play.api.libs.json._
 
 trait MongoDateTimeFormats {
-
   val localZoneID = ZonedDateTime.now.getZone
 
-  implicit val localDateRead: Reads[LocalDate] = (__ \ "$date").read[Long].map(mi => Instant.ofEpochMilli(mi).atZone(localZoneID).toLocalDate)
-  implicit val localDateWrite: Writes[LocalDate] = (dte: LocalDate) => Json.obj("$date" -> dte.atStartOfDay(localZoneID).toInstant.toEpochMilli)
-  implicit val localDateFormats: Format[LocalDate] = Format(localDateRead, localDateWrite)
+  final val zonedDateTimeReads: Reads[ZonedDateTime] =
+    Reads.at[String](__ \ "$date" \ "$numberLong")
+      .map(dateTime => Instant.ofEpochMilli(dateTime.toLong).atZone(localZoneID))
 
-  implicit val zonedDateTimeRead: Reads[ZonedDateTime] =(__ \ "$date").read[Long].map(mi => Instant.ofEpochMilli(mi).atZone(localZoneID))
-  implicit val zonedDateTimeWrite: Writes[ZonedDateTime] = (zdt: ZonedDateTime) => Json.obj("$date" -> zdt.toInstant.toEpochMilli)
-  implicit val zonedDateTimeFormats: Format[ZonedDateTime] = Format(zonedDateTimeRead, zonedDateTimeWrite)
+  final val zonedDateTimeWrites: Writes[ZonedDateTime] =
+    Writes.at[String](__ \ "$date" \ "$numberLong")
+      .contramap(_.toInstant.toEpochMilli.toString)
 
-  implicit val instantRead: Reads[Instant] =(__ \ "$date").read[Long].map(mi => Instant.ofEpochMilli(mi))
-  implicit val instantWrite: Writes[Instant] = (i: Instant) => Json.obj("$date" -> i.toEpochMilli)
-  implicit val instantFormats: Format[Instant] = Format(instantRead, instantWrite)
+  final val zonedDateTimeFormat: Format[ZonedDateTime] =
+    Format(zonedDateTimeReads, zonedDateTimeWrites)
 
+  final val tolerantLocalDateReads: Reads[LocalDate] = (js: JsValue) =>
+    (js \ "$date" \ "$numberLong").validate[String] match {
+      case err @ JsError(_) =>
+        // Fall back to try and read date as string
+        (js).validate[String] match {
+          case err2 @ JsError(_) => err2
+          case res2 @ JsSuccess(dt, pth) => JsSuccess(LocalDate.parse(dt), pth)
+        }
+      case JsSuccess(dt, pth) => JsSuccess(Instant.ofEpochMilli(dt.toLong).atZone(ZoneOffset.UTC).toLocalDate, pth)
+      }
+
+  final val tolerantLocalDateFormat: Format[LocalDate] =
+    Format(tolerantLocalDateReads, MongoJavatimeFormats.localDateWrites)
+
+  trait Implicits {
+    implicit val mdInstantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
+    implicit val mdLocalDateTimeFormat: Format[LocalDateTime] = MongoJavatimeFormats.localDateTimeFormat
+    implicit val mdLocalDateFormat: Format[LocalDate] = tolerantLocalDateFormat
+    implicit val mdZonedDateTimeFormat: Format[ZonedDateTime] = zonedDateTimeFormat
+  }
+
+  object Implicits extends Implicits
 }
 
 object MongoDateTimeFormats extends MongoDateTimeFormats
