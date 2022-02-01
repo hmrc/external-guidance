@@ -81,6 +81,10 @@ sealed trait Operation {
         evalNumericOp(l, r).fold(labels)(result => labels.update(label, result))
       case (Some(DateOperand(l)), Some(DateOperand(r))) =>
         evalDateOp(l, r).fold(labels)(result => labels.update(label, result))
+      case (Some(DateOperand(l)), Some(TimePeriodOperand(r))) =>
+        evalDateTimePeriod(l,r).fold(labels)(result => labels.update(label, result))
+      case (Some(DateOperand(l)), Some(NumericOperand(r))) =>
+        evalDateTimePeriod(l, TimePeriod(r.toInt, Day)).fold(labels)(result => labels.update(label, result))
       case (Some(StringOperand(l)), Some(StringOperand(r))) =>
         evalStringOp(l, r).fold(labels)(result => labels.update(label, result))
       case (Some(StringCollection(l)), Some(StringCollection(r))) =>
@@ -89,8 +93,6 @@ sealed trait Operation {
         evalCollectionScalarOp(l, r.toString).fold(labels)(result => labels.updateList(label, result))
       case (Some(l: Scalar[_]), Some(StringCollection(r))) =>
         evalScalarCollectionOp(l.toString, r).fold(labels)(result => labels.updateList(label, result))
-      case (Some(DateOperand(l)), Some(TimePeriodOperand(r))) =>
-        evalDateTimePeriod(l,r).fold(labels)(result => labels.update(label, result))//TODO Add the new eval here
       case (Some(l: Operand[_]), Some(r: Operand[_])) => // No typed op, fall back to String, String op
         evalStringOp(l.toString, r.toString).fold(labels)(result => labels.update(label, result))
       case _ => unsupported("",""); labels

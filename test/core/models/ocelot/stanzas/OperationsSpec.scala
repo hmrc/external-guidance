@@ -78,6 +78,11 @@ class OperationsSpec extends BaseSpec {
 
       labels.value("Answer") shouldBe Some("20/2/2018-Universe")
     }
+    "correctly sum date and a numeric as a TimePeriod" in {
+      val labels = AddOperation(stringFromDate(aDate), "3", "Answer").eval(LabelCache())
+
+      labels.value("Answer") shouldBe Some("23/2/2018")
+    }
     "correctly sum string and date" in {
       val labels = AddOperation("Hello-", stringFromDate(aDate), "Answer").eval(LabelCache())
 
@@ -104,6 +109,11 @@ class OperationsSpec extends BaseSpec {
       val labels = SubtractOperation(stringFromDate(aDate), "4day", "Answer").eval(LabelCache())
 
       labels.value("Answer") shouldBe Some("16/2/2018")
+    }
+    "correctly subtract a numeric as a TimePeriod in days from a date" in {
+      val labels = SubtractOperation(stringFromDate(aDate), "3", "Answer").eval(LabelCache())
+
+      labels.value("Answer") shouldBe Some("17/2/2018")
     }
     "correctly subtract two numbers" in {
       val labels = SubtractOperation("32", "65", "Answer").eval(LabelCache())
