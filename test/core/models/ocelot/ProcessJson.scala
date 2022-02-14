@@ -778,8 +778,9 @@ trait ProcessJson {
 
   val metaSection = Json.parse(prototypeMetaSection).as[Meta]
 
+  val blankValueStanzaID: String = "19999"
   val prototypeFlowSection: String =
-    """
+    s"""
       {
       "45": {
         "next": [
@@ -2049,11 +2050,25 @@ trait ProcessJson {
       },
       "start": {
         "next": [
-          "160"
+          "$blankValueStanzaID"
         ],
         "stack": false,
         "type": "PageStanza",
         "url": "/start"
+      },
+      "$blankValueStanzaID": {
+        "type": "ValueStanza",
+        "values": [
+          {
+            "type": "scalar",
+            "label": "Blank",
+            "value": ""
+          }
+        ],
+        "next": [
+          "160"
+        ],
+        "stack": false
       },
       "129": {
         "next": [

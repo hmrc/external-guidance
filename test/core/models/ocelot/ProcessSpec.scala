@@ -18,7 +18,7 @@ package core.models.ocelot
 
 import base.BaseSpec
 import play.api.libs.json._
-import core.models.ocelot.stanzas.Stanza
+import core.models.ocelot.stanzas.{ValueStanza, Stanza, Value, ScalarType}
 
 class ProcessSpec extends BaseSpec with ProcessJson {
 
@@ -72,4 +72,34 @@ class ProcessSpec extends BaseSpec with ProcessJson {
       process.linkOption(ten) shouldBe None
     }
   }
+
+  "Beta phase banner" must {
+
+    "Be disabled by default" in {
+      Process(meta, flow, phrases, links).betaPhaseBanner shouldBe false
+    }
+
+    "Be enabled when process contains a Value named _BetaPhaseBanner and set to yes" in {
+      //case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase], links: Vector[Link], timescales: Map[String, Int] = Map())
+      val newValueStanza = flow(blankValueStanzaID) match {
+        case v: ValueStanza => v.copy(values = List(Value(ScalarType, s"${Process.PhaseBannerPhase}", "Yes")))
+        case _ => fail
+      }
+      val newFlow = flow + (blankValueStanzaID -> newValueStanza)
+      Process(meta, newFlow, phrases, links).betaPhaseBanner shouldBe true
+
+    }
+
+    "Be disabled when process contains a Value named _BetaPhaseBanner and set to a value other than yes" in {
+      //case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase], links: Vector[Link], timescales: Map[String, Int] = Map())
+      val newValueStanza = flow(blankValueStanzaID) match {
+        case v: ValueStanza => v.copy(values = List(Value(ScalarType, s"${Process.PhaseBannerPhase}", "no")))
+        case _ => fail
+      }
+      val newFlow = flow + (blankValueStanzaID -> newValueStanza)
+      Process(meta, newFlow, phrases, links).betaPhaseBanner shouldBe false
+
+    }
+  }
+
 }
