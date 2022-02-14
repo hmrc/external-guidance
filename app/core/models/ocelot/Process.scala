@@ -41,9 +41,14 @@ case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase
   lazy val valueStanzaPassPhrase: Option[String] = flow.values
       .collect{case vs: ValueStanza => vs.values}.flatten
       .collectFirst{case Value(_, PassPhraseLabelName, value) => value}
+  lazy val betaPhaseBanner: Boolean = flow.values
+      .collect{case vs: ValueStanza => vs.values}.flatten
+      .collectFirst{case Value(_, PhaseBannerPhase, value) => value}
+      .exists(_.toUpperCase().equals("YES"))
 }
 
 object Process {
+  val PhaseBannerPhase = "_BetaPhaseBanner"
   val StartStanzaId = "start"
   val EndStanzaId = "end"
   val SessionTimeoutUrl = "session-timeout"
