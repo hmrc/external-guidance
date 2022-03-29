@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package repositories.formatters
+package models
 
 import java.time.ZonedDateTime
 
 import base.BaseSpec
-import models.PublishedProcess
 import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
 import models.PublishedProcess.MongoImplicits._
 import core.models.MongoDateTimeFormats.localZoneID

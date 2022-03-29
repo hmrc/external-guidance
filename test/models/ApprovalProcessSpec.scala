@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package repositories.formatters
+package models
 
 import base.BaseSpec
-import models.{ApprovalProcess, ApprovalProcessJson}
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 
 class ApprovalProcessSpec extends BaseSpec with ApprovalProcessJson {

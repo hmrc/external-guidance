@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package repositories.formatters
+package models
 
 import java.time.{LocalDate, ZonedDateTime}
 
 import base.BaseSpec
-import models.{ApprovalProcessJson, ApprovalProcessMeta}
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import models.ApprovalProcessMeta.mongoFormat
 import models.Constants._

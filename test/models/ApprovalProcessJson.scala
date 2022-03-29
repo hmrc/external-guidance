@@ -195,6 +195,16 @@ trait ApprovalProcessJson {
 
   val validApprovalProcessReviewJson: JsObject = Json.parse(review).as[JsObject]
 
+  val review2: String =
+    s"""
+      |{
+      | "_id" : "$validReviewId",
+      | $reviewBody2
+      |}
+    """.stripMargin
+
+  val validApprovalProcessReviewJson2: JsObject = Json.parse(review2).as[JsObject]
+
   val reviewWithoutId: String =
     s"""
        |{
