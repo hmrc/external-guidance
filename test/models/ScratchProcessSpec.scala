@@ -25,7 +25,7 @@ import java.time.{ZonedDateTime, Instant}
 import core.models.MongoDateTimeFormats.localZoneID
 import play.api.libs.json.JsError
 
-class ScratchProcessFormatterSpec extends BaseSpec {
+class ScratchProcessSpec extends BaseSpec {
 
   private val id = "3475e5c5-343d-4214-9efc-58270867214c"
   val milliseconds: Long = 1586450476247L
@@ -36,7 +36,7 @@ class ScratchProcessFormatterSpec extends BaseSpec {
 
   "Formatting a valid JSON payload to a ScratchProcess" should {
     "result in a successful conversion" in {
-      json.validate[ScratchProcess](ScratchProcessFormatter.mongoFormat) match {
+      json.validate[ScratchProcess](ScratchProcess.mongoFormat) match {
         case JsSuccess(result, _) if result == process => succeed
         case JsSuccess(result, _) =>
           fail("JSON parsed with incorrect values")
@@ -48,7 +48,7 @@ class ScratchProcessFormatterSpec extends BaseSpec {
 
   "Serialising a ScratchProcess to JSON" should {
     "result in the correct JSON" in {
-      val result = Json.toJson(process)(ScratchProcessFormatter.mongoFormat)
+      val result = Json.toJson(process)(ScratchProcess.mongoFormat)
       result shouldBe json
     }
   }

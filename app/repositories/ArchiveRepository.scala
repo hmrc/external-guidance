@@ -20,8 +20,6 @@ import core.models.RequestOutcome
 import core.models.errors.DatabaseError
 import models.PublishedProcess
 import play.api.Logger
-import repositories.formatters.PublishedProcessFormatter
-
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Sorts._
@@ -45,7 +43,7 @@ class ArchiveRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: Execu
     extends PlayMongoRepository[PublishedProcess](
       collectionName = "archivedProcesses",
       mongoComponent = mongo,
-      domainFormat = PublishedProcessFormatter.mongoFormat,
+      domainFormat = PublishedProcess.mongoFormat,
       indexes = Seq(IndexModel(ascending("processCode"),
                                IndexOptions()
                                 .name("archived-secondary-Index-process-code")

@@ -31,7 +31,7 @@ import play.api.libs.json.{JsArray, JsObject, JsValue, Json, OFormat}
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import repositories.formatters.ApprovalProcessFormatter
+import models.ApprovalProcess
 import core.models.errors.ProcessError.toProcessErr
 import models.Constants._
 
@@ -365,7 +365,7 @@ class ApprovalControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppP
 
       "confirm returned content is a JSON object" in new ValidGetTest {
         private val result = controller.get(validId)(request)
-        val processReturned: ApprovalProcess = contentAsJson(result).as[ApprovalProcess](ApprovalProcessFormatter.mongoFormat)
+        val processReturned: ApprovalProcess = contentAsJson(result).as[ApprovalProcess](ApprovalProcess.mongoFormat)
         processReturned.id shouldBe approvalProcess.id
       }
     }
@@ -483,7 +483,7 @@ class ApprovalControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppP
 
       "confirm returned content is a JSON object" in new ValidGetTest {
         private val result = controller.getByProcessCode(validId)(request)
-        val processReturned: ApprovalProcess = contentAsJson(result).as[ApprovalProcess](ApprovalProcessFormatter.mongoFormat)
+        val processReturned: ApprovalProcess = contentAsJson(result).as[ApprovalProcess](ApprovalProcess.mongoFormat)
         processReturned shouldBe approvalProcess
       }
     }

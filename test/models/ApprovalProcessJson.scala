@@ -166,6 +166,25 @@ trait ApprovalProcessJson {
        |	]
     """.stripMargin
 
+  val reviewBody2: String =
+    s"""
+       |  "ocelotId" : "$validId",
+       |  "version" : 5,
+       |  "reviewType" : "$ReviewTypeFactCheck",
+       |  "title" : "Customer wants to make a cup of tea",
+       |  "lastUpdated" : "2020-05-29",
+       |  "pages" : [
+       |    {
+       |      "id" : "1",
+       |      "pageUrl" : "/feeling-bad",
+       |      "pageTitle" : "title",
+       |      "status" : "$InitialPageReviewStatus",
+       |      "updateDate" : {"$$date": {"$$numberLong":"1590760487000"}}
+       |    }
+       |  ]
+    """.stripMargin
+
+
   val review: String =
     s"""
       |{
@@ -194,7 +213,7 @@ trait ApprovalProcessJson {
       "Title",
       List(ApprovalProcessPageReview("id", "url", "pageUrl")),
       LocalDate.now(),
-      ReviewCompleteStatus,
+      Some(ReviewCompleteStatus),
       Some(ZonedDateTime.now())
     )
 }

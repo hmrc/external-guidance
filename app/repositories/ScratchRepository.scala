@@ -23,7 +23,6 @@ import core.models.errors.{DatabaseError, NotFoundError}
 import core.models.RequestOutcome
 import models.ScratchProcess
 import play.api.libs.json.JsObject
-import repositories.formatters.ScratchProcessFormatter
 import config.AppConfig
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -48,7 +47,7 @@ class ScratchRepositoryImpl @Inject() (component: MongoComponent, appConfig: App
     extends PlayMongoRepository[ScratchProcess](
       collectionName = "scratchProcesses",
       mongoComponent = component,
-      domainFormat = ScratchProcessFormatter.mongoFormat,
+      domainFormat = ScratchProcess.mongoFormat,
       indexes = Seq(IndexModel(ascending("expireAt"),
                                IndexOptions()
                                 .name("expiryIndex")

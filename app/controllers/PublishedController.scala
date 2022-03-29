@@ -33,6 +33,7 @@ class PublishedController @Inject() (publishedService: PublishedService,
                                      cc: ControllerComponents,
                                      identify: AllRolesAction) extends BackendController(cc) {
   import Json._
+  import models.PublishedProcess.Implicits._
 
   def get(id: String): Action[AnyContent] = Action.async {
     publishedService.getById(id).map {

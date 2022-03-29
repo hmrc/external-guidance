@@ -20,9 +20,9 @@ import base.BaseSpec
 import models.{ApprovalProcess, ApprovalProcessJson}
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 
-class ApprovalProcessFormatterSpec extends BaseSpec with ApprovalProcessJson {
+class ApprovalProcessSpec extends BaseSpec with ApprovalProcessJson {
 
-  import repositories.formatters.ApprovalProcessFormatter.mongoFormat
+  import models.ApprovalProcess.mongoFormat
 
   private val invalidJson = Json.parse("{}")
 

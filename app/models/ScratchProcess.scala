@@ -19,5 +19,29 @@ package models
 import java.util.UUID
 import java.time.ZonedDateTime
 import play.api.libs.json.JsObject
+import java.util.UUID
+import java.time.ZonedDateTime
+import play.api.libs.json.{Reads, OWrites, JsObject, Format, __}
+import play.api.libs.functional.syntax._
+import core.models.MongoDateTimeFormats.Implicits._
+import uk.gov.hmrc.mongo.play.json.formats.MongoUuidFormats.Implicits.uuidFormat
 
 case class ScratchProcess(id: UUID, process: JsObject, expireAt: ZonedDateTime)
+
+object ScratchProcess {
+
+  val reads: Reads[ScratchProcess] = (
+    (__ \ "_id").read[UUID] and
+      (__ \ "process").read[JsObject] and
+      (__ \ "expireAt").read[ZonedDateTime]
+  )(ScratchProcess.apply _)
+
+  val writes: OWrites[ScratchProcess] = (
+    (__ \ "_id").write[UUID] and
+      (__ \ "process").write[JsObject] and
+      (__ \ "expireAt").write[ZonedDateTime]
+  )(unlift(ScratchProcess.unapply))
+
+  val mongoFormat: Format[ScratchProcess] = Format(reads, writes)
+}
+

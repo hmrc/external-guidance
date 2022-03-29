@@ -29,9 +29,9 @@ import org.mongodb.scala.model.Projections._
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import repositories.formatters.ApprovalProcessFormatter
-import repositories.formatters.ApprovalProcessMetaFormatter
-import repositories.formatters.ApprovalProcessMetaFormatter.mongoFormat
+import models.ApprovalProcess
+import models.ApprovalProcessMeta
+import models.ApprovalProcessMeta.mongoFormat
 import core.models.ocelot.Process
 import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
@@ -53,12 +53,12 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
   PlayMongoRepository[ApprovalProcess](
       mongoComponent = component,
       collectionName = "approvalProcesses",
-      domainFormat = ApprovalProcessFormatter.mongoFormat,
+      domainFormat = ApprovalProcess.mongoFormat,
       indexes = Seq(IndexModel(ascending("meta.processCode"),
                                IndexOptions()
                                 .name("approval-secondary-Index-process-code")
                                 .unique(true))),
-      extraCodecs = Seq(Codecs.playFormatCodec(ApprovalProcessMetaFormatter.mongoFormat),
+      extraCodecs = Seq(Codecs.playFormatCodec(ApprovalProcessMeta.mongoFormat),
                         Codecs.playFormatCodec(zonedDateTimeFormat)),
       replaceIndexes = true
     )

@@ -20,8 +20,6 @@ import javax.inject.{Inject, Singleton}
 import core.models.errors.DatabaseError
 import core.models.RequestOutcome
 import models.PublishedProcess
-
-import repositories.formatters.PublishedProcessFormatter
 import play.api.Logger
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
@@ -35,7 +33,7 @@ class PublishedRepository @Inject() (component: MongoComponent)
     extends PlayMongoRepository[PublishedProcess](
       collectionName = "publishedProcesses",
       mongoComponent = component,
-      domainFormat = PublishedProcessFormatter.mongoFormat,
+      domainFormat = PublishedProcess.mongoFormat,
       indexes = Seq.empty
     ) {
 
