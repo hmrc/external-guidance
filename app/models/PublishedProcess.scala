@@ -17,14 +17,51 @@
 package models
 
 import java.time.ZonedDateTime
-import play.api.libs.json.{JsObject, Json, OFormat}
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
 
 case class PublishedProcess(id: String, version: Int, datePublished: ZonedDateTime, process: JsObject, publishedBy: String, processCode: String)
 case class PublishedSummary(id: String, datePublished: ZonedDateTime, processCode: String, publishedBy: String)
 
-object PublishedProcess {
-  implicit val formats: OFormat[PublishedProcess] = Json.format[PublishedProcess]
+trait PublishedProcessFormats {
+  val standardformat: Format[PublishedProcess] = Json.format[PublishedProcess]
+
+  import core.models.MongoDateTimeFormats.Implicits._
+
+  val reads: Reads[PublishedProcess] = (
+    (__ \ "_id").read[String] and
+      (__ \ "version").read[Int] and
+      (__ \ "datePublished").read[ZonedDateTime] and
+      (__ \ "process").read[JsObject] and
+      (__ \ "publishedBy").read[String] and
+      (__ \ "processCode").read[String]
+  )(PublishedProcess.apply _)
+
+  val writes: OWrites[PublishedProcess] = (
+    (__ \ "_id").write[String] and
+      (__ \ "version").write[Int] and
+      (__ \ "datePublished").write[ZonedDateTime] and
+      (__ \ "process").write[JsObject] and
+      (__ \ "publishedBy").write[String] and
+      (__ \ "processCode").write[String]
+  )(unlift(PublishedProcess.unapply))
+
+  val mongoFormat: Format[PublishedProcess] = Format(reads, writes)
+
+  trait Implicits {
+    implicit val ppformats: Format[PublishedProcess] = standardformat
+  }
+
+  trait MongoImplicits {
+    implicit val formats: Format[PublishedProcess] = mongoFormat
+  }
+
+  object Implicits extends Implicits
+  object MongoImplicits extends MongoImplicits
 }
+
+object PublishedProcess extends PublishedProcessFormats
+
 object PublishedSummary {
   implicit val formats: OFormat[PublishedSummary] = Json.format[PublishedSummary]
 }

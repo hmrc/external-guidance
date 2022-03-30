@@ -26,8 +26,6 @@ import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
 import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-import repositories.formatters.ApprovalProcessReviewFormatter
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -36,7 +34,7 @@ class ApprovalProcessReviewRepository @Inject() (implicit component: MongoCompon
     extends PlayMongoRepository[ApprovalProcessReview](
       collectionName = "approvalProcessReviews",
       mongoComponent = component,
-      domainFormat = ApprovalProcessReviewFormatter.mongoFormat,
+      domainFormat = ApprovalProcessReview.mongoFormat,
       indexes = Seq.empty
     ) {
 

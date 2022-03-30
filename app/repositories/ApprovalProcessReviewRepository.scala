@@ -25,7 +25,6 @@ import core.models.RequestOutcome
 import models.{ApprovalProcessPageReview, ApprovalProcessReview}
 import play.api.Logger
 import core.models.MongoDateTimeFormats.Implicits._
-import repositories.formatters.ApprovalProcessReviewFormatter
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Sorts._
@@ -36,6 +35,7 @@ import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import org.mongodb.scala.result.InsertOneResult
+import org.mongodb.scala.bson.conversions.Bson
 
 trait ApprovalProcessReviewRepository {
   def save(review: ApprovalProcessReview): Future[RequestOutcome[UUID]]
@@ -49,12 +49,13 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoCompon
     extends PlayMongoRepository[ApprovalProcessReview](
       mongoComponent = mongo,
       collectionName = "approvalProcessReviews",
-      domainFormat = ApprovalProcessReviewFormatter.mongoFormat,
+      domainFormat = ApprovalProcessReview.mongoFormat,
       indexes = Seq(IndexModel(ascending("ocelotId", "version", "reviewType"),
                                IndexOptions()
                                 .name("review-secondary-Index")
                                 .unique(true))),
-      extraCodecs = Seq(Codecs.playFormatCodec(mdZonedDateTimeFormat)),
+      extraCodecs = Seq(Codecs.playFormatCodec(mdZonedDateTimeFormat),
+                        Codecs.playFormatCodec(ApprovalProcessPageReview.mongoFormat)),
       replaceIndexes = true
     )
     with ApprovalProcessReviewRepository {
@@ -100,11 +101,10 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoCompon
                        equal("reviewType", reviewType),
                        equal("pages.pageUrl", pageUrl))
     val modifier = combine(
-      set("pages.$.result", reviewInfo.result.getOrElse("")),
-      set("pages.$.status",reviewInfo.status),
-      set("pages.$.comment",reviewInfo.comment.getOrElse("")),
-      set("pages.$.updateUser", reviewInfo.updateUser.getOrElse("")),
-      set("pages.$.updateDate", Codecs.toBson(ZonedDateTime.now))
+      Vector(set("pages.$.status",reviewInfo.status), set("pages.$.updateDate", Codecs.toBson(ZonedDateTime.now))) ++
+      reviewInfo.result.fold[Vector[Bson]](Vector())(r => Vector(set("pages.$.result", r))) ++
+      reviewInfo.comment.fold[Vector[Bson]](Vector())(c => Vector(set("pages.$.comment", c))) ++
+      reviewInfo.updateUser.fold[Vector[Bson]](Vector())(u => Vector(set("pages.$.updateUser", u))): _*
     )
 
     collection

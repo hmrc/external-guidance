@@ -23,7 +23,6 @@ import core.models.RequestOutcome
 import core.models.ocelot.Process
 import models.{PublishedSummary, PublishedProcess}
 import play.api.libs.json.JsObject
-import repositories.formatters.PublishedProcessFormatter
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.Logger
 import org.mongodb.scala._
@@ -51,7 +50,7 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
     extends PlayMongoRepository[PublishedProcess](
       collectionName = "publishedProcesses",
       mongoComponent = component,
-      domainFormat = PublishedProcessFormatter.mongoFormat,
+      domainFormat = PublishedProcess.mongoFormat,
       indexes = Seq(IndexModel(ascending("processCode"),
                                IndexOptions()
                                 .name("published-secondary-Index-process-code")

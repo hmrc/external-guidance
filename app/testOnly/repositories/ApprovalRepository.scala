@@ -21,7 +21,7 @@ import core.models.errors.DatabaseError
 import core.models.RequestOutcome
 import models.ApprovalProcess
 import play.api.Logger
-import repositories.formatters.ApprovalProcessFormatter
+import models.ApprovalProcess
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
 import uk.gov.hmrc.mongo._
@@ -34,7 +34,7 @@ class ApprovalRepository @Inject() (component: MongoComponent)
     extends PlayMongoRepository[ApprovalProcess](
       collectionName = "approvalProcesses",
       mongoComponent = component,
-      domainFormat = ApprovalProcessFormatter.mongoFormat,
+      domainFormat = ApprovalProcess.mongoFormat,
       indexes = Seq.empty
     ) {
 

@@ -17,7 +17,8 @@
 package models
 
 import java.time.ZonedDateTime
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{Json, OFormat, OWrites, Reads, __}
 
 case class ApprovalProcessPageReview(
     id: String,
@@ -31,5 +32,31 @@ case class ApprovalProcessPageReview(
 )
 
 object ApprovalProcessPageReview {
-  implicit val formats: OFormat[ApprovalProcessPageReview] = Json.format[ApprovalProcessPageReview]
+  implicit val httpFormat: OFormat[ApprovalProcessPageReview] = Json.format[ApprovalProcessPageReview]
+
+  import core.models.MongoDateTimeFormats.Implicits._
+
+  val reads: Reads[ApprovalProcessPageReview] = (
+    (__ \ "id").read[String] and
+      (__ \ "pageUrl").read[String] and
+      (__ \ "pageTitle").read[String] and
+      (__ \ "result").readNullable[String] and
+      (__ \ "status").read[String] and
+      (__ \ "comment").readNullable[String] and
+      (__ \ "updateDate").read[ZonedDateTime] and
+      (__ \ "updateUser").readNullable[String]
+  )(ApprovalProcessPageReview.apply _)
+
+  val writes: OWrites[ApprovalProcessPageReview] = (
+    (__ \ "id").write[String] and
+      (__ \ "pageUrl").write[String] and
+      (__ \ "pageTitle").write[String] and
+      (__ \ "result").writeNullable[String] and
+      (__ \ "status").write[String] and
+      (__ \ "comment").writeNullable[String] and
+      (__ \ "updateDate").write[ZonedDateTime] and
+      (__ \ "updateUser").writeNullable[String]
+  )(unlift(ApprovalProcessPageReview.unapply))
+
+  val mongoFormat: OFormat[ApprovalProcessPageReview] = OFormat(reads, writes)
 }

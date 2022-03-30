@@ -16,6 +16,31 @@
 
 package models
 
-import play.api.libs.json.JsObject
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
 
 case class ApprovalProcess(id: String, meta: ApprovalProcessMeta, process: JsObject, version: Int = 1)
+
+object ApprovalProcess {
+
+  implicit val metaFormat: Format[ApprovalProcessMeta] = ApprovalProcessMeta.mongoFormat
+
+  def build(id: Option[String], meta: ApprovalProcessMeta, process: JsObject, version: Option[Int]): ApprovalProcess =
+    ApprovalProcess(id.getOrElse(meta.id), meta, process, version.getOrElse(1))
+
+  val reads: Reads[ApprovalProcess] = (
+    (__ \ "_id").readNullable[String] and
+      (__ \ "meta").read[ApprovalProcessMeta] and
+      (__ \ "process").read[JsObject] and
+      (__ \ "version").readNullable[Int]
+  )(ApprovalProcess.build _)
+
+  val writes: OWrites[ApprovalProcess] = (
+    (__ \ "_id").write[String] and
+      (__ \ "meta").write[ApprovalProcessMeta] and
+      (__ \ "process").write[JsObject] and
+      (__ \ "version").write[Int]
+  )(unlift(ApprovalProcess.unapply))
+
+  implicit val mongoFormat: OFormat[ApprovalProcess] = OFormat(reads, writes)
+}

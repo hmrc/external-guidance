@@ -20,7 +20,6 @@ import javax.inject.{Inject, Singleton}
 import core.models.errors.DatabaseError
 import core.models.RequestOutcome
 import models.ScratchProcess
-import repositories.formatters.ScratchProcessFormatter
 import play.api.Logger
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
@@ -34,7 +33,7 @@ class ScratchRepository @Inject() (component: MongoComponent)
   extends PlayMongoRepository[ScratchProcess](
     collectionName = "scratchProcesses",
     mongoComponent = component,
-    domainFormat = ScratchProcessFormatter.mongoFormat,
+    domainFormat = ScratchProcess.mongoFormat,
     indexes = Seq.empty
   ) {
 

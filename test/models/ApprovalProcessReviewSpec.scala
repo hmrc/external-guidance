@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-package repositories.formatters
+package models
 
 import java.util.UUID
 
 import base.BaseSpec
-import models.{ApprovalProcessJson, ApprovalProcessReview}
 import play.api.libs.json._
-import repositories.formatters.ApprovalProcessReviewFormatter.mongoFormat
+import models.ApprovalProcessReview.mongoFormat
 
-class ApprovalProcessReviewFormatterSpec extends BaseSpec with ApprovalProcessJson {
+class ApprovalProcessReviewSpec extends BaseSpec with ApprovalProcessJson {
 
   private val invalidJson = Json.parse("{}")
 
   "Deserializing a JSON payload into an instance of ApprovalProcessReview" should {
 
-    "Result in a successful conversion for valid JSON" in {
-
+    "Result in a successful conversion for valid JSON with nulls" in {
       validApprovalProcessReviewJson.validate[ApprovalProcessReview] match {
         case JsSuccess(result, _) if result.id == UUID.fromString(validReviewId) => succeed
         case JsSuccess(_, _) => fail("Deserializing valid JSON did not create correct process")
@@ -38,10 +36,9 @@ class ApprovalProcessReviewFormatterSpec extends BaseSpec with ApprovalProcessJs
       }
     }
 
-    "Result in a successful conversion for valid JSON that does not have an _id" in {
-
-      validApprovalProcessReviewWithNoIdJson.validate[ApprovalProcessReview] match {
-        case JsSuccess(result, _) if result.ocelotId == validId => succeed
+    "Result in a successful conversion for valid JSON without nulls" in {
+      validApprovalProcessReviewJson2.validate[ApprovalProcessReview] match {
+        case JsSuccess(result, _) if result.id == UUID.fromString(validReviewId) => succeed
         case JsSuccess(_, _) => fail("Deserializing valid JSON did not create correct process")
         case JsError(err) => fail(s"Unable to parse valid Json: $err")
       }
