@@ -18,7 +18,7 @@ package core.models.ocelot.stanzas
 
 import java.time.LocalDate
 
-import core.models.ocelot.{asDecimal, asDate, Labels}
+import core.models.ocelot.{asNumeric, asDate, Labels}
 import core.models.ocelot.{operandValue, labelReferences, labelReference}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
@@ -77,7 +77,7 @@ sealed trait ChoiceTest {
     (asDate(x), asDate(y)) match {
       case (Some(ld1), Some(ld2)) => h(ld1, ld2)
       case _ =>
-        (asDecimal(x), asDecimal(y)) match {
+        (asNumeric(x), asNumeric(y)) match {
           case (Some(bd1), Some(bd2)) => f(bd1, bd2)
           case _ => g(x, y)
         }
@@ -121,7 +121,7 @@ case class ContainsTest(left: String, right: String) extends ChoiceTest {
           (asDate(el), asDate(y)) match {
             case (Some(ld1), Some(ld2)) => contains(ld1, ld2)
             case _ =>
-              (asDecimal(el), asDecimal(y)) match {
+              (asNumeric(el), asNumeric(y)) match {
                 case (Some(bd1), Some(bd2)) => contains(bd1, bd2)
                 case _ => contains(el.toString, y.toString)
               }

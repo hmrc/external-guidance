@@ -28,10 +28,12 @@ case class Value(valueType: ValueType, label: String, value: String)
 
 object Value {
 
+  private def build(valueType: ValueType, label: String, value: String): Value = Value(valueType, label.trim, value)
+
   implicit val reads: Reads[Value] =
     ((__ \ "type").read[ValueType] and
       (__ \ "label").read[String] and
-      (__ \ "value").read[String])(Value.apply _)
+      (__ \ "value").read[String])(build _)
 
   implicit val writes: Writes[Value] =
     (
@@ -39,7 +41,6 @@ object Value {
         (__ \ "label").write[String] and
         (__ \ "value").write[String]
     )(unlift(Value.unapply))
-
 }
 
 case class ValueStanza(values: List[Value], override val next: Seq[String], stack: Boolean) extends Stanza with Evaluate {
