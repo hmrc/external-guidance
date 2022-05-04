@@ -24,6 +24,59 @@ import play.api.i18n.Lang
 class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
   implicit val labels: Labels = new LabelCacheImpl(Map(), Map(), Nil, Map(), Map(), timescaleMap, message(Lang("en")))
 
+  "Numeric conversion" must {
+    "recognise a valid +ve int" in {
+      asNumeric("56789") shouldBe Some(BigDecimal(56789))
+    }
+    "recognise a valid -ve int" in {
+      asNumeric("-56789") shouldBe Some(BigDecimal(-56789))
+    }
+    "recognise a valid +ve float" in {
+      asNumeric("56789.32 462734628374602") shouldBe Some(BigDecimal("56789.32462734628374602"))
+    }
+    "recognise a valid -ve float" in {
+      asNumeric("-56789.32462734 628 374602") shouldBe Some(BigDecimal("-56789.32462734628374602"))
+    }
+    "return None for non-numerics" in {
+      asNumeric("dhjs") shouldBe None
+      asNumeric("") shouldBe None
+      asNumeric("£777") shouldBe None
+    }
+  }
+
+  "Currency conversion" must {
+    "recognise a valid +ve int currency" in {
+      asCurrency("567 89") shouldBe Some(BigDecimal("56789"))
+    }
+    "recognise a valid -ve int currency" in {
+      asCurrency("-56789") shouldBe Some(BigDecimal(-56789.00))
+    }
+    "recognise a valid +ve currency with pence" in {
+      asCurrency("56 789.78") shouldBe Some(BigDecimal(56789.78))
+    }
+    "recognise a valid -ve currency with pence" in {
+      asCurrency("-56789.67") shouldBe Some(BigDecimal(-56789.67))
+    }
+    "recognise a valid +ve int currency with £" in {
+      asCurrency("£56789") shouldBe Some(BigDecimal(56789.00))
+    }
+    "recognise a valid -ve int currency with £" in {
+      asCurrency("-£56789") shouldBe Some(BigDecimal(-56789.00))
+    }
+    "recognise a valid +ve currency with pence with £" in {
+      asCurrency("£56789.78") shouldBe Some(BigDecimal(56789.78))
+    }
+    "recognise a valid -ve currency with pence with £" in {
+      asCurrency("-£56789.67") shouldBe Some(BigDecimal(-56789.67))
+    }
+    "return None for non-currency" in {
+      asCurrency("56789.67234234") shouldBe None
+      asCurrency("dhjs") shouldBe None
+      asCurrency("") shouldBe None
+      asCurrency("$777") shouldBe None
+    }
+  }
+
   "Date conversion" must {
     "recognise a valid date" in {
       val validDates: List[String] = List("30/04/2000", "3/12/2000", "13/4/2000", "31/3/2130")

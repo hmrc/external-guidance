@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot.{Page, Labels, Phrase, asAnyInt, asDecimal, asCurrencyPounds, asDate, asTextString, labelReferences, stringFromDate}
+import core.models.ocelot.{Page, Labels, Phrase, asAnyInt, asCurrency, asCurrencyPounds, asDate, asTextString, labelReferences, stringFromDate}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -98,7 +98,7 @@ case class CurrencyInput(
   placeholder: Option[Phrase],
   stack: Boolean
 ) extends Input {
-  def validInput(value: String): Option[String] = asDecimal(value).map(_.toString)
+  def validInput(value: String): Option[String] = asCurrency(value).map(_.toString)
 }
 
 case class CurrencyPoundsOnlyInput(

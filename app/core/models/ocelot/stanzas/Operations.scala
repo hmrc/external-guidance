@@ -49,7 +49,7 @@ object Operand {
     operandValue(v)(labels).fold[Option[Scalar[_]]](None) { s =>
       asDate(s).fold[Option[Scalar[_]]] {
         asTimePeriod(s).fold[Option[Scalar[_]]] {
-          asDecimal(s).fold[Option[Scalar[_]]](Some(StringOperand(s)))(dec => Some(NumericOperand(dec)))
+          asNumeric(s).fold[Option[Scalar[_]]](Some(StringOperand(s)))(dec => Some(NumericOperand(dec)))
         }(timeperiod => Some(TimePeriodOperand(timeperiod)))
       }(dte => Some(DateOperand(dte)))
     }
@@ -99,7 +99,7 @@ sealed trait Operation {
     }
 
   protected def unsupported[A, B, C](l: A, r: B): Option[C] = {
-    logger.error(s"Unsupported ${getClass.getSimpleName} operation defined in guidance. Evaluated Left $l, Right $r, Original Left $left, Right $right")
+    logger.error(s"Unsupported ${getClass.getSimpleName}, ${l.getClass}, ${r.getClass} operation defined in guidance. Evaluated Left $l, Right $r, Original Left $left, Right $right")
     None
   }
 }

@@ -66,6 +66,29 @@ class ValueStanzaSpec extends BaseSpec {
     )
     .as[JsObject]
 
+  val validValueStanzaJsonWithLabelNameSpaces: JsObject = Json
+    .parse(
+      s"""{
+      |  "type": "${stanzaType}",
+      |  "values": [
+      |    {
+      |      "type": "${scalarType}",
+      |      "label": "${pageNameLabel}     ",
+      |      "value": "${pageName}"
+      |    },
+      |    {
+      |      "type": "${scalarType}",
+      |      "label": "${pageUrlLabel} ",
+      |      "value": "${pageUrl}"
+      |    }
+      |  ],
+      |  "next": ["${next}"],
+      |  "stack": ${stack}
+      |}
+    """.stripMargin
+    )
+    .as[JsObject]
+
   val invalidValueStanzaWithIncorrectTypeJson: JsObject = Json
     .parse(
       s"""{
@@ -250,6 +273,18 @@ class ValueStanzaSpec extends BaseSpec {
     "deserialize scalar label from json" in {
 
       val stanza: ValueStanza = validValueStanzaJson.as[ValueStanza]
+
+      stanza.stack shouldBe false
+      stanza.next.length shouldBe 1
+      stanza.next.head shouldBe next
+      stanza.values.length shouldBe 2
+      stanza.values.head shouldBe Value(ScalarType, pageNameLabel, pageName)
+      stanza.values(1) shouldBe Value(ScalarType, pageUrlLabel, pageUrl)
+    }
+
+    "deserialize scalar label from json where label name has trailing spaces" in {
+
+      val stanza: ValueStanza = validValueStanzaJsonWithLabelNameSpaces.as[ValueStanza]
 
       stanza.stack shouldBe false
       stanza.next.length shouldBe 1
