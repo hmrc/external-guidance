@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot.{Page, Labels, Phrase, asAnyInt, asCurrency, asCurrencyPounds, asDate, asTextString, labelReferences, stringFromDate}
+import core.models.ocelot.{Page, Labels, Phrase, asAnyInt, asCurrency, asCurrencyPounds, asDate, asTextString, labelReferences, stringFromDate, stripNoRepeatPlaceholder}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -63,6 +63,7 @@ sealed trait Input extends VisualStanza with Populated with DataInput {
   val label: String
   val placeholder: Option[Phrase]
   val stack: Boolean
+  val dontRepeatName: Boolean
 
   override val labelRefs: List[String] = labelReferences(name.english) ++ help.fold[List[String]](Nil)(h => labelReferences(h.english))
   def eval(value: String, page: Page, labels: Labels): (Option[String], Labels) = (next.headOption, labels.update(label, value))
@@ -74,7 +75,8 @@ case class NumberInput(
   help: Option[Phrase],
   label: String,
   placeholder: Option[Phrase],
-  stack: Boolean
+  stack: Boolean,
+  dontRepeatName: Boolean = false
 ) extends Input {
   def validInput(value: String): Option[String] = asAnyInt(value).map(_.toString)
 }
@@ -85,7 +87,8 @@ case class TextInput(
   help: Option[Phrase],
   label: String,
   placeholder: Option[Phrase],
-  stack: Boolean
+  stack: Boolean,
+  dontRepeatName: Boolean = false
 ) extends Input {
   def validInput(value: String): Option[String] = asTextString(value)
 }
@@ -96,7 +99,8 @@ case class CurrencyInput(
   help: Option[Phrase],
   label: String,
   placeholder: Option[Phrase],
-  stack: Boolean
+  stack: Boolean,
+  dontRepeatName: Boolean = false
 ) extends Input {
   def validInput(value: String): Option[String] = asCurrency(value).map(_.toString)
 }
@@ -107,7 +111,8 @@ case class CurrencyPoundsOnlyInput(
   help: Option[Phrase],
   label: String,
   placeholder: Option[Phrase],
-  stack: Boolean
+  stack: Boolean,
+  dontRepeatName: Boolean = false
 ) extends Input {
   def validInput(value: String): Option[String] = asCurrencyPounds(value).map(_.toString)
 }
@@ -118,18 +123,21 @@ case class DateInput(
   help: Option[Phrase],
   label: String,
   placeholder: Option[Phrase],
-  stack: Boolean
+  stack: Boolean,
+  dontRepeatName: Boolean = false
 ) extends Input {
   def validInput(value: String): Option[String] = asDate(value).map(stringFromDate)
 }
 
 object Input {
-  def apply(stanza: InputStanza, name: Phrase, help: Option[Phrase], placeholder: Option[Phrase]): Input =
+  def apply(stanza: InputStanza, nameWithOptions: Phrase, help: Option[Phrase], placeholder: Option[Phrase]): Input = {
+    val (dontRepeatName, name) = stripNoRepeatPlaceholder(nameWithOptions)
     stanza.ipt_type match {
-      case Number => NumberInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack)
-      case Txt => TextInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack)
-      case Currency => CurrencyInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack)
-      case CurrencyPoundsOnly => CurrencyPoundsOnlyInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack)
-      case Date => DateInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack)
+      case Number => NumberInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack, dontRepeatName)
+      case Txt => TextInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack, dontRepeatName)
+      case Currency => CurrencyInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack, dontRepeatName)
+      case CurrencyPoundsOnly => CurrencyPoundsOnlyInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack, dontRepeatName)
+      case Date => DateInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack, dontRepeatName)
     }
+  }
 }
