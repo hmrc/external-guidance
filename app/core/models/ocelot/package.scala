@@ -58,6 +58,7 @@ package object ocelot {
   val anyIntegerRegex: Regex = s"^-?(\\d{1,3}(,\\d{3}){0,3}|$TenDigitIntPattern)$$".r       // Limited to 10 decimal digits or 12 comma separated
   val EmbeddedParameterRegex: Regex = """\{(\d)\}""".r
   val ExclusivePlaceholder: String = "[exclusive]"
+  val NoRepeatPlaceholder: String = "[norepeat]"
   val timeConstantRegex: Regex = timeConstantPattern.r
   val DatePlaceHolderRegex: Regex = s"^$DatePlaceHolderPattern$$".r
   val TimescaleIdUsageRegex: Regex = TimescaleIdUsagePattern.r
@@ -103,6 +104,16 @@ package object ocelot {
   def listLength(listName: String, labels: Labels): Option[String] = labels.valueAsList(listName).fold[Option[String]](None){l => Some(l.length.toString)}
   def stringFromDate(when: LocalDate): String = when.format(dateFormatter)
   def stripHintPlaceholder(p: Phrase): Phrase = Phrase(hintRegex.replaceAllIn(p.english, ""), hintRegex.replaceAllIn(p.welsh, ""))
+  def trimTrailing(s: String): String = s.reverse.dropWhile(_.equals(' ')).reverse
+  def stripNoRepeatPlaceholder(s: String): (Boolean, String) = {
+    val trimmed = trimTrailing(s)
+    if (trimmed.endsWith(NoRepeatPlaceholder)) (true, trimmed.dropRight(NoRepeatPlaceholder.length)) else (false, s)
+  }
+  def stripNoRepeatPlaceholder(p: Phrase): (Boolean, Phrase) = {
+    val (dontRepeatEnglish, english) = stripNoRepeatPlaceholder(p.english)
+    (dontRepeatEnglish, Phrase(english, stripNoRepeatPlaceholder(p.welsh)._2))
+  }
+
   def fromPattern(pattern: Regex, text: String): (List[String], List[Match]) = (pattern.split(text).toList, pattern.findAllMatchIn(text).toList)
   def isLinkOnlyPhrase(phrase: Phrase): Boolean =phrase.english.matches(pageLinkOnlyPattern)
   def isBoldOnlyPhrase(phrase: Phrase): Boolean =phrase.english.matches(boldOnlyPattern)
