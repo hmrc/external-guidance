@@ -65,7 +65,12 @@ trait IntegrationSpec
     super.afterAll()
   }
 
-  def buildRequest(path: String): WSRequest = client.url(s"http://localhost:$port$path").withFollowRedirects(false)
+  def buildRequest(path: String): WSRequest = {
+    val sessionId = "X-Session-ID" -> "testSessionId"
+    val authorisation = "Authorization" -> "Bearer 123"
+    val headers = List(sessionId, authorisation)
+    client.url(s"http://localhost:$port$path").withHttpHeaders(headers:_*).withFollowRedirects(false)
+  }
 
   def document(response: WSResponse): JsValue = Json.parse(response.body)
 }
