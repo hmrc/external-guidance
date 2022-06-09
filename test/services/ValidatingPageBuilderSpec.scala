@@ -83,7 +83,102 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
     val ihtProcess = ihtJsonShort.as[Process]
   }
 
+
+  trait LabelNameTest extends Test {
+
+    def confirmInvalidLabelNameError(f: Map[String, Stanza]): Unit = {
+      val process = processWithLinks.copy(flow = f)
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Right(pages) => fail(s"Attempt to parse page with invalid label name succeeded")
+        case Left(List(InvalidLabelName("2"))) =>
+        case Left(err) => fail(s"Attempt to parse page with invalid label name failed with error ${err}")
+      }
+    }
+
+    def confirmValidLabelNameUsage(f: Map[String, Stanza]): Unit = {
+      val process = processWithLinks.copy(flow = f)
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Right(pages) =>
+        case Left(List(InvalidLabelName("2"))) => fail(s"Attempt to parse page with valid label name failed")
+        case Left(err) => fail(s"Attempt to parse page with valid label name failed with error ${err}")
+      }
+    }
+  }
+
   "ValidatingPageBuilder" must {
+
+    "Validate label names within ValueStanza" in new LabelNameTest {
+      confirmInvalidLabelNameError(Map(
+        Process.StartStanzaId -> PageStanza("/start", Seq("2"), stack = false),
+        "2" -> ValueStanza(List(Value(ScalarType, "Label ", "/blah")), Seq("end"), false),
+        "end" -> EndStanza
+      ))
+
+      confirmValidLabelNameUsage(Map(
+        Process.StartStanzaId -> PageStanza("/start", Seq("2"), stack = false),
+        "2" -> ValueStanza(List(Value(ScalarType, "Label", "/blah")), Seq("end"), false),
+        "end" -> EndStanza
+      ))
+    }
+
+    "Validate label names within Input stanza" in new LabelNameTest {
+      confirmInvalidLabelNameError(Map(
+        Process.StartStanzaId -> PageStanza("/start", Seq("2"), stack = false),
+        "2" -> InputStanza(Currency, Seq("end"), 1, Some(2), "Labe%l", None, stack = false),
+        "end" -> EndStanza
+      ))
+
+      confirmValidLabelNameUsage(Map(
+        Process.StartStanzaId -> PageStanza("/start", Seq("2"), stack = false),
+        "2" -> InputStanza(Currency, Seq("end"), 1, Some(2), "Label", None, stack = false),
+        "end" -> EndStanza
+      ))
+    }
+
+    "Validate label names within Question stanza" in new LabelNameTest {
+      confirmInvalidLabelNameError(Map(
+        Process.StartStanzaId -> PageStanza("/start", Seq("2"), stack = false),
+        "2" -> QuestionStanza(1, Seq(2, 1), Seq("end", "end"), Some("Blah&&"), false),
+        "end" -> EndStanza
+      ))
+
+      confirmValidLabelNameUsage(Map(
+        Process.StartStanzaId -> PageStanza("/start", Seq("2"), stack = false),
+        "2" -> QuestionStanza(1, Seq(2, 1), Seq("end", "end"), Some("Blah"), false),
+        "end" -> EndStanza
+      ))
+    }
+
+    "Validate label names within Sequence stanza" in new LabelNameTest {
+      confirmInvalidLabelNameError(Map(
+        Process.StartStanzaId -> PageStanza("/start", Seq("2"), stack = false),
+        "2" -> SequenceStanza(1, Seq("end", "end", "end"), Seq(2, 3), Some("Blah&&"), stack = false),
+        "end" -> EndStanza
+      ))
+
+      confirmValidLabelNameUsage(Map(
+        Process.StartStanzaId -> PageStanza("/start", Seq("2"), stack = false),
+        "2" -> SequenceStanza(1, Seq("end", "end", "end"), Seq(2, 3), Some("Blah"), stack = false),
+        "end" -> EndStanza
+      ))
+    }
+
+    "Validate label names within Calculation stanza" in new LabelNameTest {
+      confirmInvalidLabelNameError(Map(
+        Process.StartStanzaId -> PageStanza("/start", Seq("2"), stack = false),
+        "2" -> CalculationStanza(Seq(CalcOperation("[label:ThisYear]", Subtraction, "2013", "Year*Count")), Seq("end"), stack = false),
+        "end" -> EndStanza
+      ))
+
+      confirmValidLabelNameUsage(Map(
+        Process.StartStanzaId -> PageStanza("/start", Seq("2"), stack = false),
+        "2" -> CalculationStanza(Seq(CalcOperation("[label:ThisYear]", Subtraction, "2013", "YearCount")), Seq("end"), stack = false),
+        "end" -> EndStanza
+      ))
+    }
+
     "Detect shared pages between Sequence flows" in new Test {
       val flow: Map[String, Stanza] = Map(
         Process.StartStanzaId -> PageStanza("/start", Seq("2"), stack = false),

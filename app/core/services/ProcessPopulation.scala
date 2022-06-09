@@ -17,7 +17,7 @@
 package core.services
 
 import core.models.ocelot.stanzas._
-import core.models.ocelot.{Link, Phrase, Process, pageLinkIds, ExclusivePlaceholder}
+import core.models.ocelot.{Link, Phrase, Process, pageLinkIds, ExclusivePlaceholder, labelNameValid}
 import core.models.ocelot.errors._
 import play.api.Logger
 import scala.annotation.tailrec
@@ -80,7 +80,10 @@ abstract class ProcessPopulation(timescaleExpansion: TimescaleExpansion) {
     def link(linkIndex: Int): Either[LinkNotFound, Link] =
       process.linkOption(linkIndex).map(Right(_)).getOrElse(Left(LinkNotFound(id, linkIndex)))
 
-    stanza match {
+    def populate(s: Stanza)(mp: Stanza => Either[GuidanceError, Stanza]): Either[GuidanceError, Stanza] =
+      if (s.labels.map(labelNameValid).exists(!_)) Left(InvalidLabelName(id)) else mp(s)
+
+    populate(stanza){
       case q: QuestionStanza => populateQuestion(q)
       case r: RowStanza => populateRow(r)
       case i: InstructionStanza => populateInstruction(i)

@@ -85,6 +85,8 @@ object ProcessError {
       ProcessError(s"ErrorRedirectToFirstNonPageStanzaOnly: Invalid link to stanza ${e.id}. Page redisplay after a ValueError must link to the first stanza after the PageStanza", e.id)
     case e: MissingUniqueFlowTerminator =>
       ProcessError(s"MissingUniqueFlowTerminator: Flow doesn't have a unique termination page ${e.id}, possible main flow connection into a sequence flow", e.id)
+    case e: InvalidLabelName =>
+      ProcessError(s"InvalidLabelName: Invalid label name in stanza ${e.id}", e.id)
     case e: MissingTimescaleDefinition =>
       ProcessError(s"MissingTimescaleDefinition: Process references unknown timescale ID \'${e.timescaleId}\'", "")
 

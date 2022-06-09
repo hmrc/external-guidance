@@ -28,8 +28,9 @@ package object ocelot {
   val HttpUriPattern: String = "https?:[a-zA-Z0-9\\/\\.\\-\\?_\\.=&#]+"
   val StanzaIdPattern: String = s"\\d+|${Process.StartStanzaId}"
   val TenDigitIntPattern: String = "\\d{1,10}"
-  val LabelNamePattern: String = "[A-Za-z0-9\\s\\-_]+"
+  val LabelNamePattern: String = "[A-Za-z0-9\\s\\-_]*[A-Za-z0-9\\-_]"
   val LabelPattern: String = s"\\[label:($LabelNamePattern)(?::(currency|currencyPoundsOnly|date|number))?\\]"
+  val LabelNameRegex: Regex = s"^$LabelNamePattern$$".r
   val boldPattern: String = s"\\[bold:($LabelPattern|[^\\]]+)\\]"
   val SimpleTimescalePattern: String = s"\\[timescale:(?:(?:($TimescaleIdPattern):days))\\]"
   val DateAddPattern: String = s"\\[date_add:(?:($LabelNamePattern)|($DatePattern)):($TimescaleIdPattern)\\]"
@@ -94,6 +95,11 @@ package object ocelot {
         }{tsId => capture(DateAddLabelNameGroup).fold(dateAdd(capture(DateAddLiteralGroup), tsId, labels)){daLabel => dateAdd(lbl(daLabel), tsId, labels)}}
       }{list => listLength(list, labels)}
     }{label => lbl(label)}
+
+  def labelNameValid(v: String): Boolean = v match {
+    case LabelNameRegex() => true
+    case _ => false
+  }
 
   def buttonLinkIds(str: String): List[String] = plSingleGroupCaptures(buttonLinkRegex, str, 4)
   def buttonLinkIds(phrases: Seq[Phrase]): List[String] = phrases.flatMap(phrase => buttonLinkIds(phrase.english)).toList

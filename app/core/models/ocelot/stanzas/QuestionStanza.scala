@@ -25,7 +25,9 @@ case class QuestionStanza(text: Int,
                           answers: Seq[Int],
                           override val next: Seq[String],
                           label: Option[String],
-                          stack: Boolean) extends VisualStanza
+                          stack: Boolean) extends VisualStanza {
+  override val labels = label.fold[List[String]](Nil)(l => List(l))
+}
 
 object QuestionStanza {
 

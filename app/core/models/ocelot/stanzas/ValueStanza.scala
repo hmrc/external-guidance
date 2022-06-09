@@ -28,12 +28,10 @@ case class Value(valueType: ValueType, label: String, value: String)
 
 object Value {
 
-  private def build(valueType: ValueType, label: String, value: String): Value = Value(valueType, label.trim, value)
-
   implicit val reads: Reads[Value] =
     ((__ \ "type").read[ValueType] and
       (__ \ "label").read[String] and
-      (__ \ "value").read[String])(build _)
+      (__ \ "value").read[String])(Value.apply _)
 
   implicit val writes: Writes[Value] =
     (
