@@ -6,7 +6,7 @@ object AppDependencies {
   val compile = Seq(
     "uk.gov.hmrc"       %% "bootstrap-backend-play-28" % "5.20.0",
     "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28"        % "0.64.0",
-    "uk.gov.hmrc"       %% "auth-client"               % "5.12.0-play-28"
+    "uk.gov.hmrc"       %% "auth-client"               % "5.13.0-play-28"
   )
 
   val test = Seq(
@@ -19,6 +19,6 @@ object AppDependencies {
     "com.github.tomakehurst"       %  "wiremock-jre8"           % "2.33.2" % "test, it",
     "com.fasterxml.jackson.module" %% "jackson-module-scala"    % "2.13.3" % "test, it",
     "uk.gov.hmrc"                  %% "bootstrap-test-play-28"  % "5.20.0" % "test, it",
-    "com.typesafe.play"            %% "play-akka-http-server"   % "2.8.14"  % "test, it"
+    "com.typesafe.play"            %% "play-akka-http-server"   % "2.8.16"  % "test, it"
   )
 }
