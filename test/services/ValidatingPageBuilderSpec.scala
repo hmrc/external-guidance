@@ -109,6 +109,24 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
 
   "ValidatingPageBuilder" must {
 
+    "Find all invalid label names" in new Test {
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/start", Seq("2"), stack = false),
+        "2" -> ValueStanza(List(Value(ScalarType, "Label ", "/blah")), Seq("3"), false),
+        "3" -> InputStanza(Currency, Seq("4"), 1, Some(2), "Lab&&el", None, stack = false),
+        "4" -> ValueStanza(List(Value(ScalarType, "Lab@", "/blah")), Seq("end"), false),
+        "end" -> EndStanza
+      )
+
+      val process = processWithLinks.copy(flow = flow)
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Right(pages) => fail(s"Attempt to parse page with invalid label name succeeded")
+        case Left(List(InvalidLabelName("2"), InvalidLabelName("3"), InvalidLabelName("4"))) =>
+        case Left(err) => fail(s"Attempt to parse page with invalid label name failed with error ${err}")
+      }
+    }
+
     "Validate label names within ValueStanza" in new LabelNameTest {
       confirmInvalidLabelNameError(Map(
         Process.StartStanzaId -> PageStanza("/start", Seq("2"), stack = false),
