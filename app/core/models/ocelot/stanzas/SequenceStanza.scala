@@ -25,7 +25,9 @@ case class SequenceStanza(text: Int,
                           override val next: Seq[String],
                           options: Seq[Int],
                           label: Option[String],
-                          stack: Boolean) extends VisualStanza
+                          stack: Boolean) extends VisualStanza {
+  override val labels: List[String] = label.fold(List.empty[String])(l => List(l))
+}
 
 object SequenceStanza {
   implicit val reads: Reads[SequenceStanza] = (js: JsValue) =>

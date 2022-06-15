@@ -63,12 +63,22 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
         checkDateInputErrorCallouts(pages, Nil) ++
         checkExclusiveSequenceTypeError(pages, Nil) ++
         checkForUseOfReservedUrls(pages, Nil) ++
+        checkForInvalidLabelNames(pages, Nil) ++
         detectUnsupportedPageRedirect(pages) match {
           case Nil => Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
           case errors => Left(errors)
         }
       }
     )
+
+  @tailrec
+  private def checkForInvalidLabelNames(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
+    def stanzaLabelNameErrors(ks: KeyedStanza): List[GuidanceError] = ks.stanza.labels.collect{case l if !labelNameValid(l) => InvalidLabelName(ks.key)}
+    pages match {
+      case Nil => errors
+      case p +: xs => checkForInvalidLabelNames(xs, p.keyedStanzas.toList.flatMap(stanzaLabelNameErrors) ++ errors)
+    }
+  }
 
   @tailrec
   private def checkDateInputErrorCallouts(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {

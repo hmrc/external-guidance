@@ -24,6 +24,38 @@ import play.api.i18n.Lang
 class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
   implicit val labels: Labels = new LabelCacheImpl(Map(), Map(), Nil, Map(), Map(), timescaleMap, message(Lang("en")))
 
+  "Label name validation" must {
+    "Not allow invalid characters @ £ % etc in label names" in {
+      labelNameValid("Blah@") shouldBe false
+      labelNameValid("Blah£") shouldBe false
+      labelNameValid("Blah%") shouldBe false
+      labelNameValid("Blah^") shouldBe false
+      labelNameValid("Blah*") shouldBe false
+      labelNameValid("Blah!") shouldBe false
+      labelNameValid("Blah?") shouldBe false
+      labelNameValid("Blah/") shouldBe false
+      labelNameValid("Blah.") shouldBe false
+      labelNameValid("Blah,") shouldBe false
+      labelNameValid("Blah;") shouldBe false
+      labelNameValid("Blah:") shouldBe false
+      labelNameValid("Blah}") shouldBe false
+      labelNameValid("Blah{") shouldBe false
+      labelNameValid("Blah]") shouldBe false
+      labelNameValid("Blah[") shouldBe false
+      labelNameValid("Blah=") shouldBe false
+      labelNameValid("Blah+") shouldBe false
+    }
+
+    "Allow spaces, but not trailing spaces" in {
+      labelNameValid("Bl  ah") shouldBe true
+      labelNameValid("Blah ") shouldBe false
+    }
+
+    "Allow valid characters" in {
+      labelNameValid("B- _ds038sd") shouldBe true
+    }
+  }
+
   "Numeric conversion" must {
     "recognise a valid +ve int" in {
       asNumeric("56789") shouldBe Some(BigDecimal(56789))
