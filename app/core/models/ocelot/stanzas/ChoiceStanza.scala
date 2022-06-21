@@ -17,7 +17,7 @@
 package core.models.ocelot.stanzas
 
 import java.time.LocalDate
-
+import core.models.ocelot.errors.RuntimeError
 import core.models.ocelot.{asNumeric, asDate, Labels}
 import core.models.ocelot.{operandValue, labelReferences, labelReference}
 import play.api.libs.functional.syntax._
@@ -209,10 +209,10 @@ object ContainsTest {
 }
 
 case class Choice(override val next: Seq[String], tests: Seq[ChoiceTest]) extends Stanza with Evaluate {
-  def eval(labels: Labels): (String, Labels) =
+  def eval(labels: Labels): (String, Labels, List[RuntimeError]) =
     tests.zipWithIndex
       .find { case (x, _) => x.eval(labels) }
-      .fold((next.last, labels)) { case (_, y) => (next(y), labels) }
+      .fold((next.last, labels, Nil)) { case (_, y) => (next(y), labels, Nil) }
 }
 
 object Choice {

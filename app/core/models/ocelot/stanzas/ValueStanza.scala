@@ -23,6 +23,7 @@ import play.api.libs.json.Reads._
 import play.api.libs.json._
 
 import scala.annotation.tailrec
+import core.models.ocelot.errors.RuntimeError
 
 case class Value(valueType: ValueType, label: String, value: String)
 
@@ -45,7 +46,7 @@ case class ValueStanza(values: List[Value], override val next: Seq[String], stac
   override val labels: List[String] = values.map(v => v.label)
   override val labelRefs: List[String] = values.flatMap(v => labelReferences(v.value))
 
-  def eval(originalLabels: Labels): (String, Labels) = {
+  def eval(originalLabels: Labels): (String, Labels, List[RuntimeError]) = {
 
     def assignValue(v: Value, labels: Labels): Labels = v.valueType match {
         case ScalarType => labels.update(v.label, operandValue(v.value)(labels).getOrElse(""))
@@ -61,7 +62,7 @@ case class ValueStanza(values: List[Value], override val next: Seq[String], stac
           assignValToLabels(xs, assignValue(x, l))
       }
 
-    (next.head, assignValToLabels(values, originalLabels))
+    (next.head, assignValToLabels(values, originalLabels), Nil)
   }
 }
 

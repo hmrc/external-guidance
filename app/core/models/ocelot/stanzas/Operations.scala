@@ -17,6 +17,7 @@
 package core.models.ocelot.stanzas
 
 import core.models.ocelot._
+import core.models.ocelot.errors.{UnsupportedOperationError, RuntimeError}
 import play.api.Logger
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
@@ -61,83 +62,79 @@ object Operand {
 }
 
 sealed trait Operation {
+  type Result[T] = Either[RuntimeError, T]
+
   val logger: Logger = Logger(this.getClass)
 
   val left: String
   val right: String
   val label: String
 
-  private[stanzas] def evalScalarCollectionOp(l: String, r: List[String]): Option[List[String]] = unsupported(l, r)
-  private[stanzas] def evalCollectionScalarOp(l: List[String], r: String): Option[List[String]] = unsupported(l, r)
-  private[stanzas] def evalCollectionCollectionOp(l: List[String], r: List[String]): Option[List[String]] = unsupported(l, r)
-  private[stanzas] def evalDateOp(l: LocalDate, r: LocalDate): Option[String] = unsupported(l, r)
-  private[stanzas] def evalNumericOp(l: BigDecimal, r: BigDecimal): Option[String] = unsupported(l, r)
-  private[stanzas] def evalStringOp(l: String, r: String): Option[String] = unsupported(l, r)
-  private[stanzas] def evalDateTimePeriod(l: LocalDate, r: TimePeriod): Option[String] = unsupported(l, r)
+  private[stanzas] def evalScalarCollectionOp(l: String, r: List[String]): Result[List[String]] = unsupported(l, r)
+  private[stanzas] def evalCollectionScalarOp(l: List[String], r: String): Result[List[String]] = unsupported(l, r)
+  private[stanzas] def evalCollectionCollectionOp(l: List[String], r: List[String]): Result[List[String]] = unsupported(l, r)
+  private[stanzas] def evalDateOp(l: LocalDate, r: LocalDate): Result[String] = unsupported(l, r)
+  private[stanzas] def evalNumericOp(l: BigDecimal, r: BigDecimal): Result[String] = unsupported(l, r)
+  private[stanzas] def evalStringOp(l: String, r: String): Result[String] = unsupported(l, r)
+  private[stanzas] def evalDateTimePeriod(l: LocalDate, r: TimePeriod): Result[String] = unsupported(l, r)
 
-  def eval(labels: Labels): Labels =
+  def eval(labels: Labels): Result[Labels] = {
+    def foldScalarResult(v: Result[String], labels: Labels): Result[Labels] = v.fold(err => Left(err), result => Right(labels.update(label, result)))
+    def foldCollectionResult(v: Result[List[String]], labels: Labels): Result[Labels] = v.fold(err => Left(err), result => Right(labels.updateList(label, result)))
+
     (Operand(left, labels), Operand(right, labels)) match {
-      case (Some(NumericOperand(l)), Some(NumericOperand(r))) =>
-        evalNumericOp(l, r).fold(labels)(result => labels.update(label, result))
-      case (Some(DateOperand(l)), Some(DateOperand(r))) =>
-        evalDateOp(l, r).fold(labels)(result => labels.update(label, result))
-      case (Some(DateOperand(l)), Some(TimePeriodOperand(r))) =>
-        evalDateTimePeriod(l,r).fold(labels)(result => labels.update(label, result))
-      case (Some(DateOperand(l)), Some(NumericOperand(r))) =>
-        evalDateTimePeriod(l, TimePeriod(r.toInt, Day)).fold(labels)(result => labels.update(label, result))
-      case (Some(StringOperand(l)), Some(StringOperand(r))) =>
-        evalStringOp(l, r).fold(labels)(result => labels.update(label, result))
-      case (Some(StringCollection(l)), Some(StringCollection(r))) =>
-        evalCollectionCollectionOp(l, r).fold(labels)(result => labels.updateList(label, result))
-      case (Some(StringCollection(l)), Some(r: Scalar[_])) =>
-        evalCollectionScalarOp(l, r.toString).fold(labels)(result => labels.updateList(label, result))
-      case (Some(l: Scalar[_]), Some(StringCollection(r))) =>
-        evalScalarCollectionOp(l.toString, r).fold(labels)(result => labels.updateList(label, result))
-      case (Some(l: Operand[_]), Some(r: Operand[_])) => // No typed op, fall back to String, String op
-        evalStringOp(l.toString, r.toString).fold(labels)(result => labels.update(label, result))
-      case _ => unsupported("",""); labels
+      case (Some(NumericOperand(l)), Some(NumericOperand(r))) => foldScalarResult(evalNumericOp(l, r), labels)
+      case (Some(DateOperand(l)), Some(DateOperand(r))) => foldScalarResult(evalDateOp(l, r), labels)
+      case (Some(DateOperand(l)), Some(TimePeriodOperand(r))) => foldScalarResult(evalDateTimePeriod(l,r), labels)
+      case (Some(DateOperand(l)), Some(NumericOperand(r))) => foldScalarResult(evalDateTimePeriod(l, TimePeriod(r.toInt, Day)), labels)
+      case (Some(StringOperand(l)), Some(StringOperand(r))) => foldScalarResult(evalStringOp(l, r), labels)
+      case (Some(StringCollection(l)), Some(StringCollection(r))) => foldCollectionResult(evalCollectionCollectionOp(l, r), labels)
+      case (Some(StringCollection(l)), Some(r: Scalar[_])) => foldCollectionResult(evalCollectionScalarOp(l, r.toString), labels)
+      case (Some(l: Scalar[_]), Some(StringCollection(r))) => foldCollectionResult(evalScalarCollectionOp(l.toString, r), labels)
+      // No typed op, fall back to String, String op
+      case (Some(l: Operand[_]), Some(r: Operand[_])) => foldScalarResult(evalStringOp(l.toString, r.toString), labels)
+      case _ => unsupported(right, left)
     }
-
-  protected def unsupported[A, B, C](l: A, r: B): Option[C] = {
-    logger.error(s"Unsupported ${getClass.getSimpleName}, ${l.getClass}, ${r.getClass} operation defined in guidance. Evaluated Left $l, Right $r, Original Left $left, Right $right")
-    None
   }
+
+  protected def unsupported[A, B, C, D](l: A, r: B): Result[D] = Left(UnsupportedOperationError(getClass.getSimpleName.toString, l.toString, r.toString, left, right))
+
 }
 
 case class AddOperation(left: String, right: String, label: String) extends Operation {
-  override def evalDateTimePeriod(date: LocalDate, period1: TimePeriod): Option[String] = Some(stringFromDate(date.add(period1)))
-  override def evalScalarCollectionOp(left: String, right: List[String]): Option[List[String]] = Some(left :: right)
-  override def evalCollectionScalarOp(left: List[String], right: String): Option[List[String]] = Some((right :: left.reverse).reverse)
-  override def evalCollectionCollectionOp(left: List[String], right: List[String]): Option[List[String]] = Some(left ::: right)
-  override def evalNumericOp(left: BigDecimal, right: BigDecimal): Option[String] = Some((left + right).bigDecimal.toPlainString)
-  override def evalStringOp(left: String, right: String): Option[String] = Some(left + right)
+  override def evalDateTimePeriod(date: LocalDate, period1: TimePeriod): Result[String] = Right(stringFromDate(date.add(period1)))
+  override def evalScalarCollectionOp(left: String, right: List[String]): Result[List[String]] = Right(left :: right)
+  override def evalCollectionScalarOp(left: List[String], right: String): Result[List[String]] = Right((right :: left.reverse).reverse)
+  override def evalCollectionCollectionOp(left: List[String], right: List[String]): Result[List[String]] = Right(left ::: right)
+  override def evalNumericOp(left: BigDecimal, right: BigDecimal): Result[String] = Right((left + right).bigDecimal.toPlainString)
+  override def evalStringOp(left: String, right: String): Result[String] = Right(left + right)
 }
 
 case class SubtractOperation(left: String, right: String, label: String) extends Operation {
-  override def evalDateTimePeriod(date: LocalDate, period1: TimePeriod): Option[String] = Some(stringFromDate(date.minus(period1)))
-  override def evalCollectionScalarOp(left: List[String], right: String): Option[List[String]] = Some(left.filterNot(_ == right))
-  override def evalCollectionCollectionOp(left: List[String], right: List[String]): Option[List[String]] = Some(left.filterNot(right.contains(_)))
-  override def evalNumericOp(left: BigDecimal, right: BigDecimal): Option[String] = Some((left - right).bigDecimal.toPlainString)
-  override def evalDateOp(left: LocalDate, right: LocalDate): Option[String] = Some(right.until(left, ChronoUnit.DAYS).toString)
+  override def evalDateTimePeriod(date: LocalDate, period1: TimePeriod): Result[String] = Right(stringFromDate(date.minus(period1)))
+  override def evalCollectionScalarOp(left: List[String], right: String): Result[List[String]] = Right(left.filterNot(_ == right))
+  override def evalCollectionCollectionOp(left: List[String], right: List[String]): Result[List[String]] = Right(left.filterNot(right.contains(_)))
+  override def evalNumericOp(left: BigDecimal, right: BigDecimal): Result[String] = Right((left - right).bigDecimal.toPlainString)
+  override def evalDateOp(left: LocalDate, right: LocalDate): Result[String] = Right(right.until(left, ChronoUnit.DAYS).toString)
 }
 
 case class MultiplyOperation(left: String, right: String, label: String) extends Operation {
-  override def evalNumericOp(left: BigDecimal, right: BigDecimal): Option[String] = Some((left * right).bigDecimal.toPlainString)
+  override def evalNumericOp(left: BigDecimal, right: BigDecimal): Result[String] = Right((left * right).bigDecimal.toPlainString)
 }
 
 case class DivideOperation(left: String, right: String, label: String) extends Operation {
-  override def evalNumericOp(left: BigDecimal, right: BigDecimal): Option[String] =
-    if (right.equals(0.0)) Some("Infinity") else Some((left / right).bigDecimal.toPlainString)
+  override def evalNumericOp(left: BigDecimal, right: BigDecimal): Result[String] =
+    if (right.equals(0.0)) Right("Infinity") else Right((left / right).bigDecimal.toPlainString)
 }
 
 case class CeilingOperation(left: String, right: String, label: String) extends Operation {
-  override def evalNumericOp(left: BigDecimal, right: BigDecimal): Option[String] =
-    Some(left.setScale(right.toInt, RoundingMode.CEILING).bigDecimal.toPlainString)
+  override def evalNumericOp(left: BigDecimal, right: BigDecimal): Result[String] =
+    Right(left.setScale(right.toInt, RoundingMode.CEILING).bigDecimal.toPlainString)
 }
 
 case class FloorOperation(left: String, right: String, label: String) extends Operation {
-  override def evalNumericOp(left: BigDecimal, right: BigDecimal): Option[String] =
-    Some(left.setScale(right.toInt, RoundingMode.FLOOR).bigDecimal.toPlainString)
+  override def evalNumericOp(left: BigDecimal, right: BigDecimal): Result[String] =
+    Right(left.setScale(right.toInt, RoundingMode.FLOOR).bigDecimal.toPlainString)
 }
 
 object Operation {

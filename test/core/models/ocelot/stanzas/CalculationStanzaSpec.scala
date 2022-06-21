@@ -561,7 +561,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache = LabelCache()
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "40"
 
@@ -580,7 +580,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache = LabelCache()
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "16"
 
@@ -599,7 +599,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache = LabelCache()
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "16"
 
@@ -618,7 +618,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache = LabelCache()
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "16"
 
@@ -645,7 +645,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache = LabelCache(labelMap)
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "16"
 
@@ -672,7 +672,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache = LabelCache(labelMap)
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "16"
 
@@ -710,7 +710,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache = LabelCache(labelMap)
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "16"
 
@@ -760,7 +760,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache = LabelCache(labelMap)
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "16"
 
@@ -798,7 +798,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache = LabelCache(labelMap)
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "16"
 
@@ -826,7 +826,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache = LabelCache(labelMap)
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "16"
 
@@ -849,7 +849,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache = LabelCache()
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "16"
 
@@ -896,7 +896,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache = LabelCache(labelMap)
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "44"
 
@@ -928,7 +928,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache = LabelCache(labelMap)
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "202"
 
@@ -953,7 +953,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache()
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "5"
 
@@ -980,7 +980,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache()
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "5"
 
@@ -1002,7 +1002,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache()
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "5"
 
@@ -1023,7 +1023,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache()
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "5"
 
@@ -1044,7 +1044,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache()
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "5"
 
@@ -1070,7 +1070,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache()
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "5"
 
@@ -1097,7 +1097,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache()
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "5"
 
@@ -1119,7 +1119,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache()
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "5"
 
@@ -1140,7 +1140,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache()
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "5"
 
@@ -1161,7 +1161,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache()
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "5"
 
@@ -1187,7 +1187,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache = LabelCache(labelMap)
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "5"
 
@@ -1212,7 +1212,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache = LabelCache(labelMap)
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "5"
 
@@ -1231,7 +1231,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache()
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "25"
 
@@ -1254,7 +1254,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache(labelMap)
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "25"
 
@@ -1271,7 +1271,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache()
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "28"
 
@@ -1294,7 +1294,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache(labelMap)
 
-      val (nextStanza, updatedLabels) = calculation.eval(labelCache)
+      val (nextStanza, updatedLabels, err) = calculation.eval(labelCache)
 
       nextStanza shouldBe "28"
 
@@ -1317,7 +1317,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache(labelMap)
 
-      val (_, updatedLabels) = calculation.eval(labelCache)
+      val (_, updatedLabels, err) = calculation.eval(labelCache)
 
       updatedLabels.valueAsList("result") shouldBe Some(List("one", "two", "three", "four"))
     }
@@ -1342,7 +1342,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache(labelMap)
 
-      val (_, updatedLabels) = calculation.eval(labelCache)
+      val (_, updatedLabels, err) = calculation.eval(labelCache)
 
       updatedLabels.valueAsList("result") shouldBe Some(List("five", "six", "seven"))
     }
@@ -1363,7 +1363,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache(labelMap)
 
-      val (_, updatedLabels) = calculation.eval(labelCache)
+      val (_, updatedLabels, err) = calculation.eval(labelCache)
 
       updatedLabels.valueAsList("result") shouldBe Some(List("one"))
     }
@@ -1392,7 +1392,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache(labelMap)
 
-      val (_, updatedLabels) = calculation.eval(labelCache)
+      val (_, updatedLabels, err) = calculation.eval(labelCache)
 
       updatedLabels.valueAsList("result3") shouldBe Some(List("four", "one", "two", "three"))
     }
@@ -1405,7 +1405,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache()
 
-      val (_, updatedLabels) = calculation.eval(labelCache)
+      val (_, updatedLabels, err) = calculation.eval(labelCache)
 
       updatedLabels shouldBe labelCache
     }
@@ -1422,7 +1422,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache(labelMap)
 
-      val (_, updatedLabels) = calculation.eval(labelCache)
+      val (_, updatedLabels, err) = calculation.eval(labelCache)
 
       updatedLabels.valueAsList("result") shouldBe Some(List("two", "three", "four", "five"))
     }
@@ -1439,7 +1439,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache(labelMap)
 
-      val (_, updatedLabels) = calculation.eval(labelCache)
+      val (_, updatedLabels, err) = calculation.eval(labelCache)
 
       updatedLabels.valueAsList("result") shouldBe Some(List("a", "b", "d"))
     }
@@ -1461,7 +1461,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache(labelMap)
 
-      val (_, updatedLabels) = calculation.eval(labelCache)
+      val (_, updatedLabels, err) = calculation.eval(labelCache)
 
       updatedLabels.valueAsList("result") shouldBe Some(List("January", "February", "March", "May"))
     }
@@ -1483,7 +1483,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labels: Labels = LabelCache(labelMap)
 
-      val (_, updatedLabels) = calculation.eval(labels)
+      val (_, updatedLabels, err) = calculation.eval(labels)
 
       updatedLabels shouldBe labels
     }
@@ -1505,7 +1505,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache(labelMap)
 
-      val (_, updatedLabels) = calculation.eval(labelCache)
+      val (_, updatedLabels, err) = calculation.eval(labelCache)
 
       updatedLabels.valueAsList("result") shouldBe Some(Nil)
     }
@@ -1537,7 +1537,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache(labelMap)
 
-      val (_, updatedLabels) = calculation.eval(labelCache)
+      val (_, updatedLabels, err) = calculation.eval(labelCache)
 
       updatedLabels.valueAsList("result4") shouldBe Some(List("January", "February", "March", "July", "August", "October"))
     }
@@ -1554,7 +1554,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache(labelMap)
 
-      val (_, updatedLabels) = calculation.eval(labelCache)
+      val (_, updatedLabels, err) = calculation.eval(labelCache)
 
       updatedLabels shouldBe labelCache
     }
@@ -1574,7 +1574,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache(labelMap)
 
-      val (_, updatedLabels) = calculation.eval(labelCache)
+      val (_, updatedLabels, err) = calculation.eval(labelCache)
 
       updatedLabels.valueAsList("result2") shouldBe Some(List("French", "History", "English"))
     }
@@ -1604,7 +1604,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache(labelMap)
 
-      val (_, updatedLabels) = calculation.eval(labelCache)
+      val (_, updatedLabels, err) = calculation.eval(labelCache)
 
       updatedLabels.valueAsList("result1") shouldBe Some(List("a", "b", "c", "x", "y", "z"))
       updatedLabels.valueAsList("result2") shouldBe Some(list1.english)
@@ -1651,7 +1651,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val labelCache: Labels = LabelCache(labelMap)
 
-      val (_, updatedLabels) = calculation.eval(labelCache)
+      val (_, updatedLabels, err) = calculation.eval(labelCache)
 
       updatedLabels.valueAsList("result1") shouldBe Some(List("a", "b"))
       updatedLabels.valueAsList("result2") shouldBe Some(List("a", "e"))
@@ -1672,7 +1672,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val calculation: Calculation = createCalculation(calcOperations, Seq("4"))
 
-      val (_, updatedLabels) = calculation.eval(labelCache)
+      val (_, updatedLabels, err) = calculation.eval(labelCache)
 
       updatedLabels.value("result") shouldBe Some("8")
     }
@@ -1696,7 +1696,7 @@ class CalculationStanzaSpec extends BaseSpec {
       val ops: Seq[CalcOperation] = Seq( CalcOperation("[label:listA]", Multiply, "[label:listB]", "result"))
       val calculation: Calculation = Calculation(CalculationStanza(ops, Seq("16"), stack = false))
 
-      val (nextStanza, updatedLabels) = calculation.eval(LabelCache())
+      val (nextStanza, updatedLabels, _) = calculation.eval(LabelCache())
 
       nextStanza shouldBe "16"
       updatedLabels.value("result") shouldBe None
@@ -1706,7 +1706,7 @@ class CalculationStanzaSpec extends BaseSpec {
       val ops: Seq[CalcOperation] = Seq( CalcOperation("34", Multiply, "[label:listB]", "result"))
       val calculation: Calculation = Calculation(CalculationStanza(ops, Seq("16"), stack = false))
 
-      val (nextStanza, updatedLabels) = calculation.eval(LabelCache())
+      val (nextStanza, updatedLabels, _) = calculation.eval(LabelCache())
 
       nextStanza shouldBe "16"
       updatedLabels.value("result") shouldBe None
@@ -1716,7 +1716,7 @@ class CalculationStanzaSpec extends BaseSpec {
       val ops: Seq[CalcOperation] = Seq( CalcOperation("[label:listA]", Multiply, "34", "result"))
       val calculation: Calculation = Calculation(CalculationStanza(ops, Seq("16"), stack = false))
 
-      val (nextStanza, updatedLabels) = calculation.eval(LabelCache())
+      val (nextStanza, updatedLabels, _) = calculation.eval(LabelCache())
 
       nextStanza shouldBe "16"
       updatedLabels.value("result") shouldBe None
@@ -1729,7 +1729,7 @@ class CalculationStanzaSpec extends BaseSpec {
       val ops: Seq[CalcOperation] = Seq( CalcOperation("[label:listA]", Divide, "[label:listB]", "result"))
       val calculation: Calculation = Calculation(CalculationStanza(ops, Seq("16"), stack = false))
 
-      val (nextStanza, updatedLabels) = calculation.eval(LabelCache())
+      val (nextStanza, updatedLabels, _) = calculation.eval(LabelCache())
 
       nextStanza shouldBe "16"
       updatedLabels.value("result") shouldBe None
@@ -1739,7 +1739,7 @@ class CalculationStanzaSpec extends BaseSpec {
       val ops: Seq[CalcOperation] = Seq( CalcOperation("34", Divide, "[label:listB]", "result"))
       val calculation: Calculation = Calculation(CalculationStanza(ops, Seq("16"), stack = false))
 
-      val (nextStanza, updatedLabels) = calculation.eval(LabelCache())
+      val (nextStanza, updatedLabels, _) = calculation.eval(LabelCache())
 
       nextStanza shouldBe "16"
       updatedLabels.value("result") shouldBe None
@@ -1749,7 +1749,7 @@ class CalculationStanzaSpec extends BaseSpec {
       val ops: Seq[CalcOperation] = Seq( CalcOperation("[label:listA]", Divide, "34", "result"))
       val calculation: Calculation = Calculation(CalculationStanza(ops, Seq("16"), stack = false))
 
-      val (nextStanza, updatedLabels) = calculation.eval(LabelCache())
+      val (nextStanza, updatedLabels, _) = calculation.eval(LabelCache())
 
       nextStanza shouldBe "16"
       updatedLabels.value("result") shouldBe None
@@ -1759,7 +1759,7 @@ class CalculationStanzaSpec extends BaseSpec {
       val ops: Seq[CalcOperation] = Seq( CalcOperation("34", Divide, "0", "result"))
       val calculation: Calculation = Calculation(CalculationStanza(ops, Seq("16"), stack = false))
 
-      val (nextStanza, updatedLabels) = calculation.eval(LabelCache())
+      val (nextStanza, updatedLabels, _) = calculation.eval(LabelCache())
 
       nextStanza shouldBe "16"
       updatedLabels.value("result") shouldBe Some("Infinity")
