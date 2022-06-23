@@ -18,6 +18,7 @@ package core.models.ocelot.stanzas
 
 import play.api.libs.json._
 import core.models.ocelot.{Labels, Page}
+import core.models.ocelot.errors.RuntimeError
 
 trait Stanza {
   val visual: Boolean = false
@@ -36,7 +37,7 @@ trait VisualStanza extends Stanza {
 trait Populated
 
 trait Evaluate {
-  def eval(labels: Labels): (String, Labels)
+  def eval(labels: Labels): (String, Labels, List[RuntimeError])
 }
 
 trait DataInput {

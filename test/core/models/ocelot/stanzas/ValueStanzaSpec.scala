@@ -369,7 +369,7 @@ class ValueStanzaSpec extends BaseSpec {
 
       val labels = LabelCache()
 
-      val (nextStanza, updatedLabels) = stanza.eval(labels)
+      val (nextStanza, updatedLabels, err) = stanza.eval(labels)
 
       nextStanza shouldBe next
 
@@ -387,7 +387,7 @@ class ValueStanzaSpec extends BaseSpec {
 
       val labels: Labels = LabelCache(labelMap)
 
-      val (nextStanza, updatedLabels) = stanza.eval(labels)
+      val (nextStanza, updatedLabels, err) = stanza.eval(labels)
 
       nextStanza shouldBe next
 
@@ -404,7 +404,7 @@ class ValueStanzaSpec extends BaseSpec {
 
       val labels: Labels = LabelCache(labelMap)
 
-      val (nextStanza, updatedLabels) = stanza.eval(labels)
+      val (nextStanza, updatedLabels, err) = stanza.eval(labels)
 
       nextStanza shouldBe next
 
@@ -417,7 +417,7 @@ class ValueStanzaSpec extends BaseSpec {
 
       val labels = LabelCache()
 
-      val (nextStanza, updatedLabels) = stanza.eval(labels)
+      val (nextStanza, updatedLabels, err) = stanza.eval(labels)
 
       nextStanza shouldBe next
 
@@ -436,7 +436,7 @@ class ValueStanzaSpec extends BaseSpec {
 
       val labels: Labels = LabelCache(labelMap)
 
-      val (nextStanza, updatedLabels) = stanza.eval(labels)
+      val (nextStanza, updatedLabels, err) = stanza.eval(labels)
 
       nextStanza shouldBe next
 
@@ -453,7 +453,7 @@ class ValueStanzaSpec extends BaseSpec {
 
       val labels: Labels = LabelCache(labelMap)
 
-      val (nextStanza, updatedLabels) = stanza.eval(labels)
+      val (nextStanza, updatedLabels, err) = stanza.eval(labels)
 
       nextStanza shouldBe next
 
@@ -466,7 +466,7 @@ class ValueStanzaSpec extends BaseSpec {
 
       val labels = LabelCache()
 
-      val (nextStanza, updatedLabels) = stanza.eval(labels)
+      val (nextStanza, updatedLabels, err) = stanza.eval(labels)
 
       nextStanza shouldBe next
 

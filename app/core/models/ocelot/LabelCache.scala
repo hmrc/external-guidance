@@ -43,7 +43,11 @@ trait Messages {
   def msg(id: String, param: Any*): String
 }
 
-trait Labels extends Flows with TimescaleDefns with Messages {
+trait Mode {
+  val runMode: RunMode
+}
+
+trait Labels extends Flows with TimescaleDefns with Messages with Mode {
   def value(name: String): Option[String]
   def valueAsList(name: String): Option[List[String]]
   def displayValue(name: String)(implicit lang: Lang): Option[String]
@@ -59,12 +63,13 @@ trait Labels extends Flows with TimescaleDefns with Messages {
 }
 
 private[ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
-                             cache: Map[String, Label] = Map(),
-                             stack: List[FlowStage] = Nil,
-                             pool: Map[String, Stanza] = Map(),
-                             poolCache: Map[String, Stanza] = Map(),
-                             timescales: Map[String, Int] = Map(),
-                             messages: (String, Any*) => String = (_,_) => "") extends Labels {
+                                     cache: Map[String, Label] = Map(),
+                                     stack: List[FlowStage] = Nil,
+                                     pool: Map[String, Stanza] = Map(),
+                                     poolCache: Map[String, Stanza] = Map(),
+                                     timescales: Map[String, Int] = Map(),
+                                     messages: (String, Any*) => String = (_,_) => "",
+                                     val runMode: RunMode = Published) extends Labels {
 
   // Labels
   def value(name: String): Option[String] = label(name).collect{case s: ScalarLabel => s.english.headOption.getOrElse("")}
@@ -76,18 +81,18 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
     }
   }
   def update(name: String, english: String): Labels =
-    new LabelCacheImpl(labels, updateOrAddScalarLabel(name, english, None), stack, pool, poolCache, timescales, messages)
+    new LabelCacheImpl(labels, updateOrAddScalarLabel(name, english, None), stack, pool, poolCache, timescales, messages, runMode)
   def update(name: String, english: String, welsh: String): Labels =
-    new LabelCacheImpl(labels, updateOrAddScalarLabel(name, english, Some(welsh)), stack, pool, poolCache, timescales, messages)
+    new LabelCacheImpl(labels, updateOrAddScalarLabel(name, english, Some(welsh)), stack, pool, poolCache, timescales, messages, runMode)
   def updateList(name: String, english: List[String]): Labels =
-    new LabelCacheImpl(labels, updateOrAddListLabel(name, english), stack, pool, poolCache, timescales, messages)
+    new LabelCacheImpl(labels, updateOrAddListLabel(name, english), stack, pool, poolCache, timescales, messages, runMode)
   def updateList(name: String, english: List[String], welsh: List[String]): Labels =
-    new LabelCacheImpl(labels, updateOrAddListLabel(name, english, welsh), stack, pool, poolCache, timescales, messages)
+    new LabelCacheImpl(labels, updateOrAddListLabel(name, english, welsh), stack, pool, poolCache, timescales, messages, runMode)
 
   // Persistence access
   def updatedLabels: Map[String, Label] = cache
   def labelMap:Map[String, Label] = labels
-  def flush(): Labels = new LabelCacheImpl(labels ++ cache.toList, Map(), stack, pool, poolCache, timescales, messages)
+  def flush(): Labels = new LabelCacheImpl(labels ++ cache.toList, Map(), stack, pool, poolCache, timescales, messages, runMode)
 
   // Label ops
   private def label(name: String): Option[Label] = cache.get(name).fold(labels.get(name))(Some(_))
@@ -119,7 +124,8 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
                                                     pool,
                                                     poolCache ++ stanzas,
                                                     timescales,
-                                                    messages))
+                                                    messages,
+                                                    runMode))
         )
     }
 
@@ -137,7 +143,8 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
                                                          pool,
                                                          poolCache,
                                                          timescales,
-                                                         messages)))
+                                                         messages,
+                                                         runMode)))
         )
       case _ :: (c: Continuation) :: xs => Some((c.next, new LabelCacheImpl(labels, cache, xs, pool, poolCache, timescales, messages)))
     }
@@ -165,5 +172,6 @@ object LabelCache {
             stack: List[FlowStage],
             pool: Map[String, Stanza],
             timescales: Map[String, Int],
-            messages: (String, Any*) => String): Labels = new LabelCacheImpl(labels, cache, stack, pool, Map(), timescales, messages)
+            messages: (String, Any*) => String,
+            runMode: RunMode): Labels = new LabelCacheImpl(labels, cache, stack, pool, Map(), timescales, messages, runMode)
 }

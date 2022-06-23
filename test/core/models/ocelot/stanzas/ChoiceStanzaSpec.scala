@@ -210,7 +210,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       val stanza: ChoiceStanza = ChoiceStanza(next, Seq(ChoiceStanzaTest("4", LessThanOrEquals, "3"), ChoiceStanzaTest("3", LessThanOrEquals, "4")), false)
       val choice = Choice(stanza)
       val lc = LabelCache()
-      val expectedResult = ("41", lc)
+      val expectedResult = ("41", lc, Nil)
       choice.eval(lc) shouldBe expectedResult
     }
 
@@ -219,7 +219,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       val stanza: ChoiceStanza = ChoiceStanza(next, Seq(ChoiceStanzaTest("4", LessThanOrEquals, "3"), ChoiceStanzaTest("3", MoreThan, "4")), false)
       val choice = Choice(stanza)
       val lc = LabelCache()
-      val expectedResult = ("50", lc)
+      val expectedResult = ("50", lc, Nil)
       choice.eval(lc) shouldBe expectedResult
     }
 
@@ -233,7 +233,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       val choice = Choice(stanza)
       val labels = Map("X" -> ScalarLabel("X", List("33.5")), "Y" -> ScalarLabel("Y", List("44")))
       val lc = LabelCache(labels)
-      val expectedResult = ("40", lc)
+      val expectedResult = ("40", lc, Nil)
       choice.eval(lc) shouldBe expectedResult
     }
 
@@ -247,7 +247,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       val choice = Choice(stanza)
       val labels = Map("X" -> ScalarLabel("X", List("33.5")), "Y" -> ScalarLabel("Y", List("4")))
       val lc = LabelCache(labels)
-      val expectedResult = ("51", lc)
+      val expectedResult = ("51", lc, Nil)
       choice.eval(lc) shouldBe expectedResult
     }
 
@@ -266,7 +266,7 @@ class ChoiceStanzaSpec extends BaseSpec {
 
       val lc = LabelCache(labels)
 
-      val expectedResult = ("1", lc)
+      val expectedResult = ("1", lc, Nil)
 
       choice.eval(lc) shouldBe expectedResult
     }
@@ -290,7 +290,7 @@ class ChoiceStanzaSpec extends BaseSpec {
 
       val lc = LabelCache(labels)
 
-      val expectedResult = ("0", lc)
+      val expectedResult = ("0", lc, Nil)
 
       choice.eval(lc) shouldBe expectedResult
     }
@@ -304,7 +304,7 @@ class ChoiceStanzaSpec extends BaseSpec {
         "date2" -> ScalarLabel("date2", List("20/01/2021"))
       ))
 
-      val (nextStanza, updatedLabels) = choice.eval(labels)
+      val (nextStanza, updatedLabels, err) = choice.eval(labels)
 
       nextStanza shouldBe next(0)
       updatedLabels shouldBe labels
@@ -319,7 +319,7 @@ class ChoiceStanzaSpec extends BaseSpec {
         "date2" -> ScalarLabel("date2", List("20/01/2021"))
       ))
 
-      val (nextStanza, updatedLabels) = choice.eval(labels)
+      val (nextStanza, updatedLabels, err) = choice.eval(labels)
 
       nextStanza shouldBe next(1)
       updatedLabels shouldBe labels

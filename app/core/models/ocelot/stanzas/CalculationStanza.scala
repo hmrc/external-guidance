@@ -20,6 +20,8 @@ import core.models.ocelot.{labelReferences, asAnyInt, Labels}
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
+import core.models.ocelot.errors.RuntimeError
+import scala.annotation.tailrec
 
 case class CalcOperation(left:String, op: CalcOperationType, right: String, label: String)
 
@@ -73,9 +75,19 @@ case class Calculation(override val next: Seq[String], calcs: Seq[Operation]) ex
   override val labels: List[String] = calcs.map(op => op.label).toList
   override val labelRefs: List[String] = calcs.flatMap(op => labelReferences(op.left) ++ labelReferences(op.right)).toList
 
-  def eval(labels: Labels): (String, Labels) = {
-    val updatedLabels: Labels = calcs.foldLeft(labels) { case (l, f) => f.eval(l) }
-    (next.last, updatedLabels)
+  @tailrec
+  private def evalOps(ops: Seq[Operation], labels: Labels, errs: List[RuntimeError]): (Labels, List[RuntimeError]) =
+    ops match {
+      case Nil => (labels, errs)
+      case op +: xs => op.eval(labels) match {
+        case Left(err) => evalOps(xs, labels, err :: errs)
+        case Right(updatedLabels) =>evalOps(xs, updatedLabels, errs)
+      }
+    }
+
+  def eval(labels: Labels): (String, Labels, List[RuntimeError]) = {
+    val (updatedLabels, errs) = evalOps(calcs, labels, Nil)
+    (next.last, updatedLabels, errs)
   }
 }
 
