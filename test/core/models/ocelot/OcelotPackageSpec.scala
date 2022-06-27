@@ -355,6 +355,34 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
 
   }
 
+  "linkPattern" must {
+
+    "correctly match a link to a stanza id" in {
+      val link = "[link:Next Page:23]"
+      link.matches(linkPattern) shouldBe true
+    }
+
+    "correctly match a link to a uri" in {
+      val link = "[link:Next Page:https://www.google.com]"
+      link.matches(linkPattern) shouldBe true
+    }
+
+    "correctly match a link to javascript code" in {
+      val link = "[link:Print Page:javascript:winddow.print()]"
+      link.matches(linkPattern) shouldBe true
+    }
+
+    "correctly match a link to an email address" in {
+      val link = "[link:an email address:mailto:test@example.com]"
+      link.matches(linkPattern) shouldBe true
+    }
+
+    "not match a link with an invalid destination" in {
+      val link = "[link:Next Page:someDestination]"
+      link.matches(linkPattern) shouldBe false
+    }
+  }
+
   "datePlaceholder" must {
     val date: Option[String] = Some("12/12/2021")
     val badDate: Option[String] = Some("1/2/-bad-date")
