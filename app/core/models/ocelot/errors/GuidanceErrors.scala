@@ -61,6 +61,7 @@ case class MultipleExclusiveOptions(id: String) extends FlowError
 case class ErrorRedirectToFirstNonPageStanzaOnly(id: String) extends FlowError
 case class MissingUniqueFlowTerminator(id: String) extends FlowError
 case class InvalidLabelName(id: String) extends FlowError
+case class InvalidFieldWidth(id: String) extends FlowError
 case class MissingTimescaleDefinition(timescaleId: String) extends TimescalesError
 
 object GuidanceError {
