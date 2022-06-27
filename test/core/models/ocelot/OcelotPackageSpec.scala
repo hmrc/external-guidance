@@ -495,4 +495,113 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
     }
   }
 
+  "Input stanza name parsing" must {
+
+    "Support [norepeat] option" in {
+      val phrase = Phrase("Some title[norepeat]","Welsh: Some title[norepeat]")
+      val (p, dontRepeat, width) = fieldAndInputOptions(phrase)
+      p shouldBe Phrase("Some title", "Welsh: Some title")
+      dontRepeat shouldBe true
+      width shouldBe "10"
+    }
+
+    "Support [norepeat] option with additional whitespace" in {
+      val phrase = Phrase("Some title[norepeat]  ","Welsh: Some title[norepeat]  ")
+      val (p, dontRepeat, width) = fieldAndInputOptions(phrase)
+      p shouldBe Phrase("Some title", "Welsh: Some title")
+      dontRepeat shouldBe true
+      width shouldBe "10"
+    }
+
+    "Set dontRepeatName false when no [norepeat] option" in {
+      val phrase = Phrase("Some title","Welsh: Some title")
+      val (p, dontRepeat, width) = fieldAndInputOptions(phrase)
+      p shouldBe Phrase("Some title", "Welsh: Some title")
+      dontRepeat shouldBe false
+      width shouldBe "10"
+    }
+
+    "Set dontRepeatName false when misplaced [norepeat] option" in {
+      val phrase = Phrase("Some [norepeat]title","Welsh: Some [norepeat]title")
+      val (p, dontRepeat, width) = fieldAndInputOptions(phrase)
+      p shouldBe Phrase("Some [norepeat]title", "Welsh: Some [norepeat]title")
+      dontRepeat shouldBe false
+      width shouldBe "10"
+    }
+
+
+    "Support [width:<Int>] option" in {
+      val phrase = Phrase("Some title[width:4]","Welsh: Some title[width:4]")
+      val (p, dontRepeat, width) = fieldAndInputOptions(phrase)
+      p shouldBe Phrase("Some title", "Welsh: Some title")
+      dontRepeat shouldBe false
+      width shouldBe "4"
+    }
+
+    "Support [width:<Int>] option with additional whitespace" in {
+      val phrase = Phrase("Some title[width:4]  ","Welsh: Some title[width:4]  ")
+      val (p, dontRepeat, width) = fieldAndInputOptions(phrase)
+      p shouldBe Phrase("Some title", "Welsh: Some title")
+      dontRepeat shouldBe false
+      width shouldBe "4"
+    }
+
+    "Set width 10 when no [width:<Int>] option" in {
+      val phrase = Phrase("Some title","Welsh: Some title")
+      val (p, dontRepeat, width) = fieldAndInputOptions(phrase)
+      p shouldBe Phrase("Some title", "Welsh: Some title")
+      dontRepeat shouldBe false
+      width shouldBe "10"
+    }
+
+    "Set width 10 when misplaced [width:<Int>] option" in {
+      val phrase = Phrase("Some [width:4]title","Welsh: Some [width:4]title")
+      val (p, dontRepeat, width) = fieldAndInputOptions(phrase)
+      p shouldBe Phrase("Some [width:4]title", "Welsh: Some [width:4]title")
+      dontRepeat shouldBe false
+      width shouldBe "10"
+    }
+
+    "Support [norepeat][width:<Int>] options together" in {
+      val phrase = Phrase("Some title[norepeat][width:4]","Welsh: Some title[norepeat][width:4]")
+      val (p, dontRepeat, width) = fieldAndInputOptions(phrase)
+      p shouldBe Phrase("Some title", "Welsh: Some title")
+      dontRepeat shouldBe true
+      width shouldBe "4"
+    }
+
+    "Support [norepeat][width:<Int>] option with additional whitespace" in {
+      val phrase = Phrase("Some title[norepeat][width:4]  ","Welsh: Some title[norepeat][width:4]  ")
+      val (p, dontRepeat, width) = fieldAndInputOptions(phrase)
+      p shouldBe Phrase("Some title", "Welsh: Some title")
+      dontRepeat shouldBe true
+      width shouldBe "4"
+    }
+
+    "Support [width:<Int>][norepeat] options together" in {
+      val phrase = Phrase("Some title[width:4][norepeat]","Welsh: Some title[width:4][norepeat]")
+      val (p, dontRepeat, width) = fieldAndInputOptions(phrase)
+      p shouldBe Phrase("Some title", "Welsh: Some title")
+      dontRepeat shouldBe true
+      width shouldBe "4"
+    }
+
+    "Support [width:<Int>][norepeat] option with additional whitespace" in {
+      val phrase = Phrase("Some title[width:4][norepeat]  ","Welsh: Some title[width:4][norepeat]  ")
+      val (p, dontRepeat, width) = fieldAndInputOptions(phrase)
+      p shouldBe Phrase("Some title", "Welsh: Some title")
+      dontRepeat shouldBe true
+      width shouldBe "4"
+    }
+
+    "Support [width:<Int>] option with no leading text" in {
+      val phrase = Phrase("[width:4]","Welsh: [width:4]")
+      val (p, dontRepeat, width) = fieldAndInputOptions(phrase)
+      p shouldBe Phrase("", "Welsh:")
+      dontRepeat shouldBe false
+      width shouldBe "4"
+    }
+
+  }
+
 }

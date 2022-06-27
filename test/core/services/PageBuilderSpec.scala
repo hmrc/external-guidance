@@ -585,7 +585,6 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with PageDefns {
       }
     }
 
-
     "When processing a simple number input page" must {
       val simpleNumberInputFlow: Map[String, Stanza] = Map(
           Process.StartStanzaId -> pageOnePageStanza,
@@ -1117,4 +1116,61 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with PageDefns {
       }
     }
   }
+
+  "ProcessPopulation" must {
+    val phrasesValid = Vector[Phrase](
+      Phrase(Vector("Some Text", "Welsh: Some Text")),
+      Phrase(Vector(s"Some Text", s"Welsh, Some Text")),
+      Phrase(Vector(s"Some Text2[width:4][norepeat]", s"Welsh: Some Text2[width:4][norepeat]"))
+    )
+
+    val phrasesInvalid = Vector[Phrase](
+      Phrase(Vector("Some Text", "Welsh: Some Text")),
+      Phrase(Vector(s"Some Text", s"Welsh, Some Text")),
+      Phrase(Vector(s"Some Text2[width:17]", s"Welsh: Some Text2[width:17]"))
+    )
+
+
+    "accept and use a valid input field width and norepeat option" in new Test {
+      val simpleTextInputFlow: Map[String, Stanza] = Map(
+          Process.StartStanzaId -> PageStanza("/start", Seq("1"), stack = false),
+          "1" -> InstructionStanza(0, Seq("2"), None, stack = false),
+          "2" -> InputStanza(Txt, Seq("end"), 2, None, "label", None, stack = false),
+          "end" -> EndStanza)
+      val process: Process = Process(meta, simpleTextInputFlow, phrasesValid, Vector())
+
+      pageBuilder.pages(process) match {
+        case Right(pages) =>
+            pages shouldNot be(Nil)
+            pages.length shouldBe 1
+
+            pages(0).id shouldBe Process.StartStanzaId
+            pages(0).stanzas.size shouldBe 4
+            pages(0).stanzas(2) match {
+              case i: Input =>
+                i.width shouldBe "4"
+                i.dontRepeatName shouldBe true
+              case _ => fail
+            }
+
+        case Left(err) => fail(s"Flow error $err")
+      }
+    }
+
+    "accept and use an invalid input field width" in new Test {
+      val simpleTextInputFlow: Map[String, Stanza] = Map(
+          Process.StartStanzaId -> PageStanza("/start", Seq("1"), stack = false),
+          "1" -> InstructionStanza(0, Seq("2"), None, stack = false),
+          "2" -> InputStanza(Txt, Seq("end"), 2, None, "label", None, stack = false),
+          "end" -> EndStanza)
+      val process: Process = Process(meta, simpleTextInputFlow, phrasesInvalid, Vector())
+
+      pageBuilder.pages(process) match {
+        case Left(List(InvalidFieldWidth("2"))) => succeed
+        case Right(_) => fail
+      }
+    }
+
+  }
+
 }

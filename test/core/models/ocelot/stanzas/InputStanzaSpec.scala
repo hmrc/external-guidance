@@ -64,36 +64,6 @@ class InputStanzaSpec extends BaseSpec {
     }
   }
 
-  "Input" should {
-    "Support [norepeat] trailing option on name field" in {
-      val input = Input(expectedCurrencyStanza, Phrase("Some title[norepeat]","Welsh, Some title[norepeat]"), None, None)
-      input.dontRepeatName shouldBe true
-      input.name.english shouldBe "Some title"
-      input.name.welsh shouldBe "Welsh, Some title"
-    }
-
-    "Support [norepeat] trailing option on name field with additional whitespace" in {
-      val input = Input(expectedCurrencyStanza, Phrase("Some title   [norepeat]     ","Welsh, Some title  [norepeat]   "), None, None)
-      input.dontRepeatName shouldBe true
-      input.name.english shouldBe "Some title   "
-      input.name.welsh shouldBe "Welsh, Some title  "
-    }
-
-    "Set dontRepeatName false when no [norepeat] option" in {
-      val input = Input(expectedCurrencyStanza, Phrase("Some title ","Welsh, Some title"), None, None)
-      input.dontRepeatName shouldBe false
-      input.name.english shouldBe "Some title "
-      input.name.welsh shouldBe "Welsh, Some title"
-    }
-
-    "Set dontRepeatName false when misplaced [norepeat] option" in {
-      val input = Input(expectedCurrencyStanza, Phrase("Some [norepeat]title ","Welsh, Some [norepeat]title"), None, None)
-      input.dontRepeatName shouldBe false
-      input.name.english shouldBe "Some [norepeat]title "
-      input.name.welsh shouldBe "Welsh, Some [norepeat]title"
-    }
-  }
-
   "CurrencyInput " should {
     "update the input label" in {
       val input = Input(expectedCurrencyStanza, Phrase("",""), None, None)

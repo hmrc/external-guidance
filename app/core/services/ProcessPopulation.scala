@@ -56,7 +56,7 @@ abstract class ProcessPopulation(timescaleExpansion: TimescaleExpansion) {
         val (nameOnly, dontRepeatName, widthCandidate) = fieldAndInputOptions(name)
         ValidInputFieldWidths.find(_.equals(widthCandidate)).fold[Either[GuidanceError, Input]](Left(InvalidFieldWidth(id))){width =>
         optionalPhrase(i.help, id, process).fold(Left(_), help =>
-          optionalPhrase(i.placeholder, id, process).fold(Left(_), placeholder => Right(Input(i, nameOnly, dontRepeatName, width, help, placeholder)))
+          optionalPhrase(i.placeholder, id, process).fold(Left(_), placeholder => Right(Input(i, nameOnly, help, placeholder, dontRepeatName, width)))
         )}
       })
 

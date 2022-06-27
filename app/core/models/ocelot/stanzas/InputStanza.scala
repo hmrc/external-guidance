@@ -137,7 +137,7 @@ case class DateInput(
 }
 
 object Input {
-  def apply(stanza: InputStanza, name: Phrase, dontRepeatName: Boolean, width: String, help: Option[Phrase], placeholder: Option[Phrase]): Input =
+  def apply(stanza: InputStanza, name: Phrase, help: Option[Phrase], placeholder: Option[Phrase], dontRepeatName: Boolean = false, width: String = Ten): Input =
     stanza.ipt_type match {
       case Number => NumberInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack, dontRepeatName, width)
       case Txt => TextInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack, dontRepeatName, width)
