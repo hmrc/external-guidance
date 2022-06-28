@@ -17,7 +17,7 @@
 package core.services
 
 import core.models.ocelot.stanzas._
-import core.models.ocelot.{Link, Phrase, Process, pageLinkIds, ExclusivePlaceholder}
+import core.models.ocelot.{Link, Phrase, Process, pageLinkIds, ExclusivePlaceholder, fieldAndInputOptions, ValidInputFieldWidths}
 import core.models.ocelot.errors._
 import play.api.Logger
 import scala.annotation.tailrec
@@ -52,11 +52,14 @@ abstract class ProcessPopulation(timescaleExpansion: TimescaleExpansion) {
       }
 
     def populateInput(i: InputStanza): Either[GuidanceError, Input] =
-      phrase(i.name, id, process).fold(Left(_), name =>
+      phrase(i.name, id, process).fold(Left(_), name => {
+        val (nameOnly, dontRepeatName, widthCandidate) = fieldAndInputOptions(name)
+        ValidInputFieldWidths.find(_.equals(widthCandidate)).fold[Either[GuidanceError, Input]](Left(InvalidFieldWidth(id))){width =>
         optionalPhrase(i.help, id, process).fold(Left(_), help =>
-          optionalPhrase(i.placeholder, id, process).fold(Left(_), placeholder => Right(Input(i, name, help, placeholder)))
-        )
-      )
+          optionalPhrase(i.placeholder, id, process).fold(Left(_), placeholder => Right(Input(i, nameOnly, help, placeholder, dontRepeatName, width)))
+        )}
+      })
+
 
     def populateRow(r: RowStanza): Either[GuidanceError, Row] =
       phrases(r.cells, Nil, id, process) match {

@@ -87,6 +87,8 @@ object ProcessError {
       ProcessError(s"MissingUniqueFlowTerminator: Flow doesn't have a unique termination page ${e.id}, possible main flow connection into a sequence flow", e.id)
     case e: InvalidLabelName =>
       ProcessError(s"InvalidLabelName: Invalid label name in stanza ${e.id}", e.id)
+    case e: InvalidFieldWidth =>
+      ProcessError(s"InvalidFieldWidth: Input stanza (${e.id}) name field includes an unsupported field width", e.id)
     case e: MissingTimescaleDefinition =>
       ProcessError(s"MissingTimescaleDefinition: Process references unknown timescale ID \'${e.timescaleId}\'", "")
 
