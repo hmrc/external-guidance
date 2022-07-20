@@ -57,7 +57,7 @@ class ScratchServiceSpec extends BaseSpec {
         whenReady(target.save(json)) { result =>
           result shouldBe Left(Error(Error.UnprocessableEntity,
                                      None,
-                                     Some(List(ProcessError(s"MissingTimescaleDefinition: Process references unknown timescale ID 'RepayReimb'", "")))))
+                                     Some(List(ErrorReport(s"MissingTimescaleDefinition: Process references unknown timescale ID 'RepayReimb'", "")))))
         }
       }
     }
@@ -79,7 +79,7 @@ class ScratchServiceSpec extends BaseSpec {
 
     "the JSON is valid but the process is not" should {
       "return Unsupportable entity error" in new Test with ProcessJson {
-        val errorDetails: ProcessError = toProcessErr(DuplicatePageUrl("4","/feeling-bad"))
+        val errorDetails: ErrorReport = fromGuidanceError(DuplicatePageUrl("4","/feeling-bad"))
         val expectedError = Error(List(errorDetails))
         val expected: RequestOutcome[Error] = Left(expectedError)
         val process: JsObject = data.ProcessData.invalidOnePageJson.as[JsObject]

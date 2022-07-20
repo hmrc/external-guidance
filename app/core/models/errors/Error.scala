@@ -19,8 +19,8 @@ package core.models.errors
 import play.api.libs.json.{Json, OFormat}
 import core.models.ocelot.RunMode
 
-case class ProcessError(message: String, stanza: String, url: Option[String] = None)
-case class Error(code: String, runMode: Option[RunMode] = None, messages: Option[List[ProcessError]] = None)
+case class ErrorReport(message: String, stanza: String, url: Option[String] = None)
+case class Error(code: String, runMode: Option[RunMode] = None, messages: Option[List[ErrorReport]] = None)
 
 object InternalServerError extends Error("INTERNAL_SERVER_ERROR")
 object DatabaseError extends Error("DATABASE_ERROR")
@@ -45,10 +45,10 @@ object Error {
   val UnprocessableEntity = "UNPROCESSABLE_ENTITY"
   val ExecutionError = "PROCESS_EXECUTION_ERROR"
 
-  def apply(code: String, processErrors: List[ProcessError]): Error = Error(code, None, Some(processErrors))
-  def apply(processErrors: List[ProcessError]): Error = Error(UnprocessableEntity, None, Some(processErrors))
+  def apply(code: String, errorReports: List[ErrorReport]): Error = Error(code, None, Some(errorReports))
+  def apply(errorReports: List[ErrorReport]): Error = Error(UnprocessableEntity, None, Some(errorReports))
 
-  implicit val peformat: OFormat[ProcessError] = Json.format[ProcessError]
+  implicit val erformat: OFormat[ErrorReport] = Json.format[ErrorReport]
   implicit val formats: OFormat[Error] = Json.format[Error]
 }
 

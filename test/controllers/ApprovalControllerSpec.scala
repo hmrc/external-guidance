@@ -19,7 +19,7 @@ package controllers
 import models.ApprovalProcessSummary
 import controllers.actions.FakeAllRolesAction
 import mocks.{MockTimescalesService, MockApprovalService}
-import core.models.errors.{BadRequestError, DuplicateKeyError, Error, InternalServerError, NotFoundError, ProcessError, ValidationError}
+import core.models.errors.{BadRequestError, DuplicateKeyError, Error, InternalServerError, NotFoundError, ErrorReport, ValidationError}
 import core.models.ocelot.errors.DuplicatePageUrl
 import models.{ApprovalProcess, ApprovalProcessJson}
 import org.scalatest.matchers.should.Matchers
@@ -135,8 +135,8 @@ class ApprovalControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppP
     "the request is invalid with a UnprocessableEntity" should {
 
       trait InvalidSaveTest extends Test {
-        val processError: ProcessError = toProcessErr(DuplicatePageUrl("4", "/feeling-bad"))
-        val expectedError: Error = Error(List(processError))
+        val errorReport: ErrorReport = fromGuidanceError(DuplicatePageUrl("4", "/feeling-bad"))
+        val expectedError: Error = Error(List(errorReport))
         MockApprovalService
           .save(validApprovalProcessJson)
           .returns(Future.successful(Left(expectedError)))

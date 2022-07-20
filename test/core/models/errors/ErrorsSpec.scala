@@ -32,7 +32,7 @@ class ErrorsSpec extends BaseSpec {
         """.stripMargin
       )
 
-      val error = Error("SOME_CODE", List(ProcessError("some message", "")))
+      val error = Error("SOME_CODE", List(ErrorReport("some message", "")))
 
       val result = Json.toJson(error)
 
@@ -62,8 +62,8 @@ class ErrorsSpec extends BaseSpec {
 
       val errors = Error("SOME_CODE_1",
         List(
-          ProcessError("message 1", "stanza1"),
-          ProcessError("message 2", "stanza2")
+          ErrorReport("message 1", "stanza1"),
+          ErrorReport("message 2", "stanza2")
         )
       )
 
