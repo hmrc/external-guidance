@@ -28,6 +28,7 @@ import play.api.libs.json.{Json, JsObject}
 import mocks.MockAppConfig
 import scala.concurrent.{ExecutionContext, Future}
 import mocks.MockTimescalesService
+import models.errors._
 
 class ScratchServiceSpec extends BaseSpec {
 
@@ -77,7 +78,7 @@ class ScratchServiceSpec extends BaseSpec {
 
     "the JSON is valid but the process is not" should {
       "return Unsupportable entity error" in new Test with ProcessJson {
-        val errorDetails: ProcessError = DuplicatePageUrl("4","/feeling-bad")
+        val errorDetails: ProcessError = toProcessErr(DuplicatePageUrl("4","/feeling-bad"))
         val expectedError = Error(List(errorDetails))
         val expected: RequestOutcome[Error] = Left(expectedError)
         val process: JsObject = data.ProcessData.invalidOnePageJson.as[JsObject]

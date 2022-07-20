@@ -32,11 +32,10 @@ import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import models.ApprovalProcess
-import core.models.errors.ProcessError.toProcessErr
 import models.Constants._
 
 import scala.concurrent.Future
-import core.models.errors.DuplicateProcessCodeError
+import models.errors._
 
 class ApprovalControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with MockApprovalService with MockTimescalesService with ApprovalProcessJson {
 

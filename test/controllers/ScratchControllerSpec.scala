@@ -30,7 +30,7 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import core.models.errors.ProcessError.toProcessErr
+import models.errors._
 
 import scala.concurrent.Future
 import mocks.MockTimescalesService
