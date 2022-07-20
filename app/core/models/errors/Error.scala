@@ -19,7 +19,7 @@ package core.models.errors
 import play.api.libs.json.{Json, OFormat}
 import core.models.ocelot.RunMode
 
-case class ProcessError(message: String, stanza: String)
+case class ProcessError(message: String, stanza: String, url: Option[String] = None)
 case class Error(code: String, runMode: Option[RunMode] = None, messages: Option[List[ProcessError]] = None)
 
 object InternalServerError extends Error("INTERNAL_SERVER_ERROR")
@@ -43,10 +43,11 @@ object TransactionFaultError extends Error("TRANSACTION_FAULT")
 
 object Error {
   val UnprocessableEntity = "UNPROCESSABLE_ENTITY"
-  //def apply(code: String, msg: String): Error = Error(code, Some(msg), Some(List(ProcessError(msg, ""))))
+  val ExecutionError = "PROCESS_EXECUTION_ERROR"
+
   def apply(code: String, processErrors: List[ProcessError]): Error = Error(code, None, Some(processErrors))
-  //def apply(processError: ProcessError): Error = Error(UnprocessableEntity, Some(List(processError)))
   def apply(processErrors: List[ProcessError]): Error = Error(UnprocessableEntity, None, Some(processErrors))
+
   implicit val peformat: OFormat[ProcessError] = Json.format[ProcessError]
   implicit val formats: OFormat[Error] = Json.format[Error]
 }
