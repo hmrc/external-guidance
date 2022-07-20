@@ -60,14 +60,13 @@ abstract class ProcessPopulation(timescaleExpansion: TimescaleExpansion) {
         )}
       })
 
-
     def populateRow(r: RowStanza): Either[GuidanceError, Row] =
       phrases(r.cells, Nil, id, process) match {
         case Right(texts) => Right(Row(r, texts, pageLinkIds(texts)))
         case Left(err) => Left(err)
       }
 
-    def populateSequence(id: String, s: SequenceStanza): Either[GuidanceError, Sequence] =
+    def populateSequence(s: SequenceStanza): Either[GuidanceError, Sequence] =
       phrases(s.options, Nil, id, process).fold(Left(_), options =>
         options.partition(p => p.english.contains(ExclusivePlaceholder) && p.welsh.contains(ExclusivePlaceholder)) match {
           case (exclusive: Seq[Phrase], _) if exclusive.length > 1 => Left(MultipleExclusiveOptions(id))
@@ -95,7 +94,7 @@ abstract class ProcessPopulation(timescaleExpansion: TimescaleExpansion) {
       case c: CalculationStanza =>
         Right(Calculation(c.copy(calcs = c.calcs.map(op => op.copy(left = expand(op.left, process.timescales),
                                                                    right = expand(op.right, process.timescales))))))
-      case s: SequenceStanza => populateSequence(id, s)
+      case s: SequenceStanza => populateSequence(s)
       case vs: ValueStanza => Right(vs.copy(values = vs.values.map(v => v.copy(value = expand(v.value, process.timescales)))))
       case s: Stanza => Right(s)
     }

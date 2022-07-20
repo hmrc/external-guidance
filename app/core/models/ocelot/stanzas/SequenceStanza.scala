@@ -93,7 +93,6 @@ case class Sequence(text: Phrase,
 
   def validInput(value: String): Option[String] =
     asListOfPositiveInt(value).fold[Option[String]](None){l =>
-      if (l.forall(options.indices.contains) ||
-          l.length == 1 && exclusive.fold(false)(_ => l.headOption.contains(options.length))) Some(value) else None
+      if (l.forall(options.indices.contains) || l.length == 1 && exclusive.fold(false)(_ => l.headOption.contains(options.length))) Some(value) else None
     }
 }

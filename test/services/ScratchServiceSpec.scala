@@ -56,6 +56,7 @@ class ScratchServiceSpec extends BaseSpec {
 
         whenReady(target.save(json)) { result =>
           result shouldBe Left(Error(Error.UnprocessableEntity,
+                                     None,
                                      Some(List(ProcessError(s"MissingTimescaleDefinition: Process references unknown timescale ID 'RepayReimb'", "")))))
         }
       }

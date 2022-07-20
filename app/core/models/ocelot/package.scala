@@ -114,10 +114,10 @@ package object ocelot {
     case LabelNameRegex() => true
     case _ => false
   }
-
-  def buttonLinkIds(str: String): List[String] = plSingleGroupCaptures(buttonLinkRegex, str, 4)
+  private val LinkGroupID = 4
+  def buttonLinkIds(str: String): List[String] = plSingleGroupCaptures(buttonLinkRegex, str, LinkGroupID)
   def buttonLinkIds(phrases: Seq[Phrase]): List[String] = phrases.flatMap(phrase => buttonLinkIds(phrase.english)).toList
-  def pageLinkIds(str: String): List[String] = plSingleGroupCaptures(pageLinkRegex, str, 4)
+  def pageLinkIds(str: String): List[String] = plSingleGroupCaptures(pageLinkRegex, str, LinkGroupID)
   def pageLinkIds(phrases: Seq[Phrase]): List[String] = phrases.flatMap(phrase => pageLinkIds(phrase.english)).toList
   def labelReferences(str: String): List[String] = plSingleGroupCaptures(labelRefRegex, str)
   def labelReference(str: String): Option[String] = plSingleGroupCaptures(labelRefRegex, str).headOption
