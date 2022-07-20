@@ -311,7 +311,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       )
       result.fold(
         {
-          case core.models.errors.Error(core.models.errors.Error.UnprocessableEntity, None, Some(errors)) if errors == processErrors => {
+          case core.models.errors.Error(core.models.errors.Error.UnprocessableEntity, Some(errors)) if errors == processErrors => {
             succeed
           }
           case errs => {
@@ -343,7 +343,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
 
       result.fold(
         {
-          case core.models.errors.Error(core.models.errors.Error.UnprocessableEntity, None, Some(errors)) if errors == processErrors => succeed
+          case core.models.errors.Error(core.models.errors.Error.UnprocessableEntity, Some(errors)) if errors == processErrors => succeed
           case errs => fail(s"Failed with errors: $errs")
         }, _ => fail)
     }

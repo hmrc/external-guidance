@@ -20,7 +20,7 @@ import play.api.libs.json.{Json, OFormat}
 import core.models.ocelot.errors._
 import scala.language.implicitConversions
 
-case class Error(code: String, message: Option[String] = None, messages: Option[List[ProcessError]] = None)
+case class Error(code: String, messages: Option[List[ProcessError]] = None)
 
 object InternalServerError extends Error("INTERNAL_SERVER_ERROR")
 object DatabaseError extends Error("DATABASE_ERROR")
@@ -43,10 +43,10 @@ object TransactionFaultError extends Error("TRANSACTION_FAULT")
 
 object Error {
   val UnprocessableEntity = "UNPROCESSABLE_ENTITY"
-  def apply(code: String, msg: String): Error = Error(code, Some(msg), Some(List(ProcessError(msg, ""))))
-  def apply(code: String, processErrors: List[ProcessError]): Error = Error(code, None, Some(processErrors))
-  def apply(processError: ProcessError): Error = Error(UnprocessableEntity, None, Some(List(processError)))
-  def apply(processErrors: List[ProcessError]): Error = Error(UnprocessableEntity, None, Some(processErrors))
+  //def apply(code: String, msg: String): Error = Error(code, Some(msg), Some(List(ProcessError(msg, ""))))
+  def apply(code: String, processErrors: List[ProcessError]): Error = Error(code, Some(processErrors))
+  def apply(processError: ProcessError): Error = Error(UnprocessableEntity, Some(List(processError)))
+  def apply(processErrors: List[ProcessError]): Error = Error(UnprocessableEntity, Some(processErrors))
   implicit val formats: OFormat[Error] = Json.format[Error]
 }
 

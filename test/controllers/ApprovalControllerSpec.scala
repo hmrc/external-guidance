@@ -186,7 +186,6 @@ class ApprovalControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppP
         private val result = controller.saveFor2iReview()(request)
         private val data: Error = contentAsJson(result).as[Error]
         data.code shouldBe Error.UnprocessableEntity
-        data.message shouldBe None
         data.messages shouldBe Some(List(DuplicateProcessCodeError))
       }
     }
@@ -330,7 +329,6 @@ class ApprovalControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppP
         private val result = controller.saveForFactCheck()(request)
         private val data: Error = contentAsJson(result).as[Error]
         data.code shouldBe Error.UnprocessableEntity
-        data.message shouldBe None
         data.messages shouldBe Some(List(DuplicateProcessCodeError))
       }
     }

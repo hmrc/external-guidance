@@ -27,13 +27,12 @@ class ErrorsSpec extends BaseSpec {
         """
           |{
           |  "code": "SOME_CODE",
-          |  "message": "some message",
           |  "messages":[{"message":"some message","stanza":""}]
           |}
         """.stripMargin
       )
 
-      val error = Error("SOME_CODE", "some message")
+      val error = Error("SOME_CODE", List(ProcessError("some message", "")))
 
       val result = Json.toJson(error)
 
