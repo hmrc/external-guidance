@@ -19,7 +19,7 @@ package core.models.errors
 import play.api.libs.json.{Json, OFormat}
 import core.models.ocelot.RunMode
 
-case class ErrorReport(message: String, stanza: String, url: Option[String] = None)
+case class ErrorReport(message: String, stanza: String)
 case class Error(code: String, runMode: Option[RunMode] = None, messages: Option[List[ErrorReport]] = None)
 
 object InternalServerError extends Error("INTERNAL_SERVER_ERROR")

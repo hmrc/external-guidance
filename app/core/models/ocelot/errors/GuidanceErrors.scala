@@ -26,7 +26,9 @@ sealed trait FlowError extends GuidanceError
 sealed trait PhrasesError extends GuidanceError
 sealed trait LinksError extends GuidanceError
 sealed trait TimescalesError extends GuidanceError
-sealed trait RuntimeError extends EGError
+sealed trait RuntimeError extends EGError {
+  val runMode: RunMode
+}
 
 case class UnsupportedOperationError(op: String, lvalue: String, rvalue: String, left: String, right: String, runMode: RunMode) extends RuntimeError
 
