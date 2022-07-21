@@ -17,6 +17,7 @@
 package core.models.ocelot.errors
 
 import play.api.libs.json._
+import core.models.ocelot.RunMode
 
 sealed trait EGError
 sealed trait GuidanceError extends EGError
@@ -27,7 +28,7 @@ sealed trait LinksError extends GuidanceError
 sealed trait TimescalesError extends GuidanceError
 sealed trait RuntimeError extends EGError
 
-case class UnsupportedOperationError(op: String, lvalue: String, rvalue: String, left: String, right: String) extends RuntimeError
+case class UnsupportedOperationError(op: String, lvalue: String, rvalue: String, left: String, right: String, runMode: RunMode) extends RuntimeError
 
 // General and section parse errors
 case class ParseError(jsPath: JsPath, errs: Seq[JsonValidationError]) extends GuidanceError

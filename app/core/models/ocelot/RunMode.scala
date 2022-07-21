@@ -26,20 +26,20 @@ case object Approval extends RunMode
 case object Published extends RunMode
 
 object RunMode {
-  implicit val reads: Reads[RunMode] = {
+  val reads: Reads[RunMode] = {
     case JsString("PageReview") => JsSuccess(PageReview, __)
     case JsString("Scratch") => JsSuccess(Scratch, __)
     case JsString("Approval") => JsSuccess(Approval, __)
     case JsString("Published") => JsSuccess(Published, __)
-    case typeName: JsString => JsError(JsonValidationError(Seq("RunMode"), typeName.value))
     case unknown => JsError(JsonValidationError(Seq("RunMode"), unknown.toString))
   }
 
-  implicit val writes: Writes[RunMode] = {
+  val writes: Writes[RunMode] = {
     case PageReview => Json.toJson("PageReview")
     case Scratch => Json.toJson("Scratch")
     case Approval => Json.toJson("Approval")
     case Published => Json.toJson("Published")
   }
 
+  implicit val formats: Format[RunMode] = Format(reads, writes)
 }
