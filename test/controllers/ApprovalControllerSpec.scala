@@ -19,7 +19,7 @@ package controllers
 import models.ApprovalProcessSummary
 import controllers.actions.FakeAllRolesAction
 import mocks.{MockTimescalesService, MockApprovalService}
-import core.models.errors.{BadRequestError, DuplicateKeyError, Error, InternalServerError, NotFoundError, ProcessError, ValidationError}
+import core.models.errors.{BadRequestError, DuplicateKeyError, Error, InternalServerError, NotFoundError, ErrorReport, ValidationError}
 import core.models.ocelot.errors.DuplicatePageUrl
 import models.{ApprovalProcess, ApprovalProcessJson}
 import org.scalatest.matchers.should.Matchers
@@ -32,11 +32,10 @@ import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import models.ApprovalProcess
-import core.models.errors.ProcessError.toProcessErr
 import models.Constants._
 
 import scala.concurrent.Future
-import core.models.errors.DuplicateProcessCodeError
+import models.errors._
 
 class ApprovalControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with MockApprovalService with MockTimescalesService with ApprovalProcessJson {
 
@@ -136,8 +135,8 @@ class ApprovalControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppP
     "the request is invalid with a UnprocessableEntity" should {
 
       trait InvalidSaveTest extends Test {
-        val processError: ProcessError = toProcessErr(DuplicatePageUrl("4", "/feeling-bad"))
-        val expectedError: Error = Error(List(processError))
+        val errorReport: ErrorReport = fromGuidanceError(DuplicatePageUrl("4", "/feeling-bad"))
+        val expectedError: Error = Error(List(errorReport))
         MockApprovalService
           .save(validApprovalProcessJson)
           .returns(Future.successful(Left(expectedError)))
@@ -186,7 +185,6 @@ class ApprovalControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppP
         private val result = controller.saveFor2iReview()(request)
         private val data: Error = contentAsJson(result).as[Error]
         data.code shouldBe Error.UnprocessableEntity
-        data.message shouldBe None
         data.messages shouldBe Some(List(DuplicateProcessCodeError))
       }
     }
@@ -330,7 +328,6 @@ class ApprovalControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppP
         private val result = controller.saveForFactCheck()(request)
         private val data: Error = contentAsJson(result).as[Error]
         data.code shouldBe Error.UnprocessableEntity
-        data.message shouldBe None
         data.messages shouldBe Some(List(DuplicateProcessCodeError))
       }
     }

@@ -16,7 +16,7 @@
 
 import core.models.ocelot._
 import core.models.errors.Error
-//import core.models.errors.ProcessError.toProcessErr
+import models.errors._
 import core.models.ocelot.errors._
 import core.models.RequestOutcome
 import core.models.ocelot.Process
@@ -28,12 +28,12 @@ package object services {
 
   def guidancePagesAndProcess(pb: ValidatingPageBuilder, jsObject: JsObject, timescalesService: TimescalesService)
                    (implicit c: AppConfig, ec: ExecutionContext): Future[RequestOutcome[(Process, Seq[Page], JsObject)]] =
-    jsObject.validate[Process].fold(errs => Future.successful(Left(Error(GuidanceError.fromJsonValidationErrors(errs)))),
+    jsObject.validate[Process].fold(errs => Future.successful(Left(Error(fromGuidanceErrors(GuidanceError.fromJsonValidationErrors(errs))))),
       incomingProcess => {
         // Transform process if fake welsh, secured process or timescales are indicated
         val (p, js) = fakeWelshTextIfRequired _ tupled securedProcessIfRequired(incomingProcess, Some(jsObject))
         pb.pagesWithValidation(p, p.startPageId).fold(
-          errs => Future.successful(Left(Error(errs))),
+          errs => Future.successful(Left(Error(fromGuidanceErrors(errs)))),
           pages => {
             // If valid process, collect list of timescale ids from process flow and phrases
             val timescaleIds = (pb.pageBuilder.timescales.referencedNonPhraseIds(incomingProcess.flow) ++
@@ -48,7 +48,7 @@ package object services {
                     val updatedProcess = p.copy(timescales = timescaleIds.map(id => (id, 0)).toMap)
                     Future.successful(Right((updatedProcess, pages, Json.toJsObject(updatedProcess))))
                   case Right(timescales) =>
-                    Future.successful(Left(Error(timescaleIds.filterNot(timescales.contains).map(MissingTimescaleDefinition))))
+                    Future.successful(Left(Error(fromGuidanceErrors(timescaleIds.filterNot(timescales.contains).map(MissingTimescaleDefinition)))))
                 }
             }
           }

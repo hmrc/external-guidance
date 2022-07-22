@@ -17,7 +17,6 @@
 package core.services
 
 import base.BaseSpec
-import core.models.errors._
 import core.models.ocelot.errors._
 import core.models.ocelot.stanzas._
 import core.models.ocelot._
@@ -297,21 +296,18 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       }
     }
 
-    "detect and erroneous timescale" in {
-      val processErrors: List[ProcessError] =
-        List(ProcessError("TimescalesParseError: Process timescales section parse error, reason: error.expected.jsnumber, index: RepayReim", ""))
-
+    "detect an erroneous timescale" in {
       val jsObject = inValidOnePageWithTimescalesJson
       val result = jsObject.as[JsObject].validate[Process].fold(
-        errs => Left(core.models.errors.Error(GuidanceError.fromJsonValidationErrors(errs))),
+        errs => Left(GuidanceError.fromJsonValidationErrors(errs)),
         process => {
-          pageBuilder.pages(process, process.startPageId).fold(errs => Left(core.models.errors.Error(errs)),
+          pageBuilder.pages(process, process.startPageId).fold(errs => Left(errs),
             pages => Right((process, pages, jsObject))
           )}
       )
       result.fold(
         {
-          case core.models.errors.Error(core.models.errors.Error.UnprocessableEntity, None, Some(errors)) if errors == processErrors => {
+          case x :: xs if x.equals(TimescalesParseError("RepayReim", "error.expected.jsnumber", "")) => {
             succeed
           }
           case errs => {
@@ -320,30 +316,29 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
     }
 
     "detect UnknownCalloutType" in {
-      val processErrors: List[ProcessError] =
+      val guidanceErrors: List[GuidanceError] =
         List(
-          ProcessError("UnknownInputType: Unsupported InputStanza type UnknownInputType found at stanza id 34","34"),
-          ProcessError("LinksParseError: Process Links section parse error, reason: error.path.missing, index: 0",""),
-          ProcessError("PhrasesParseError: Process Phrases section parse error, reason: error.minLength, index: 5",""),
-          ProcessError("UnknownStanza: Unsupported stanza type UnknownStanza found at stanza id 2","2"),
-          ProcessError("""FlowParseError: Process Flow section parse error, reason: 'type' is undefined on object:"""+
-           """ {"next":["end"],"noteType":"Error","stack":false,"text":59}, stanzaId: 5, target: /flow/5""","5"),
-          ProcessError("UnknownCalloutType: Unsupported CalloutStanza type UnknownType found at stanza id 4","4"),
-          ProcessError("UnknownValueType: Unsupported ValueStanza Value type AnUnknownType found at stanza id 33","33"),
-          ProcessError("MetaParseError: Process Meta section parse error, reason: error.path.missing, target: ocelot",""))
+          UnknownInputType("34", "UnknownInputType"),
+          LinksParseError("0", "error.path.missing", ""),
+          PhrasesParseError("5", "error.minLength","2"),
+          UnknownStanza("2", "UnknownStanza"),
+          FlowParseError("5", """'type' is undefined on object: {"next":["end"],"noteType":"Error","stack":false,"text":59}""", """/flow/5"""),
+          UnknownCalloutType("4", "UnknownType"),
+          UnknownValueType("33", "AnUnknownType"),
+          MetaParseError("ocelot", "error.path.missing", ""))
 
       val jsObject = assortedParseErrorsJson
       val result = jsObject.as[JsObject].validate[Process].fold(
-        errs => Left(core.models.errors.Error(GuidanceError.fromJsonValidationErrors(errs))),
+        errs => Left(GuidanceError.fromJsonValidationErrors(errs)),
         process => {
-          pageBuilder.pages(process, process.startPageId).fold(errs => Left(core.models.errors.Error(errs)),
+          pageBuilder.pages(process, process.startPageId).fold(errs => Left(errs),
             pages => Right((process, pages, jsObject))
         )}
       )
 
       result.fold(
         {
-          case core.models.errors.Error(core.models.errors.Error.UnprocessableEntity, None, Some(errors)) if errors == processErrors => succeed
+          case errors if errors == guidanceErrors => succeed
           case errs => fail(s"Failed with errors: $errs")
         }, _ => fail)
     }
