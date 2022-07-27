@@ -18,20 +18,15 @@ package models.errors
 
 import play.api.libs.json.{Json, OFormat}
 import core.models.errors.Error
-import core.models.ocelot.RunMode
 import core.models.ocelot.errors._
 
 case class ErrorReport(message: String, stanza: String)
-case class OcelotError(code: String, messages: List[ErrorReport] = Nil, runMode: Option[RunMode] = None)
+case class OcelotError(code: String, messages: List[ErrorReport] = Nil)
 
 object OcelotError {
-  def apply(error: Error): OcelotError =
-    OcelotError(error.code, fromGuidanceErrors(error.errors.collect{case e: GuidanceError => e}), error.runMode)
-  def apply(errorReports: List[ErrorReport]): OcelotError = OcelotError(Error.UnprocessableEntity, errorReports, None)
+  def apply(error: Error): OcelotError = OcelotError(error.code, fromGuidanceErrors(error.errors.collect{case e: GuidanceError => e}))
+  def apply(errorReports: List[ErrorReport]): OcelotError = OcelotError(Error.UnprocessableEntity, errorReports)
   def apply(errorReport: ErrorReport): OcelotError = OcelotError(List(errorReport))
-
-  // def apply(code: String, errorReports: List[ErrorReport]): Error = Error(code, Some(errorReports))
-  // def apply(errorReports: List[ErrorReport]): Error = Error(UnprocessableEntity, Some(errorReports))
 
   implicit val erformat: OFormat[ErrorReport] = Json.format[ErrorReport]
   implicit val formats: OFormat[OcelotError] = Json.format[OcelotError]

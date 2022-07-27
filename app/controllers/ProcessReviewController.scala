@@ -32,10 +32,10 @@ import scala.concurrent.Future
 
 @Singleton
 class ProcessReviewController @Inject() (
-    factCheckerAction: FactCheckerAction,
-    twoEyeReviewerAction: TwoEyeReviewerAction,
-    reviewService: ReviewService,
-    cc: ControllerComponents
+  factCheckerAction: FactCheckerAction,
+  twoEyeReviewerAction: TwoEyeReviewerAction,
+  reviewService: ReviewService,
+  cc: ControllerComponents
 ) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass())
