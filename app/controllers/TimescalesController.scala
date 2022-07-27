@@ -17,7 +17,8 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-import core.models.errors.{Error, ValidationError, InternalServerError => ServerError}
+import core.models.errors.{ValidationError, InternalServerError => ServerError}
+import models.errors.OcelotError
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.{PublishedService, ApprovalService, TimescalesService}
@@ -41,12 +42,12 @@ class TimescalesController @Inject() (timescaleService: TimescalesService,
     publishService.getTimescalesInUse().flatMap{
       case Left(err) =>
         logger.error(s"Unable to retreive list of timescales within published guidance, $err")
-        Future.successful(InternalServerError(Json.toJson[Error](ServerError)))
+        Future.successful(InternalServerError(Json.toJson(OcelotError(ServerError))))
       case Right(publishedInUse) =>
         approvalService.getTimescalesInUse().flatMap{
           case Left(err) =>
             logger.error(s"Unable to retreive list of timescales within for-approval guidance, $err")
-            Future.successful(InternalServerError(Json.toJson[Error](ServerError)))
+            Future.successful(InternalServerError(Json.toJson(OcelotError(ServerError))))
           case Right(approvalInUse) =>
             timescaleService.save(request.body, request.credId, request.name, request.email, (publishedInUse ++ approvalInUse).distinct).map {
               case Right(response) =>
@@ -54,10 +55,10 @@ class TimescalesController @Inject() (timescaleService: TimescalesService,
                 Accepted(Json.toJson(response))
               case Left(ValidationError) =>
                 logger.error(s"Failed to save of updated timescales due to ValidationError")
-                BadRequest(Json.toJson[Error](ValidationError))
+                BadRequest(Json.toJson(OcelotError(ValidationError)))
               case Left(err) =>
                 logger.error(s"Failed to save of updated timescales due to $err, returning internal server error")
-                InternalServerError(Json.toJson[Error](ServerError))
+                InternalServerError(Json.toJson(OcelotError(ServerError)))
             }
         }
     }
@@ -66,7 +67,7 @@ class TimescalesController @Inject() (timescaleService: TimescalesService,
   def details: Action[AnyContent] = allRolesAction.async { _ =>
     timescaleService.details().map {
       case Right(response) => Ok(Json.toJson(response))
-      case Left(_) => InternalServerError(Json.toJson[Error](ServerError))
+      case Left(_) => InternalServerError(Json.toJson(OcelotError(ServerError)))
     }
   }
 

@@ -20,7 +20,8 @@ import java.time.ZonedDateTime
 
 import data.ExamplePayloads._
 import core.models.ocelot.Process
-import core.models.errors.{Error, IncompleteDataError}
+import core.models.errors.IncompleteDataError
+import models.errors.OcelotError
 import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange, ApprovalProcessSummary}
 import play.api.http.Status._
 import play.api.libs.json.{JsObject, JsValue, Json}
@@ -160,7 +161,7 @@ implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProc
 
       "return INCOMPLETE_DATA_ERROR in the request Body" in {
         val json = response.body[JsValue].as[JsObject]
-        json shouldBe Json.toJson[Error](IncompleteDataError)
+        json shouldBe Json.toJson(OcelotError(IncompleteDataError))
       }
 
     }
@@ -306,7 +307,7 @@ implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProc
 
       "return INCOMPLETE_DATA_ERROR in the request Body" in {
         val json = response.body[JsValue].as[JsObject]
-        json shouldBe Json.toJson[Error](IncompleteDataError)
+        json shouldBe Json.toJson(OcelotError(IncompleteDataError))
       }
 
     }

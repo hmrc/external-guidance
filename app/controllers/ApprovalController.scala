@@ -26,7 +26,7 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import models.Constants._
 import core.models.errors.{BadRequestError, DuplicateKeyError, Error}
 import core.models.errors.{NotFoundError, ValidationError, InternalServerError => ServerError}
-import models.errors.DuplicateProcessCodeError
+import models.errors.{OcelotError, DuplicateProcessCodeError}
 import play.api.libs.json.Json.toJson
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -50,25 +50,25 @@ class ApprovalController @Inject() (allRolesAction: AllRolesAction,
   def saveProcess(jsProcess: JsValue, reviewType: String): Future[Result] =
     jsProcess.validate[JsObject].fold(errs => {
       logger.error(s"Unable to parse incoming json as a JsObject, Errors: $errs")
-      Future.successful(BadRequest(toJson[Error](BadRequestError)))
+      Future.successful(BadRequest(toJson(OcelotError(BadRequestError))))
     }, process =>
       approvalService.save(process, reviewType, StatusSubmitted).map {
         case Right(id) =>
           logger.info(s"Saved process for $reviewType with id $id")
           Created(Json.obj("id" -> id))
-        case Left(err @ Error(Error.UnprocessableEntity, _, Some(details))) =>
+        case Left(err @ Error(Error.UnprocessableEntity, details, _)) =>
           logger.error(s"Failed to save process for approval due to process errors $details")
-          UnprocessableEntity(toJson(err))
+          UnprocessableEntity(toJson(OcelotError(err)))
         case Left(DuplicateKeyError) =>
           logger.error(s"Failed to save process for approval due to duplicate processCode")
-          UnprocessableEntity(toJson[Error](Error(List(DuplicateProcessCodeError))))
+          UnprocessableEntity(toJson(OcelotError(DuplicateProcessCodeError)))
         case Left(ValidationError) =>
           logger.error(s"Failed to save process for approval due to validation errors")
-          BadRequest(toJson[Error](BadRequestError))
-        case Left(BadRequestError) => BadRequest(toJson[Error](BadRequestError))
+          BadRequest(toJson[OcelotError](OcelotError(BadRequestError)))
+        case Left(BadRequestError) => BadRequest(toJson(OcelotError(BadRequestError)))
         case Left(err) =>
           logger.error(s"Unexpected error $err, returning InternalServerError")
-          InternalServerError(toJson[Error](ServerError))
+          InternalServerError(toJson(OcelotError(ServerError)))
       }
     )
 
@@ -77,11 +77,11 @@ class ApprovalController @Inject() (allRolesAction: AllRolesAction,
       case Right(approvalProcess) =>
         timescalesService.updateProcessTimescaleTable(approvalProcess).map{
           case Right(result) => Ok(result)
-          case Left(_) => InternalServerError(toJson[Error](ServerError))
+          case Left(_) => InternalServerError(toJson(OcelotError(ServerError)))
         }
-      case Left(NotFoundError) => Future.successful(NotFound(toJson[Error](NotFoundError)))
-      case Left(BadRequestError) => Future.successful(BadRequest(toJson[Error](BadRequestError)))
-      case Left(_) => Future.successful(InternalServerError(toJson[Error](ServerError)))
+      case Left(NotFoundError) => Future.successful(NotFound(toJson(OcelotError(NotFoundError))))
+      case Left(BadRequestError) => Future.successful(BadRequest(toJson(OcelotError(BadRequestError))))
+      case Left(_) => Future.successful(InternalServerError(toJson(OcelotError(ServerError))))
     }
   }
 
@@ -90,18 +90,18 @@ class ApprovalController @Inject() (allRolesAction: AllRolesAction,
       case Right(approvalProcess) =>
         timescalesService.updateProcessTimescaleTable(approvalProcess).map{
           case Right(result) => Ok(result)
-          case Left(_) => InternalServerError(toJson[Error](ServerError))
+          case Left(_) => InternalServerError(toJson(OcelotError(ServerError)))
         }
-      case Left(NotFoundError) => Future.successful(NotFound(toJson[Error](NotFoundError)))
-      case Left(BadRequestError) => Future.successful(BadRequest(toJson[Error](BadRequestError)))
-      case Left(_) => Future.successful(InternalServerError(toJson[Error](ServerError)))
+      case Left(NotFoundError) => Future.successful(NotFound(toJson(OcelotError(NotFoundError))))
+      case Left(BadRequestError) => Future.successful(BadRequest(toJson(OcelotError(BadRequestError))))
+      case Left(_) => Future.successful(InternalServerError(toJson(OcelotError(ServerError))))
     }
   }
 
   def approvalSummaryList: Action[AnyContent] = allRolesAction.async { implicit request =>
     approvalService.approvalSummaryList(request.roles).map {
       case Right(list) => Ok(list)
-      case _ => InternalServerError(toJson[Error](ServerError))
+      case _ => InternalServerError(toJson(OcelotError(ServerError)))
     }
   }
 }

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package core.models.errors
+package models.errors
 
 import base.BaseSpec
 import play.api.libs.json.Json
 
-class ErrorsSpec extends BaseSpec {
+class OcelotErrorsSpec extends BaseSpec {
 
   "Serialising a single error into JSON" should {
     "generate the correct JSON" in {
@@ -32,7 +32,7 @@ class ErrorsSpec extends BaseSpec {
         """.stripMargin
       )
 
-      val error = Error("SOME_CODE", List(ErrorReport("some message", "")))
+      val error = OcelotError("SOME_CODE", List(ErrorReport("some message", "")))
 
       val result = Json.toJson(error)
 
@@ -60,7 +60,7 @@ class ErrorsSpec extends BaseSpec {
         """.stripMargin
       )
 
-      val errors = Error("SOME_CODE_1",
+      val errors = OcelotError("SOME_CODE_1",
         List(
           ErrorReport("message 1", "stanza1"),
           ErrorReport("message 2", "stanza2")

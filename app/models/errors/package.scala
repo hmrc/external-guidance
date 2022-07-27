@@ -16,7 +16,6 @@
 
 package models
 
-import core.models.errors.ErrorReport
 import core.models.ocelot.errors._
 
 package object errors {

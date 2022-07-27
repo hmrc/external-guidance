@@ -70,17 +70,16 @@ sealed trait Operation {
   val right: String
   val label: String
 
-  private[stanzas] def evalScalarCollectionOp(l: String, r: List[String])(implicit m: RunMode): Result[List[String]] = unsupported(l, r, m)
-  private[stanzas] def evalCollectionScalarOp(l: List[String], r: String)(implicit m: RunMode): Result[List[String]] = unsupported(l, r, m)
-  private[stanzas] def evalCollectionCollectionOp(l: List[String], r: List[String])(implicit m: RunMode): Result[List[String]] = unsupported(l, r, m)
-  private[stanzas] def evalDateOp(l: LocalDate, r: LocalDate)(implicit m: RunMode): Result[String] = unsupported(l, r, m)
-  private[stanzas] def evalNumericOp(l: BigDecimal, r: BigDecimal)(implicit m: RunMode): Result[String] = unsupported(l, r, m)
-  private[stanzas] def evalStringOp(l: String, r: String)(implicit m: RunMode): Result[String] = unsupported(l, r, m)
-  private[stanzas] def evalDateTimePeriod(l: LocalDate, r: TimePeriod)(implicit m: RunMode): Result[String] = unsupported(l, r, m)
+  private[stanzas] def evalScalarCollectionOp(l: String, r: List[String]): Result[List[String]] = unsupported(l, r)
+  private[stanzas] def evalCollectionScalarOp(l: List[String], r: String): Result[List[String]] = unsupported(l, r)
+  private[stanzas] def evalCollectionCollectionOp(l: List[String], r: List[String]): Result[List[String]] = unsupported(l, r)
+  private[stanzas] def evalDateOp(l: LocalDate, r: LocalDate): Result[String] = unsupported(l, r)
+  private[stanzas] def evalNumericOp(l: BigDecimal, r: BigDecimal): Result[String] = unsupported(l, r)
+  private[stanzas] def evalStringOp(l: String, r: String): Result[String] = unsupported(l, r)
+  private[stanzas] def evalDateTimePeriod(l: LocalDate, r: TimePeriod): Result[String] = unsupported(l, r)
 
   def eval(labels: Labels): Result[Labels] = {
     def storeResultLabel[T](v: Result[T], res: (String, T) => Labels): Result[Labels] = v.fold(err => Left(err), result => Right(res(label, result)))
-    implicit val runMode: RunMode = labels.runMode
 
     (Operand(left, labels), Operand(right, labels)) match {
       case (Some(NumericOperand(l)), Some(NumericOperand(r))) => storeResultLabel(evalNumericOp(l, r), labels.update)
@@ -93,48 +92,48 @@ sealed trait Operation {
       case (Some(l: Scalar[_]), Some(StringCollection(r))) => storeResultLabel(evalScalarCollectionOp(l.toString, r), labels.updateList)
       // No typed op, fall back to String, String op
       case (Some(l: Operand[_]), Some(r: Operand[_])) => storeResultLabel(evalStringOp(l.toString, r.toString), labels.update)
-      case _ => unsupported(right, left, labels.runMode)
+      case _ => unsupported(right, left)
     }
   }
 
-  protected def unsupported[A, B, C, D](l: A, r: B, runMode: RunMode): Result[D] =
-    Left(UnsupportedOperationError(getClass.getSimpleName, l.toString, r.toString, left, right, runMode))
+  protected def unsupported[A, B, C, D](l: A, r: B): Result[D] =
+    Left(UnsupportedOperationError(getClass.getSimpleName, l.toString, r.toString, left, right))
 
 }
 
 case class AddOperation(left: String, right: String, label: String) extends Operation {
-  override def evalDateTimePeriod(date: LocalDate, period1: TimePeriod)(implicit m: RunMode): Result[String] = Right(stringFromDate(date.add(period1)))
-  override def evalScalarCollectionOp(left: String, right: List[String])(implicit m: RunMode): Result[List[String]] = Right(left :: right)
-  override def evalCollectionScalarOp(left: List[String], right: String)(implicit m: RunMode): Result[List[String]] = Right((right :: left.reverse).reverse)
-  override def evalCollectionCollectionOp(left: List[String], right: List[String])(implicit m: RunMode): Result[List[String]] = Right(left ::: right)
-  override def evalNumericOp(left: BigDecimal, right: BigDecimal)(implicit m: RunMode): Result[String] = Right((left + right).bigDecimal.toPlainString)
-  override def evalStringOp(left: String, right: String)(implicit m: RunMode): Result[String] = Right(left + right)
+  override def evalDateTimePeriod(date: LocalDate, period1: TimePeriod): Result[String] = Right(stringFromDate(date.add(period1)))
+  override def evalScalarCollectionOp(left: String, right: List[String]): Result[List[String]] = Right(left :: right)
+  override def evalCollectionScalarOp(left: List[String], right: String): Result[List[String]] = Right((right :: left.reverse).reverse)
+  override def evalCollectionCollectionOp(left: List[String], right: List[String]): Result[List[String]] = Right(left ::: right)
+  override def evalNumericOp(left: BigDecimal, right: BigDecimal): Result[String] = Right((left + right).bigDecimal.toPlainString)
+  override def evalStringOp(left: String, right: String): Result[String] = Right(left + right)
 }
 
 case class SubtractOperation(left: String, right: String, label: String) extends Operation {
-  override def evalDateTimePeriod(date: LocalDate, period1: TimePeriod)(implicit m: RunMode): Result[String] = Right(stringFromDate(date.minus(period1)))
-  override def evalCollectionScalarOp(left: List[String], right: String)(implicit m: RunMode): Result[List[String]] = Right(left.filterNot(_ == right))
-  override def evalCollectionCollectionOp(left: List[String], right: List[String])(implicit m: RunMode): Result[List[String]] = Right(left.filterNot(right.contains(_)))
-  override def evalNumericOp(left: BigDecimal, right: BigDecimal)(implicit m: RunMode): Result[String] = Right((left - right).bigDecimal.toPlainString)
-  override def evalDateOp(left: LocalDate, right: LocalDate)(implicit m: RunMode): Result[String] = Right(right.until(left, ChronoUnit.DAYS).toString)
+  override def evalDateTimePeriod(date: LocalDate, period1: TimePeriod): Result[String] = Right(stringFromDate(date.minus(period1)))
+  override def evalCollectionScalarOp(left: List[String], right: String): Result[List[String]] = Right(left.filterNot(_ == right))
+  override def evalCollectionCollectionOp(left: List[String], right: List[String]): Result[List[String]] = Right(left.filterNot(right.contains(_)))
+  override def evalNumericOp(left: BigDecimal, right: BigDecimal): Result[String] = Right((left - right).bigDecimal.toPlainString)
+  override def evalDateOp(left: LocalDate, right: LocalDate): Result[String] = Right(right.until(left, ChronoUnit.DAYS).toString)
 }
 
 case class MultiplyOperation(left: String, right: String, label: String) extends Operation {
-  override def evalNumericOp(left: BigDecimal, right: BigDecimal)(implicit m: RunMode): Result[String] = Right((left * right).bigDecimal.toPlainString)
+  override def evalNumericOp(left: BigDecimal, right: BigDecimal): Result[String] = Right((left * right).bigDecimal.toPlainString)
 }
 
 case class DivideOperation(left: String, right: String, label: String) extends Operation {
-  override def evalNumericOp(left: BigDecimal, right: BigDecimal)(implicit m: RunMode): Result[String] =
+  override def evalNumericOp(left: BigDecimal, right: BigDecimal): Result[String] =
     if (right.equals(0.0)) Right("Infinity") else Right((left / right).bigDecimal.toPlainString)
 }
 
 case class CeilingOperation(left: String, right: String, label: String) extends Operation {
-  override def evalNumericOp(left: BigDecimal, right: BigDecimal)(implicit m: RunMode): Result[String] =
+  override def evalNumericOp(left: BigDecimal, right: BigDecimal): Result[String] =
     Right(left.setScale(right.toInt, RoundingMode.CEILING).bigDecimal.toPlainString)
 }
 
 case class FloorOperation(left: String, right: String, label: String) extends Operation {
-  override def evalNumericOp(left: BigDecimal, right: BigDecimal)(implicit m: RunMode): Result[String] =
+  override def evalNumericOp(left: BigDecimal, right: BigDecimal): Result[String] =
     Right(left.setScale(right.toInt, RoundingMode.FLOOR).bigDecimal.toPlainString)
 }
 
