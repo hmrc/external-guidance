@@ -185,7 +185,7 @@ class ApprovalControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppP
         private val result = controller.saveFor2iReview()(request)
         private val data: OcelotError = contentAsJson(result).as[OcelotError]
         data.code shouldBe Error.UnprocessableEntity
-        data.messages shouldBe List(fromGuidanceError(DuplicateKeyError))
+        data.messages shouldBe List(DuplicateProcessCodeError)
       }
     }
 
@@ -328,7 +328,7 @@ class ApprovalControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppP
         private val result = controller.saveForFactCheck()(request)
         private val data: OcelotError = contentAsJson(result).as[OcelotError]
         data.code shouldBe Error.UnprocessableEntity
-        data.messages shouldBe List(fromGuidanceError(DuplicateKeyError))
+        data.messages shouldBe List(DuplicateProcessCodeError)
       }
     }
 
