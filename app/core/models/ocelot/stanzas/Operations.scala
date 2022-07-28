@@ -92,7 +92,7 @@ sealed trait Operation {
       case (Some(l: Scalar[_]), Some(StringCollection(r))) => storeResultLabel(evalScalarCollectionOp(l.toString, r), labels.updateList)
       // No typed op, fall back to String, String op
       case (Some(l: Operand[_]), Some(r: Operand[_])) => storeResultLabel(evalStringOp(l.toString, r.toString), labels.update)
-      case _ => unsupported(right, left)
+      case _ => unsupported(left, right)
     }
   }
 
