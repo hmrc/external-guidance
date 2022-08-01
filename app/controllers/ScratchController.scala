@@ -18,6 +18,7 @@ package controllers
 
 import javax.inject.{Inject, Singleton}
 import core.models.errors.{BadRequestError, ValidationError, Error, InternalServerError => ServerError, NotFoundError}
+import models.errors.OcelotError
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.{TimescalesService, ScratchService}
@@ -36,18 +37,18 @@ class ScratchController @Inject() (scratchService: ScratchService,
   def save(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     request.body.validate[JsObject].fold(errs => {
       logger.error(s"Unable to parse incoming json as a JsObject, Errors: $errs")
-      Future.successful(BadRequest(toJson[Error](BadRequestError)))
+      Future.successful(BadRequest(toJson(OcelotError(BadRequestError))))
     }, process => {
       scratchService.save(process).map {
         case Right(id) => Created(obj("id" -> id.toString))
-        case Left(err @ Error(Error.UnprocessableEntity, _, Some(details))) =>
+        case Left(err @ Error(Error.UnprocessableEntity, details, _, _)) =>
           logger.error(s"Failed to save scratch process due to process errors $details")
-          UnprocessableEntity(toJson(err))
+          UnprocessableEntity(toJson(OcelotError(err)))
         case Left(ValidationError) =>
           logger.error(s"Save on scratch service returned ValidationError")
-          BadRequest(toJson[Error](BadRequestError))
-        case Left(BadRequestError) => BadRequest(toJson[Error](BadRequestError))
-        case Left(_) => InternalServerError(toJson[Error](ServerError))
+          BadRequest(toJson(OcelotError(BadRequestError)))
+        case Left(BadRequestError) => BadRequest(toJson(OcelotError(BadRequestError)))
+        case Left(err) => InternalServerError(toJson(OcelotError(ServerError)))
       }
     })
   }
@@ -56,11 +57,11 @@ class ScratchController @Inject() (scratchService: ScratchService,
     scratchService.getById(id).flatMap {
       case Right(process) => timescalesService.updateProcessTimescaleTable(process).map {
         case Right(result) => Ok(result)
-        case Left(_) => InternalServerError(toJson[Error](ServerError))
+        case Left(_) => InternalServerError(toJson(OcelotError(ServerError)))
       }
-      case Left(NotFoundError) => Future.successful(NotFound(toJson[Error](NotFoundError)))
-      case Left(BadRequestError) => Future.successful(BadRequest(toJson[Error](BadRequestError)))
-      case Left(_) => Future.successful(InternalServerError(toJson[Error](ServerError)))
+      case Left(NotFoundError) => Future.successful(NotFound(toJson(OcelotError(NotFoundError))))
+      case Left(BadRequestError) => Future.successful(BadRequest(toJson(OcelotError(BadRequestError))))
+      case Left(_) => Future.successful(InternalServerError(toJson(OcelotError(ServerError))))
     }
   }
 }

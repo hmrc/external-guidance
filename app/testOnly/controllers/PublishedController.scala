@@ -18,6 +18,7 @@ package testOnly.controllers
 
 import javax.inject.{Inject, Singleton}
 import core.models.ocelot.Process
+import models.errors.OcelotError
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import repositories.PublishedRepository
@@ -34,7 +35,7 @@ class PublishedController @Inject() (publishedRepo: PublishedRepository, testRep
     def save(process: Process): Future[Result] = {
       publishedRepo.save(process.meta.id, "system", process.meta.processCode, Json.toJson(process).as[JsObject]).map {
         case Right(id) => Created(id)
-        case Left(err) => InternalServerError(Json.toJson(err))
+        case Left(err) => InternalServerError(Json.toJson(OcelotError(err)))
       }
     }
 
@@ -48,7 +49,7 @@ class PublishedController @Inject() (publishedRepo: PublishedRepository, testRep
   def delete(id: String): Action[AnyContent] = Action.async {
     testRepo.delete(id).map {
       case Right(_) => NoContent
-      case Left(errors) => InternalServerError(Json.toJson(errors))
+      case Left(errors) => InternalServerError(Json.toJson(OcelotError(errors)))
     }
   }
 }

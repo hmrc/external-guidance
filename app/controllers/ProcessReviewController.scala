@@ -19,6 +19,7 @@ package controllers
 import controllers.actions.{FactCheckerAction, TwoEyeReviewerAction}
 import javax.inject.{Inject, Singleton}
 import core.models.errors.{InternalServerError => ServerError, _}
+import models.errors.OcelotError
 import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
@@ -31,10 +32,10 @@ import scala.concurrent.Future
 
 @Singleton
 class ProcessReviewController @Inject() (
-    factCheckerAction: FactCheckerAction,
-    twoEyeReviewerAction: TwoEyeReviewerAction,
-    reviewService: ReviewService,
-    cc: ControllerComponents
+  factCheckerAction: FactCheckerAction,
+  twoEyeReviewerAction: TwoEyeReviewerAction,
+  reviewService: ReviewService,
+  cc: ControllerComponents
 ) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass())
@@ -50,21 +51,21 @@ class ProcessReviewController @Inject() (
   private def getReviewInfo(id: String, reviewType: String): Future[Result] = {
     reviewService.approvalReviewInfo(id, reviewType).map {
       case Right(data) => Ok(Json.toJson(data))
-      case Left(NotFoundError) => NotFound(Json.toJson[Error](NotFoundError))
-      case Left(DuplicateKeyError) => BadRequest(Json.toJson[Error](DuplicateKeyError))
-      case Left(StaleDataError) => NotFound(Json.toJson[Error](StaleDataError))
-      case Left(BadRequestError) => BadRequest(Json.toJson[Error](BadRequestError))
-      case Left(_) => InternalServerError(Json.toJson[Error](ServerError))
+      case Left(NotFoundError) => NotFound(Json.toJson(OcelotError(NotFoundError)))
+      case Left(DuplicateKeyError) => BadRequest(Json.toJson(OcelotError(DuplicateKeyError)))
+      case Left(StaleDataError) => NotFound(Json.toJson(OcelotError(StaleDataError)))
+      case Left(BadRequestError) => BadRequest(Json.toJson(OcelotError(BadRequestError)))
+      case Left(_) => InternalServerError(Json.toJson(OcelotError(ServerError)))
     }
   }
 
   def approval2iReviewConfirmAllPagesReviewed(id: String): Action[AnyContent] = twoEyeReviewerAction.async { _ =>
     reviewService.checkProcessInCorrectStateForCompletion(id, ReviewType2i).map {
       case Right(_) => NoContent
-      case Left(IncompleteDataError) => BadRequest(Json.toJson[Error](IncompleteDataError))
-      case Left(StaleDataError) => NotFound(Json.toJson[Error](StaleDataError))
-      case Left(NotFoundError) => NotFound(Json.toJson[Error](NotFoundError))
-      case Left(errors) => InternalServerError(Json.toJson(errors))
+      case Left(IncompleteDataError) => BadRequest(Json.toJson(OcelotError(IncompleteDataError)))
+      case Left(StaleDataError) => NotFound(Json.toJson(OcelotError(StaleDataError)))
+      case Left(NotFoundError) => NotFound(Json.toJson(OcelotError(NotFoundError)))
+      case Left(errors) => InternalServerError(Json.toJson(OcelotError(errors)))
     }
   }
 
@@ -74,13 +75,13 @@ class ProcessReviewController @Inject() (
         case Right(auditInfo) =>
           logger.warn(s"2i review of $id complete")
           Ok(Json.toJson(auditInfo))
-        case Left(IncompleteDataError) => BadRequest(Json.toJson[Error](IncompleteDataError))
-        case Left(DuplicateKeyError) => BadRequest(Json.toJson[Error](DuplicateKeyError))
-        case Left(NotFoundError) => NotFound(Json.toJson[Error](NotFoundError))
-        case Left(StaleDataError) => NotFound(Json.toJson[Error](StaleDataError))
-        case Left(BadRequestError) => BadRequest(Json.toJson[Error](BadRequestError))
-        case Left(UpgradeRequiredError) => BadRequest(Json.toJson[Error](UpgradeRequiredError))
-        case Left(errors) => InternalServerError(Json.toJson(errors))
+        case Left(IncompleteDataError) => BadRequest(Json.toJson(OcelotError(IncompleteDataError)))
+        case Left(DuplicateKeyError) => BadRequest(Json.toJson(OcelotError(DuplicateKeyError)))
+        case Left(NotFoundError) => NotFound(Json.toJson(OcelotError(NotFoundError)))
+        case Left(StaleDataError) => NotFound(Json.toJson(OcelotError(StaleDataError)))
+        case Left(BadRequestError) => BadRequest(Json.toJson(OcelotError(BadRequestError)))
+        case Left(UpgradeRequiredError) => BadRequest(Json.toJson(OcelotError(UpgradeRequiredError)))
+        case Left(errors) => InternalServerError(Json.toJson(OcelotError(errors)))
       }
     }
     request.body.validate[ApprovalProcessStatusChange] match {
@@ -95,11 +96,11 @@ class ProcessReviewController @Inject() (
         case Right(auditInfo) =>
           logger.info(s"Fact check of $id complete")
           Ok(Json.toJson(auditInfo))
-        case Left(IncompleteDataError) => BadRequest(Json.toJson[Error](IncompleteDataError))
-        case Left(NotFoundError) => NotFound(Json.toJson[Error](NotFoundError))
-        case Left(StaleDataError) => NotFound(Json.toJson[Error](StaleDataError))
-        case Left(BadRequestError) => BadRequest(Json.toJson[Error](BadRequestError))
-        case Left(errors) => InternalServerError(Json.toJson(errors))
+        case Left(IncompleteDataError) => BadRequest(Json.toJson(OcelotError(IncompleteDataError)))
+        case Left(NotFoundError) => NotFound(Json.toJson(OcelotError(NotFoundError)))
+        case Left(StaleDataError) => NotFound(Json.toJson(OcelotError(StaleDataError)))
+        case Left(BadRequestError) => BadRequest(Json.toJson(OcelotError(BadRequestError)))
+        case Left(errors) => InternalServerError(Json.toJson(OcelotError(errors)))
       }
     }
 
@@ -120,10 +121,10 @@ class ProcessReviewController @Inject() (
   private def pageReviewInfo(id: String, pageUrl: String, reviewType: String): Future[Result] = {
     reviewService.approvalPageInfo(id, s"/$pageUrl", reviewType).map {
       case Right(data) => Ok(Json.toJson(data))
-      case Left(NotFoundError) => NotFound(Json.toJson[Error](NotFoundError))
-      case Left(StaleDataError) => NotFound(Json.toJson[Error](StaleDataError))
-      case Left(BadRequestError) => BadRequest(Json.toJson[Error](BadRequestError))
-      case Left(_) => InternalServerError(Json.toJson[Error](ServerError))
+      case Left(NotFoundError) => NotFound(Json.toJson(OcelotError(NotFoundError)))
+      case Left(StaleDataError) => NotFound(Json.toJson(OcelotError(StaleDataError)))
+      case Left(BadRequestError) => BadRequest(Json.toJson(OcelotError(BadRequestError)))
+      case Left(_) => InternalServerError(Json.toJson(OcelotError(ServerError)))
     }
   }
 
@@ -140,8 +141,8 @@ class ProcessReviewController @Inject() (
     def save(reviewInfo: ApprovalProcessPageReview): Future[Result] =
       reviewService.approvalPageComplete(id, s"/$pageUrl", reviewType, reviewInfo).map {
         case Right(_) => NoContent
-        case Left(NotFoundError) => NotFound(Json.toJson[Error](NotFoundError))
-        case Left(errors) => InternalServerError(Json.toJson(errors))
+        case Left(NotFoundError) => NotFound(Json.toJson(OcelotError(NotFoundError)))
+        case Left(errors) => InternalServerError(Json.toJson(OcelotError(errors)))
       }
 
     reviewJson.validate[ApprovalProcessPageReview] match {

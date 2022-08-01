@@ -19,8 +19,9 @@ package controllers
 import models.ApprovalProcessSummary
 import controllers.actions.FakeAllRolesAction
 import mocks.{MockTimescalesService, MockApprovalService}
-import core.models.errors.{BadRequestError, DuplicateKeyError, Error, InternalServerError, NotFoundError, ErrorReport, ValidationError}
+import core.models.errors.{BadRequestError, DuplicateKeyError, Error, InternalServerError, NotFoundError, ValidationError}
 import core.models.ocelot.errors.DuplicatePageUrl
+import models.errors.OcelotError
 import models.{ApprovalProcess, ApprovalProcessJson}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -135,8 +136,7 @@ class ApprovalControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppP
     "the request is invalid with a UnprocessableEntity" should {
 
       trait InvalidSaveTest extends Test {
-        val errorReport: ErrorReport = fromGuidanceError(DuplicatePageUrl("4", "/feeling-bad"))
-        val expectedError: Error = Error(List(errorReport))
+        val expectedError: Error = Error(List(DuplicatePageUrl("4", "/feeling-bad")))
         MockApprovalService
           .save(validApprovalProcessJson)
           .returns(Future.successful(Left(expectedError)))
@@ -183,9 +183,9 @@ class ApprovalControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppP
 
       "return an error code of UNPROCESSABLE_ENTITY" in new InvalidSaveTest {
         private val result = controller.saveFor2iReview()(request)
-        private val data: Error = contentAsJson(result).as[Error]
+        private val data: OcelotError = contentAsJson(result).as[OcelotError]
         data.code shouldBe Error.UnprocessableEntity
-        data.messages shouldBe Some(List(DuplicateProcessCodeError))
+        data.messages shouldBe List(DuplicateProcessCodeError)
       }
     }
 
@@ -326,9 +326,9 @@ class ApprovalControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppP
 
       "return an error code of UNPROCESSABLE_ENTITY" in new InvalidSaveTest {
         private val result = controller.saveForFactCheck()(request)
-        private val data: Error = contentAsJson(result).as[Error]
+        private val data: OcelotError = contentAsJson(result).as[OcelotError]
         data.code shouldBe Error.UnprocessableEntity
-        data.messages shouldBe Some(List(DuplicateProcessCodeError))
+        data.messages shouldBe List(DuplicateProcessCodeError)
       }
     }
 

@@ -17,7 +17,6 @@
 package models.errors
 
 import base.BaseSpec
-import core.models.errors._
 import core.models.ocelot.errors._
 import play.api.libs.json.{JsPath, JsonValidationError}
 
