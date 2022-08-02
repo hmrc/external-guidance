@@ -66,6 +66,7 @@ package object ocelot {
   val positiveIntRegex: Regex = s"^$TenDigitIntPattern$$".r                                 // Limited to 10 decimal digits
   val listOfPositiveIntRegex: Regex = PositiveIntListPattern.r
   val anyIntegerRegex: Regex = s"^-?(\\d{1,3}(,\\d{3}){0,3}|$TenDigitIntPattern)$$".r       // Limited to 10 decimal digits or 12 comma separated
+  val EmbeddedParameterGroup: Int = 1
   val EmbeddedParameterRegex: Regex = """\{(\d)\}""".r
   val ExclusivePlaceholder: String = "[exclusive]"
   val NoRepeatPlaceholder: String = "\\[norepeat\\]"
