@@ -17,7 +17,7 @@
 package core.models.ocelot.stanzas
 
 import play.api.libs.json._
-import core.models.ocelot.{Labels, Page}
+import core.models.ocelot.{Page, Labels, Phrase}
 import core.models.ocelot.errors.RuntimeError
 
 trait Stanza {
@@ -29,12 +29,13 @@ trait Stanza {
   val labelRefs: List[String] = Nil
 }
 
-trait VisualStanza extends Stanza {
+trait PopulatedStanza extends Stanza
+
+trait VisualStanza extends PopulatedStanza {
   val stack: Boolean
   override val visual: Boolean = true
+  def rendered(expand: Phrase => Phrase): VisualStanza = this
 }
-
-trait Populated
 
 trait Evaluate {
   def eval(labels: Labels): (String, Labels, List[RuntimeError])
@@ -45,7 +46,11 @@ trait DataInput {
   def validInput(value: String): Option[String]
 }
 
-case object EndStanza extends Stanza
+trait DataInputStanza extends VisualStanza with DataInput {
+  override def rendered(expand: Phrase => Phrase): DataInputStanza = this
+}
+
+case object EndStanza extends PopulatedStanza
 
 object Stanza {
 

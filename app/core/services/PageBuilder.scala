@@ -33,9 +33,9 @@ class PageBuilder @Inject() (val timescales: Timescales) extends ProcessPopulati
     def collectStanzas(keys: Seq[String],
                        pageStanza: Option[PageStanza] = None,
                        ids: Seq[String] = Nil,
-                       stanzas: Seq[Stanza] = Nil,
+                       stanzas: Seq[PopulatedStanza] = Nil,
                        next: Seq[String] = Nil,
-                       endFound: Boolean = false): Either[GuidanceError, (Option[PageStanza], Seq[String], Seq[Stanza], Seq[String], Boolean)] =
+                       endFound: Boolean = false): Either[GuidanceError, (Option[PageStanza], Seq[String], Seq[PopulatedStanza], Seq[String], Boolean)] =
       keys match {
         case Nil => Right((pageStanza, ids, stanzas, next, endFound))                                        // End Page
         case key +: xs if ids.contains(key) => collectStanzas(xs, pageStanza, ids, stanzas, next, endFound)  // Already encountered, possibly more paths
@@ -44,8 +44,8 @@ class PageBuilder @Inject() (val timescales: Timescales) extends ProcessPopulati
             case (Right(_: PageStanza), _) if ids.nonEmpty => collectStanzas(xs, pageStanza, ids, stanzas, key +: next, endFound) // End, possibly more paths
             case (Right(s: PageStanza), _) => collectStanzas(xs ++ s.next, Some(s), ids :+ key, stanzas :+ s, next, endFound)     // Beginning of page
             case (Right(EndStanza), _) => collectStanzas(xs, pageStanza, ids :+ key, stanzas :+ EndStanza, next, true)            // End, possibly more paths
-            case (Right(_: Stanza), _) if ids.isEmpty => Left(PageStanzaMissing(key))                                             // No PageStanza at start
-            case (Right(s: Stanza), _) => collectStanzas(xs ++ s.next, pageStanza, ids :+ key, stanzas :+ s, next, endFound)      // Within-page stanza
+            case (Right(_: PopulatedStanza), _) if ids.isEmpty => Left(PageStanzaMissing(key))                                             // No PageStanza at start
+            case (Right(s: PopulatedStanza), _) => collectStanzas(xs ++ s.next, pageStanza, ids :+ key, stanzas :+ s, next, endFound)      // Within-page stanza
             case (Left(err), _) => Left(err)
           }
       }

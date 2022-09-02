@@ -16,14 +16,14 @@
 
 package core.models.ocelot
 
-import core.models.ocelot.stanzas.Stanza
+import core.models.ocelot.stanzas.PopulatedStanza
 
-case class KeyedStanza(key: String, stanza: Stanza)
+case class KeyedStanza(key: String, stanza: PopulatedStanza)
 
 case class Page(id: String, url: String, keyedStanzas: Seq[KeyedStanza], next: Seq[String], endPage: Boolean = false) {
   val buttonLinked: Seq[String] = keyedStanzas.flatMap(_.stanza.buttonLinks)
   val linked: Seq[String] = keyedStanzas.flatMap(_.stanza.links).distinct
-  val stanzas: Seq[Stanza] = keyedStanzas.map(_.stanza)
+  val stanzas: Seq[PopulatedStanza] = keyedStanzas.map(_.stanza)
   val labels: Seq[String] = keyedStanzas.flatMap(_.stanza.labels).distinct
   val labelRefs: Seq[String] = keyedStanzas.flatMap(_.stanza.labelRefs).distinct
 }

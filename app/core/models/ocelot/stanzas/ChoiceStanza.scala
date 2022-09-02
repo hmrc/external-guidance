@@ -208,7 +208,7 @@ object ContainsTest {
     ((JsPath \ "left").write[String] and (JsPath \ "right").write[String])(unlift(ContainsTest.unapply))
 }
 
-case class Choice(override val next: Seq[String], tests: Seq[ChoiceTest]) extends Stanza with Evaluate {
+case class Choice(override val next: Seq[String], tests: Seq[ChoiceTest]) extends PopulatedStanza with Evaluate {
   def eval(labels: Labels): (String, Labels, List[RuntimeError]) =
     tests.zipWithIndex
       .find { case (x, _) => x.eval(labels) }

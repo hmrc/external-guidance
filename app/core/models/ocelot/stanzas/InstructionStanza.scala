@@ -21,7 +21,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json.{JsPath, OWrites, Reads}
 
-case class InstructionStanza(text: Int, override val next: Seq[String], link: Option[Int], stack: Boolean) extends VisualStanza
+case class InstructionStanza(text: Int, override val next: Seq[String], link: Option[Int], stack: Boolean) extends Stanza
 
 object InstructionStanza {
 
@@ -45,8 +45,9 @@ case class Instruction(text: Phrase,
                        override val next: Seq[String],
                        link: Option[Link], stack: Boolean,
                        override val links: List[String] = Nil,
-                       override val buttonLinks: List[String] = Nil) extends VisualStanza with Populated {
+                       override val buttonLinks: List[String] = Nil) extends VisualStanza {
   override val labelRefs: List[String] = labelReferences(text.english)
+  override def rendered(expand: Phrase => Phrase): VisualStanza = copy(text = expand(text))
 }
 
 object Instruction {
