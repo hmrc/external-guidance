@@ -71,7 +71,7 @@ object CalculationStanza {
     )(unlift(CalculationStanza.unapply))
 }
 
-case class Calculation(override val next: Seq[String], calcs: Seq[Operation]) extends Stanza with Evaluate {
+case class Calculation(override val next: Seq[String], calcs: Seq[Operation]) extends PopulatedStanza with Evaluate {
   override val labels: List[String] = calcs.map(op => op.label).toList
   override val labelRefs: List[String] = calcs.flatMap(op => labelReferences(op.left) ++ labelReferences(op.right)).toList
 

@@ -165,6 +165,7 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
 
 object LabelCache {
   def apply(): Labels = new LabelCacheImpl()
+  def apply(labels: List[Label]): Labels = new LabelCacheImpl(labels.map(l => (l.name -> l)).toMap)
   def apply(labels: Map[String, Label]): Labels = new LabelCacheImpl(labels)
   def apply(labels: Map[String, Label], cache: Map[String, Label]): Labels = new LabelCacheImpl(labels, cache)
   def apply(labels: Map[String, Label],

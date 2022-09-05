@@ -42,7 +42,7 @@ object Value {
     )(unlift(Value.unapply))
 }
 
-case class ValueStanza(values: List[Value], override val next: Seq[String], stack: Boolean) extends Stanza with Evaluate {
+case class ValueStanza(values: List[Value], override val next: Seq[String], stack: Boolean) extends PopulatedStanza with Evaluate {
   override val labels: List[String] = values.map(v => v.label)
   override val labelRefs: List[String] = values.flatMap(v => labelReferences(v.value))
 

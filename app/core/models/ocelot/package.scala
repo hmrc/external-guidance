@@ -40,7 +40,8 @@ package object ocelot {
   val LabelNamePattern: String = "[A-Za-z0-9\\s\\-_]*[A-Za-z0-9\\-_]"
   val LabelPattern: String = s"\\[label:($LabelNamePattern)(?::(currency|currencyPoundsOnly|date|number))?\\]"
   val LabelNameRegex: Regex = s"^$LabelNamePattern$$".r
-  val boldPattern: String = s"\\[bold:($LabelPattern|[^\\]]+)\\]"
+  val boldPattern: String = s"\\[bold:([^\\]]+)\\]"
+  val boldLabelPattern: String = s"\\[bold:($LabelPattern|[^\\]]+)\\]"
   val SimpleTimescalePattern: String = s"\\[timescale:(?:(?:($TimescaleIdPattern):days))\\]"
   val DateAddPattern: String = s"\\[date_add:(?:($LabelNamePattern)|($DatePattern)):($TimescaleIdPattern)\\]"
   val TimescaleIdUsagePattern: String = s"(?:$DateAddPattern)|(?:$SimpleTimescalePattern)"
@@ -156,7 +157,7 @@ package object ocelot {
   def stringWithOptionalHint(str: String): (String, Option[String]) = {
     val (txts, matches) = fromPattern(hintRegex, str)
     val hint = matches.headOption.map(m => m.group(1))
-    (txts.mkString.trim, hint)
+    (txts.mkString, hint)
   }
 
   def asTextString(value: String): Option[String] = value.trim.headOption.fold[Option[String]](None)(_ => Some(value.trim))

@@ -25,7 +25,7 @@ case class SequenceStanza(text: Int,
                           override val next: Seq[String],
                           options: Seq[Int],
                           label: Option[String],
-                          stack: Boolean) extends VisualStanza {
+                          stack: Boolean) extends Stanza {
   override val labels: List[String] = label.fold(List.empty[String])(l => List(l))
 }
 
@@ -64,7 +64,7 @@ case class Sequence(text: Phrase,
                     options: Seq[Phrase],
                     exclusive: Option[Phrase],
                     label: Option[String],
-                    stack: Boolean) extends VisualStanza with Populated with DataInput {
+                    stack: Boolean) extends DataInputStanza {
   override val labelRefs: List[String] = labelReferences(text.english) ++ options.flatMap(a => labelReferences(a.english))
   override val labels: List[String] = label.fold(List.empty[String])(l => List(l))
 
@@ -75,8 +75,8 @@ case class Sequence(text: Phrase,
           options.lift(idx).fold(exclusive.fold(List.empty[Phrase])(ep => List(stripHintPlaceholder(ep))))(sp => List(stripHintPlaceholder(sp)))
         }
         // Collect any Evaluate stanzas following this Sequence for use when the Continuation is followed
-        val continuationStanzas: Map[String, Stanza] = page.keyedStanzas.dropWhile(_.stanza != this)
-                                                           .collect{case ks @ KeyedStanza(_, _: Stanza with Evaluate) => (ks.key, ks.stanza)}
+        val continuationStanzas: Map[String, PopulatedStanza] = page.keyedStanzas.dropWhile(_.stanza != this)
+                                                           .collect{case ks @ KeyedStanza(_, _: PopulatedStanza with Evaluate) => (ks.key, ks.stanza)}
                                                            .toMap
 
         // push the flows and Continuation corresponding to the checked items, then
@@ -95,4 +95,6 @@ case class Sequence(text: Phrase,
     asListOfPositiveInt(value).fold[Option[String]](None){l =>
       if (l.forall(options.indices.contains) || l.length == 1 && exclusive.fold(false)(_ => l.headOption.contains(options.length))) Some(value) else None
     }
+
+  override def rendered(expand: Phrase => Phrase): DataInputStanza = copy(text = expand(text), options = options.map(expand), exclusive = exclusive.map(expand))
 }

@@ -27,13 +27,13 @@ abstract class ProcessPopulation(timescaleExpansion: TimescaleExpansion) {
 
   import timescaleExpansion._
 
-  def stanza(id: String, process: Process): Either[GuidanceError, Stanza] =
+  def stanza(id: String, process: Process): Either[GuidanceError, PopulatedStanza] =
     process.flow.get(id) match {
       case Some(stanza) => populateStanza(id, stanza, process)
       case None => Left(StanzaNotFound(id))
     }
 
-  private def populateStanza(id: String, stanza: Stanza, process: Process): Either[GuidanceError, Stanza] = {
+  private def populateStanza(id: String, stanza: Stanza, process: Process): Either[GuidanceError, PopulatedStanza] = {
 
     def populateInstruction(i: InstructionStanza): Either[GuidanceError, Instruction] =
       phrase(i.text, id, process).fold(Left(_), text => {
@@ -96,7 +96,7 @@ abstract class ProcessPopulation(timescaleExpansion: TimescaleExpansion) {
                                                                    right = expand(op.right, process.timescales))))))
       case s: SequenceStanza => populateSequence(s)
       case vs: ValueStanza => Right(vs.copy(values = vs.values.map(v => v.copy(value = expand(v.value, process.timescales)))))
-      case s: Stanza => Right(s)
+      case s: PopulatedStanza => Right(s)
     }
   }
 
