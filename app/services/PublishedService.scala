@@ -20,13 +20,14 @@ import javax.inject.{Inject, Singleton}
 import core.models.errors.{BadRequestError, DuplicateKeyError, InternalServerError, NotFoundError}
 import core.models.ocelot._
 import core.models.RequestOutcome
-import models.PublishedProcess
+import models.{ProcessSummary, PublishedProcess}
 import play.api.Logger
 import play.api.libs.json.JsObject
 import repositories.{ApprovalRepository, ArchiveRepository, PublishedRepository}
 import core.services.validateProcessId
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import play.api.libs.json.{Json, OFormat, JsValue}
 
 @Singleton
 class PublishedService @Inject() (published: PublishedRepository,
@@ -34,6 +35,14 @@ class PublishedService @Inject() (published: PublishedRepository,
                                   approval: ApprovalRepository) {
 
   val logger: Logger = Logger(this.getClass)
+
+  def list: Future[RequestOutcome[JsValue]] = {
+    implicit val formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
+    published.processSummaries() map {
+      case Left(_) => Left(InternalServerError)
+      case Right(summaries) => Right(Json.toJson(summaries))
+    }
+  }
 
   def getById(id: String): Future[RequestOutcome[PublishedProcess]] =
     validateProcessId(id) match {

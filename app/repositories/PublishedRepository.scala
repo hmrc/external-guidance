@@ -21,7 +21,7 @@ import javax.inject.{Inject, Singleton}
 import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
 import core.models.RequestOutcome
 import core.models.ocelot.Process
-import models.{PublishedSummary, PublishedProcess}
+import models.{ProcessSummary, PublishedProcess}
 import play.api.libs.json.JsObject
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.Logger
@@ -40,7 +40,7 @@ trait PublishedRepository {
   def save(id: String, user: String, processCode: String, process: JsObject): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[PublishedProcess]]
   def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]]
-  def processSummaries(): Future[RequestOutcome[List[PublishedSummary]]]
+  def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]]
   def delete(id: String): Future[RequestOutcome[String]]
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]]
 }
@@ -162,7 +162,7 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
     //$COVERAGE-ON$
 
   //$COVERAGE-OFF$
-  def processSummaries(): Future[RequestOutcome[List[PublishedSummary]]] =
+  def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]] =
     collection
       .withReadPreference(ReadPreference.primaryPreferred())
       .find()
@@ -170,7 +170,21 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
       .toFutureOption
       .map{
         case None => Right(Nil)
-        case Some(res) => Right(res.map(doc => PublishedSummary(doc.id, doc.datePublished, doc.processCode, doc.publishedBy)).toList)
+        case Some(res) =>
+          val summaries = res.map{p =>
+            val process: Process = p.process.as[Process]
+            ProcessSummary(
+              p.id,
+              p.processCode,
+              process.meta.version,
+              process.meta.lastAuthor,
+              process.meta.passPhrase,
+              p.datePublished,
+              p.publishedBy,
+              "Published"
+            )
+          }
+          Right(summaries.toList)
       }
       .recover {
         case error =>

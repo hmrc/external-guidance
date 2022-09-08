@@ -22,51 +22,28 @@ import javax.inject.{Inject, Singleton}
 import core.models.errors.{BadRequestError, NotFoundError, InternalServerError => ServerError}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import services.{TimescalesService, PublishedService}
+import services.ArchiveService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.libs.json._
 
 @Singleton
-class PublishedController @Inject() (publishedService: PublishedService,
-                                     timescalesService: TimescalesService,
-                                     cc: ControllerComponents,
-                                     identify: AllRolesAction) extends BackendController(cc) {
+class ArchivedController @Inject() (archivedService: ArchiveService,
+                                    cc: ControllerComponents,
+                                    identify: AllRolesAction) extends BackendController(cc) {
   import Json._
-  import models.PublishedProcess.Implicits._
 
   def get(id: String): Action[AnyContent] = Action.async {
-    publishedService.getById(id).map {
-      case Right(process) => Ok(toJson(process))
+    archivedService.getById(id).map {
+      case Right(archived) => Ok(archived.process)
       case Left(BadRequestError) => BadRequest(toJson(OcelotError(BadRequestError)))
       case Left(NotFoundError) => NotFound(toJson(OcelotError(NotFoundError)))
       case Left(_) => InternalServerError(toJson(OcelotError(ServerError)))
     }
   }
 
-  def getByProcessCode(processCode: String): Action[AnyContent] = Action.async {
-    publishedService.getByProcessCode(processCode).flatMap {
-      case Right(pp) => timescalesService.updateProcessTimescaleTable(pp.process).map {
-        case Right(result) => Ok(result)
-        case Left(_) => InternalServerError(toJson(OcelotError(ServerError)))
-      }
-      case Left(BadRequestError) => Future.successful(BadRequest(toJson(OcelotError(BadRequestError))))
-      case Left(NotFoundError) => Future.successful(NotFound(toJson(OcelotError(NotFoundError))))
-      case Left(_) => Future.successful(InternalServerError(toJson(OcelotError(ServerError))))
-    }
-  }
-
-  def archive(id: String): Action[AnyContent] = identify.async { implicit request =>
-    publishedService.archive(id, request.credId) map {
-      case Right(_) => Ok
-      case Left(BadRequestError) => BadRequest(toJson(OcelotError(BadRequestError)))
-      case _ => InternalServerError(toJson(OcelotError(ServerError)))
-    }
-  }
-
   def list: Action[AnyContent] = identify.async { _ =>
-    publishedService.list map {
+    archivedService.list map {
       case Right(summaries) => Ok(summaries)
       case Left(BadRequestError) => BadRequest(toJson(OcelotError(BadRequestError)))
       case Left(_) => InternalServerError(toJson(OcelotError(ServerError)))

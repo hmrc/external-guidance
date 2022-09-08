@@ -20,43 +20,41 @@ import java.time.ZonedDateTime
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
-case class PublishedProcess(id: String, version: Int, datePublished: ZonedDateTime, process: JsObject, publishedBy: String, processCode: String)
+case class ArchivedProcess(id: Long, dateArchived: ZonedDateTime, process: JsObject, archivedBy: String, processCode: String)
 
-trait PublishedProcessFormats {
-  val standardformat: Format[PublishedProcess] = Json.format[PublishedProcess]
+trait ArchivedProcessFormats {
+  val standardformat: Format[ArchivedProcess] = Json.format[ArchivedProcess]
 
   import core.models.MongoDateTimeFormats.Implicits._
 
-  val reads: Reads[PublishedProcess] = (
-    (__ \ "_id").read[String] and
-      (__ \ "version").read[Int] and
-      (__ \ "datePublished").read[ZonedDateTime] and
+  val reads: Reads[ArchivedProcess] = (
+    (__ \ "_id").read[Long] and
+      (__ \ "dateArchived").read[ZonedDateTime] and
       (__ \ "process").read[JsObject] and
-      (__ \ "publishedBy").read[String] and
+      (__ \ "archivedBy").read[String] and
       (__ \ "processCode").read[String]
-  )(PublishedProcess.apply _)
+  )(ArchivedProcess.apply _)
 
-  val writes: OWrites[PublishedProcess] = (
-    (__ \ "_id").write[String] and
-      (__ \ "version").write[Int] and
-      (__ \ "datePublished").write[ZonedDateTime] and
+  val writes: OWrites[ArchivedProcess] = (
+    (__ \ "_id").write[Long] and
+      (__ \ "dateArchived").write[ZonedDateTime] and
       (__ \ "process").write[JsObject] and
-      (__ \ "publishedBy").write[String] and
+      (__ \ "archivedBy").write[String] and
       (__ \ "processCode").write[String]
-  )(unlift(PublishedProcess.unapply))
+  )(unlift(ArchivedProcess.unapply))
 
-  val mongoFormat: Format[PublishedProcess] = Format(reads, writes)
+  val mongoFormat: Format[ArchivedProcess] = Format(reads, writes)
 
   trait Implicits {
-    implicit val ppformats: Format[PublishedProcess] = standardformat
+    implicit val ppformats: Format[ArchivedProcess] = standardformat
   }
 
   trait MongoImplicits {
-    implicit val formats: Format[PublishedProcess] = mongoFormat
+    implicit val formats: Format[ArchivedProcess] = mongoFormat
   }
 
   object Implicits extends Implicits
   object MongoImplicits extends MongoImplicits
 }
 
-object PublishedProcess extends PublishedProcessFormats
+object ArchivedProcess extends ArchivedProcessFormats

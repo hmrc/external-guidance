@@ -17,8 +17,9 @@
 package repositories
 
 import core.models.RequestOutcome
-import core.models.errors.DatabaseError
-import models.PublishedProcess
+import core.models.ocelot.Process
+import core.models.errors.{NotFoundError, DatabaseError}
+import models.{ArchivedProcess, PublishedProcess, ProcessSummary}
 import play.api.Logger
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
@@ -36,14 +37,16 @@ import core.models.MongoDateTimeFormats.Implicits._
 
 trait ArchiveRepository {
   def archive(id: String, user: String, processCode: String, process: PublishedProcess): Future[RequestOutcome[String]]
+  def getById(id: String): Future[RequestOutcome[ArchivedProcess]]
+  def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]]
 }
 
 @Singleton
 class ArchiveRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
-    extends PlayMongoRepository[PublishedProcess](
+    extends PlayMongoRepository[ArchivedProcess](
       collectionName = "archivedProcesses",
       mongoComponent = mongo,
-      domainFormat = PublishedProcess.mongoFormat,
+      domainFormat = ArchivedProcess.mongoFormat,
       indexes = Seq(IndexModel(ascending("processCode"),
                                IndexOptions()
                                 .name("archived-secondary-Index-process-code")
@@ -81,4 +84,54 @@ class ArchiveRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: Execu
       }
       //$COVERAGE-ON$
   }
+
+  def getById(id: String): Future[RequestOutcome[ArchivedProcess]] = {
+    collection
+      .find(equal("_id", id.toLong))
+      .headOption()
+      .map {
+        case None =>
+          Left(NotFoundError)
+        case Some(process) => Right(process)
+      }
+      //$COVERAGE-OFF$
+      .recover {
+        case error =>
+          logger.error(s"Attempt to retrieve process $id from collection published failed with error : ${error.getMessage}")
+          Left(DatabaseError)
+      }
+  }
+
+  //$COVERAGE-OFF$
+  def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]] =
+    collection
+      .withReadPreference(ReadPreference.primaryPreferred())
+      .find()
+      .collect
+      .toFutureOption
+      .map{
+        case None => Right(Nil)
+        case Some(res) =>
+          val summaries = res.map{p =>
+            val process: Process = p.process.as[Process]
+            ProcessSummary(
+              p.id.toString,
+              p.processCode,
+              process.meta.version,
+              process.meta.lastAuthor,
+              process.meta.passPhrase,
+              p.dateArchived,
+              p.archivedBy,
+              "Archived"
+            )
+          }
+          Right(summaries.toList)
+      }
+      .recover {
+        case error =>
+          logger.error(s"Attempt to retrieve published process summaries failed with error : ${error.getMessage}")
+          Left(DatabaseError)
+      }
+  //$COVERAGE-ON$
+
 }
