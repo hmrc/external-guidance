@@ -34,7 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
 import core.models.MongoDateTimeFormats.Implicits._
 
-
+//$COVERAGE-OFF$
 trait ArchiveRepository {
   def archive(id: String, user: String, processCode: String, process: PublishedProcess): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[ArchivedProcess]]
@@ -76,13 +76,11 @@ class ArchiveRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: Execu
       .findOneAndUpdate(selector, modifier, FindOneAndUpdateOptions().upsert(true))
       .toFutureOption
       .map (_ => Right(id))
-      //$COVERAGE-OFF$
       .recover {
         case error =>
           logger.error(s"Attempt to archive process $id, failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
-      //$COVERAGE-ON$
   }
 
   def getById(id: String): Future[RequestOutcome[ArchivedProcess]] = {
@@ -94,7 +92,6 @@ class ArchiveRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: Execu
           Left(NotFoundError)
         case Some(process) => Right(process)
       }
-      //$COVERAGE-OFF$
       .recover {
         case error =>
           logger.error(s"Attempt to retrieve process $id from collection published failed with error : ${error.getMessage}")
@@ -102,7 +99,6 @@ class ArchiveRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: Execu
       }
   }
 
-  //$COVERAGE-OFF$
   def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]] =
     collection
       .withReadPreference(ReadPreference.primaryPreferred())

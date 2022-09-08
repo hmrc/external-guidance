@@ -36,6 +36,7 @@ import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
 import core.models.MongoDateTimeFormats.Implicits._
 
+//$COVERAGE-OFF$
 trait PublishedRepository {
   def save(id: String, user: String, processCode: String, process: JsObject): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[PublishedProcess]]
@@ -81,7 +82,6 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
       .map { _ =>
         Right(id)
       }
-      //$COVERAGE-OFF$
       .recover {
         case ex: MongoCommandException if ex.getErrorCode == 11000 =>
           logger.error(s"Failed to publish $id due to duplicate key violation on processCode : $processCode")
@@ -90,7 +90,6 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
           logger.error(s"Attempt to persist process $id to collection published failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
-    //$COVERAGE-ON$
   }
 
   def getById(id: String): Future[RequestOutcome[PublishedProcess]] =
@@ -101,15 +100,12 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
         case None => Left(NotFoundError)
         case Some(publishedProcess) => Right(publishedProcess)
       }
-      //$COVERAGE-OFF$
       .recover {
         case error =>
           logger.error(s"Attempt to retrieve process $id from collection published failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
-    //$COVERAGE-ON$
 
-  //$COVERAGE-OFF$
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]] =
     collection
       .withReadPreference(ReadPreference.primaryPreferred)
@@ -125,7 +121,7 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
           logger.error(s"Listing timescales used in the published processes failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
-      //$COVERAGE-ON$
+
 
   def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]] =
     collection
@@ -135,13 +131,11 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
         case None => Left(NotFoundError)
         case Some(publishedProcess) => Right(publishedProcess)
       }
-      //$COVERAGE-OFF$
       .recover {
         case error =>
           logger.error(s"Attempt to retrieve process $processCode from collection $collectionName failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
-    //$COVERAGE-ON$
 
   def delete(id: String): Future[RequestOutcome[String]] =
     collection
@@ -153,15 +147,12 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
           logger.error(s"Attempt to delete process $id from collection published failed")
           Left(DatabaseError)
       }
-      //$COVERAGE-OFF$
       .recover {
         case error =>
           logger.error(s"Attempt to delete process $id from collection published failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
-    //$COVERAGE-ON$
 
-  //$COVERAGE-OFF$
   def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]] =
     collection
       .withReadPreference(ReadPreference.primaryPreferred())

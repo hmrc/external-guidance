@@ -45,7 +45,6 @@ class ArchivedController @Inject() (archivedService: ArchiveService,
   def list: Action[AnyContent] = identify.async { _ =>
     archivedService.list map {
       case Right(summaries) => Ok(summaries)
-      case Left(BadRequestError) => BadRequest(toJson(OcelotError(BadRequestError)))
       case Left(_) => InternalServerError(toJson(OcelotError(ServerError)))
     }
   }

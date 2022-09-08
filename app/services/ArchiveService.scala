@@ -17,7 +17,7 @@
 package services
 
 import javax.inject.{Inject, Singleton}
-import core.models.errors.{InternalServerError, NotFoundError}
+import core.models.errors.{BadRequestError, InternalServerError, NotFoundError}
 import core.models.RequestOutcome
 import models.{ProcessSummary, ArchivedProcess}
 import play.api.Logger
@@ -25,6 +25,7 @@ import repositories.ArchiveRepository
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import play.api.libs.json.{Json, OFormat, JsValue}
+import core.services.isTimeValueInMilliseconds
 
 @Singleton
 class ArchiveService @Inject() (archive: ArchiveRepository) {
@@ -40,9 +41,14 @@ class ArchiveService @Inject() (archive: ArchiveRepository) {
   }
 
   def getById(id: String): Future[RequestOutcome[ArchivedProcess]] =
-    archive.getById(id) map {
-      case error @ Left(NotFoundError) => error
-      case Left(_) => Left(InternalServerError)
-      case result => result
+    if (isTimeValueInMilliseconds(id))
+      archive.getById(id) map {
+        case error @ Left(NotFoundError) => error
+        case Left(_) => Left(InternalServerError)
+        case result => result
+      }
+    else {
+      logger.error(s"Invalid process id submitted to method getById. The requested id was $id")
+      Future.successful(Left(BadRequestError))
     }
 }
