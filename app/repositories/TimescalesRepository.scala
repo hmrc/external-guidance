@@ -36,7 +36,7 @@ import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
 import core.models.MongoDateTimeFormats.Implicits._
 
-
+//$COVERAGE-OFF$
 trait TimescalesRepository {
   val CurrentTimescalesID: String = "1"
   def save(timescales: JsValue, when: ZonedDateTime, credId: String, user: String, email: String): Future[RequestOutcome[TimescalesUpdate]]
@@ -56,7 +56,6 @@ class TimescalesRepositoryImpl @Inject() (component: MongoComponent, appConfig: 
   val logger: Logger = Logger(getClass)
 
   def save(timescales: JsValue, when: ZonedDateTime, credId: String, user: String, email: String): Future[RequestOutcome[TimescalesUpdate]] =
-    //$COVERAGE-OFF$
     collection
       .findOneAndUpdate(
         equal("_id", CurrentTimescalesID),
@@ -83,10 +82,8 @@ class TimescalesRepositoryImpl @Inject() (component: MongoComponent, appConfig: 
           logger.warn(s"Failed to save TimescalesUpdate due to error, ${e.getMessage}")
           Left(DatabaseError)
       }
-      //$COVERAGE-ON$
 
   def get(id: String): Future[RequestOutcome[TimescalesUpdate]] =
-    //$COVERAGE-OFF$
     collection
       .find(equal("_id", id))
       .headOption()

@@ -26,6 +26,7 @@ import services.{TimescalesService, PublishedService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import play.api.libs.json._
 
 @Singleton
 class PublishedController @Inject() (publishedService: PublishedService,
@@ -61,6 +62,14 @@ class PublishedController @Inject() (publishedService: PublishedService,
       case Right(_) => Ok
       case Left(BadRequestError) => BadRequest(toJson(OcelotError(BadRequestError)))
       case _ => InternalServerError(toJson(OcelotError(ServerError)))
+    }
+  }
+
+  def list: Action[AnyContent] = identify.async { _ =>
+    publishedService.list map {
+      case Right(summaries) => Ok(summaries)
+      case Left(BadRequestError) => BadRequest(toJson(OcelotError(BadRequestError)))
+      case Left(_) => InternalServerError(toJson(OcelotError(ServerError)))
     }
   }
 

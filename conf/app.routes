@@ -6,6 +6,7 @@ POST        /scratch                                    controllers.ScratchContr
 GET         /timescales                                 controllers.TimescalesController.details
 POST        /timescales                                 controllers.TimescalesController.save
 
+GET         /published                                  controllers.PublishedController.list
 GET         /published/:processCode                     controllers.PublishedController.getByProcessCode(processCode)
 GET         /published-process/:id                      controllers.PublishedController.get(id)
 
@@ -33,4 +34,6 @@ POST        /approval/:id/fact-check-page-review/*page  controllers.ProcessRevie
 GET         /approval/:id/fact-check-page-review/       controllers.ProcessReviewController.approvalFactCheckPageInfo(id, page: String ?= "")
 POST        /approval/:id/fact-check-page-review/       controllers.ProcessReviewController.approvalFactCheckPageComplete(id, page: String ?= "")
 
-GET         /archive/:id                                controllers.PublishedController.archive(id)
+GET         /archive/:id                                controllers.PublishedController.archive(id: String)
+GET         /archived                                   controllers.ArchivedController.list
+GET         /archived/:id                               controllers.ArchivedController.get(id: String)

@@ -17,28 +17,28 @@
 package mocks
 
 import core.models.RequestOutcome
-import models.{PublishedProcess, ArchivedProcess, ProcessSummary}
+import models.ArchivedProcess
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
-import repositories.ArchiveRepository
-
+import services.ArchiveService
+import play.api.libs.json.JsValue
 import scala.concurrent.Future
 
-trait MockArchiveRepository extends MockFactory {
+trait MockArchiveService extends MockFactory {
 
-  val mockArchiveRepository: ArchiveRepository = mock[ArchiveRepository]
+  val mockArchiveService: ArchiveService = mock[ArchiveService]
 
-  object MockArchiveRepository {
-
-    def archive(id: String, user: String, processCode: String, process: PublishedProcess): CallHandler[Future[RequestOutcome[String]]] =
-      (mockArchiveRepository.archive(_: String, _: String, _: String, _: PublishedProcess))
-        .expects(id, user, processCode, process)
+  object MockArchiveService {
 
     def getById(id: String): CallHandler[Future[RequestOutcome[ArchivedProcess]]] =
-      (mockArchiveRepository.getById(_: String)).expects(id)
+      (mockArchiveService
+        .getById(_: String))
+        .expects(id)
 
-    def processSummaries(): CallHandler[Future[RequestOutcome[List[ProcessSummary]]]] =
-      (mockArchiveRepository.processSummaries _ ).expects
+
+    def list: CallHandler[Future[RequestOutcome[JsValue]]] =
+      (mockArchiveService.list _).expects
 
   }
+
 }

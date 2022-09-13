@@ -24,10 +24,12 @@ import java.util.UUID
 package object services {
   val processIdformat: String = "^[a-z]{3}[0-9]{5}$"
   val uuidFormat: String = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+  val TimeMillisFormat: String = "^\\d{13}$"
   def validateUUID(id: String): Option[UUID] = if (id.matches(uuidFormat)) Some(UUID.fromString(id)) else None
   def validateProcessId(id: String): Either[Error, String] = if (id.matches(processIdformat)) Right(id) else Left(ValidationError)
   def uniqueLabels(pages: Seq[Page]):Seq[String] = pages.flatMap(p => p.labels).distinct
   def uniqueLabelRefs(pages: Seq[Page]): Seq[String] = pages.flatMap(_.labelRefs)
+  def isTimeValueInMilliseconds(value: String): Boolean = value.matches(TimeMillisFormat)
 
   def fromPageDetails[A](pages: Seq[Page])(f: (String, String, String) => A): List[A] =
   pages.toList.flatMap { page =>
