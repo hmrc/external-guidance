@@ -88,6 +88,10 @@ class ProcessErrorSpec extends BaseSpec {
       val details: ErrorReport = fromGuidanceError(IncompleteDateInputPage("stanzaId"))
       details shouldBe ErrorReport("IncompleteDateInputPage: Incomplete Error callout group associated with date input page stanzaId", "stanzaId")
     }
+    "from IncompleteInputPage" in {
+      val details: ErrorReport = fromGuidanceError(IncompleteInputPage("stanzaId"))
+      details shouldBe ErrorReport("IncompleteInputPage: Missing Error or TypeError callout stanzas from input page stanzaId", "stanzaId")
+    }
     "from PageRedirectNotSupported" in {
       val details: ErrorReport = fromGuidanceError(PageRedirectNotSupported("stanzaId"))
       details shouldBe ErrorReport("PageRedirectNotSupported: Use of ChoiceStanza stanzaId as a page redirect not supported", "stanzaId")
@@ -116,5 +120,19 @@ class ProcessErrorSpec extends BaseSpec {
       val details: ErrorReport = fromGuidanceError(MissingUniqueFlowTerminator("stanzaId"))
       details shouldBe ErrorReport("MissingUniqueFlowTerminator: Flow doesn't have a unique termination page stanzaId, possible main flow connection into a sequence flow", "stanzaId")
     }
+
+    "from InvalidLabelName" in {
+      val details: ErrorReport = fromGuidanceError(InvalidLabelName("stanzaId"))
+      details shouldBe ErrorReport("InvalidLabelName: Invalid label name in stanza stanzaId", "stanzaId")
+    }
+    "from InvalidFieldWidth" in {
+      val details: ErrorReport = fromGuidanceError(InvalidFieldWidth("stanzaId"))
+      details shouldBe ErrorReport("InvalidFieldWidth: Input stanza (stanzaId) name field includes an unsupported field width", "stanzaId")
+    }
+    "from MissingTimescaleDefinition" in {
+      val details: ErrorReport = fromGuidanceError(MissingTimescaleDefinition("tsId"))
+      details shouldBe ErrorReport("MissingTimescaleDefinition: Process references unknown timescale ID \'tsId\'", "")
+    }
+
   }
 }

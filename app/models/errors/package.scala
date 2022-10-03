@@ -40,6 +40,7 @@ package object errors {
     case e: UnknownTestType => ErrorReport( s"UnknownTestType: Unsupported ChoiceStanza test type ${e.typeName} found at stanza id ${e.id}", e.id)
     case e: UnknownInputType => ErrorReport( s"UnknownInputType: Unsupported InputStanza type ${e.typeName} found at stanza id ${e.id}", e.id)
     case e: IncompleteDateInputPage => ErrorReport(s"IncompleteDateInputPage: Incomplete Error callout group associated with date input page ${e.id}", e.id)
+    case e: IncompleteInputPage => ErrorReport(s"IncompleteInputPage: Missing Error or TypeError callout stanzas from input page ${e.id}", e.id)
     case e: PageRedirectNotSupported => ErrorReport(s"PageRedirectNotSupported: Use of ChoiceStanza ${e.id} as a page redirect not supported", e.id)
     case e: MultipleExclusiveOptions => ErrorReport(s"MultipleExclusiveOptions: Sequence stanza ${e.id} defines multiple exclusive options", e.id)
     case e: UseOfReservedUrl => ErrorReport(s"UseOfReservedUrl: Use of reserved URL on PageStanza ${e.id}", e.id)

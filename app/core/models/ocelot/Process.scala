@@ -52,8 +52,9 @@ object Process {
   val StartStanzaId = "start"
   val EndStanzaId = "end"
   val SessionTimeoutUrl = "session-timeout"
+  val EndSessionUrl = "end-session"
   val SessionRestartUrl = "session-restart"
-  val ReservedUrls: List[String] = List(s"/$SessionTimeoutUrl", s"/$SessionRestartUrl", s"/${SecuredProcess.SecuredProcessStartUrl}")
+  val ReservedUrls: List[String] = List(s"/$EndSessionUrl", s"/$SessionTimeoutUrl", s"/$SessionRestartUrl", s"/${SecuredProcess.SecuredProcessStartUrl}")
 
   def buildProcess(m: Meta, f: Map[String, Stanza], p: Vector[Phrase], l: Vector[Link], t: Option[Map[String, Int]]): Process =
     Process(m, f, p, l, t.getOrElse(Map()))

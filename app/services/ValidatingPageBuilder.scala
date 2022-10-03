@@ -58,6 +58,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
 
         checkForSequencePageReuse(vertices, vertexMap, mainFlow) ++
         checkAllFlowsHaveUniqueTerminationPage(vertices, vertexMap, mainFlow) ++
+        confirmInputPageErrorCallouts(pages, Nil) ++
         checkDataInputPages(pages, Nil) ++
         duplicateUrlErrors(pages.reverse, Nil) ++
         checkDateInputErrorCallouts(pages, Nil) ++
@@ -70,6 +71,36 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
         }
       }
     )
+
+  @tailrec
+  private def confirmInputPageErrorCallouts(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
+
+    @tailrec
+    def inputCalloutState(stanzas: Seq[PopulatedStanza],
+                          requiredError: Boolean = false,
+                          typeError: Boolean = false,
+                          input: Option[DataInput] = None):(Boolean, Boolean, Option[DataInput]) =
+      stanzas match {
+        case Nil => (requiredError, typeError, input)
+        case (s: DataInput) :: xs => inputCalloutState(xs, requiredError, typeError, Some(s))
+        case (r: ErrorCallout) :: xs => inputCalloutState(xs, true, typeError, input)
+        case (t: TypeErrorCallout) :: xs => inputCalloutState(xs, requiredError, true, input)
+        case x :: xs => inputCalloutState(xs, requiredError, typeError, input)
+      }
+
+      pages match {
+        case Nil => errors
+        case x :: xs =>
+          inputCalloutState(x.stanzas) match {
+            case (_, _, None) => confirmInputPageErrorCallouts(xs, errors)
+            case (true, _, Some(x: Question)) => confirmInputPageErrorCallouts(xs, errors)
+            case (true, _, Some(x: Sequence)) => confirmInputPageErrorCallouts(xs, errors)
+            case (true, _, Some(x: TextInput)) => confirmInputPageErrorCallouts(xs, errors)
+            case (true, true, Some(x: DataInput)) => confirmInputPageErrorCallouts(xs, errors)
+            case (_, _, _) => confirmInputPageErrorCallouts(xs, IncompleteInputPage(x.id) :: errors)
+          }
+      }
+  }
 
   @tailrec
   private def checkForInvalidLabelNames(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
