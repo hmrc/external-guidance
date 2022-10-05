@@ -22,6 +22,7 @@ import core.models.ocelot._
 import core.models.ocelot.stanzas._
 import core.models.ocelot.errors._
 import play.api.Logger
+import core.models.{GuidanceCheckLevel, Strict}
 import scala.annotation.tailrec
 
 case class PageVertex(
@@ -48,7 +49,7 @@ object PageVertex {
 class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
   val logger: Logger = Logger(getClass)
 
-  def pagesWithValidation(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] =
+  def pagesWithValidation(process: Process, start: String = Process.StartStanzaId, checkLevel: GuidanceCheckLevel = Strict): Either[List[GuidanceError], Seq[Page]] =
     pageBuilder.pages(process, start).fold[Either[List[GuidanceError], Seq[Page]]](Left(_),
       pages => {
         implicit val stanzaMap: Map[String, Stanza] = process.flow
@@ -58,7 +59,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
 
         checkForSequencePageReuse(vertices, vertexMap, mainFlow) ++
         checkAllFlowsHaveUniqueTerminationPage(vertices, vertexMap, mainFlow) ++
-        confirmInputPageErrorCallouts(pages, Nil) ++
+        (if (checkLevel == Strict) confirmInputPageErrorCallouts(pages, Nil) else Nil) ++
         checkDataInputPages(pages, Nil) ++
         duplicateUrlErrors(pages.reverse, Nil) ++
         checkDateInputErrorCallouts(pages, Nil) ++
