@@ -600,6 +600,72 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       }
     }
 
+    "Detect missing accessibility hints in CYA Rows" in {
+
+      val cell1Phrase: Phrase = Phrase("Some value", "Welsh: Some value")
+      val cell2Phrase: Phrase = Phrase("73", "Welsh: 73")
+      val cell3Phrase: Phrase = Phrase("[link:Change:64]", "Welsh: [link:Change:64]")
+
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/rowStanzaTest-page-1", Seq("1"), stack = false),
+        "1" -> CalloutStanza(Title, 0, Seq("2"), stack = false),
+        "2" -> RowStanza(Seq(1, 2, 3), Seq("3"), stack = false),
+        "3" -> InstructionStanza(3, Seq("end"), None, stack = false),
+        "20" -> PageStanza("/rowStanzaTest-page-2", Seq("21"), stack = false),
+        "21" -> InstructionStanza(1, Seq("end"), None, stack = false),
+        "64" -> PageStanza("/rowStanzaTest-page-3", Seq("65"), stack = false),
+        "65" -> InstructionStanza(1, Seq("end"), None, stack = false),
+        "end" -> EndStanza
+      )
+
+      val process: Process = Process(
+        metaSection,
+        flow,
+        Vector[Phrase](
+          Phrase(Vector("Row", "Welsh: Row")),
+          cell1Phrase,
+          cell2Phrase,
+          cell3Phrase
+        ),
+        Vector()
+      )
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Right(_) => fail("MissingAccessibilityHint error not seen")
+        case Left(List(MissingAccessibilityHint("2"))) => succeed
+      }
+    }
+
+    "Detect accessibility hints in CYA Row and succeed" in {
+      val cell1Phrase: Phrase = Phrase("Some value", "Welsh: Some value")
+      val cell2Phrase: Phrase = Phrase("73", "Welsh: 73")
+      val cell3Phrase: Phrase = Phrase("[link:Change[hint:some value]:64]", "Welsh: [link:Change[hint:some value]:64]")
+
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/rowStanzaTest-page-1", Seq("1"), stack = false),
+        "1" -> CalloutStanza(Title, 0, Seq("2"), stack = false),
+        "2" -> RowStanza(Seq(1, 2, 3), Seq("3"), stack = false),
+        "3" -> InstructionStanza(3, Seq("end"), None, stack = false),
+        "20" -> PageStanza("/rowStanzaTest-page-2", Seq("21"), stack = false),
+        "21" -> InstructionStanza(1, Seq("end"), None, stack = false),
+        "64" -> PageStanza("/rowStanzaTest-page-3", Seq("65"), stack = false),
+        "65" -> InstructionStanza(1, Seq("end"), None, stack = false),
+        "end" -> EndStanza
+      )
+
+      val process: Process = Process(
+        metaSection,
+        flow,
+        Vector(Phrase(Vector("Multiple cell row stanza", "Welsh: Multiple cell row stanza")), cell1Phrase, cell2Phrase, cell3Phrase),
+        Vector()
+      )
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Right(pages) => succeed
+        case Left(err) => fail(s"Unexpected error $err")
+      }
+    }
+
 
   }
 

@@ -59,7 +59,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
 
         checkForSequencePageReuse(vertices, vertexMap, mainFlow) ++
         checkAllFlowsHaveUniqueTerminationPage(vertices, vertexMap, mainFlow) ++
-        (if (checkLevel == Strict) confirmInputPageErrorCallouts(pages, Nil) else Nil) ++
+        (if (checkLevel == Strict) confirmInputPageErrorCallouts(pages, Nil) ++ confirmCyaRowActionHints(pages, Nil) else Nil) ++
         checkDataInputPages(pages, Nil) ++
         duplicateUrlErrors(pages.reverse, Nil) ++
         checkDateInputErrorCallouts(pages, Nil) ++
@@ -72,6 +72,22 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
         }
       }
     )
+
+  @tailrec
+  private def confirmCyaRowActionHints(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
+    def rowActionHints(stanzas: Seq[KeyedStanza]): List[GuidanceError] =
+      stanzas.toList.flatMap{
+                                        // Threee columns, column one not bold, column three is a link (only)
+        case KeyedStanza(id, (r: Row)) if r.cells.length == 3 && !isBoldOnlyPhrase(r.cells(0)) && isLinkOnlyPhrase(r.cells(2)) =>
+          val (str, hint) = stringWithOptionalHint(r.cells(2).english)
+          if (hint.isEmpty) List(MissingAccessibilityHint(id)) else Nil
+        case _ => Nil
+      }
+    pages match {
+      case Nil => errors
+      case x :: xs => confirmCyaRowActionHints(xs, rowActionHints(x.keyedStanzas) ++ errors)
+    }
+  }
 
   @tailrec
   private def confirmInputPageErrorCallouts(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
