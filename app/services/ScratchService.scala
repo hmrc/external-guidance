@@ -20,6 +20,7 @@ import core.services._
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import core.models.RequestOutcome
+import core.models.Tolerant
 import core.models.errors.{BadRequestError, InternalServerError, NotFoundError}
 import play.api.libs.json.JsObject
 import repositories.ScratchRepository
@@ -36,7 +37,7 @@ class ScratchService @Inject() (repository: ScratchRepository,
   val logger: Logger = Logger(getClass)
 
   def save(json: JsObject): Future[RequestOutcome[UUID]] =
-    guidancePagesAndProcess(pageBuilder, json, timescalesService).flatMap{
+    guidancePagesAndProcess(pageBuilder, json, timescalesService, Tolerant).flatMap{
       case Left(err) => Future.successful(Left(err))
       case Right((_, _, process)) => {
         repository.save(process).map {

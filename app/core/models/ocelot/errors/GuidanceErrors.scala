@@ -65,6 +65,7 @@ case class MissingUniqueFlowTerminator(id: String) extends FlowError
 case class InvalidLabelName(id: String) extends FlowError
 case class InvalidFieldWidth(id: String) extends FlowError
 case class MissingTimescaleDefinition(timescaleId: String) extends TimescalesError
+case class IncompleteInputPage(id: String) extends FlowError
 
 object GuidanceError {
 

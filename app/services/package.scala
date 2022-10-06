@@ -17,7 +17,7 @@
 import core.models.ocelot._
 import core.models.errors.Error
 import core.models.ocelot.errors._
-import core.models.RequestOutcome
+import core.models._
 import core.models.ocelot.Process
 import play.api.libs.json._
 import config.AppConfig
@@ -25,13 +25,13 @@ import scala.concurrent.{Future, ExecutionContext}
 
 package object services {
 
-  def guidancePagesAndProcess(pb: ValidatingPageBuilder, jsObject: JsObject, timescalesService: TimescalesService)
+  def guidancePagesAndProcess(pb: ValidatingPageBuilder, jsObject: JsObject, timescalesService: TimescalesService, checkLevel: GuidanceCheckLevel = Strict)
                    (implicit c: AppConfig, ec: ExecutionContext): Future[RequestOutcome[(Process, Seq[Page], JsObject)]] =
     jsObject.validate[Process].fold(errs => Future.successful(Left(Error(GuidanceError.fromJsonValidationErrors(errs)))),
       incomingProcess => {
         // Transform process if fake welsh, secured process or timescales are indicated
         val (p, js) = fakeWelshTextIfRequired _ tupled securedProcessIfRequired(incomingProcess, Some(jsObject))
-        pb.pagesWithValidation(p, p.startPageId).fold(
+        pb.pagesWithValidation(p, p.startPageId, checkLevel).fold(
           errs => Future.successful(Left(Error(errs))),
           pages => {
             // If valid process, collect list of timescale ids from process flow and phrases

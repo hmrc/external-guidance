@@ -16,7 +16,7 @@
 
 package mocks
 
-import core.models.RequestOutcome
+import core.models._
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsValue, JsObject}
@@ -43,11 +43,12 @@ trait MockApprovalService extends MockFactory {
     def save(
         process: JsObject,
         reviewType: String = ReviewType2i,
-        status: String = StatusSubmitted
+        status: String = StatusSubmitted,
+        checkLevel: GuidanceCheckLevel = Strict
     ): CallHandler[Future[RequestOutcome[String]]] =
       (mockApprovalService
-        .save(_: JsObject, _: String, _: String))
-        .expects(process, reviewType, status)
+        .save(_: JsObject, _: String, _: String, _: GuidanceCheckLevel))
+        .expects(process, reviewType, status, checkLevel)
 
     def approvalSummaryList(roles: List[String]): CallHandler[Future[RequestOutcome[JsValue]]] =
       (mockApprovalService.approvalSummaryList(_: List[String]))

@@ -23,7 +23,7 @@ import core.models.ocelot._
 import play.api.libs.json._
 import core.services._
 
-class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
+class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
   // Define instance of class used in testing
   val pageBuilder: ValidatingPageBuilder = new ValidatingPageBuilder(new PageBuilder(new Timescales(new DefaultTodayProvider)))
 
@@ -38,10 +38,14 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
     "detect IncompleteDateInputPage error" in {
       val flow = Map(
         Process.StartStanzaId -> PageStanza("/url1", Seq("1"), stack = true),
-        "1" -> InstructionStanza(0, Seq("2"), None, stack = false),
+        "1" -> InstructionStanza(0, Seq("11"), None, stack = false),
+        "11" -> CalloutStanza(Error, 0, Seq("10"), stack = false),
+        "10" -> CalloutStanza(TypeError, 0, Seq("2"), stack = false),
         "2" -> InputStanza(Currency, Seq("3"), 1, Some(2), "Label", None, stack = false),
         "3" -> PageStanza("/url2", Seq("4"), stack = false),
-        "4" -> InstructionStanza(3, Seq("5"), None, stack = false),
+        "4" -> InstructionStanza(3, Seq("22"), None, stack = false),
+        "22" -> CalloutStanza(Error, 0, Seq("33"), stack = false),
+        "33" -> CalloutStanza(TypeError, 0, Seq("5"), stack = false),
         "5" -> InputStanza(Date, Seq("6"), four, Some(five), "Label", None, stack = false),
         "6" -> PageStanza("/url3", Seq("7"), stack = false),
         "7" -> InstructionStanza(six, Seq("end"), None, stack = false),
@@ -70,7 +74,8 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
     "detect VisualStanzasAfterDataInput error when Question stanzas followed by UI stanzas" in {
       val flow = Map(
         Process.StartStanzaId -> PageStanza("/url", Seq("1"), true),
-        "1" -> InstructionStanza(0, Seq("2"), None, false),
+        "1" -> InstructionStanza(0, Seq("11"), None, false),
+        "11" -> CalloutStanza(Error, 0, Seq("2"), stack = false),
         "2" -> QuestionStanza(1, Seq(2, 3), Seq("4", "5"), None, false),
         "4" -> InstructionStanza(0, Seq("end"), None, false),
         "5" -> InstructionStanza(0, Seq("end"), None, false),
@@ -98,7 +103,8 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
     "detect VisualStanzasAfterDataInput with possible loop in post Question stanzas" in {
       val flow = Map(
         Process.StartStanzaId -> PageStanza("/url", Seq("1"), true),
-        "1" -> InstructionStanza(0, Seq("2"), None, false),
+        "1" -> InstructionStanza(0, Seq("11"), None, false),
+        "11" -> CalloutStanza(Error, 0, Seq("2"), stack = false),
         "2" -> QuestionStanza(1, Seq(2, 3, four, five), Seq("4", "5", "6", "7"), None, false),
         "4" -> Choice(ChoiceStanza(Seq("5","6"), Seq(ChoiceStanzaTest("[label:X]", LessThanOrEquals, "8")), false)),
         "5" -> ValueStanza(List(Value(ScalarType, "PageUrl", "/blah")), Seq("4"), false),
@@ -285,7 +291,8 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
 
       val flow: Map[String, Stanza] = Map(
         Process.StartStanzaId -> PageStanza("/page-1", Seq("1"), stack = false),
-        "1" -> CalloutStanza(Title, 0, Seq("1.5"), stack = false),
+        "1" -> CalloutStanza(Title, 0, Seq("11"), stack = false),
+        "11" -> CalloutStanza(Error, 0, Seq("1.5"), stack = false),
         "1.5" -> CalloutStanza(TypeError, nine, Seq("2"), stack = false),
         "2" -> SequenceStanza(1, Seq("3", "5", "7"), Seq(2, 3, four), None, stack = false),
         "3" -> PageStanza("/page-2", Seq("4"), stack = false),
@@ -330,7 +337,8 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
     "detect DuplicatePageUrl" in {
       val flow = Map(
         Process.StartStanzaId -> PageStanza("/this", Seq("1"), false),
-        "1" -> InstructionStanza(0, Seq("2"), None, false),
+        "1" -> InstructionStanza(0, Seq("11"), None, false),
+        "11" -> CalloutStanza(Error, 0, Seq("2"), stack = false),
         "2" -> QuestionStanza(1, Seq(2, 3), Seq("4", "5"), None, false),
         "4" -> PageStanza("/this", Seq("5"), false),
         "5" -> PageStanza("/that", Seq("end"), false),
@@ -358,7 +366,8 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
     "detect UseOfReservedUrl" in {
       val flow = Map(
         Process.StartStanzaId -> PageStanza("/this", Seq("1"), false),
-        "1" -> InstructionStanza(0, Seq("2"), None, false),
+        "1" -> InstructionStanza(0, Seq("11"), None, false),
+        "11" -> CalloutStanza(Error, 0, Seq("2"), stack = false),
         "2" -> QuestionStanza(1, Seq(2, 3), Seq("4", "5"), None, false),
         "4" -> PageStanza("/session-restart", Seq("5"), false),
         "5" -> PageStanza("/session-timeout", Seq("6"), false),
@@ -455,7 +464,8 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
     "pass as valid exclusive sequence with a single exclusive option" in {
 
       val flow: Map[String, Stanza] = Map(
-        Process.StartStanzaId -> PageStanza("/start", Seq("10"), stack = false),
+        Process.StartStanzaId -> PageStanza("/start", Seq("11"), stack = false),
+        "11" -> CalloutStanza(Error, 0, Seq("10"), stack = false),
         "10" -> CalloutStanza(TypeError, 2, Seq("1"), false),
         "1" -> InstructionStanza(0, Seq("2"), None, stack = false),
         "2" -> SequenceStanza(1, Seq("3", "5", "7"), Seq(2, 3), None, stack = false),
@@ -526,7 +536,8 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
 
       val flow: Map[String, Stanza] = Map(
         Process.StartStanzaId -> PageStanza("/start", Seq("1"), stack = false),
-        "1" -> InstructionStanza(0, Seq("2"), None, stack = false),
+        "1" -> InstructionStanza(0, Seq("11"), None, stack = false),
+        "11" -> CalloutStanza(Error, 0, Seq("2"), stack = false),
         "2" -> SequenceStanza(1, Seq("3", "5", "7"), Seq(2, 3), None, stack = false),
         "3" -> PageStanza("/page-1", Seq("4"), stack = false),
         "4" -> InstructionStanza(0, Seq("end"), None, stack = false),
@@ -555,6 +566,40 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         case _ => fail("Failed to detect missing TypeError callout")
       }
     }
+
+    "Confirm all error callouts present" in {
+
+      val flow = Map(
+        Process.StartStanzaId -> PageStanza("/page-1", Seq("1"), stack = false),
+        "1" -> CalloutStanza(Error, 0, Seq("4"), stack = false),
+        "4" -> CalloutStanza(TypeError, 1, Seq("7"), stack = false),
+        "7" -> InputStanza(Number, Seq("10"), 2, None, "date_label", None, stack = false),
+        "10" -> PageStanza("/page-2", Seq("11"), stack = false),
+        "11" -> InstructionStanza(3, Seq("end"), None, stack = false),
+        "end" -> EndStanza
+      )
+
+      val phrases: Vector[Phrase] = Vector(
+        Phrase("Date of birth must include a {0} and {1}", "Welsh, Date of birth must include a {0} and {1}"),
+        Phrase("Date of birth must include a {0}", "Welsh, Date of birth must include a {0}"),
+        Phrase("You must enter a date", "Welsh, You must enter a date"),
+        Phrase("You must enter a real date", "Welsh, You must enter a real date"),
+      )
+
+      val process = Process(
+        metaSection,
+        flow,
+        phrases,
+        Vector[Link]()
+      )
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Right(_) => succeed
+        case Left(err) => fail(s"Should generate VisualStanzasAfterDataInput, failed with $err")
+        case x => fail(s"Should generate VisualStanzasAfterDataInput, returned $x")
+      }
+    }
+
 
   }
 
