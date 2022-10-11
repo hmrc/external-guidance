@@ -35,12 +35,22 @@ class CoreModelsPackageSpec extends BaseSpec {
   }
 
   "Dollar symbol escaping" must {
+    val X = "This$ sente$nce has $ man$y \\$ $$$ d$ollar \\\\$ sym$bols$"
+    val escapedX = "This\\$ sente\\$nce has \\$ man\\$y \\\\$ \\$\\$\\$ d\\$ollar \\\\\\$ sym\\$bols\\$"
+
+
     "Encode all symbols" in {
       escapeDollarSymbol("This$ sente$nce has $ man$y $$$ d$ollar sym$bols$") shouldBe "This\\$ sente\\$nce has \\$ man\\$y \\$\\$\\$ d\\$ollar sym\\$bols\\$"
+      escapeDollarSymbol(X) shouldBe escapedX
     }
 
     "Unencode all $ symbols" in {
       unescapeDollarSymbol("This\\$ sente\\$nce has \\$ man\\$y \\$\\$\\$ d\\$ollar sym\\$bols\\$") shouldBe "This$ sente$nce has $ man$y $$$ d$ollar sym$bols$"
+      unescapeDollarSymbol(escapedX) shouldBe X
+    }
+
+    "Decode is inverse of encode" in {
+      unescapeDollarSymbol(escapeDollarSymbol(X)) shouldBe X
     }
   }
 
