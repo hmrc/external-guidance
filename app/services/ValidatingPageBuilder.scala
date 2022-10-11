@@ -60,6 +60,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
         checkForSequencePageReuse(vertices, vertexMap, mainFlow) ++
         checkAllFlowsHaveUniqueTerminationPage(vertices, vertexMap, mainFlow) ++
         (if (checkLevel == Strict) confirmInputPageErrorCallouts(pages, Nil) else Nil) ++
+        confirmPageTitles(pages, Nil) ++
         checkDataInputPages(pages, Nil) ++
         duplicateUrlErrors(pages.reverse, Nil) ++
         checkDateInputErrorCallouts(pages, Nil) ++
@@ -101,6 +102,21 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
             case (_, _, _) => confirmInputPageErrorCallouts(xs, IncompleteInputPage(x.id) :: errors)
           }
       }
+  }
+
+  @tailrec
+  private def confirmPageTitles(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
+    def missingPageTitle(p: Page): Boolean =
+      p.stanzas.collectFirst{
+        case _: TitleCallout => true
+        case _: DataInputStanza => true
+      }.isEmpty
+
+    pages match {
+      case Nil => errors
+      case x :: xs if missingPageTitle(x) => confirmPageTitles(xs, MissingTitle(x.id) :: errors)
+      case x :: xs => confirmPageTitles(xs, errors)
+    }
   }
 
   @tailrec
