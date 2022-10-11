@@ -115,7 +115,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
             case (true, _, Some(x: Question)) => confirmInputPageErrorCallouts(xs, errors)
             case (true, _, Some(x: Sequence)) => confirmInputPageErrorCallouts(xs, errors)
             case (true, _, Some(x: TextInput)) => confirmInputPageErrorCallouts(xs, errors)
-            case (true, true, Some(x: DataInput)) => confirmInputPageErrorCallouts(xs, errors)
+            case (true, _, Some(x: DataInput)) => confirmInputPageErrorCallouts(xs, errors)
             case (_, _, _) => confirmInputPageErrorCallouts(xs, IncompleteInputPage(x.id) :: errors)
           }
       }
