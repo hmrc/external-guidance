@@ -20,7 +20,7 @@ import java.time.LocalDate
 import java.time.format.{DateTimeFormatter, ResolverStyle}
 import scala.util.Try
 import scala.util.matching.Regex
-import scala.util.matching.Regex._
+import scala.util.matching.Regex.Match
 
 package object ocelot {
   val Twenty: String = "20"
