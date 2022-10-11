@@ -90,7 +90,7 @@ class ProcessErrorSpec extends BaseSpec {
     }
     "from IncompleteInputPage" in {
       val details: ErrorReport = fromGuidanceError(IncompleteInputPage("stanzaId"))
-      details shouldBe ErrorReport("IncompleteInputPage: Missing Error or TypeError callout stanzas from input page stanzaId", "stanzaId")
+      details shouldBe ErrorReport("IncompleteInputPage: Missing Error callout stanza from input page stanzaId", "stanzaId")
     }
     "from PageRedirectNotSupported" in {
       val details: ErrorReport = fromGuidanceError(PageRedirectNotSupported("stanzaId"))
