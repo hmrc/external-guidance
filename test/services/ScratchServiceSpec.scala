@@ -83,7 +83,7 @@ class ScratchServiceSpec extends BaseSpec {
         whenReady(target.save(process)) {
           case Right(_) => fail
           case err if err == expected => succeed
-          case err => fail
+          case err => fail(s"Failed with $err")
         }
       }
     }

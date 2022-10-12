@@ -86,7 +86,7 @@ class ProcessErrorSpec extends BaseSpec {
     }
     "from IncompleteDateInputPage" in {
       val details: ErrorReport = fromGuidanceError(IncompleteDateInputPage("stanzaId"))
-      details shouldBe ErrorReport("IncompleteDateInputPage: Incomplete Error callout group associated with date input page stanzaId", "stanzaId")
+      details shouldBe ErrorReport("IncompleteDateInputPage: Incomplete Error callout group or missing TypeError callout associated with date input page stanzaId", "stanzaId")
     }
     "from IncompleteInputPage" in {
       val details: ErrorReport = fromGuidanceError(IncompleteInputPage("stanzaId"))

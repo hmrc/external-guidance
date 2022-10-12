@@ -41,8 +41,17 @@ trait ProcessJson {
       |    "start": {
       |      "type": "PageStanza",
       |      "url": "/feeling-bad",
-      |      "next": ["3"],
+      |      "next": ["33"],
       |      "stack": true
+      |    },
+      |    "33": {
+      |      "next": [
+      |        "3"
+      |      ],
+      |      "noteType": "Title",
+      |      "stack": false,
+      |      "text": 1,
+      |      "type": "CalloutStanza"
       |    },
       |    "3": {
       |      "type": "InstructionStanza",
@@ -102,8 +111,17 @@ trait ProcessJson {
       |    "start": {
       |      "type": "PageStanza",
       |      "url": "/feeling-bad",
-      |      "next": ["3"],
+      |      "next": ["333"],
       |      "stack": true
+      |    },
+      |    "333": {
+      |      "next": [
+      |        "3"
+      |      ],
+      |      "noteType": "Title",
+      |      "stack": false,
+      |      "text": 1,
+      |      "type": "CalloutStanza"
       |    },
       |    "3": {
       |      "type": "InstructionStanza",
@@ -242,8 +260,17 @@ trait ProcessJson {
       |    "start": {
       |      "type": "PageStanza",
       |      "url": "/feeling-bad",
-      |      "next": ["3"],
+      |      "next": ["333"],
       |      "stack": true
+      |    },
+      |    "333": {
+      |      "next": [
+      |        "3"
+      |      ],
+      |      "noteType": "Title",
+      |      "stack": false,
+      |      "text": 1,
+      |      "type": "CalloutStanza"
       |    },
       |    "3": {
       |      "type": "InstructionStanza",
