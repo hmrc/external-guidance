@@ -45,7 +45,8 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
     val pageIds = Seq(pageId1, pageId2, pageId3, pageId4, pageId5, pageId6, pageId7)
 
     private val flow = Map(
-      pageId1 -> PageStanza("/start", Seq("1"), false),
+      pageId1 -> PageStanza("/start", Seq("111"), false),
+      "111" -> CalloutStanza(Title, 0, Seq("1"), stack = false),
       "1" -> InstructionStanza(3, Seq("2"), None, false),
       "2" -> QuestionStanza(1, Seq(2, 1), Seq(pageId2, pageId4), None, false),
       pageId2 -> PageStanza("/this4", Seq("5"), false),
@@ -109,7 +110,8 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
 
     "Find all invalid label names" in new Test {
       val flow = Map(
-        Process.StartStanzaId -> PageStanza("/start", Seq("2"), stack = false),
+        Process.StartStanzaId -> PageStanza("/start", Seq("111"), stack = false),
+        "111" -> CalloutStanza(Title, 0, Seq("2"), stack = false),
         "2" -> ValueStanza(List(Value(ScalarType, "Label ", "/blah")), Seq("3"), false),
         "3" -> InputStanza(Currency, Seq("4"), 1, Some(2), "Lab&&el", None, stack = false),
         "4" -> ValueStanza(List(Value(ScalarType, "Lab@", "/blah")), Seq("end"), false),
@@ -127,13 +129,15 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
 
     "Validate label names within ValueStanza" in new LabelNameTest {
       confirmInvalidLabelNameError(Map(
-        Process.StartStanzaId -> PageStanza("/start", Seq("2"), stack = false),
+        Process.StartStanzaId -> PageStanza("/start", Seq("111"), stack = false),
+        "111" -> CalloutStanza(Title, 0, Seq("2"), stack = false),
         "2" -> ValueStanza(List(Value(ScalarType, "Label ", "/blah")), Seq("end"), false),
         "end" -> EndStanza
       ))
 
       confirmValidLabelNameUsage(Map(
-        Process.StartStanzaId -> PageStanza("/start", Seq("2"), stack = false),
+        Process.StartStanzaId -> PageStanza("/start", Seq("111"), stack = false),
+        "111" -> CalloutStanza(Title, 0, Seq("2"), stack = false),
         "2" -> ValueStanza(List(Value(ScalarType, "Label", "/blah")), Seq("end"), false),
         "end" -> EndStanza
       ))
@@ -195,16 +199,46 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
 
     "Validate label names within Calculation stanza" in new LabelNameTest {
       confirmInvalidLabelNameError(Map(
-        Process.StartStanzaId -> PageStanza("/start", Seq("2"), stack = false),
+        Process.StartStanzaId -> PageStanza("/start", Seq("111"), stack = false),
+        "111" -> CalloutStanza(Title, 0, Seq("2"), stack = false),
         "2" -> CalculationStanza(Seq(CalcOperation("[label:ThisYear]", Subtraction, "2013", "Year*Count")), Seq("end"), stack = false),
         "end" -> EndStanza
       ))
 
       confirmValidLabelNameUsage(Map(
-        Process.StartStanzaId -> PageStanza("/start", Seq("2"), stack = false),
+        Process.StartStanzaId -> PageStanza("/start", Seq("111"), stack = false),
+        "111" -> CalloutStanza(Title, 0, Seq("2"), stack = false),
         "2" -> CalculationStanza(Seq(CalcOperation("[label:ThisYear]", Subtraction, "2013", "YearCount")), Seq("end"), stack = false),
         "end" -> EndStanza
       ))
+    }
+
+    "Detect pages with no title" in new Test {
+      val flow: Map[String, Stanza] = Map(
+        Process.StartStanzaId -> PageStanza("/start", Seq("66"), stack = false),
+        "66" -> CalloutStanza(Error, 0, Seq("111"), stack = false),
+        "111" -> CalloutStanza(TypeError, 0, Seq("2"), stack = false),
+        "2" -> SequenceStanza(1, Seq("3", "5", "33"), Seq(2, 3), None, stack = false),
+        "3" -> PageStanza("/page-3", Seq("4"), stack = false),
+        "4" -> InstructionStanza(0, Seq("end"), None, stack = false),
+        "33" -> PageStanza("/page-33", Seq("44"), stack = false),
+        "44" -> InstructionStanza(0, Seq("55"), None, stack = false),
+        "55" -> CalloutStanza(Error, 0, Seq("11"), stack = false),
+        "11" -> CalloutStanza(TypeError, 0, Seq("22"), stack = false),
+        "22" -> SequenceStanza(1, Seq("3", "5", "7"), Seq(2, 3), None, stack = false),
+        "5" -> PageStanza("/page-5", Seq("6"), stack = false),
+        "6" -> InstructionStanza(0, Seq("end"), None, stack = false),
+        "7" -> PageStanza("/page-7", Seq("8"), stack = false),
+        "8" -> InstructionStanza(0, Seq("end"), None, stack = false),
+        "end" -> EndStanza
+      )
+      val process = processWithLinks.copy(flow = flow)
+
+      pageBuilder.pagesWithValidation(process) match {
+        case Right(pages) => fail(s"Attempt to parse page with unsupported page redirect succeeded")
+        case Left(List(PageOccursInMultiplSequenceFlows("3"), PageOccursInMultiplSequenceFlows("5"), MissingTitle("3"), MissingTitle("5"), MissingTitle("7"))) => succeed
+        case Left(err) => fail(s"Attempt to parse page with unsupported page redirect failed with error ${err}")
+      }
     }
 
     "Detect shared pages between Sequence flows" in new Test {
@@ -230,7 +264,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
 
       pageBuilder.pagesWithValidation(process) match {
         case Right(pages) => fail(s"Attempt to parse page with unsupported page redirect succeeded")
-        case Left(List(PageOccursInMultiplSequenceFlows("3"), PageOccursInMultiplSequenceFlows("5"))) => succeed
+        case Left(List(PageOccursInMultiplSequenceFlows("3"), PageOccursInMultiplSequenceFlows("5"), MissingTitle("3"), MissingTitle("5"), MissingTitle("7"))) => succeed
         case Left(err) => fail(s"Attempt to parse page with unsupported page redirect failed with error ${err}")
       }
     }
@@ -257,7 +291,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
 
       pageBuilder.pagesWithValidation(process) match {
         case Right(pages) => fail(s"Attempt to parse page with unsupported page redirect succeeded")
-        case Left(List(MissingUniqueFlowTerminator("3"))) => succeed
+        case Left(List(MissingUniqueFlowTerminator("3"), MissingTitle("333"), MissingTitle("3"), MissingTitle("5"), MissingTitle("33"))) => succeed
         case Left(err) => fail(s"Attempt to parse page with unsupported page redirect failed with error ${err}")
       }
     }
@@ -284,7 +318,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
 
       pageBuilder.pagesWithValidation(testProcess) match {
         case Right(pages) => fail(s"Attempt to parse page with unsupported page redirect succeeded")
-        case Left(err) if err == List(PageRedirectNotSupported("55")) => succeed
+        case Left(err) if err == List(MissingTitle("4"), MissingTitle("17"), PageRedirectNotSupported("55")) => succeed
         case Left(err) => fail(s"Attempt to parse page with unsupported page redirect failed with error ${err}")
       }
     }
@@ -410,9 +444,11 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
         "1" -> CalloutStanza(Title, 0, Seq("2"), stack = false),
         "2" -> RowStanza(Seq(1, 2), Seq("3"), stack = false),
         "3" -> InstructionStanza(3, Seq("end"), Some(0), stack = false),
-        "20" -> PageStanza("/rowStanzaTest-page-2", Seq("21"), stack = false),
+        "20" -> PageStanza("/rowStanzaTest-page-2", Seq("111"), stack = false),
+        "111" -> CalloutStanza(Title, 0, Seq("21"), stack = false),
         "21" -> InstructionStanza(3, Seq("end"), Some(1), stack = false),
-        "64" -> PageStanza("/rowStanzaTest-page-3", Seq("65"), stack = false),
+        "64" -> PageStanza("/rowStanzaTest-page-3", Seq("112"), stack = false),
+        "112" -> CalloutStanza(Title, 0, Seq("65"), stack = false),
         "65" -> InstructionStanza(six, Seq("end"), None, stack = false),
         "end" -> EndStanza
       )
@@ -513,10 +549,12 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
 
   "When processing a 2 page flow separated by a PageStanza" must {
     val twoPagesSeperatedByValueStanza: Map[String, Stanza] = Map(
-        Process.StartStanzaId -> PageStanza("/blah", Seq("1"), stack = false),
+        Process.StartStanzaId -> PageStanza("/blah", Seq("111"), stack = false),
+        "111" -> CalloutStanza(Title, 0, Seq("1"), stack = false),
         "1" -> InstructionStanza(0, Seq("2"), None, stack = false),
         "2" -> InstructionStanza(1, Seq("3"), None, stack = false),
-        "3" -> PageStanza("/a", Seq("4"), stack = false),
+        "3" -> PageStanza("/a", Seq("112"), stack = false),
+        "112" -> CalloutStanza(Title, 0, Seq("4"), stack = false),
         "4" -> InstructionStanza(0, Seq("end"), None, stack = false),
         "end" -> EndStanza
       )

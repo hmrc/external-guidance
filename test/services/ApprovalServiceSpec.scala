@@ -193,7 +193,7 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
 
         whenReady(service.save(validOnePageJson.as[JsObject], ReviewType2i, StatusSubmittedFor2iReview)) {
           case Right(id) => id shouldBe validId
-          case _ => fail
+          case Left(err) => fail(s"Failed with $err")
         }
       }
     }

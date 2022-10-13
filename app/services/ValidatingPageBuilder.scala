@@ -57,16 +57,19 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
         val vertexMap = vertices.map(pv => (pv.id, pv)).toMap
         val mainFlow: List[String] = pageGraph(List(Process.StartStanzaId), vertexMap).map(_.id)
 
-        checkForSequencePageReuse(vertices, vertexMap, mainFlow) ++
+        (checkForSequencePageReuse(vertices, vertexMap, mainFlow) ++
         checkAllFlowsHaveUniqueTerminationPage(vertices, vertexMap, mainFlow) ++
-        (if (checkLevel == Strict) confirmInputPageErrorCallouts(pages, Nil) else Nil) ++
+        (if (checkLevel == Strict) {
+          confirmInputPageErrorCallouts(pages, Nil) ++
+          confirmPageTitles(pages, Nil)
+        } else Nil) ++
         checkDataInputPages(pages, Nil) ++
         duplicateUrlErrors(pages.reverse, Nil) ++
         checkDateInputErrorCallouts(pages, Nil) ++
         checkExclusiveSequenceTypeError(pages, Nil) ++
         checkForUseOfReservedUrls(pages, Nil) ++
         checkForInvalidLabelNames(pages, Nil) ++
-        detectUnsupportedPageRedirect(pages) match {
+        detectUnsupportedPageRedirect(pages)) match {
           case Nil => Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
           case errors => Left(errors)
         }
@@ -104,6 +107,22 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
   }
 
   @tailrec
+  private def confirmPageTitles(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
+    def missingPageTitle(p: Page): Boolean =
+      p.stanzas.collectFirst{
+        case _: TitleCallout => ()
+        case _: DataInputStanza => ()
+        case _: YourCallCallout => ()
+      }.isEmpty
+
+    pages match {
+      case Nil => errors
+      case x :: xs if missingPageTitle(x) => confirmPageTitles(xs, MissingTitle(x.id) :: errors)
+      case x :: xs => confirmPageTitles(xs, errors)
+    }
+  }
+
+  @tailrec
   private def checkForInvalidLabelNames(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
     def stanzaLabelNameErrors(ks: KeyedStanza): List[GuidanceError] = ks.stanza.labels.collect{case l if !labelNameValid(l) => InvalidLabelName(ks.key)}
     pages match {
@@ -119,11 +138,12 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
       val callouts: Seq[ErrorCallout] = p.keyedStanzas
                                          .map(_.stanza)
                                          .collect{case e: ErrorCallout => e}
+      val typeErrorCallout: Boolean = p.stanzas.collectFirst{case _: TypeErrorCallout => ()}.isDefined
 
       callouts
        .map(co => EmbeddedParameterRegex.findAllIn(co.text.english).length)
        .sorted match {
-          case List(0,1,2) if callouts(1).stack && callouts(2).stack => Nil
+          case List(0,1,2) if typeErrorCallout && callouts(1).stack && callouts(2).stack => Nil
           case _ => List(IncompleteDateInputPage(p.id))
        }
     }
