@@ -58,7 +58,6 @@ package object errors {
       ErrorReport(s"InvalidFieldWidth: Input stanza (${e.id}) name field includes an unsupported field width", e.id)
     case e: MissingTimescaleDefinition =>
       ErrorReport(s"MissingTimescaleDefinition: Process references unknown timescale ID \'${e.timescaleId}\'", "")
-    case e: MissingAccessibilityHint => ErrorReport(s"MissingAccessibilityHint: Action link within cell 3 of row stanza \'${e.id}\' requires an accesibility hint", e.id)
 
     case e: ParseError =>
       ErrorReport(s"ParseError: Unknown parse error ${e.errs.map(_.messages.mkString(",")).mkString(",")} at location ${e.jsPath.toString}", "")
