@@ -47,7 +47,8 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         "22" -> CalloutStanza(Error, 0, Seq("33"), stack = false),
         "33" -> CalloutStanza(TypeError, 0, Seq("5"), stack = false),
         "5" -> InputStanza(Date, Seq("6"), four, Some(five), "Label", None, stack = false),
-        "6" -> PageStanza("/url3", Seq("7"), stack = false),
+        "6" -> PageStanza("/url3", Seq("66"), stack = false),
+        "66" -> CalloutStanza(Title, 0, Seq("7"), stack = false),
         "7" -> InstructionStanza(six, Seq("end"), None, stack = false),
         "end" -> EndStanza
       )
@@ -153,7 +154,8 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
           Seq(ChoiceStanzaTest("[label:date_label", MoreThan, "[timescale:today]")),
           stack = false
         ),
-        "9" -> PageStanza("/page-2", Seq("10"), stack = false),
+        "9" -> PageStanza("/page-2", Seq("100"), stack = false),
+        "100" -> CalloutStanza(Title, 2, Seq("10"), stack = true),
         "10" -> InstructionStanza(six, Seq("end"), None, stack = false),
         "end" -> EndStanza
       )
@@ -203,7 +205,8 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
           Seq(ChoiceStanzaTest("[label:date_label", MoreThan, "[timescale:today]")),
           stack = false
         ),
-        "9" -> PageStanza("/page-2", Seq("10"), stack = false),
+        "9" -> PageStanza("/page-2", Seq("100"), stack = false),
+        "100" -> CalloutStanza(Title, 2, Seq("10"), stack = true),
         "10" -> InstructionStanza(six, Seq("end"), None, stack = false),
         "end" -> EndStanza
       )
@@ -228,8 +231,8 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       )
 
       pageBuilder.pagesWithValidation(process) match {
-        case Right(_) => fail(s"Should not succeed")
         case Left(List(ErrorRedirectToFirstNonPageStanzaOnly("2"))) =>
+        case res => fail(s"Failed with $res")
       }
     }
 
@@ -255,7 +258,8 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
           Seq(ChoiceStanzaTest("[label:date_label", MoreThan, "[timescale:today]")),
           stack = false
         ),
-        "10" -> PageStanza("/page-2", Seq("11"), stack = false),
+        "10" -> PageStanza("/page-2", Seq("100"), stack = false),
+        "100" -> CalloutStanza(Title, 2, Seq("11"), stack = true),
         "11" -> InstructionStanza(seven, Seq("end"), None, stack = false),
         "end" -> EndStanza
       )
@@ -297,10 +301,12 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         "2" -> SequenceStanza(1, Seq("3", "5", "7"), Seq(2, 3, four), None, stack = false),
         "3" -> PageStanza("/page-2", Seq("4"), stack = false),
         "4" -> CalloutStanza(Title, five, Seq("end"), stack = false),
-        "5" -> PageStanza("/page-3", Seq("6"), stack = false),
+        "5" -> PageStanza("/page-3", Seq("100"), stack = false),
+        "100" -> CalloutStanza(Title, 2, Seq("6"), stack = true),
         "6" -> InstructionStanza(six, Seq("end"), None, stack = false),
         "7"-> InstructionStanza(seven, Seq("8"), None, stack = false),
-        "8" -> PageStanza("/page-4", Seq("9"), stack = false),
+        "8" -> PageStanza("/page-4", Seq("101"), stack = false),
+        "101" -> CalloutStanza(Title, 2, Seq("9"), stack = true),
         "9" -> InstructionStanza(eight, Seq("end"), None, stack = false),
         "end" -> EndStanza
       )
@@ -332,8 +338,6 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       }
     }
 
-
-
     "detect DuplicatePageUrl" in {
       val flow = Map(
         Process.StartStanzaId -> PageStanza("/this", Seq("1"), false),
@@ -357,7 +361,7 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       )
 
       pageBuilder.pagesWithValidation(process) match {
-        case Left(List(DuplicatePageUrl("4", "/this"))) => succeed
+        case Left(List(MissingTitle("4"), MissingTitle("5"), DuplicatePageUrl("4", "/this"))) => succeed
         case Left(err) => fail(s"DuplicatePageUrl error not detected, failed with $err")
         case res => fail(s"DuplicatePageUrl not detected $res")
       }
@@ -387,7 +391,7 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       )
 
       pageBuilder.pagesWithValidation(process) match {
-        case Left(List(UseOfReservedUrl("4"), UseOfReservedUrl("6"), UseOfReservedUrl("5"))) => succeed
+        case Left(List(MissingTitle("4"),MissingTitle("6"),MissingTitle("5"),UseOfReservedUrl("4"), UseOfReservedUrl("6"), UseOfReservedUrl("5"))) => succeed
         case Left(err) => fail(s"UseOfReservedUrl error not detected, failed with $err")
         case Right(res) => fail(s"UseOfReservedUrl not detected $res")
       }
@@ -397,7 +401,7 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       duplicateUrlsJson.validate[Process] match {
         case JsSuccess(process, _) =>
           pageBuilder.pagesWithValidation(process) match {
-            case Left(List(DuplicatePageUrl("6","/feeling-bad"), DuplicatePageUrl("8","/feeling-good"))) => succeed
+            case Left(List(MissingTitle("8"),MissingTitle("6"),MissingTitle("4"),MissingTitle("2"),MissingTitle("start"),DuplicatePageUrl("6","/feeling-bad"), DuplicatePageUrl("8","/feeling-good"))) => succeed
             case Left(err) => fail(s"DuplicatePageUrl error not detected, failed with $err")
             case res => fail(s"DuplicatePageUrl not detected $res")
           }
@@ -469,11 +473,14 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         "10" -> CalloutStanza(TypeError, 2, Seq("1"), false),
         "1" -> InstructionStanza(0, Seq("2"), None, stack = false),
         "2" -> SequenceStanza(1, Seq("3", "5", "7"), Seq(2, 3), None, stack = false),
-        "3" -> PageStanza("/page-1", Seq("4"), stack = false),
+        "3" -> PageStanza("/page-1", Seq("100"), stack = false),
+        "100" -> CalloutStanza(Title, 2, Seq("4"), false),
         "4" -> InstructionStanza(0, Seq("end"), None, stack = false),
-        "5" -> PageStanza("/page-2", Seq("6"), stack = false),
+        "5" -> PageStanza("/page-2", Seq("101"), stack = false),
+        "101" -> CalloutStanza(Title, 2, Seq("6"), false),
         "6" -> InstructionStanza(0, Seq("end"), None, stack = false),
-        "7" -> PageStanza("/page-3", Seq("8"), stack = false),
+        "7" -> PageStanza("/page-3", Seq("102"), stack = false),
+        "102" -> CalloutStanza(Title, 2, Seq("8"), false),
         "8" -> InstructionStanza(0, Seq("end"), None, stack = false),
         "end" -> EndStanza
       )
@@ -561,7 +568,7 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       )
 
       pageBuilder.pagesWithValidation(process) match {
-        case Left(List(IncompleteExclusiveSequencePage(Process.StartStanzaId))) => succeed
+        case Left(List(MissingTitle("3"), MissingTitle("5"), MissingTitle("7"), IncompleteExclusiveSequencePage(Process.StartStanzaId))) => succeed
         case Left(err) => fail(s"Failed to detect missing TypeError callout. Instead failed with error $err")
         case _ => fail("Failed to detect missing TypeError callout")
       }
@@ -574,7 +581,8 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         "1" -> CalloutStanza(Error, 0, Seq("4"), stack = false),
         "4" -> CalloutStanza(TypeError, 1, Seq("7"), stack = false),
         "7" -> InputStanza(Number, Seq("10"), 2, None, "date_label", None, stack = false),
-        "10" -> PageStanza("/page-2", Seq("11"), stack = false),
+        "10" -> PageStanza("/page-2", Seq("100"), stack = false),
+        "100" -> CalloutStanza(Title, 1, Seq("11"), stack = false),
         "11" -> InstructionStanza(3, Seq("end"), None, stack = false),
         "end" -> EndStanza
       )

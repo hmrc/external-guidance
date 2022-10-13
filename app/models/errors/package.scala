@@ -39,7 +39,7 @@ package object errors {
       ErrorReport(s"UnknownCalcOperationType: Unsupported CalculationStanza operation type ${e.typeName} found at stanza id ${e.id}", e.id)
     case e: UnknownTestType => ErrorReport( s"UnknownTestType: Unsupported ChoiceStanza test type ${e.typeName} found at stanza id ${e.id}", e.id)
     case e: UnknownInputType => ErrorReport( s"UnknownInputType: Unsupported InputStanza type ${e.typeName} found at stanza id ${e.id}", e.id)
-    case e: IncompleteDateInputPage => ErrorReport(s"IncompleteDateInputPage: Incomplete Error callout group associated with date input page ${e.id}", e.id)
+    case e: IncompleteDateInputPage => ErrorReport(s"IncompleteDateInputPage: Incomplete Error callout group or missing TypeError callout associated with date input page ${e.id}", e.id)
     case e: IncompleteInputPage => ErrorReport(s"IncompleteInputPage: Missing Error callout stanza from input page ${e.id}", e.id)
     case e: PageRedirectNotSupported => ErrorReport(s"PageRedirectNotSupported: Use of ChoiceStanza ${e.id} as a page redirect not supported", e.id)
     case e: MultipleExclusiveOptions => ErrorReport(s"MultipleExclusiveOptions: Sequence stanza ${e.id} defines multiple exclusive options", e.id)
@@ -58,6 +58,8 @@ package object errors {
       ErrorReport(s"InvalidFieldWidth: Input stanza (${e.id}) name field includes an unsupported field width", e.id)
     case e: MissingTimescaleDefinition =>
       ErrorReport(s"MissingTimescaleDefinition: Process references unknown timescale ID \'${e.timescaleId}\'", "")
+    case e: MissingTitle =>
+      ErrorReport(s"MissingTitle: Non input page \'${e.id}\' does not contain a Callout of type Title", e.id)
 
     case e: ParseError =>
       ErrorReport(s"ParseError: Unknown parse error ${e.errs.map(_.messages.mkString(",")).mkString(",")} at location ${e.jsPath.toString}", "")
