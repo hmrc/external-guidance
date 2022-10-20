@@ -29,6 +29,10 @@ package object ocelot {
   val Four: String = "4"
   val Three: String = "3"
   val Two: String = "2"
+  val NumberOfCYAColumns: Int = 3
+  val FirstColumn: Int = 0
+  val SecondColumn: Int = 1
+  val ThirdColumn: Int = 2
 
   val TimescaleIdPattern: String = "[A-Za-z][a-zA-Z0-9_-]+"
   val DatePattern: String = "\\d{1,2}\\/\\d{1,2}\\/\\d{4}"
