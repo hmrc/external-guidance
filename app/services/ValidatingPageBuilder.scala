@@ -65,7 +65,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
         } else Nil) ++
         checkDataInputPages(pages, Nil) ++
         duplicateUrlErrors(pages.reverse, Nil) ++
-        checkDateInputErrorCallouts(pages, Nil) ++
+        checkDateInputErrorCallouts(pages, Nil).distinct ++
         checkExclusiveSequenceTypeError(pages, Nil) ++
         checkForUseOfReservedUrls(pages, Nil) ++
         checkForInvalidLabelNames(pages, Nil) ++
@@ -133,30 +133,22 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
 
   @tailrec
   private def checkDateInputErrorCallouts(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
-    // Sufficient: 3 stacked callouts with messages containing 0,1 and 2 embedded parameters
-    def checkCalloutSufficiency(p: Page): List[GuidanceError] = {
-      val callouts: Seq[ErrorCallout] = p.keyedStanzas
-                                         .map(_.stanza)
-                                         .collect{case e: ErrorCallout => e}
-      val typeErrorCallout: Boolean = p.stanzas.collectFirst{case _: TypeErrorCallout => ()}.isDefined
-
+    def checkCalloutSufficiency(pId: String, callouts: Seq[Callout]): List[GuidanceError] =
       callouts
-       .map(co => EmbeddedParameterRegex.findAllIn(co.text.english).length)
-       .sorted match {
-          case List(0,1,2) if typeErrorCallout && callouts(1).stack && callouts(2).stack => Nil
-          case _ => List(IncompleteDateInputPage(p.id))
+       .map(co => (co, EmbeddedParameterRegex.findAllIn(co.text.english).length))
+       match {
+                      // Sufficient: 3 stacked callouts with messages containing 0,1 and 2 embedded parameters
+          case cos if cos.size == 3 && cos(1)._1.stack && cos(2)._1.stack && List(0,1,2).forall(cos.map(_._2).contains) => Nil
+          case _ => List(IncompleteDateInputPage(pId))
        }
-    }
 
     pages match {
       case Nil => errors
-      case p +: xs => p.keyedStanzas.find(
-          _.stanza match {
-            case _: DateInput => true
-            case _ => false
-        }) match {
-        case Some(_) => checkDateInputErrorCallouts(xs, checkCalloutSufficiency(p) ++ errors)
-        case None => checkDateInputErrorCallouts(xs, errors)
+      case p +: xs => p.stanzas.collect{case d: DateInput => d} match {
+        case Nil => checkDateInputErrorCallouts(xs, errors)
+        case _ =>
+        checkDateInputErrorCallouts(xs, checkCalloutSufficiency(p.id, p.stanzas.collect{case e: ErrorCallout => e}) ++
+                                        checkCalloutSufficiency(p.id, p.stanzas.collect{case t: TypeErrorCallout => t}) ++ errors)
       }
     }
   }
