@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot.{labelReferences, Phrase, Labels, Page, hintRegex, asPositiveInt}
+import core.models.ocelot.{Validation, labelReferences, Phrase, Labels, Page, hintRegex, asPositiveInt}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -58,16 +58,17 @@ case class Question(text: Phrase,
   override val labels: List[String] = label.fold[List[String]](Nil)(l => List(l))
 
   def eval(value: String, page: Page, labels: Labels): (Option[String], Labels) =
-    validInput(value).fold[(Option[String], Labels)]((None, labels)){idx => {
+    validate(value).fold[(Option[String], Labels)]((None, labels)){idx => {
         val answer = answers(idx.toInt)
         val english = hintRegex.split(answer.english).head.trim
         val welsh = hintRegex.split(answer.welsh).head.trim
         (Some(next(idx.toInt)), label.fold(labels)(labels.update(_, english, welsh)))
       }
     }
-  def validInput(value: String): Option[String] =
-    asPositiveInt(value).fold[Option[String]](None)(idx => if (answers.indices.contains(idx)) Some(idx.toString) else None)
+  def validInput(value: String): Validation[String] = validate(value).fold[Validation[String]](Left(Nil))(result => Right(result))
   override def rendered(expand: Phrase => Phrase): DataInputStanza = copy(text = expand(text), answers = answers.map(expand))
+  private def validate(value: String): Option[String] =
+    asPositiveInt(value).fold[Option[String]](None)(idx => if (answers.indices.contains(idx)) Some(idx.toString) else None)
 }
 
 object Question {

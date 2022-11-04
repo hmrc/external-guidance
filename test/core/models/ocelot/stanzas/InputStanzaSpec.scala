@@ -74,36 +74,36 @@ class InputStanzaSpec extends BaseSpec {
 
     "Determine invalid input to be incorrect" in {
       val input = Input(expectedCurrencyStanza, Phrase("",""), None, None)
-      input.validInput("a value") shouldBe None
-      input.validInput("100.789") shouldBe None
-      input.validInput("100.7a9") shouldBe None
+      input.validInput("a value") shouldBe Left(Nil)
+      input.validInput("100.789") shouldBe Left(Nil)
+      input.validInput("100.7a9") shouldBe Left(Nil)
     }
 
     "Allow for coma separated 1000s" in {
       val input = Input(expectedCurrencyStanza, Phrase("",""), None, None)
-      input.validInput("123,345,768") shouldBe Some("123345768")
+      input.validInput("123,345,768") shouldBe Right("123345768")
     }
 
     "Allow -ve values" in {
       val input = Input(expectedCurrencyStanza, Phrase("",""), None, None)
-      input.validInput("-567,345") shouldBe Some("-567345")
+      input.validInput("-567,345") shouldBe Right("-567345")
     }
 
     "Determine valid input to be correct" in {
       val input = Input(expectedCurrencyStanza, Phrase("",""), None, None)
-      input.validInput("£33") shouldBe Some("33")
-      input.validInput("-33") shouldBe Some("-33")
-      input.validInput("£33.79") shouldBe Some("33.79")
-      input.validInput("-33.99") shouldBe Some("-33.99")
-      input.validInput("-£3,453,678.99") shouldBe Some("-3453678.99")
-      input.validInput("33") shouldBe Some("33")
-      input.validInput("33.9") shouldBe Some("33.9")
-      input.validInput("33.") shouldBe Some("33")
-      input.validInput("3,334") shouldBe Some("3334")
-      input.validInput("1,234,567") shouldBe Some("1234567")
-      input.validInput("1  234 567") shouldBe Some("1234567")
-      input.validInput("1,234,567.89") shouldBe Some("1234567.89")
-      input.validInput("1,234,567.8") shouldBe Some("1234567.8")
+      input.validInput("£33") shouldBe Right("33")
+      input.validInput("-33") shouldBe Right("-33")
+      input.validInput("£33.79") shouldBe Right("33.79")
+      input.validInput("-33.99") shouldBe Right("-33.99")
+      input.validInput("-£3,453,678.99") shouldBe Right("-3453678.99")
+      input.validInput("33") shouldBe Right("33")
+      input.validInput("33.9") shouldBe Right("33.9")
+      input.validInput("33.") shouldBe Right("33")
+      input.validInput("3,334") shouldBe Right("3334")
+      input.validInput("1,234,567") shouldBe Right("1234567")
+      input.validInput("1  234 567") shouldBe Right("1234567")
+      input.validInput("1,234,567.89") shouldBe Right("1234567.89")
+      input.validInput("1,234,567.8") shouldBe Right("1234567.8")
     }
   }
 
@@ -117,36 +117,36 @@ class InputStanzaSpec extends BaseSpec {
 
     "Determine invalid input to be incorrect" in {
       val input = Input(expectedCurrencyPoStanza, Phrase("",""), None, None)
-      input.validInput("a value") shouldBe None
-      input.validInput("100.789") shouldBe None
-      input.validInput("100.7a9") shouldBe None
+      input.validInput("a value") shouldBe Left(Nil)
+      input.validInput("100.789") shouldBe Left(Nil)
+      input.validInput("100.7a9") shouldBe Left(Nil)
     }
 
     "Allow for coma separated 1000s" in {
       val input = Input(expectedCurrencyPoStanza, Phrase("",""), None, None)
-      input.validInput("123,345,768") shouldBe Some("123345768")
+      input.validInput("123,345,768") shouldBe Right("123345768")
     }
 
     "Allow -ve values" in {
       val input = Input(expectedCurrencyPoStanza, Phrase("",""), None, None)
-      input.validInput("-567,345") shouldBe Some("-567345")
+      input.validInput("-567,345") shouldBe Right("-567345")
     }
 
     "Determine valid input to be correct" in {
       val input = Input(expectedCurrencyPoStanza, Phrase("",""), None, None)
-      input.validInput("£33") shouldBe Some("33")
-      input.validInput("-33") shouldBe Some("-33")
-      input.validInput("£33.79") shouldBe None
-      input.validInput("-33.99") shouldBe None
-      input.validInput("-£3,453,678.99") shouldBe None
-      input.validInput("33") shouldBe Some("33")
-      input.validInput("33.9") shouldBe None
-      input.validInput("33.") shouldBe None
-      input.validInput("3,334") shouldBe Some("3334")
-      input.validInput("3 334") shouldBe Some("3334")
-      input.validInput("1,234,567") shouldBe Some("1234567")
-      input.validInput("1,234,567.89") shouldBe None
-      input.validInput("1,234,567.8") shouldBe None
+      input.validInput("£33") shouldBe Right("33")
+      input.validInput("-33") shouldBe Right("-33")
+      input.validInput("£33.79") shouldBe Left(Nil)
+      input.validInput("-33.99") shouldBe Left(Nil)
+      input.validInput("-£3,453,678.99") shouldBe Left(Nil)
+      input.validInput("33") shouldBe Right("33")
+      input.validInput("33.9") shouldBe Left(Nil)
+      input.validInput("33.") shouldBe Left(Nil)
+      input.validInput("3,334") shouldBe Right("3334")
+      input.validInput("3 334") shouldBe Right("3334")
+      input.validInput("1,234,567") shouldBe Right("1234567")
+      input.validInput("1,234,567.89") shouldBe Left(Nil)
+      input.validInput("1,234,567.8") shouldBe Left(Nil)
     }
   }
 
@@ -160,21 +160,21 @@ class InputStanzaSpec extends BaseSpec {
 
     "Determine invalid input to be incorrect" in {
       val input = Input(expectedDateStanza, Phrase("",""), None, None)
-      input.validInput("a value") shouldBe None
-      input.validInput("100.78") shouldBe None
-      input.validInput("100.7a") shouldBe None
-      input.validInput("1,987") shouldBe None
-      input.validInput("-87") shouldBe None
-      input.validInput("31/9/2001") shouldBe None
-      input.validInput("29/2/2001") shouldBe None
+      input.validInput("a value") shouldBe Left(Nil)
+      input.validInput("100.78") shouldBe Left(Nil)
+      input.validInput("100.7a") shouldBe Left(Nil)
+      input.validInput("1,987") shouldBe Left(Nil)
+      input.validInput("-87") shouldBe Left(Nil)
+      input.validInput("31/9/2001") shouldBe Left(Nil)
+      input.validInput("29/2/2001") shouldBe Left(Nil)
     }
 
     "Determine valid input to be correct" in {
       val input = Input(expectedDateStanza, Phrase("",""), None, None)
-      input.validInput("5/6/1989") shouldBe Some("5/6/1989")
-      input.validInput("28/2/1999") shouldBe Some("28/2/1999")
-      input.validInput("28 /2/19 99") shouldBe Some("28/2/1999")
-      input.validInput("29/2/2000") shouldBe Some("29/2/2000")
+      input.validInput("5/6/1989") shouldBe Right("5/6/1989")
+      input.validInput("28/2/1999") shouldBe Right("28/2/1999")
+      input.validInput("28 /2/19 99") shouldBe Right("28/2/1999")
+      input.validInput("29/2/2000") shouldBe Right("29/2/2000")
     }
   }
 
@@ -188,13 +188,13 @@ class InputStanzaSpec extends BaseSpec {
 
     "Determine invalid input to be incorrect" in {
       val input = Input(expectedTextStanza, Phrase("Name","Name"), None, None)
-      input.validInput("") shouldBe None
+      input.validInput("") shouldBe Left(Nil)
     }
 
     "Determine valid input to be correct" in {
       val input = Input(expectedTextStanza, Phrase("",""), None, None)
-      input.validInput("a value") shouldBe Some("a value")
-      input.validInput("""any valid text!@£%^&*()":;'?><,./""") shouldBe Some("""any valid text!@£%^&*()":;'?><,./""")
+      input.validInput("a value") shouldBe Right("a value")
+      input.validInput("""any valid text!@£%^&*()":;'?><,./""") shouldBe Right("""any valid text!@£%^&*()":;'?><,./""")
     }
   }
 
@@ -208,17 +208,17 @@ class InputStanzaSpec extends BaseSpec {
 
     "Determine invalid input to be incorrect" in {
       val input = Input(expectedNumberStanza, Phrase("",""), None, None)
-      input.validInput("a value") shouldBe None
-      input.validInput("100.78") shouldBe None
-      input.validInput("100.7a") shouldBe None
-      input.validInput("£33") shouldBe None
-      input.validInput("1,000") shouldBe Some("1000")
-      input.validInput("") shouldBe None
+      input.validInput("a value") shouldBe Left(Nil)
+      input.validInput("100.78") shouldBe Left(Nil)
+      input.validInput("100.7a") shouldBe Left(Nil)
+      input.validInput("£33") shouldBe Left(Nil)
+      input.validInput("1,000") shouldBe Right("1000")
+      input.validInput("") shouldBe Left(Nil)
     }
 
     "Allow -ve values" in {
       val input = Input(expectedNumberStanza, Phrase("",""), None, None)
-      input.validInput("-567345") shouldBe Some("-567345")
+      input.validInput("-567345") shouldBe Right("-567345")
     }
 
     "Dont allow values outside range of Int.MinValue <= x <= Int.MaxValue" in {
@@ -226,19 +226,19 @@ class InputStanzaSpec extends BaseSpec {
       val tooNegative: Long = -1L + Int.MinValue
       val tooPositive: Long = 1L + Int.MaxValue
 
-      input.validInput(tooNegative.toString) shouldBe None
-      input.validInput(tooPositive.toString) shouldBe None
+      input.validInput(tooNegative.toString) shouldBe Left(Nil)
+      input.validInput(tooPositive.toString) shouldBe Left(Nil)
 
-      input.validInput(Int.MinValue.toString) shouldBe Some(Int.MinValue.toString)
-      input.validInput(Int.MaxValue.toString) shouldBe Some(Int.MaxValue.toString)
+      input.validInput(Int.MinValue.toString) shouldBe Right(Int.MinValue.toString)
+      input.validInput(Int.MaxValue.toString) shouldBe Right(Int.MaxValue.toString)
     }
 
 
     "Determine valid input to be correct" in {
 
       val input = Input(expectedNumberStanza, Phrase("",""), None, None)
-      input.validInput("33") shouldBe Some("33")
-      input.validInput("3 3 ") shouldBe Some("33")
+      input.validInput("33") shouldBe Right("33")
+      input.validInput("3 3 ") shouldBe Right("33")
     }
   }
 

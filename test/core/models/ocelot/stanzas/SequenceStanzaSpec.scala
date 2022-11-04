@@ -155,14 +155,14 @@ class SequenceStanzaSpec extends BaseSpec {
   "Non-exclusive sequence" should {
 
     "Determine invalid input to be incorrect" in new Test {
-      standardSequence.validInput("a,b,c") shouldBe None
-      standardSequence.validInput("5,6,7") shouldBe None
+      standardSequence.validInput("a,b,c") shouldBe Left(Nil)
+      standardSequence.validInput("5,6,7") shouldBe Left(Nil)
     }
 
     "Determine valid input to be correct" in new Test {
-      standardSequence.validInput("1,2") shouldBe Some("1,2")
-      standardSequence.validInput("2,3") shouldBe Some("2,3")
-      standardSequence.validInput("0") shouldBe Some("0")
+      standardSequence.validInput("1,2") shouldBe Right("1,2")
+      standardSequence.validInput("2,3") shouldBe Right("2,3")
+      standardSequence.validInput("0") shouldBe Right("0")
     }
 
     "assign Nil to labels property when no label is used" in new Test {
@@ -210,23 +210,23 @@ class SequenceStanzaSpec extends BaseSpec {
   "Exclusive sequence" should {
 
     "Determine invalid input to be incorrect" in new Test {
-      exclusiveSequence.validInput("a,b,c") shouldBe None
-      exclusiveSequence.validInput("5,6,7") shouldBe None
-      exclusiveSequence.validInput("2,3") shouldBe None
-      exclusiveSequence.validInput("0,3") shouldBe None
-      exclusiveSequence.validInput("1,3") shouldBe None
-      exclusiveSequence.validInput("0,1,2,3") shouldBe None
+      exclusiveSequence.validInput("a,b,c") shouldBe Left(Nil)
+      exclusiveSequence.validInput("5,6,7") shouldBe Left(Nil)
+      exclusiveSequence.validInput("2,3") shouldBe Left(Nil)
+      exclusiveSequence.validInput("0,3") shouldBe Left(Nil)
+      exclusiveSequence.validInput("1,3") shouldBe Left(Nil)
+      exclusiveSequence.validInput("0,1,2,3") shouldBe Left(Nil)
     }
 
     "Determine valid input to be correct" in new Test {
-      exclusiveSequence.validInput("1,2") shouldBe Some("1,2")
-      exclusiveSequence.validInput("0,1") shouldBe Some("0,1")
-      exclusiveSequence.validInput("0,2") shouldBe Some("0,2")
-      exclusiveSequence.validInput("0") shouldBe Some("0")
-      exclusiveSequence.validInput("3") shouldBe Some("3")
-      exclusiveSequence.validInput("1") shouldBe Some("1")
-      exclusiveSequence.validInput("2") shouldBe Some("2")
-      exclusiveSequence.validInput("0,1,2") shouldBe Some("0,1,2")
+      exclusiveSequence.validInput("1,2") shouldBe Right("1,2")
+      exclusiveSequence.validInput("0,1") shouldBe Right("0,1")
+      exclusiveSequence.validInput("0,2") shouldBe Right("0,2")
+      exclusiveSequence.validInput("0") shouldBe Right("0")
+      exclusiveSequence.validInput("3") shouldBe Right("3")
+      exclusiveSequence.validInput("1") shouldBe Right("1")
+      exclusiveSequence.validInput("2") shouldBe Right("2")
+      exclusiveSequence.validInput("0,1,2") shouldBe Right("0,1,2")
     }
 
     "assign Nil to labels property when no label is used" in new Test {
