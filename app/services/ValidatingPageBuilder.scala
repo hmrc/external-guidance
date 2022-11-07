@@ -60,12 +60,12 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
         (checkForSequencePageReuse(vertices, vertexMap, mainFlow) ++
         checkAllFlowsHaveUniqueTerminationPage(vertices, vertexMap, mainFlow) ++
         (if (checkLevel == Strict) {
+          checkDateInputErrorCallouts(pages, Nil).distinct ++
           confirmInputPageErrorCallouts(pages, Nil) ++
           confirmPageTitles(pages, Nil)
         } else Nil) ++
         checkDataInputPages(pages, Nil) ++
         duplicateUrlErrors(pages.reverse, Nil) ++
-        checkDateInputErrorCallouts(pages, Nil).distinct ++
         checkExclusiveSequenceTypeError(pages, Nil) ++
         checkForUseOfReservedUrls(pages, Nil) ++
         checkForInvalidLabelNames(pages, Nil) ++
@@ -139,7 +139,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
        match {
                       // Sufficient: 3 stacked callouts with messages containing 0,1 and 2 embedded parameters
           case cos if cos.size == 3 && cos(1)._1.stack && cos(2)._1.stack && List(0,1,2).forall(cos.map(_._2).contains) => Nil
-          case _ => List(IncompleteDateInputPage(pId))
+          case cos => List(IncompleteDateInputPage(pId))
        }
 
     pages match {
