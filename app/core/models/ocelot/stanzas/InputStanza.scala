@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot.{Page, Labels, Phrase, asAnyInt, asCurrency, asCurrencyPounds, asDate, asTextString, labelReferences, stringFromDate, Ten}
+import core.models.ocelot.{Validation, validDate, Page, Labels, Phrase, asAnyInt, asCurrency, asCurrencyPounds, asTextString, labelReferences, stringFromDate, Ten}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -81,7 +81,7 @@ case class NumberInput(
   dontRepeatName: Boolean = false,
   width: String = Ten
 ) extends Input {
-  def validInput(value: String): Option[String] = asAnyInt(value).map(_.toString)
+  def validInput(value: String): Validation[String] = asAnyInt(value).fold[Validation[String]](Left(Nil))(v => Right(v.toString))
   override def rendered(expand: Phrase => Phrase): DataInputStanza = copy(name = expand(name), help = help.map(expand), placeholder = placeholder.map(expand))
 }
 
@@ -95,7 +95,7 @@ case class TextInput(
   dontRepeatName: Boolean = false,
   width: String = Ten
 ) extends Input {
-  def validInput(value: String): Option[String] = asTextString(value)
+  def validInput(value: String): Validation[String] = asTextString(value).fold[Validation[String]](Left(Nil))(v => Right(v.toString))
   override def rendered(expand: Phrase => Phrase): DataInputStanza = copy(name = expand(name), help = help.map(expand), placeholder = placeholder.map(expand))
 }
 
@@ -109,7 +109,7 @@ case class CurrencyInput(
   dontRepeatName: Boolean = false,
   width: String = Ten
 ) extends Input {
-  def validInput(value: String): Option[String] = asCurrency(value).map(_.toString)
+  def validInput(value: String): Validation[String] = asCurrency(value).fold[Validation[String]](Left(Nil))(v => Right(v.toString))
   override def rendered(expand: Phrase => Phrase): DataInputStanza = copy(name = expand(name), help = help.map(expand), placeholder = placeholder.map(expand))
 }
 
@@ -123,7 +123,7 @@ case class CurrencyPoundsOnlyInput(
   dontRepeatName: Boolean = false,
   width: String = Ten
 ) extends Input {
-  def validInput(value: String): Option[String] = asCurrencyPounds(value).map(_.toString)
+  def validInput(value: String): Validation[String] = asCurrencyPounds(value).fold[Validation[String]](Left(Nil))(v => Right(v.toString))
   override def rendered(expand: Phrase => Phrase): DataInputStanza = copy(name = expand(name), help = help.map(expand), placeholder = placeholder.map(expand))
 }
 
@@ -137,7 +137,9 @@ case class DateInput(
   dontRepeatName: Boolean = false,
   width: String = Ten
 ) extends Input {
-  def validInput(value: String): Option[String] = asDate(value).map(stringFromDate)
+  val FieldMsgBase: String = "label"
+  val FieldNames: List[String] = List("day", "month", "year")
+  def validInput(value: String): Validation[String] = validDate(value).fold(err => Left(err), dte => Right(stringFromDate(dte)))
   override def rendered(expand: Phrase => Phrase): DataInputStanza = copy(name = expand(name), help = help.map(expand), placeholder = placeholder.map(expand))
 }
 

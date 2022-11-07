@@ -23,6 +23,8 @@ import scala.util.matching.Regex
 import scala.util.matching.Regex.Match
 
 package object ocelot {
+  type Validation[T] = Either[List[Int], T]
+
   val Twenty: String = "20"
   val Ten: String = "10"
   val Five: String = "5"
@@ -65,6 +67,7 @@ package object ocelot {
   val pageLinkRegex: Regex = pageLinkPattern.r
   val buttonLinkRegex: Regex = buttonLinkPattern.r
   val labelRefRegex: Regex = LabelPattern.r
+  val InputDateRegex: Regex = "(.+?)\\/(.+?)\\/(.+?)$".r
   val numericRegex: Regex = "^-?(\\d{1,3}(,\\d{3})*|\\d+)(\\.(\\d*)?)?$".r
   val inputCurrencyRegex: Regex = "^-?£?(\\d{1,3}(,\\d{3})*|\\d+)(\\.(\\d{1,2})?)?$".r
   val inputCurrencyPoundsRegex: Regex = "^-?£?(\\d{1,3}(,\\d{3})*|\\d+)$".r
@@ -171,7 +174,20 @@ package object ocelot {
     inputCurrencyRegex.findFirstIn(value.filterNot(c => c == ' ')).map(s => BigDecimal(s.filterNot(ignoredCurrencyChars.contains(_))))
   def asCurrencyPounds(value: String): Option[BigDecimal] =
     inputCurrencyPoundsRegex.findFirstIn(value.filterNot(c => c == ' ')).map(s => BigDecimal(s.filterNot(ignoredCurrencyChars.contains(_))))
+  def splitInputDateString(dateString: String): Option[(String, String, String)] =
+    InputDateRegex.findFirstMatchIn(dateString).fold[Option[(String, String, String)]](None){m => Some((m.group(1), m.group(2), m.group(3)))}
   def asDate(value: String): Option[LocalDate] = Try(LocalDate.parse(value.filterNot(_.equals(' ')), dateFormatter)).map(d => d).toOption
+  def validDate(value: String): Validation[LocalDate] =
+    splitInputDateString(value.filterNot(_.equals(' '))).fold[Validation[LocalDate]](Left(Nil)){d =>
+      (asPositiveInt(d._1).fold[Option[Int]](Some(0))(_ => None) ::
+       asPositiveInt(d._2).fold[Option[Int]](Some(1))(_ => None) ::
+       asPositiveInt(d._3).fold[Option[Int]](Some(2))(_ => None) :: Nil).flatten match {
+        case Nil => asDate(value).fold[Validation[LocalDate]](Left(Nil))(Right(_))
+        case List(_, _, _) => Left(Nil)
+        case invalidFieldsList => Left(invalidFieldsList)
+      }
+    }
+
   def asPositiveInt(value: String): Option[Int] = matchedInt(value, positiveIntRegex)
   def asAnyInt(value: String): Option[Int] = matchedInt(value, anyIntegerRegex)
   def asListOfPositiveInt(value: String): Option[List[Int]] = listOfPositiveIntRegex.findFirstIn(value.filterNot(_.equals(' ')))

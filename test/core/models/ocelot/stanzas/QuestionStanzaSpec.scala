@@ -105,7 +105,7 @@ class QuestionStanzaSpec extends BaseSpec with TestConstants {
 
       val question: core.models.ocelot.stanzas.Question = Question(questionPhrase, answers, answerDestinations, None, false)
 
-      question.validInput("1") shouldBe Some("1")
+      question.validInput("1") shouldBe Right("1")
     }
 
     "Validate input as incorrect when invalid" in {
@@ -118,9 +118,9 @@ class QuestionStanzaSpec extends BaseSpec with TestConstants {
 
       val question: core.models.ocelot.stanzas.Question = Question(questionPhrase, answers, answerDestinations, None, false)
 
-      question.validInput("4") shouldBe None
-      question.validInput("-1") shouldBe None
-      question.validInput("blah") shouldBe None
+      question.validInput("4") shouldBe Left(Nil)
+      question.validInput("-1") shouldBe Left(Nil)
+      question.validInput("blah") shouldBe Left(Nil)
     }
 
     "serialise to json" in {

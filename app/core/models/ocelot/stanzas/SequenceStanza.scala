@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot.{KeyedStanza, labelReferences, Page, Labels, Phrase, stripHintPlaceholder, asListOfPositiveInt}
+import core.models.ocelot.{Validation, KeyedStanza, labelReferences, Page, Labels, Phrase, stripHintPlaceholder, asListOfPositiveInt}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json.{JsSuccess, JsError, JsValue, JsonValidationError, JsPath, OWrites, Reads}
@@ -69,7 +69,7 @@ case class Sequence(text: Phrase,
   override val labels: List[String] = label.fold(List.empty[String])(l => List(l))
 
   def eval(value: String, page: Page, labels: Labels): (Option[String], Labels) =
-    validInput(value).fold[(Option[String], Labels)]((None, labels)){checkedItems =>
+    validate(value).fold[(Option[String], Labels)]((None, labels)){checkedItems =>
       asListOfPositiveInt(checkedItems).fold[(Option[String], Labels)]((None, labels)){checked => {
         val chosenOptions: List[Phrase] = checked.flatMap{idx =>
           options.lift(idx).fold(exclusive.fold(List.empty[Phrase])(ep => List(stripHintPlaceholder(ep))))(sp => List(stripHintPlaceholder(sp)))
@@ -91,10 +91,10 @@ case class Sequence(text: Phrase,
       }}
     }
 
-  def validInput(value: String): Option[String] =
+  def validInput(value: String): Validation[String] = validate(value).fold[Validation[String]](Left(Nil))(result => Right(result))
+  override def rendered(expand: Phrase => Phrase): DataInputStanza = copy(text = expand(text), options = options.map(expand), exclusive = exclusive.map(expand))
+  private def validate(value: String): Option[String] =
     asListOfPositiveInt(value).fold[Option[String]](None){l =>
       if (l.forall(options.indices.contains) || l.length == 1 && exclusive.fold(false)(_ => l.headOption.contains(options.length))) Some(value) else None
     }
-
-  override def rendered(expand: Phrase => Phrase): DataInputStanza = copy(text = expand(text), options = options.map(expand), exclusive = exclusive.map(expand))
 }

@@ -17,7 +17,7 @@
 package core.models.ocelot.stanzas
 
 import play.api.libs.json._
-import core.models.ocelot.{Page, Labels, Phrase}
+import core.models.ocelot.{Page, Labels, Phrase, Validation}
 import core.models.ocelot.errors.RuntimeError
 
 trait Stanza {
@@ -43,7 +43,7 @@ trait Evaluate {
 
 trait DataInput {
   def eval(value: String, page: Page, labels: Labels): (Option[String], Labels)
-  def validInput(value: String): Option[String]
+  def validInput(value: String): Validation[String]
 }
 
 trait DataInputStanza extends VisualStanza with DataInput {
