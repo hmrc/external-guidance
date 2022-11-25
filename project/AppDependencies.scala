@@ -5,7 +5,7 @@ object AppDependencies {
 
   val compile = Seq(
     "uk.gov.hmrc"       %% "bootstrap-backend-play-28" % "5.25.0",
-    "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28"        % "0.71.0",
+    "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28"        % "0.74.0",
     "uk.gov.hmrc"       %% "auth-client"               % "5.14.0-play-28"
   )
 
@@ -13,7 +13,7 @@ object AppDependencies {
     "org.scalamock"                %% "scalamock"               % "5.2.0"  % "test",
     "org.scalatest"                %% "scalatest"               % "3.1.4"  % "test",
     "com.typesafe.play"            %% "play-test"               % current  % "test",
-    "uk.gov.hmrc.mongo"            %% "hmrc-mongo-test-play-28" % "0.71.0" % "test",
+    "uk.gov.hmrc.mongo"            %% "hmrc-mongo-test-play-28" % "0.74.0" % "test",
     "org.pegdown"                  %  "pegdown"                 % "1.6.0"  % "test, it",
     "org.scalatestplus.play"       %% "scalatestplus-play"      % "5.1.0"  % "test, it",
     "com.github.tomakehurst"       %  "wiremock-jre8"           % "2.33.2" % "test, it",
