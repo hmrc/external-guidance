@@ -65,7 +65,7 @@ class PublishedController @Inject() (publishedService: PublishedService,
     }
   }
 
-  def list: Action[AnyContent] = identify.async { _ =>
+  def list: Action[AnyContent] = Action.async { _ =>
     publishedService.list map {
       case Right(summaries) => Ok(summaries)
       case Left(BadRequestError) => BadRequest(toJson(OcelotError(BadRequestError)))
