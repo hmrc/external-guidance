@@ -23,9 +23,6 @@ package object models {
 
   type RequestOutcome[T] = Either[Error, T]
 
-  def escapeDollarSymbol(s: String): String = s.replaceAllLiterally("$", "\\$")
-  def unescapeDollarSymbol(s: String): String = s.replaceAllLiterally("\\$", "$")
-
    // List[Option[T]] => Option[List[T]] iff all Option[T] defined
   def lOfOtoOofL[T](l:List[Option[T]]): Option[List[T]] = {
     @tailrec

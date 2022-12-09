@@ -38,7 +38,8 @@ package object ocelot {
 
   val TimescaleIdPattern: String = "[A-Za-z][a-zA-Z0-9_-]+"
   val DatePattern: String = "\\d{1,2}\\/\\d{1,2}\\/\\d{4}"
-  val HttpUriPattern: String = "https?:[a-zA-Z0-9\\/\\.\\-\\?_\\.=&#]+"
+  val HttpUriPattern: String = "https?:[a-zA-Z0-9\\/\\.\\-\\?_\\.=&#:]+"
+  val UrlPathPattern: String = "[a-zA-Z0-9\\/\\.\\-\\?_\\.=&#:]+"
   val JavascriptPattern: String = "javascript\\:.+?"
   val EmailPattern: String = "mailto\\:.+?"
   val StanzaIdPattern: String = s"\\d+|${Process.StartStanzaId}"

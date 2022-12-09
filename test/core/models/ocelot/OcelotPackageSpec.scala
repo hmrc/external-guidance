@@ -382,6 +382,11 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
       val link = "[link:Next Page:someDestination]"
       link.matches(linkPattern) shouldBe false
     }
+
+    "match all valid link characters" in {
+      val link = "[link-tab:Customs Duty waiver form:https://public-online.hmrc.gov.uk/lc/content/xfaforms/profiles/forms.html?contentRoot=repository:///Applications/Customs_C/1.0/DEMAIDD&template=DeMAid.xdp]"
+      link.matches(linkPattern) shouldBe true
+    }
   }
 
   "datePlaceholder" must {
