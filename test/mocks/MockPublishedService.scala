@@ -20,7 +20,7 @@ import core.models.RequestOutcome
 import models.PublishedProcess
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
-import play.api.libs.json.JsObject
+import play.api.libs.json.{JsValue, JsObject}
 import services.PublishedService
 
 import scala.concurrent.Future
@@ -54,6 +54,11 @@ trait MockPublishedService extends MockFactory {
     def getTimescalesInUse(): CallHandler[Future[RequestOutcome[List[String]]]] =
       (mockPublishedService
         .getTimescalesInUse _)
+        .expects()
+
+    def list: CallHandler[Future[RequestOutcome[JsValue]]] =
+      (mockPublishedService
+        .list _)
         .expects()
 
   }

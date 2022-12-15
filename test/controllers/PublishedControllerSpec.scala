@@ -26,7 +26,7 @@ import core.models.errors.{BadRequestError, InternalServerError, NotFoundError}
 import core.models.ocelot.ProcessJson
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.ContentTypes
-import play.api.libs.json.JsObject
+import play.api.libs.json.{Json, JsObject}
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -347,7 +347,7 @@ class PublishedControllerSpec extends BaseSpec with GuiceOneAppPerSuite with Pro
       }
 
 
-      "return an Ok response" in new BadRequestErrorTest {
+      "return an BAD_REQUEST response" in new BadRequestErrorTest {
 
         private val result = target.archive(validId)(getRequest)
 
@@ -373,4 +373,63 @@ class PublishedControllerSpec extends BaseSpec with GuiceOneAppPerSuite with Pro
       }
     }
   }
+
+  "Invoking the controller list action" when {
+
+    "the request is valid" should {
+
+      trait ValidGetTest extends Test {
+
+        MockPublishedService
+          .list
+          .returns(Future.successful(Right(Json.obj())))
+
+      }
+
+      "return an Ok response" in new ValidGetTest {
+
+        private val result = target.list(getRequest)
+
+        status(result) shouldBe OK
+      }
+    }
+
+
+    "a bad request error is raised by the service" should {
+
+      trait BadRequestErrorTest extends Test {
+
+        MockPublishedService
+          .list
+          .returns(Future.successful(Left(BadRequestError)))
+      }
+
+
+      "return an BAD_REQUEST response" in new BadRequestErrorTest {
+
+        private val result = target.list(getRequest)
+
+        status(result) shouldBe BAD_REQUEST
+      }
+    }
+
+    "any other error is raised by the service" should {
+
+      trait BadRequestErrorTest extends Test {
+
+        MockPublishedService
+          .list
+          .returns(Future.successful(Left(NotFoundError)))
+      }
+
+
+      "return an Internal Server Error response" in new BadRequestErrorTest {
+
+        private val result = target.list(getRequest)
+
+        status(result) shouldBe INTERNAL_SERVER_ERROR
+      }
+    }
+  }
+
 }
