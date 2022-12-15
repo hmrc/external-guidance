@@ -19,7 +19,7 @@ package repositories
 import config.AppConfig
 import core.models.RequestOutcome
 import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
-import models.{ApprovalProcess, ApprovalProcessSummary, Constants}
+import models.{ApprovalProcess, ApprovalProcessSummary, Constants, ProcessSummary}
 import play.api.Logger
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
@@ -29,7 +29,6 @@ import org.mongodb.scala.model.Projections._
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import models.ApprovalProcess
 import models.ApprovalProcessMeta
 import models.ApprovalProcessMeta.mongoFormat
 import core.models.ocelot.Process
@@ -46,6 +45,7 @@ trait ApprovalRepository {
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]]
   def changeStatus(id: String, status: String, user: String): Future[RequestOutcome[Unit]]
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]]
+  def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]]
 }
 
 @Singleton
@@ -193,5 +193,35 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
           Left(DatabaseError)
       }
       //$COVERAGE-ON$
+
+  def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]] =
+    collection
+      .withReadPreference(ReadPreference.primaryPreferred())
+      .find()
+      .collect
+      .toFutureOption
+      .map{
+        case None => Right(Nil)
+        case Some(res) =>
+          val summaries = res.map{p =>
+            val process: Process = p.process.as[Process]
+            ProcessSummary(
+              p.id,
+              p.meta.processCode,
+              process.meta.version,
+              process.meta.lastAuthor,
+              process.meta.passPhrase,
+              p.meta.lastModified,
+              "",
+              p.meta.reviewType
+            )
+          }
+          Right(summaries.toList)
+      }
+      .recover {
+        case error =>
+          logger.error(s"Attempt to retrieve approval process summaries failed with error : ${error.getMessage}")
+          Left(DatabaseError)
+      }
 
 }
