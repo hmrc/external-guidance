@@ -19,7 +19,7 @@ package repositories
 import config.AppConfig
 import core.models.RequestOutcome
 import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
-import models.{ApprovalProcess, ApprovalProcessSummary, Constants}
+import models.{ApprovalProcess, ApprovalProcessSummary, Constants, ProcessSummary}
 import play.api.Logger
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
@@ -29,7 +29,6 @@ import org.mongodb.scala.model.Projections._
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import models.ApprovalProcess
 import models.ApprovalProcessMeta
 import models.ApprovalProcessMeta.mongoFormat
 import core.models.ocelot.Process
@@ -46,6 +45,7 @@ trait ApprovalRepository {
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]]
   def changeStatus(id: String, status: String, user: String): Future[RequestOutcome[Unit]]
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]]
+  def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]]
 }
 
 @Singleton
@@ -65,8 +65,10 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
     with ApprovalRepository {
 
   val logger: Logger = Logger(getClass)
-  def update(approvalProcess: ApprovalProcess): Future[RequestOutcome[String]] = {
 
+      //$COVERAGE-OFF$
+
+  def update(approvalProcess: ApprovalProcess): Future[RequestOutcome[String]] = {
     logger.warn(s"Saving process ${approvalProcess.id} to collection $collectionName")
     val selector = equal("_id", approvalProcess.id)
     val modifier = combine(Updates.inc("version",1),
@@ -79,7 +81,6 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
       .map { _ =>
         Right(approvalProcess.id)
       }
-      //$COVERAGE-OFF$
       .recover {
         case ex: MongoCommandException if ex.getErrorCode == 11000 =>
           logger.error(s"Attempt to persist approval process ${approvalProcess.id} with duplicate processCode: ${approvalProcess.meta.processCode}")
@@ -91,6 +92,7 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
     //$COVERAGE-ON$
   }
 
+  //$COVERAGE-OFF$
   def getById(id: String): Future[RequestOutcome[ApprovalProcess]] =
     collection
       .find(equal("_id", id))
@@ -99,7 +101,6 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
         case None => Left(NotFoundError)
         case Some(approvalProcess) => Right(approvalProcess)
       }
-      //$COVERAGE-OFF$
       .recover {
         case error =>
           logger.error(s"Attempt to retrieve process $id from collection $collectionName failed with error : ${error.getMessage}")
@@ -107,6 +108,7 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
       }
     //$COVERAGE-ON$
 
+  //$COVERAGE-OFF$
   def getByProcessCode(processCode: String): Future[RequestOutcome[ApprovalProcess]] =
     collection
       .find(equal("meta.processCode", processCode))
@@ -115,13 +117,11 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
         case None => Left(NotFoundError)
         case Some(approvalProcess) => Right(approvalProcess)
       }
-      //$COVERAGE-OFF$
       .recover {
         case error =>
           logger.error(s"Attempt to retrieve process $processCode from collection $collectionName failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
-    //$COVERAGE-ON$
 
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]] = {
     val TwoEyeRestriction = equal("meta.reviewType", Constants.ReviewType2i)
@@ -144,16 +144,13 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
         case Some(approvals) =>
           Right(approvals.map(doc => ApprovalProcessSummary(doc.meta.id, doc.meta.title, doc.meta.dateSubmitted, doc.meta.status, doc.meta.reviewType)).toList)
       }
-      //$COVERAGE-OFF$
       .recover {
         case error =>
           logger.error(s"Attempt to retrieve list of processes from collection $collectionName failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
-    //$COVERAGE-ON$
   }
 
-  //$COVERAGE-OFF$
   def changeStatus(id: String, status: String, user: String): Future[RequestOutcome[Unit]] = {
 
     logger.warn(s"updating status of process $id to $status to collection $collectionName")
@@ -174,10 +171,8 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
           logger.error(s"Attempt to change status of process $id to collection $collectionName failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
-    //$COVERAGE-ON$
   }
 
-  //$COVERAGE-OFF$
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]] =
     collection
       .withReadPreference(ReadPreference.primaryPreferred)
@@ -192,6 +187,35 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
           logger.error(s"Listing timescales used in the approval processes failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
-      //$COVERAGE-ON$
 
+  def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]] =
+    collection
+      .withReadPreference(ReadPreference.primaryPreferred())
+      .find()
+      .collect
+      .toFutureOption
+      .map{
+        case None => Right(Nil)
+        case Some(res) =>
+          val summaries = res.map{p =>
+            val process: Process = p.process.as[Process]
+            ProcessSummary(
+              p.id,
+              p.meta.processCode,
+              process.meta.version,
+              process.meta.lastAuthor,
+              process.meta.passPhrase,
+              p.meta.lastModified,
+              "",
+              p.meta.reviewType
+            )
+          }
+          Right(summaries.toList)
+      }
+      .recover {
+        case error =>
+          logger.error(s"Attempt to retrieve approval process summaries failed with error : ${error.getMessage}")
+          Left(DatabaseError)
+      }
+ //$COVERAGE-ON$
 }

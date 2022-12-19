@@ -11,6 +11,7 @@ GET         /published/:processCode                     controllers.PublishedCon
 GET         /published-process/:id                      controllers.PublishedController.get(id)
 
 GET         /approval                                   controllers.ApprovalController.approvalSummaryList
+GET         /approval/list                              controllers.ApprovalController.list
 GET         /approval/:id                               controllers.ApprovalController.get(id)
 GET         /approval/code/:processCode                 controllers.ApprovalController.getByProcessCode(processCode)
 

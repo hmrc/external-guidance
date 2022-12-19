@@ -119,4 +119,13 @@ class ApprovalService @Inject() (
       case Right(success) => Right(Json.toJson(success))
     }
   }
+
+  def list: Future[RequestOutcome[JsValue]] = {
+    implicit val formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
+    repository.processSummaries() map {
+      case Left(_) => Left(InternalServerError)
+      case Right(summaries) => Right(Json.toJson(summaries))
+    }
+  }
+
 }

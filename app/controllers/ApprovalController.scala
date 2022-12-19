@@ -104,4 +104,13 @@ class ApprovalController @Inject() (allRolesAction: AllRolesAction,
       case _ => InternalServerError(toJson(OcelotError(ServerError)))
     }
   }
+
+  def list: Action[AnyContent] = Action.async { _ =>
+    approvalService.list map {
+      case Right(summaries) => Ok(summaries)
+      case Left(BadRequestError) => BadRequest(toJson(OcelotError(BadRequestError)))
+      case Left(_) => InternalServerError(toJson(OcelotError(ServerError)))
+    }
+  }
+
 }
