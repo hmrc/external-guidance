@@ -1981,11 +1981,11 @@ object PrototypeJson {
       "phrases": [
         [
           "Telling HMRC about extra income",
-          "Dweud wrth Gyllid a Thollau EM am incwm ychwanegol"
+          "Dweud wrth Cyllid a Thollau EF am incwm ychwanegol"
         ],
         [
           "Check if you need to tell HMRC about extra money you've made by selling goods or services, or renting land or property.",
-          "Gwiriwch a oes angen i chi ddweud wrth Gyllid a Thollau EM am arian ychwanegol rydych chi wedi'i wneud trwy werthu nwyddau neu wasanaethau, neu rentu tir neu eiddo."
+          "Gwiriwch a oes angen i chi ddweud wrth Cyllid a Thollau EF am arian ychwanegol rydych chi wedi'i wneud trwy werthu nwyddau neu wasanaethau, neu rentu tir neu eiddo."
         ],
         [
           "Overview",
@@ -1993,11 +1993,11 @@ object PrototypeJson {
         ],
         [
           "In some circumstances, you do not have to tell HMRC about extra income you've made. In each tax year you can earn up to £11,000, tax free, if you are: selling goods or services (trading)",
-          "Mewn rhai amgylchiadau, nid oes rhaid i chi ddweud wrth Gyllid a Thollau EM am incwm ychwanegol rydych wedi'i wneud. Ymhob blwyddyn dreth gallwch ennill hyd at £ 11,000, yn ddi-dreth, os ydych chi: gwerthu nwyddau neu wasanaethau (masnachu)"
+          "Mewn rhai amgylchiadau, nid oes rhaid i chi ddweud wrth Cyllid a Thollau EF am incwm ychwanegol rydych wedi'i wneud. Ymhob blwyddyn dreth gallwch ennill hyd at £ 11,000, yn ddi-dreth, os ydych chi: gwerthu nwyddau neu wasanaethau (masnachu)"
         ],
         [
           "In some circumstances, you do not have to tell HMRC about extra income you've made. In each tax year you can earn up to £11,000, tax free, if you are: renting land or property",
-          "Mewn rhai amgylchiadau, nid oes rhaid i chi ddweud wrth Gyllid a Thollau EM am incwm ychwanegol rydych wedi'i wneud. Ymhob blwyddyn dreth gallwch ennill hyd at £ 11,000, yn ddi-dreth, os ydych chi: rhentu tir neu eiddo"
+          "Mewn rhai amgylchiadau, nid oes rhaid i chi ddweud wrth Cyllid a Thollau EF am incwm ychwanegol rydych wedi'i wneud. Ymhob blwyddyn dreth gallwch ennill hyd at £ 11,000, yn ddi-dreth, os ydych chi: rhentu tir neu eiddo"
         ],
         [
           "A tax year runs from 6 April one year to 5 April the next.",
@@ -2005,7 +2005,7 @@ object PrototypeJson {
         ],
         [
           "Check if you need to tell HMRC about your extra income",
-          "Gwiriwch a oes angen i chi ddweud wrth Gyllid a Thollau EM am eich incwm ychwanegol"
+          "Gwiriwch a oes angen i chi ddweud wrth Cyllid a Thollau EF am eich incwm ychwanegol"
         ],
         [
           "I've made extra income from selling goods or services",
@@ -2017,7 +2017,7 @@ object PrototypeJson {
         ],
         [
           "Find out more about [link:how HMRC decides if you are trading or not.:https://www.youtube.com/watch?v=MYgCctGY_Ug]",
-          "Darganfyddwch fwy am [link: sut mae Cyllid a Thollau EM yn penderfynu a ydych chi'n masnachu ai peidio.:https://www.youtube.com/watch?v=MYgCctGY_Ug]"
+          "Darganfyddwch fwy am [link: sut mae Cyllid a Thollau EF yn penderfynu a ydych chi'n masnachu ai peidio.:https://www.youtube.com/watch?v=MYgCctGY_Ug]"
         ],
         [
           "If you've only sold personal possessions then you're probably not trading. You will not have to pay income tax on the money you make, but you might have to pay [link:Capital Gains Tax:https://www.gov.uk/capital-gains-tax].",
@@ -2041,7 +2041,7 @@ object PrototypeJson {
         ],
         [
           "Check if you need to tell HMRC about income you've made by selling goods or services",
-          "Gwiriwch a oes angen i chi ddweud wrth Gyllid a Thollau EM am incwm rydych wedi'i wneud trwy werthu nwyddau neu wasanaethau"
+          "Gwiriwch a oes angen i chi ddweud wrth Cyllid a Thollau EF am incwm rydych wedi'i wneud trwy werthu nwyddau neu wasanaethau"
         ],
         [
           "I've made extra income from renting land or property",
@@ -2073,7 +2073,7 @@ object PrototypeJson {
         ],
         [
           "Check if you need to tell HMRC about income you've made by renting land or property",
-          "Gwiriwch a oes angen i chi ddweud wrth Gyllid a Thollau EM am incwm rydych wedi'i wneud trwy rentu tir neu eiddo"
+          "Gwiriwch a oes angen i chi ddweud wrth Cyllid a Thollau EF am incwm rydych wedi'i wneud trwy rentu tir neu eiddo"
         ],
         [
           "",
