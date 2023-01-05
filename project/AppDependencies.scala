@@ -14,11 +14,10 @@ object AppDependencies {
     "org.scalatest"                %% "scalatest"               % "3.1.4"  % "test",
     "com.typesafe.play"            %% "play-test"               % current  % "test",
     "uk.gov.hmrc.mongo"            %% "hmrc-mongo-test-play-28" % "0.74.0" % "test",
-    "org.pegdown"                  %  "pegdown"                 % "1.6.0"  % "test, it",
     "org.scalatestplus.play"       %% "scalatestplus-play"      % "5.1.0"  % "test, it",
-    "com.github.tomakehurst"       %  "wiremock-jre8"           % "2.33.2" % "test, it",
-    "com.fasterxml.jackson.module" %% "jackson-module-scala"    % "2.13.3" % "test, it",
+    "com.github.tomakehurst"       %  "wiremock-jre8"           % "2.35.0" % "test, it",
+    "com.fasterxml.jackson.module" %% "jackson-module-scala"    % "2.14.1" % "test, it",
     "uk.gov.hmrc"                  %% "bootstrap-test-play-28"  % "5.25.0" % "test, it",
-    "com.typesafe.play"            %% "play-akka-http-server"   % "2.8.16"  % "test, it"
+    "com.typesafe.play"            %% "play-akka-http-server"   % "2.8.18" % "test, it"
   )
 }
