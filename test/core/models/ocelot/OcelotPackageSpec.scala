@@ -626,12 +626,12 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
       validDate("blah/blah/blah") shouldBe Left(Nil)
     }
 
-    "Fail with an empty list when all fields are of the correct type, but the resulting data is not valid" in {
-      validDate("4/13/1999") shouldBe Left(Nil)
-      validDate("31/2/1999") shouldBe Left(Nil)
-      validDate("29/2/1999") shouldBe Left(Nil)
-      validDate("32/5/1999") shouldBe Left(Nil)
-      validDate("12/5/19999") shouldBe Left(Nil)
+    "Fail when resulting date is invalid when day month or year components do not form a valid date" in {
+      validDate("4/13/1999") shouldBe Left(List(1))
+      validDate("31/2/1999") shouldBe Left(List(0))
+      validDate("29/2/1999") shouldBe Left(List(0))
+      validDate("32/5/1999") shouldBe Left(List(0))
+      validDate("12/5/19999") shouldBe Left(List(2))
     }
 
   }
