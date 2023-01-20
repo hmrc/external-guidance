@@ -16,7 +16,7 @@
 
 package core.models
 
-import java.time.LocalDate
+import java.time.{YearMonth, LocalDate}
 import java.time.format.{DateTimeFormatter, ResolverStyle}
 import scala.util.Try
 import scala.util.matching.Regex
@@ -35,6 +35,10 @@ package object ocelot {
   val FirstColumn: Int = 0
   val SecondColumn: Int = 1
   val ThirdColumn: Int = 2
+  val MaxDayNumber: Int = 31
+  val MaxMonthNumber: Int = 12
+  val MaxYearNumber: Int = 9999
+  val ExampleLeapYear: Int = 2000
 
   val TimescaleIdPattern: String = "[A-Za-z][a-zA-Z0-9_-]+"
   val DatePattern: String = "\\d{1,2}\\/\\d{1,2}\\/\\d{4}"
@@ -180,19 +184,22 @@ package object ocelot {
   def asDate(value: String): Option[LocalDate] = Try(LocalDate.parse(value.filterNot(_.equals(' ')), dateFormatter)).map(d => d).toOption
   def validDate(value: String): Validation[LocalDate] =
     splitInputDateString(value.filterNot(_.equals(' '))).fold[Validation[LocalDate]](Left(Nil)){d =>
-      (asPositiveInt(d._1).fold[Option[Int]](Some(0))(_ => None) ::
-       asPositiveInt(d._2).fold[Option[Int]](Some(1))(_ => None) ::
-       asPositiveInt(d._3).fold[Option[Int]](Some(2))(_ => None) :: Nil).flatten match {
-        case Nil => asDate(value).fold[Validation[LocalDate]](Left(Nil))(Right(_))
-        case List(_, _, _) => Left(Nil)
-        case invalidFieldsList => Left(invalidFieldsList)
+      (asPositiveInt(d._1, 1, MaxDayNumber), asPositiveInt(d._2, 1, MaxMonthNumber), asPositiveInt(d._3, 1, MaxYearNumber)) match {
+        case (Some(dy), Some(mn), Some(yr)) if YearMonth.of(yr, mn).isValidDay(dy) => asDate(value).fold[Validation[LocalDate]](Left(Nil))(Right(_))
+        case (Some(_), Some(_), Some(_)) => Left(List(0))
+        case (Some(dy), Some(mn), None) if YearMonth.of(ExampleLeapYear, mn).isValidDay(dy) => Left(List(2))
+        case (Some(_), Some(_), None) => Left(List(0, 2))
+        case (None, None, None) => Left(Nil)
+        case (dy, mn, yr) =>
+          Left(List(dy.fold[Option[Int]](Some(0))(_ => None), mn.fold[Option[Int]](Some(1))(_ => None), yr.fold[Option[Int]](Some(2))(_ => None)).flatten)
       }
     }
 
-  def asPositiveInt(value: String): Option[Int] = matchedInt(value, positiveIntRegex)
+  def asPositiveInt(value: String, min: Int = 0, max: Int = Int.MaxValue): Option[Int] =
+    matchedInt(value, positiveIntRegex).flatMap(x => if(x < min || x > max) None else Some(x))
   def asAnyInt(value: String): Option[Int] = matchedInt(value, anyIntegerRegex)
   def asListOfPositiveInt(value: String): Option[List[Int]] = listOfPositiveIntRegex.findFirstIn(value.filterNot(_.equals(' ')))
-    .flatMap(s => lOfOtoOofL(s.split(",").toList.map(asPositiveInt)))
+    .flatMap(s => lOfOtoOofL(s.split(",").toList.map(x => asPositiveInt(x))))
 
   def datePlaceholder(date: Option[String], applyFunction: String)(implicit labels: Labels): Option[String] =
     date.flatMap { someDate =>

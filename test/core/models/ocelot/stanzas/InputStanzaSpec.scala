@@ -165,8 +165,8 @@ class InputStanzaSpec extends BaseSpec {
       input.validInput("100.7a") shouldBe Left(Nil)
       input.validInput("1,987") shouldBe Left(Nil)
       input.validInput("-87") shouldBe Left(Nil)
-      input.validInput("31/9/2001") shouldBe Left(Nil)
-      input.validInput("29/2/2001") shouldBe Left(Nil)
+      input.validInput("31/9/2001") shouldBe Left(List(0))
+      input.validInput("29/2/2001") shouldBe Left(List(0))
     }
 
     "Determine valid input to be correct" in {
