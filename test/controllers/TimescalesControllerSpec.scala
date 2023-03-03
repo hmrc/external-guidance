@@ -219,4 +219,56 @@ class TimescalesControllerSpec extends AnyWordSpec with Matchers with ScalaFutur
     }
   }
 
+  "Calling the data retrieval action " when {
+
+    "the request is valid" should {
+
+      trait ValidGetTest extends Test {
+        val ts: Map[String, Int] = Map("blah" -> 32, "another" -> 56)
+        MockTimescalesService.get.returns(Future.successful(Right(ts)))
+        lazy val request: FakeRequest[AnyContent] = FakeRequest()
+      }
+
+      "return a valid response" in new ValidGetTest {
+        private val result = target.get(request)
+        status(result) shouldBe OK
+        contentAsJson(result) shouldBe Json.toJson(ts)
+      }
+    }
+
+  }
+
+    // "the request is valid but the timescales are invalid" should {
+
+    //   trait InvalidSaveTest extends Test {
+    //     val invalidTs: JsValue =  Json.parse("""{"Hello": "World"}""")
+    //     MockTimescalesService.save(invalidTs, credId, user, email, Nil).returns(Future.successful(Left(ValidationError)))
+    //     lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(invalidTs)
+    //   }
+
+    //   "return a unsupportable entity response" in new InvalidSaveTest {
+    //     MockPublishedService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
+    //     MockApprovalService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
+
+    //     private val result = target.save()(request)
+    //     status(result) shouldBe BAD_REQUEST
+    //   }
+
+    //   "return content as JSON" in new InvalidSaveTest {
+    //     MockPublishedService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
+    //     MockApprovalService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
+    //     private val result = target.save()(request)
+    //     contentType(result) shouldBe Some(ContentTypes.JSON)
+    //   }
+
+    //   "return an error code of BAD_REQUEST" in new InvalidSaveTest {
+    //     MockPublishedService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
+    //     MockApprovalService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
+    //     private val result = target.save()(request)
+    //     private val data = contentAsJson(result).as[JsObject]
+    //     (data \ "code").as[String] shouldBe "VALIDATION_ERROR"
+    //   }
+
+
+
 }
