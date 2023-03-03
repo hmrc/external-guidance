@@ -71,4 +71,11 @@ class TimescalesController @Inject() (timescaleService: TimescalesService,
     }
   }
 
+  def get: Action[AnyContent] = Action.async { _ =>
+    timescaleService.get().map {
+      case Right(response) => Ok(Json.toJson(response))
+      case Left(_) => InternalServerError(Json.toJson(OcelotError(ServerError)))
+    }
+  }
+
 }
