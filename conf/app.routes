@@ -5,6 +5,7 @@ POST        /scratch                                    controllers.ScratchContr
 
 GET         /timescales                                 controllers.TimescalesController.details
 POST        /timescales                                 controllers.TimescalesController.save
+GET         /timescales/data                            controllers.TimescalesController.get
 
 GET         /published                                  controllers.PublishedController.list
 GET         /published/:processCode                     controllers.PublishedController.getByProcessCode(processCode)

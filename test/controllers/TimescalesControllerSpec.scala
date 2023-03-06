@@ -219,4 +219,21 @@ class TimescalesControllerSpec extends AnyWordSpec with Matchers with ScalaFutur
     }
   }
 
+  "Calling the data retrieval action " when {
+
+    "the request is valid" should {
+
+      trait ValidGetTest extends Test {
+        val ts: Map[String, Int] = Map("blah" -> 32, "another" -> 56)
+        MockTimescalesService.get.returns(Future.successful(Right(ts)))
+        lazy val request: FakeRequest[AnyContent] = FakeRequest()
+      }
+
+      "return a valid response" in new ValidGetTest {
+        private val result = target.get(request)
+        status(result) shouldBe OK
+        contentAsJson(result) shouldBe Json.toJson(ts)
+      }
+    }
+  }
 }
