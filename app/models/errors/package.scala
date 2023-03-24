@@ -46,12 +46,9 @@ package object errors {
     case e: UseOfReservedUrl => ErrorReport(s"UseOfReservedUrl: Use of reserved URL on PageStanza ${e.id}", e.id)
     case e: IncompleteExclusiveSequencePage =>
       ErrorReport(s"IncompleteExclusiveSequencePage: Exclusive sequence page ${e.id} is missing a TypeError callout definition", e.id)
-    case e: PageOccursInMultiplSequenceFlows => ErrorReport(s"PageOccursInMultiplSequenceFlows: Page ${e.id} occurs in more than one Sequence flow", e.id)
     case e: ErrorRedirectToFirstNonPageStanzaOnly =>
       ErrorReport(s"ErrorRedirectToFirstNonPageStanzaOnly: Invalid link to stanza ${e.id}. " +
                     "Page redisplay after a ValueError must link to the first stanza after the PageStanza", e.id)
-    case e: MissingUniqueFlowTerminator =>
-      ErrorReport(s"MissingUniqueFlowTerminator: Flow doesn't have a unique termination page ${e.id}, possible main flow connection into a sequence flow",e.id)
     case e: InvalidLabelName =>
       ErrorReport(s"InvalidLabelName: Invalid label name in stanza ${e.id}", e.id)
     case e: InvalidFieldWidth =>

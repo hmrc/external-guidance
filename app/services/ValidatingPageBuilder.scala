@@ -52,14 +52,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
   def pagesWithValidation(process: Process, start: String = Process.StartStanzaId, checkLevel: GuidanceCheckLevel = Strict): Either[List[GuidanceError], Seq[Page]] =
     pageBuilder.pages(process, start).fold[Either[List[GuidanceError], Seq[Page]]](Left(_),
       pages => {
-        implicit val stanzaMap: Map[String, Stanza] = process.flow
-        val vertices: List[PageVertex] = pages.map(PageVertex(_)).toList
-        val vertexMap = vertices.map(pv => (pv.id, pv)).toMap
-        val mainFlow: List[String] = pageGraph(List(Process.StartStanzaId), vertexMap).map(_.id)
-
-        (checkForSequencePageReuse(vertices, vertexMap, mainFlow) ++
-        checkAllFlowsHaveUniqueTerminationPage(vertices, vertexMap, mainFlow) ++
-        (if (checkLevel == Strict) {
+        ((if (checkLevel == Strict) {
           checkDateInputErrorCallouts(pages, Nil).distinct ++
           confirmInputPageErrorCallouts(pages, Nil) ++
           confirmPageTitles(pages, Nil)
@@ -201,27 +194,6 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
         checkExclusiveSequenceTypeError(xs, errors)
     }
 
-  private def checkAllFlowsHaveUniqueTerminationPage(vertices: List[PageVertex], vertexMap: Map[String, PageVertex], mainFlow: List[String])
-                                                    (implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] =
-    vertices.filterNot(_.flows.isEmpty) // Sequences
-            .flatMap(_.flows).distinct  // Unique flow ids
-            .filter{id =>               // All those containing pages which dont link to an EndStanza
-              val pages = pageGraph(findPageIds(List(id)), vertexMap, mainFlow)
-              pages.nonEmpty && !pages.exists(_.endPage)
-            }
-            .map(MissingUniqueFlowTerminator)
-
-  private def checkForSequencePageReuse(vertices: List[PageVertex], vertexMap: Map[String, PageVertex], mainFlow: List[String])
-                                       (implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] = {
-    val sequencePageIds: List[String] = for{
-      pv <- vertices.filterNot(_.flows.isEmpty)                 // Sequences
-      flw <- pv.flows                                           // Flow Ids
-      p <- pageGraph(findPageIds(List(flw)), vertexMap, mainFlow) // Pages below sequences
-    } yield p.id
-
-    sequencePageIds.groupBy(x => x).toList.collect{case m if m._2.length > 1 => PageOccursInMultiplSequenceFlows(m._1)}
-  }
-
   @tailrec
   // Given a list of stanza ids, find all connected pages (wont follow links)
   private def findPageIds(ids: List[String], seen: List[String] = Nil, acc: List[String] = Nil)(implicit stanzaMap: Map[String, Stanza]): List[String] =
@@ -240,10 +212,10 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
   // Given a list of page ids, find all connected pages (wont follow links)
   private def pageGraph(keys: List[String],
                         vertices: Map[String, PageVertex],
-                        ignore: List[String] = Nil,
-                        dontFollowFlows: Boolean = true,
-                        seen: List[String] = Nil,
-                        acc: List[PageVertex] = Nil)(implicit stanzaMap: Map[String, Stanza]): List[PageVertex] =
+                        ignore: List[String],
+                        dontFollowFlows: Boolean,
+                        seen: List[String],
+                        acc: List[PageVertex])(implicit stanzaMap: Map[String, Stanza]): List[PageVertex] =
     keys match {
       case Nil => acc
       case Process.EndStanzaId :: xs => pageGraph(xs, vertices, ignore, dontFollowFlows, seen, acc)

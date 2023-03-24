@@ -63,7 +63,7 @@ package object ocelot {
   val timeConstantPattern: String = s"^($TenDigitIntPattern)\\s*(days?|weeks?|months?|years?)$$"
   val PositiveIntListPattern: String = s"^$TenDigitIntPattern(?:,$TenDigitIntPattern)*$$"
   val DatePlaceHolderPattern: String = s"\\[date:($DatePattern|$LabelPattern)?:(year|month|month_start|month_end|month_name|dow|dow_name|day)\\]"
-  val listPattern: String = s"\\[list:($LabelNamePattern):length\\]"
+  val listPattern: String = s"\\[list:($LabelNamePattern):(length|first|last|$TenDigitIntPattern)\\]"
   val operandPattern: String = s"^$LabelPattern|$listPattern|$DateAddPattern|$DatePlaceHolderPattern$$"
   val operandRegex: Regex = operandPattern.r
   val UiExpansionPattern: String = s"$LabelPattern|$listPattern|$DateAddPattern|$DatePlaceHolderPattern"
@@ -103,17 +103,18 @@ package object ocelot {
     operandRegex.findFirstMatchIn(str).fold[Option[String]](Some(str)){m => scalarMatch(matchGroup(m), labels.value)}
   val LabelNameGroup: Int = 1
   val LabelOutputFormatGroup: Int = 2
-  val ListLengthLabelNameGroup: Int = 3
-  val DateAddLabelNameGroup: Int = 4
-  val DateAddLiteralGroup: Int = 5
-  val DateAddTimescaleIdGroup: Int = 6
-  val DatePlaceholderDateLiteralGroup: Int = 7
-  val DatePlaceholderLabelNameGroup: Int = 8
-  val DatePlaceholderFnGroup: Int = 10
+  val ListLabelNameGroup: Int = 3
+  val ListLabelIndexGroup: Int = 4
+  val DateAddLabelNameGroup: Int = 5
+  val DateAddLiteralGroup: Int = 6
+  val DateAddTimescaleIdGroup: Int = 7
+  val DatePlaceholderDateLiteralGroup: Int = 8
+  val DatePlaceholderLabelNameGroup: Int = 9
+  val DatePlaceholderFnGroup: Int = 11
 
   def scalarMatch(capture: Int => Option[String], lbl: String => Option[String])(implicit labels: Labels): Option[String] =
     capture(LabelNameGroup).fold{
-      capture(ListLengthLabelNameGroup).fold{
+      capture(ListLabelNameGroup).fold{
         capture(DateAddTimescaleIdGroup).fold[Option[String]]{
           capture(DatePlaceholderFnGroup).fold[Option[String]](None){fn =>
             capture(DatePlaceholderLabelNameGroup).fold[Option[String]]{
@@ -121,7 +122,7 @@ package object ocelot {
             }{label => datePlaceholder(lbl(label), fn)}
           }
         }{tsId => capture(DateAddLabelNameGroup).fold(dateAdd(capture(DateAddLiteralGroup), tsId, labels)){daLabel => dateAdd(lbl(daLabel), tsId, labels)}}
-      }{list => listLength(list, labels)}
+      }{list => listOp(list, capture(ListLabelIndexGroup), labels)}
     }{label => lbl(label)}
 
   def labelNameValid(v: String): Boolean = v match {
@@ -136,6 +137,14 @@ package object ocelot {
   def labelReferences(str: String): List[String] = plSingleGroupCaptures(labelRefRegex, str)
   def labelReference(str: String): Option[String] = plSingleGroupCaptures(labelRefRegex, str).headOption
   def listLength(listName: String, labels: Labels): Option[String] = labels.valueAsList(listName).fold[Option[String]](None){l => Some(l.length.toString)}
+  def listOp(listName: String, op: Option[String], labels: Labels): Option[String] = labels.valueAsList(listName).fold[Option[String]](None){l =>
+    op match {
+      case Some("length")| None => Some(l.length.toString)
+      case Some("first") => l.headOption
+      case Some("last") => l.reverse.headOption
+      case Some(x) => matchedInt(x, positiveIntRegex).flatMap{idx => if (idx > 0 && idx <= l.length) Some(l(idx-1)) else None}
+    }
+  }
   def stringFromDate(when: LocalDate): String = when.format(dateFormatter)
   def stripHintPlaceholder(p: Phrase): Phrase = Phrase(hintRegex.replaceAllIn(p.english, ""), hintRegex.replaceAllIn(p.welsh, ""))
   def trimTrailing(s: String): String = s.reverse.dropWhile(_.equals(' ')).reverse

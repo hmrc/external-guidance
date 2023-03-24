@@ -27,6 +27,10 @@ class ProcessErrorSpec extends BaseSpec {
       val details: ErrorReport = fromGuidanceError(UnknownStanza("33", UnknownStanza.toString))
       details shouldBe ErrorReport(s"UnknownStanza: Unsupported stanza type ${UnknownStanza.toString} found at stanza id 33", "33")
     }
+    "from UnknownCalloutType" in {
+      val details: ErrorReport = fromGuidanceError(UnknownCalloutType("33", UnknownCalloutType.toString))
+      details shouldBe ErrorReport(s"UnknownCalloutType: Unsupported CalloutStanza type ${UnknownCalloutType.toString} found at stanza id 33", "33")
+    }
 
     "from StanzaNotFound" in {
       val details: ErrorReport = fromGuidanceError(StanzaNotFound("id"))
@@ -108,17 +112,9 @@ class ProcessErrorSpec extends BaseSpec {
       val details: ErrorReport = fromGuidanceError(IncompleteExclusiveSequencePage("stanzaId"))
       details shouldBe ErrorReport("IncompleteExclusiveSequencePage: Exclusive sequence page stanzaId is missing a TypeError callout definition", "stanzaId")
     }
-    "from PageOccursInMultiplSequenceFlows" in {
-      val details: ErrorReport = fromGuidanceError(PageOccursInMultiplSequenceFlows("stanzaId"))
-      details shouldBe ErrorReport("PageOccursInMultiplSequenceFlows: Page stanzaId occurs in more than one Sequence flow", "stanzaId")
-    }
     "from ErrorRedirectToFirstNonPageStanzaOnly" in {
       val details: ErrorReport = fromGuidanceError(ErrorRedirectToFirstNonPageStanzaOnly("stanzaId"))
       details shouldBe ErrorReport("ErrorRedirectToFirstNonPageStanzaOnly: Invalid link to stanza stanzaId. Page redisplay after a ValueError must link to the first stanza after the PageStanza", "stanzaId")
-    }
-    "from MissingUniqueFlowTerminator" in {
-      val details: ErrorReport = fromGuidanceError(MissingUniqueFlowTerminator("stanzaId"))
-      details shouldBe ErrorReport("MissingUniqueFlowTerminator: Flow doesn't have a unique termination page stanzaId, possible main flow connection into a sequence flow", "stanzaId")
     }
 
     "from InvalidLabelName" in {
@@ -132,6 +128,10 @@ class ProcessErrorSpec extends BaseSpec {
     "from MissingTimescaleDefinition" in {
       val details: ErrorReport = fromGuidanceError(MissingTimescaleDefinition("tsId"))
       details shouldBe ErrorReport("MissingTimescaleDefinition: Process references unknown timescale ID \'tsId\'", "")
+    }
+    "from MissingTitle" in {
+      val details: ErrorReport = fromGuidanceError(MissingTitle("Id"))
+      details shouldBe ErrorReport("MissingTitle: Non input page \'Id\' does not contain a Callout of type Title", "Id")
     }
 
   }
