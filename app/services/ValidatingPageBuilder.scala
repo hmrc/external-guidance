@@ -305,4 +305,16 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
       case x +: _ if keyedStanzas(x).visual => List(VisualStanzasAfterDataInput(x))
       case x +: xs => checkDataInputFollowers(keyedStanzas(x).next ++ xs, keyedStanzas, leadingStanzaIds, x :: seen)
     }
+
+  private def checkForMinimumTwoPageFlows(vertices: List[PageVertex], vertexMap: Map[String, PageVertex]): List[GuidanceError] = {
+
+    val flowPageVertices: List[PageVertex] = for {
+      pv <- vertices.filterNot(_.flows.isEmpty)
+      flw <- pv.flows
+    } yield vertexMap(flw)
+
+    flowPageVertices.filter(_.next.contains("end")).map(x => AllFlowsMustContainMultiplePages(x.id))
+
+  }
+
 }
