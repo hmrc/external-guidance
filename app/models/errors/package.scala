@@ -52,6 +52,8 @@ package object errors {
                     "Page redisplay after a ValueError must link to the first stanza after the PageStanza", e.id)
     case e: MissingUniqueFlowTerminator =>
       ErrorReport(s"MissingUniqueFlowTerminator: Flow doesn't have a unique termination page ${e.id}, possible main flow connection into a sequence flow",e.id)
+    case e: AllFlowsMustContainMultiplePages =>
+      ErrorReport(s"AllFlowsMustContainMultiplePages: Page ${e.id} is reused in a flow, flows containing reused pages must contain more than one page", e.id)
     case e: InvalidLabelName =>
       ErrorReport(s"InvalidLabelName: Invalid label name in stanza ${e.id}", e.id)
     case e: InvalidFieldWidth =>
