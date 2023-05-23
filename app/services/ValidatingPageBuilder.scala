@@ -76,6 +76,18 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
       }
     )
 
+  private def sequenceErrors(vertices: List[PageVertex], vertexMap: Map[String, PageVertex], mainFlow: List[String])
+                            (implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] =
+    checkForMinimumTwoPageFlows(vertices, vertexMap, mainFlow) match {
+      case Nil => Nil
+      case errors   =>
+        checkForSequencePageReuse(vertices, vertexMap, mainFlow) ++
+          checkAllFlowsHaveUniqueTerminationPage(vertices, vertexMap, mainFlow) match {
+          case Nil => Nil
+          case seqErrors => errors ++ seqErrors
+        }
+    }
+
   @tailrec
   private def confirmInputPageErrorCallouts(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
 
@@ -306,14 +318,16 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
       case x +: xs => checkDataInputFollowers(keyedStanzas(x).next ++ xs, keyedStanzas, leadingStanzaIds, x :: seen)
     }
 
-  private def checkForMinimumTwoPageFlows(vertices: List[PageVertex], vertexMap: Map[String, PageVertex]): List[GuidanceError] = {
+  private def checkForMinimumTwoPageFlows(vertices: List[PageVertex], vertexMap: Map[String, PageVertex], mainFlow: List[String])
+                                         (implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] = {
 
     val flowPageVertices: List[PageVertex] = for {
       pv <- vertices.filterNot(_.flows.isEmpty)
       flw <- pv.flows
+//      p <- pageGraph(findPageIds(List(flw)), vertexMap, mainFlow)
     } yield vertexMap(flw)
 
-    flowPageVertices.filter(_.next.contains("end")).map(x => AllFlowsMustContainMultiplePages(x.id))
+    flowPageVertices.filter(_.next.contains(Process.EndStanzaId)).map(p => AllFlowsMustContainMultiplePages(p.id))
 
   }
 
