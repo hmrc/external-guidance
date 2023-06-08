@@ -234,6 +234,10 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
       )
       val process = processWithLinks.copy(flow = flow)
 
+      val vertices = pageBuilder.pageBuilder.pages(process).fold(x => x, _.map(PageVertex(_)))
+
+      println(s"\n*******\n\n$vertices\n\n******\n")
+
       pageBuilder.pagesWithValidation(process) match {
         case Right(pages) => fail(s"Attempt to parse page with unsupported page redirect succeeded")
         case Left(List(PageOccursInMultiplSequenceFlows("3"), PageOccursInMultiplSequenceFlows("5"), MissingTitle("3"), MissingTitle("5"), MissingTitle("7"))) => succeed
@@ -262,6 +266,10 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
       )
       val process = processWithLinks.copy(flow = flow)
 
+      val vertices = pageBuilder.pageBuilder.pages(process).fold(x => x, _.map(PageVertex(_)))
+
+      println(s"\n*******\n\n$vertices\n\n******\n")
+
       pageBuilder.pagesWithValidation(process) match {
         case Right(pages) => fail(s"Attempt to parse page with unsupported page redirect succeeded")
         case Left(List(PageOccursInMultiplSequenceFlows("3"), PageOccursInMultiplSequenceFlows("5"), MissingTitle("3"), MissingTitle("5"), MissingTitle("7"))) => succeed
@@ -288,6 +296,10 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
         "end" -> EndStanza
       )
       val process = processWithLinks.copy(flow = flow)
+
+      val vertices = pageBuilder.pageBuilder.pages(process).fold(x => x, _.map(PageVertex(_)))
+
+      println(s"\n*******\n\n$vertices\n\n******\n")
 
       pageBuilder.pagesWithValidation(process) match {
         case Right(pages) => fail(s"Attempt to parse page with unsupported page redirect succeeded")
