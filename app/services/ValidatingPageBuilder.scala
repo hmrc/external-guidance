@@ -88,18 +88,38 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
         println(s"\n****\nAllFlowsMustContainMultiplePages errors found:\n$errors\n****\n")
         val reuse = checkForSequencePageReuse(vertices, vertexMap, mainFlow)
         val uniqueTerminator = checkAllFlowsHaveUniqueTerminationPage(vertices, vertexMap, mainFlow)
-        reuse ++
-        uniqueTerminator match {
+        reuse ++ uniqueTerminator match {
           case Nil =>
             println(s"\n****\nNo Existing sequence errors found\n****\n")
             Nil
           case _ =>
             val seqErrors = reuse.filter(e => errors.exists(x => x.id == e.id)) ++ uniqueTerminator.filter(e => errors.exists(x => x.id == e.id))
             println(s"\n****\nerrors found:\n${errors ++ seqErrors}\n****\n")
-//            twoPageErrors ++ seqErrors
-            errors ++ seqErrors
+            errors.filter(e => reuse.exists(x => x.id ==e.id) || uniqueTerminator.exists(x => x.id ==e.id)) ++ seqErrors
         }
     }
+
+//  private def checkSequenceErrors(vertices: List[PageVertex], vertexMap: Map[String, PageVertex], mainFlow: List[String])
+//                                 (implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] =
+//    checkForMinimumTwoPageFlows(vertices, vertexMap) match {
+//      case Nil =>
+//        println(s"\n****\nNo AllFlowsMustContainMultiplePages errors found\n****\n")
+//        Nil
+//      case errors =>
+//        println(s"\n****\nAllFlowsMustContainMultiplePages errors found:\n$errors\n****\n")
+//        val reuse = checkForSequencePageReuse(vertices, vertexMap, mainFlow)
+//        val uniqueTerminator = checkAllFlowsHaveUniqueTerminationPage(vertices, vertexMap, mainFlow)
+//        reuse ++ uniqueTerminator match {
+//          case Nil =>
+//            println(s"\n****\nNo Existing sequence errors found\n****\n")
+//            Nil
+//          case seqErrors =>
+//            //            val seqErrors = reuse.filter(e => errors.exists(x => x.id == e.id)) ++ uniqueTerminator//.filter(e => errors.exists(x => x.id == e.id))
+//            println(s"\n****\nerrors found:\n${errors ++ seqErrors}\n****\n")
+//            //            twoPageErrors ++ seqErrors
+//            errors ++ seqErrors
+//        }
+//    }
 
   @tailrec
   private def confirmInputPageErrorCallouts(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
