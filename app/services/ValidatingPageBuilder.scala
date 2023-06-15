@@ -87,15 +87,14 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
       case errors =>
         println(s"\n****\nAllFlowsMustContainMultiplePages errors found:\n$errors\n****\n")
         val reuse = checkForSequencePageReuse(vertices, vertexMap, mainFlow)
-        val uniqueTerminator = checkAllFlowsHaveUniqueTerminationPage(vertices, vertexMap, mainFlow)
-        reuse ++ uniqueTerminator match {
+        reuse match {
           case Nil =>
             println(s"\n****\nNo Existing sequence errors found\n****\n")
             Nil
           case _ =>
-            val seqErrors = reuse.filter(e => errors.exists(x => x.id == e.id)) ++ uniqueTerminator.filter(e => errors.exists(x => x.id == e.id))
+            val seqErrors = reuse.filter(e => errors.exists(x => x.id == e.id))
             println(s"\n****\nerrors found:\n${errors ++ seqErrors}\n****\n")
-            errors.filter(e => reuse.exists(x => x.id ==e.id) || uniqueTerminator.exists(x => x.id ==e.id)) ++ seqErrors
+            errors.filter(e => reuse.exists(x => x.id ==e.id)) ++ seqErrors
         }
     }
 
@@ -245,16 +244,6 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
       case _ :: xs =>
         checkExclusiveSequenceTypeError(xs, errors)
     }
-
-  private def checkAllFlowsHaveUniqueTerminationPage(vertices: List[PageVertex], vertexMap: Map[String, PageVertex], mainFlow: List[String])
-                                                    (implicit stanzaMap: Map[String, Stanza]): List[MissingUniqueFlowTerminator] =
-    vertices.filterNot(_.flows.isEmpty) // Sequences
-            .flatMap(_.flows).distinct  // Unique flow ids
-            .filter{id =>               // All those containing pages which dont link to an EndStanza
-              val pages = pageGraph(findPageIds(List(id)), vertexMap, mainFlow)
-              pages.nonEmpty && !pages.exists(_.endPage)
-            }
-            .map(MissingUniqueFlowTerminator)
 
   private def checkForMinimumTwoPageFlows(vertices: List[PageVertex], vertexMap: Map[String, PageVertex])
                                          (implicit stanzaMap: Map[String, Stanza]): List[AllFlowsMustContainMultiplePages] = {

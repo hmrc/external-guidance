@@ -73,7 +73,6 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
       Phrase(Vector(s"Some [link:PageId3:$pageId3] Text2", s"Welsh: Some [link:PageId3:$pageId3] Text2")),
       Phrase(Vector(s"Some [link:Link to stanza 11:$pageId5] Text3", s"Welsh: Some [link:Link to stanza 11:$pageId5] Text3")),
       Phrase(Vector("Some Text [button:HELLO:333]", "Welsh: Some Text [button:HELLO:333]")),
-      Phrase(Vector("Some Text [button:HELLO2:5]", "Welsh: Some Text [button:HELLO2:5]"))
     )
 
     private val links = Vector(Link(0, pageId3, "", false), Link(1, pageId6, "", false), Link(2, Process.StartStanzaId, "Back to the start", false))
@@ -284,42 +283,6 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
         case Left(err) => fail(s"Attempt to parse page with unsupported page redirect failed with error ${err}")
       }
     }
-
-    "Detect missing sequence flow termination caused by main flow connection into sequence flow when the sequence flow only contains one page" in new Test {
-      val flow: Map[String, Stanza] = Map(
-        Process.StartStanzaId -> PageStanza("/start", Seq("66"), stack = false),
-        "66" -> CalloutStanza(Error, 0, Seq("111"), stack = false),
-        "111" -> CalloutStanza(TypeError, 0, Seq("1"), stack = false),
-        "1" -> InstructionStanza(0, Seq("2"), None, stack = false),
-        "2" -> SequenceStanza(0, Seq("3", "5", "33"), Seq(2, 3), None, stack = false),
-        "3" -> PageStanza("/page-3", Seq("4"), stack = false),
-        "4" -> InstructionStanza(0, Seq("333"), None, stack = false),
-        "333" -> PageStanza("/page-333", Seq("444"), stack = false),
-        "444" -> InstructionStanza(0, Seq("8"), None, stack = false),
-        "33" -> PageStanza("/page-33", Seq("44"), stack = false),
-        "44" -> InstructionStanza(5, Seq("end"), None, stack = false),
-        "5" -> PageStanza("/page-5", Seq("6"), stack = false),
-        "6" -> InstructionStanza(0, Seq("end"), None, stack = false),
-        "8" -> InstructionStanza(0, Seq("end"), None, stack = false),
-        "10" -> PageStanza("/page-10", Seq("12"), stack = false),
-        "12" -> InstructionStanza(0, Seq("end"), None, stack = false),
-        "7" -> PageStanza("/page-7", Seq("24"), stack = false),
-        "24" -> InstructionStanza(0, Seq("end"), None, stack = false),
-        "end" -> EndStanza
-      )
-      val process = processWithLinks.copy(flow = flow)
-
-      val vertices = pageBuilder.pageBuilder.pages(process).fold(x => x, _.map(PageVertex(_)))
-
-      println(s"\n*******\n\n$vertices\n\n******\n")
-
-      pageBuilder.pagesWithValidation(process) match {
-        case Right(pages) => fail(s"Attempt to parse page with unsupported page redirect succeeded")
-        case Left(List(AllFlowsMustContainMultiplePages("3"), MissingUniqueFlowTerminator("3"), MissingTitle("333"), MissingTitle("3"), MissingTitle("5"), MissingTitle("33"))) => succeed
-        case Left(err) => fail(s"Attempt to parse page with unsupported page redirect failed with error ${err}")
-      }
-    }
-
 
     "Detect an unsupported page redirection from a Choice stanza" in new Test {
       val invalidFlow = Map(
