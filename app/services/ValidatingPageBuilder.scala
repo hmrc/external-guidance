@@ -58,9 +58,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
         val vertexMap = vertices.map(pv => (pv.id, pv)).toMap
         val mainFlow: List[String] = pageGraph(List(Process.StartStanzaId), vertexMap).map(_.id)
 
-        println(s"\n****\nmainFlow:\n$mainFlow\n****\n")
-
-        (checkSequenceErrors(vertices, vertexMap, mainFlow) ++
+        checkSequenceErrors(vertices, vertexMap, mainFlow) ++
         (if (checkLevel == Strict) {
           checkDateInputErrorCallouts(pages, Nil).distinct ++
           confirmInputPageErrorCallouts(pages, Nil) ++
@@ -71,7 +69,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
         checkExclusiveSequenceTypeError(pages, Nil) ++
         checkForUseOfReservedUrls(pages, Nil) ++
         checkForInvalidLabelNames(pages, Nil) ++
-        detectUnsupportedPageRedirect(pages)) match {
+        detectUnsupportedPageRedirect(pages) match {
           case Nil => Right(pages.head +: pages.tail.sortWith((x,y) => x.id < y.id))
           case errors => Left(errors)
         }
@@ -82,43 +80,16 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
                             (implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] =
     checkForMinimumTwoPageFlows(vertices, vertexMap) match {
       case Nil =>
-        println(s"\n****\nNo AllFlowsMustContainMultiplePages errors found\n****\n")
         Nil
       case errors =>
-        println(s"\n****\nAllFlowsMustContainMultiplePages errors found:\n$errors\n****\n")
-        val reuse = checkForSequencePageReuse(vertices, vertexMap, mainFlow)
-        reuse match {
+          checkForSequencePageReuse(vertices, vertexMap, mainFlow) match {
           case Nil =>
-            println(s"\n****\nNo Existing sequence errors found\n****\n")
             Nil
-          case _ =>
-            val seqErrors = reuse.filter(e => errors.exists(x => x.id == e.id))
-            println(s"\n****\nerrors found:\n${errors ++ seqErrors}\n****\n")
-            errors.filter(e => reuse.exists(x => x.id ==e.id)) ++ seqErrors
+          case reuseErrors =>
+            val seqErrors = reuseErrors.filter(e => errors.exists(x => x.id == e.id))
+            errors.filter(e => reuseErrors.exists(x => x.id ==e.id)) ++ seqErrors
         }
     }
-
-//  private def checkSequenceErrors(vertices: List[PageVertex], vertexMap: Map[String, PageVertex], mainFlow: List[String])
-//                                 (implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] =
-//    checkForMinimumTwoPageFlows(vertices, vertexMap) match {
-//      case Nil =>
-//        println(s"\n****\nNo AllFlowsMustContainMultiplePages errors found\n****\n")
-//        Nil
-//      case errors =>
-//        println(s"\n****\nAllFlowsMustContainMultiplePages errors found:\n$errors\n****\n")
-//        val reuse = checkForSequencePageReuse(vertices, vertexMap, mainFlow)
-//        val uniqueTerminator = checkAllFlowsHaveUniqueTerminationPage(vertices, vertexMap, mainFlow)
-//        reuse ++ uniqueTerminator match {
-//          case Nil =>
-//            println(s"\n****\nNo Existing sequence errors found\n****\n")
-//            Nil
-//          case seqErrors =>
-//            //            val seqErrors = reuse.filter(e => errors.exists(x => x.id == e.id)) ++ uniqueTerminator//.filter(e => errors.exists(x => x.id == e.id))
-//            println(s"\n****\nerrors found:\n${errors ++ seqErrors}\n****\n")
-//            //            twoPageErrors ++ seqErrors
-//            errors ++ seqErrors
-//        }
-//    }
 
   @tailrec
   private def confirmInputPageErrorCallouts(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
@@ -248,19 +219,14 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
   private def checkForMinimumTwoPageFlows(vertices: List[PageVertex], vertexMap: Map[String, PageVertex])
                                          (implicit stanzaMap: Map[String, Stanza]): List[AllFlowsMustContainMultiplePages] = {
 
-    println(s"\n*****\nvertices:\n$vertices\n****\n")
-
     val flowPageVertices: List[PageVertex] = for {
       pv <- vertices.filterNot(_.flows.isEmpty)                   // Sequences
       flw <- pv.flows                                             // Flow Ids
       p <- vertexMap.get(flw)                                     // First pages of flows
     } yield p
 
-    println(s"\n*****\nflowPageVertices:\n$flowPageVertices\n****\n")
-
     //filtering for pages that contain and end of flow
-    flowPageVertices.filter(_.endPage).map(p => AllFlowsMustContainMultiplePages(p.id)).distinct
-
+    flowPageVertices.collect{case p if p.endPage => AllFlowsMustContainMultiplePages(p.id)}.distinct
   }
 
   private def checkForSequencePageReuse(vertices: List[PageVertex], vertexMap: Map[String, PageVertex], mainFlow: List[String])
