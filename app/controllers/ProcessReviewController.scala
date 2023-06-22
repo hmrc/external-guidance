@@ -17,6 +17,7 @@
 package controllers
 
 import controllers.actions.{FactCheckerAction, TwoEyeReviewerAction}
+
 import javax.inject.{Inject, Singleton}
 import core.models.errors.{InternalServerError => ServerError, _}
 import models.errors.OcelotError
@@ -27,8 +28,8 @@ import services.ReviewService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import models.Constants._
 import play.api.Logger
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ProcessReviewController @Inject() (
@@ -36,7 +37,7 @@ class ProcessReviewController @Inject() (
   twoEyeReviewerAction: TwoEyeReviewerAction,
   reviewService: ReviewService,
   cc: ControllerComponents
-) extends BackendController(cc) {
+)(implicit ec: ExecutionContext) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass())
 

@@ -18,21 +18,22 @@ package controllers
 
 import controllers.actions.AllRolesAction
 import models.errors.OcelotError
+
 import javax.inject.{Inject, Singleton}
 import core.models.errors.{BadRequestError, NotFoundError, InternalServerError => ServerError}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import services.{TimescalesService, PublishedService}
+import services.{PublishedService, TimescalesService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+
+import scala.concurrent.{ExecutionContext, Future}
 import play.api.libs.json._
 
 @Singleton
 class PublishedController @Inject() (publishedService: PublishedService,
                                      timescalesService: TimescalesService,
                                      cc: ControllerComponents,
-                                     identify: AllRolesAction) extends BackendController(cc) {
+                                     identify: AllRolesAction)(implicit ec: ExecutionContext) extends BackendController(cc) {
   import Json._
   import models.PublishedProcess.Implicits._
 

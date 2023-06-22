@@ -37,3 +37,4 @@ class Module extends AbstractModule {
     bind(classOf[TodayProvider]).to(classOf[DefaultTodayProvider])
   }
 }
+

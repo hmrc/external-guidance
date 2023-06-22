@@ -25,14 +25,14 @@ import play.api.Logger
 import play.api.libs.json.JsObject
 import repositories.{ApprovalRepository, ArchiveRepository, PublishedRepository}
 import core.services.validateProcessId
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import play.api.libs.json.{Json, OFormat, JsValue}
+
+import scala.concurrent.{ExecutionContext, Future}
+import play.api.libs.json.{JsValue, Json, OFormat}
 
 @Singleton
 class PublishedService @Inject() (published: PublishedRepository,
                                   archive: ArchiveRepository,
-                                  approval: ApprovalRepository) {
+                                  approval: ApprovalRepository)(implicit ec: ExecutionContext) {
 
   val logger: Logger = Logger(this.getClass)
 

@@ -24,11 +24,12 @@ import core.models.errors._
 import core.models.ocelot.Process
 import play.api.Logger
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ReviewService @Inject() (publishedService: PublishedService, repository: ApprovalRepository, reviewRepository: ApprovalProcessReviewRepository) {
+class ReviewService @Inject() (publishedService: PublishedService, repository: ApprovalRepository, reviewRepository: ApprovalProcessReviewRepository)
+                              (implicit ec: ExecutionContext) {
 
   val logger: Logger = Logger(this.getClass)
 

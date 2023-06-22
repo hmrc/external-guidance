@@ -24,8 +24,7 @@ import core.models.RequestOutcome
 import models.ScratchProcess
 import play.api.libs.json.JsObject
 import config.AppConfig
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import play.api.Logger
 import java.util.concurrent.TimeUnit
 import org.mongodb.scala._
@@ -43,7 +42,7 @@ trait ScratchRepository {
 }
 
 @Singleton
-class ScratchRepositoryImpl @Inject() (component: MongoComponent, appConfig: AppConfig)
+class ScratchRepositoryImpl @Inject() (component: MongoComponent, appConfig: AppConfig)(implicit ec: ExecutionContext)
     extends PlayMongoRepository[ScratchProcess](
       collectionName = "scratchProcesses",
       mongoComponent = component,

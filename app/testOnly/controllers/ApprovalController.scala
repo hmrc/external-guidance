@@ -16,30 +16,26 @@
 
 package testOnly.controllers
 
-import javax.inject.{Inject, Singleton}
-import core.models.errors.{BadRequestError, DuplicateKeyError, Error}
-import core.models.errors.{ValidationError, InternalServerError => ServerError}
-import models.errors.{OcelotError, DuplicateProcessCodeError}
-import play.api.libs.json._
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import testOnly.repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import models.errors.OcelotError
 import core.models._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import core.models.errors.{BadRequestError, DuplicateKeyError, Error, ValidationError, InternalServerError => ServerError}
 import models.Constants._
+import models.errors.{DuplicateProcessCodeError, OcelotError}
+import play.api.Logger
+import play.api.libs.json.Json.toJson
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ApprovalService
-import play.api.Logger
-import play.api.libs.json.Json.toJson
+import testOnly.repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ApprovalController @Inject() (approvalService: ApprovalService,
                                     testRepo: ApprovalRepository,
                                     testReviewRepo: ApprovalProcessReviewRepository,
-                                    cc: ControllerComponents) extends BackendController(cc) {
+                                    cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass)
 

@@ -17,6 +17,7 @@
 package services
 
 import core.services._
+
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import core.models.RequestOutcome
@@ -25,15 +26,15 @@ import core.models.errors.{BadRequestError, InternalServerError, NotFoundError}
 import play.api.libs.json.JsObject
 import repositories.ScratchRepository
 import play.api.Logger
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+
+import scala.concurrent.{ExecutionContext, Future}
 import config.AppConfig
 
 @Singleton
 class ScratchService @Inject() (repository: ScratchRepository,
                                 pageBuilder: ValidatingPageBuilder,
-                                timescalesService: TimescalesService,
-                                implicit val c: AppConfig) {
+                                timescalesService: TimescalesService)
+                               (implicit ec: ExecutionContext, val c: AppConfig) {
   val logger: Logger = Logger(getClass)
 
   def save(json: JsObject): Future[RequestOutcome[UUID]] =

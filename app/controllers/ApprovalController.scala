@@ -17,25 +17,26 @@
 package controllers
 
 import controllers.actions.AllRolesAction
+
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
-import services.{TimescalesService, ApprovalService}
+import services.{ApprovalService, TimescalesService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import models.Constants._
 import core.models.errors.{BadRequestError, DuplicateKeyError, Error}
 import core.models.errors.{NotFoundError, ValidationError, InternalServerError => ServerError}
-import models.errors.{OcelotError, DuplicateProcessCodeError}
+import models.errors.{DuplicateProcessCodeError, OcelotError}
 import play.api.libs.json.Json.toJson
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ApprovalController @Inject() (allRolesAction: AllRolesAction,
                                     approvalService: ApprovalService,
                                     timescalesService: TimescalesService,
-                                    cc: ControllerComponents) extends BackendController(cc) {
+                                    cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass)
 

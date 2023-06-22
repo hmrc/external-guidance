@@ -24,11 +24,11 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import repositories.PublishedRepository
 import testOnly.repositories.{PublishedRepository => TestPublishedRepository}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class PublishedController @Inject() (publishedRepo: PublishedRepository, testRepo: TestPublishedRepository, cc: ControllerComponents)
+class PublishedController @Inject() (publishedRepo: PublishedRepository, testRepo: TestPublishedRepository, cc: ControllerComponents)(implicit ec: ExecutionContext)
     extends BackendController(cc) {
 
   def post(): Action[JsValue] = Action.async(parse.json) { request =>
