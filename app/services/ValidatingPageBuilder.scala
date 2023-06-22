@@ -216,8 +216,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
         checkExclusiveSequenceTypeError(xs, errors)
     }
 
-  private def checkForMinimumTwoPageFlows(vertices: List[PageVertex], vertexMap: Map[String, PageVertex])
-                                         (implicit stanzaMap: Map[String, Stanza]): List[AllFlowsMustContainMultiplePages] = {
+  private def checkForMinimumTwoPageFlows(vertices: List[PageVertex], vertexMap: Map[String, PageVertex]): List[AllFlowsMustContainMultiplePages] = {
 
     val flowPageVertices: List[PageVertex] = for {
       pv <- vertices.filterNot(_.flows.isEmpty)                   // Sequences

@@ -234,8 +234,6 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
       )
       val process = processWithLinks.copy(flow = flow)
 
-      val vertices = pageBuilder.pageBuilder.pages(process).fold(x => x, _.map(PageVertex(_)))
-
       pageBuilder.pagesWithValidation(process) match {
         case Right(pages) => fail(s"Attempt to parse page with unsupported page redirect succeeded")
         case Left(List(AllFlowsMustContainMultiplePages("3"), AllFlowsMustContainMultiplePages("5"), PageOccursInMultiplSequenceFlows("3"), PageOccursInMultiplSequenceFlows("5"), MissingTitle("3"), MissingTitle("5"), MissingTitle("7"))) => succeed
@@ -270,9 +268,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
         "end" -> EndStanza
       )
       val process = processWithLinks.copy(flow = flow)
-
-      val vertices = pageBuilder.pageBuilder.pages(process).fold(x => x, _.map(PageVertex(_)))
-
+      
       pageBuilder.pagesWithValidation(process) match {
         case Right(pages) => fail(s"Attempt to parse page with unsupported page redirect succeeded")
         case Left(List(AllFlowsMustContainMultiplePages("5"), PageOccursInMultiplSequenceFlows("5"))) => succeed

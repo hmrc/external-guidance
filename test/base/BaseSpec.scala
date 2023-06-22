@@ -19,8 +19,14 @@ package base
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Application
 import play.api.libs.json._
 import play.api.i18n.Lang
+import play.api.inject.Injector
+import play.api.inject.guice.GuiceApplicationBuilder
+
+import scala.concurrent.ExecutionContext
 
 trait EnglishLanguage {
   implicit val lang: Lang = Lang("en")
@@ -102,7 +108,14 @@ trait TestConstants {
     }
 }
 
-trait BaseSpec extends AnyWordSpec with Matchers with ScalaFutures with TestConstants {
+trait BaseSpec extends AnyWordSpec with Matchers with ScalaFutures with TestConstants with GuiceOneAppPerSuite {
+
+  override lazy val app: Application = new GuiceApplicationBuilder()
+    .configure("metrics.enabled" -> "false")
+    .build()
+
+  lazy val injector: Injector = app.injector
+  implicit val ec: ExecutionContext = injector.instanceOf[ExecutionContext]
 
   def missingJsObjectAttrTests[T](jsObject: JsObject, attrsToIgnore: List[String] = Nil)(implicit objectReads: Reads[T]): Unit =
     jsObject.keys.filterNot(attrsToIgnore.contains(_)).foreach { attributeName =>

@@ -16,26 +16,21 @@
 
 package controllers
 
-import java.util.UUID
-
-import mocks.MockScratchService
-import core.models.errors.{Error, BadRequestError, InternalServerError, NotFoundError, ValidationError}
+import base.BaseSpec
+import core.models.errors.{BadRequestError, Error, InternalServerError, NotFoundError, ValidationError}
 import core.models.ocelot.errors._
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import mocks.{MockScratchService, MockTimescalesService}
+import models.errors._
 import play.api.http.ContentTypes
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import models.errors._
 
+import java.util.UUID
 import scala.concurrent.Future
-import mocks.MockTimescalesService
 
-class ScratchControllerSpec extends AnyWordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite {
+class ScratchControllerSpec extends BaseSpec {
 
   private trait Test extends MockScratchService with MockTimescalesService {
     val id: String = "7a2f7eb3-6f0d-4d7f-a9b9-44a7137820ad"

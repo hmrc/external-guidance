@@ -16,23 +16,22 @@
 
 package controllers
 
-import java.time.ZonedDateTime
 import base.BaseSpec
 import controllers.actions.FakeAllRolesAction
-import mocks.MockArchiveService
-import models.{ProcessSummary, ArchivedProcess}
 import core.models.errors.{BadRequestError, InternalServerError, NotFoundError}
 import core.models.ocelot.ProcessJson
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import mocks.MockArchiveService
+import models.{ArchivedProcess, ProcessSummary}
 import play.api.http.ContentTypes
-import play.api.libs.json.JsObject
+import play.api.libs.json._
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.api.libs.json._
+
+import java.time.ZonedDateTime
 import scala.concurrent.Future
 
-class ArchivedControllerSpec extends BaseSpec with GuiceOneAppPerSuite with ProcessJson {
+class ArchivedControllerSpec extends BaseSpec with ProcessJson {
 
   private trait Test extends MockArchiveService {
 
