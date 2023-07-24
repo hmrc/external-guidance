@@ -19,20 +19,21 @@ package services
 import javax.inject.{Inject, Singleton}
 import core.models.RequestOutcome
 import core.models.ocelot.Process
-import core.models.errors.{ValidationError, InternalServerError, NotFoundError}
-import play.api.libs.json.{Json, JsValue, JsObject}
+import core.models.errors.{InternalServerError, NotFoundError, ValidationError}
+import play.api.libs.json.{JsObject, JsValue, Json}
 import repositories.TimescalesRepository
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+
+import scala.concurrent.{ExecutionContext, Future}
 import config.AppConfig
 import play.api.Logger
+
 import java.time.ZonedDateTime
-import models.{UpdateDetails, TimescalesResponse}
+import models.{TimescalesResponse, UpdateDetails}
 
 @Singleton
 class TimescalesService @Inject() (
     repository: TimescalesRepository,
-    appConfig: AppConfig) {
+    appConfig: AppConfig)(implicit ec: ExecutionContext) {
 
   val logger: Logger = Logger(getClass)
 

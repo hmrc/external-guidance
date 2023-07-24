@@ -18,19 +18,21 @@ package controllers
 
 import controllers.actions.AllRolesAction
 import models.errors.OcelotError
+
 import javax.inject.{Inject, Singleton}
 import core.models.errors.{BadRequestError, NotFoundError, InternalServerError => ServerError}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.ArchiveService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.libs.json._
+
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class ArchivedController @Inject() (archivedService: ArchiveService,
                                     cc: ControllerComponents,
-                                    identify: AllRolesAction) extends BackendController(cc) {
+                                    identify: AllRolesAction)(implicit ec: ExecutionContext) extends BackendController(cc) {
   import Json._
 
   def get(id: String): Action[AnyContent] = Action.async {

@@ -19,16 +19,16 @@ package services
 import javax.inject.{Inject, Singleton}
 import core.models.errors.{BadRequestError, InternalServerError, NotFoundError}
 import core.models.RequestOutcome
-import models.{ProcessSummary, ArchivedProcess}
+import models.{ArchivedProcess, ProcessSummary}
 import play.api.Logger
 import repositories.ArchiveRepository
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import play.api.libs.json.{Json, OFormat, JsValue}
+
+import scala.concurrent.{ExecutionContext, Future}
+import play.api.libs.json.{JsValue, Json, OFormat}
 import core.services.isTimeValueInMilliseconds
 
 @Singleton
-class ArchiveService @Inject() (archive: ArchiveRepository) {
+class ArchiveService @Inject() (archive: ArchiveRepository)(implicit ec: ExecutionContext) {
 
   val logger: Logger = Logger(this.getClass)
 

@@ -17,20 +17,20 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-import core.models.errors.{BadRequestError, ValidationError, Error, InternalServerError => ServerError, NotFoundError}
+import core.models.errors.{BadRequestError, Error, NotFoundError, ValidationError, InternalServerError => ServerError}
 import models.errors.OcelotError
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import services.{TimescalesService, ScratchService}
+import services.{ScratchService, TimescalesService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.Logger
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
 class ScratchController @Inject() (scratchService: ScratchService,
                                    timescalesService: TimescalesService,
-                                   cc: ControllerComponents) extends BackendController(cc) {
+                                   cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) {
+
   val logger: Logger = Logger(getClass)
   import Json._
 

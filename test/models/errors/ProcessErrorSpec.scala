@@ -116,11 +116,10 @@ class ProcessErrorSpec extends BaseSpec {
       val details: ErrorReport = fromGuidanceError(ErrorRedirectToFirstNonPageStanzaOnly("stanzaId"))
       details shouldBe ErrorReport("ErrorRedirectToFirstNonPageStanzaOnly: Invalid link to stanza stanzaId. Page redisplay after a ValueError must link to the first stanza after the PageStanza", "stanzaId")
     }
-    "from MissingUniqueFlowTerminator" in {
-      val details: ErrorReport = fromGuidanceError(MissingUniqueFlowTerminator("stanzaId"))
-      details shouldBe ErrorReport("MissingUniqueFlowTerminator: Flow doesn't have a unique termination page stanzaId, possible main flow connection into a sequence flow", "stanzaId")
+    "from AllFlowsMustContainMultiplePages" in {
+      val details: ErrorReport = fromGuidanceError(AllFlowsMustContainMultiplePages("stanzaId"))
+      details shouldBe ErrorReport("AllFlowsMustContainMultiplePages: Page stanzaId is reused in a flow, flows containing reused pages must contain more than one page", "stanzaId")
     }
-
     "from InvalidLabelName" in {
       val details: ErrorReport = fromGuidanceError(InvalidLabelName("stanzaId"))
       details shouldBe ErrorReport("InvalidLabelName: Invalid label name in stanza stanzaId", "stanzaId")

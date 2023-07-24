@@ -16,20 +16,16 @@
 
 package base
 
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.inject.Injector
 import play.api.mvc.BodyParsers
 import play.api.{Configuration, Environment}
 
-trait ControllerBaseSpec extends BaseSpec with GuiceOneAppPerSuite {
+trait ControllerBaseSpec extends BaseSpec {
 
   val credential: String = "7010010"
   val name: String = "George Hudson"
   val email: String = "ghudson@emailworld.com"
 
-  lazy val injector: Injector = app.injector
-
-  lazy val config = app.injector.instanceOf[Configuration]
-  lazy val env = app.injector.instanceOf[Environment]
-  lazy val bodyParser = app.injector.instanceOf[BodyParsers.Default]
+  lazy val config = injector.instanceOf[Configuration]
+  lazy val env = injector.instanceOf[Environment]
+  lazy val bodyParser = injector.instanceOf[BodyParsers.Default]
 }

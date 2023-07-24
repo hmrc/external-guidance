@@ -23,10 +23,9 @@ import core.models.RequestOutcome
 import play.api.libs.json.JsValue
 import play.api.Logger
 import config.AppConfig
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import models.TimescalesUpdate
 
+import scala.concurrent.{ExecutionContext, Future}
+import models.TimescalesUpdate
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Updates._
@@ -44,7 +43,7 @@ trait TimescalesRepository {
 }
 
 @Singleton
-class TimescalesRepositoryImpl @Inject() (component: MongoComponent, appConfig: AppConfig)
+class TimescalesRepositoryImpl @Inject() (component: MongoComponent, appConfig: AppConfig)(implicit ec: ExecutionContext)
     extends PlayMongoRepository[TimescalesUpdate](
       collectionName = "timescales",
       mongoComponent = component,

@@ -16,29 +16,24 @@
 
 package controllers
 
-import models.ApprovalProcessSummary
+import base.BaseSpec
 import controllers.actions.FakeAllRolesAction
-import mocks.{MockTimescalesService, MockApprovalService}
 import core.models.errors.{BadRequestError, DuplicateKeyError, Error, InternalServerError, NotFoundError, ValidationError}
 import core.models.ocelot.errors.DuplicatePageUrl
-import models.errors.OcelotError
-import models.{ApprovalProcess, ApprovalProcessJson}
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import mocks.{MockApprovalService, MockTimescalesService}
+import models.Constants._
+import models.errors._
+import models.{ApprovalProcess, ApprovalProcessJson, ApprovalProcessSummary}
 import play.api.http.ContentTypes
 import play.api.http.Status.UNPROCESSABLE_ENTITY
-import play.api.libs.json.{JsArray, JsObject, JsValue, Json, OFormat}
+import play.api.libs.json._
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import models.ApprovalProcess
-import models.Constants._
 
 import scala.concurrent.Future
-import models.errors._
 
-class ApprovalControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with MockApprovalService with MockTimescalesService with ApprovalProcessJson {
+class ApprovalControllerSpec extends BaseSpec with MockApprovalService with MockTimescalesService with ApprovalProcessJson {
 
   private trait Test extends MockApprovalService {
     val invalidId: String = "ext95"

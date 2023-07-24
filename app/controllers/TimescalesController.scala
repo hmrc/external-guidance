@@ -21,12 +21,12 @@ import core.models.errors.{ValidationError, InternalServerError => ServerError}
 import models.errors.OcelotError
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import services.{PublishedService, ApprovalService, TimescalesService}
+import services.{ApprovalService, PublishedService, TimescalesService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.Logger
 import controllers.actions.AllRolesAction
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+
+import scala.concurrent.{ExecutionContext, Future}
 import models.requests.IdentifierRequest
 
 @Singleton()
@@ -34,7 +34,7 @@ class TimescalesController @Inject() (timescaleService: TimescalesService,
                                       publishService: PublishedService,
                                       approvalService: ApprovalService,
                                       cc: ControllerComponents,
-                                      allRolesAction: AllRolesAction) extends BackendController(cc) {
+                                      allRolesAction: AllRolesAction)(implicit ec: ExecutionContext) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass)
 

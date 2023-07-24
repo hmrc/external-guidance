@@ -51,8 +51,7 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
                           mockApprovalProcessReviewRepository,
                           mockPublishedRepository,
                           new ValidatingPageBuilder(new PageBuilder(new Timescales(new DefaultTodayProvider))),
-                          mockTimescalesService,
-                          MockAppConfig)
+                          mockTimescalesService)(ec, MockAppConfig)
 
     val processReview: ApprovalProcessReview =
       ApprovalProcessReview(

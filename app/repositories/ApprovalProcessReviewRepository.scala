@@ -18,7 +18,6 @@ package repositories
 
 import java.time.ZonedDateTime
 import java.util.UUID
-
 import javax.inject.{Inject, Singleton}
 import core.models.errors.{DatabaseError, NotFoundError}
 import core.models.RequestOutcome
@@ -32,8 +31,7 @@ import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import org.mongodb.scala.result.InsertOneResult
 import org.mongodb.scala.bson.conversions.Bson
 
@@ -45,7 +43,7 @@ trait ApprovalProcessReviewRepository {
 }
 
 @Singleton
-class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoComponent)
+class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoComponent, ec: ExecutionContext)
     extends PlayMongoRepository[ApprovalProcessReview](
       mongoComponent = mongo,
       collectionName = "approvalProcessReviews",

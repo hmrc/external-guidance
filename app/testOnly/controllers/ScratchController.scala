@@ -23,10 +23,11 @@ import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import testOnly.repositories.ScratchRepository
-import scala.concurrent.ExecutionContext.Implicits.global
+
+import scala.concurrent.ExecutionContext
 
 @Singleton
-class ScratchController @Inject() (testRepo: ScratchRepository, cc: ControllerComponents) extends BackendController(cc) {
+class ScratchController @Inject() (testRepo: ScratchRepository, cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) {
 
   def delete(id: String): Action[AnyContent] = Action.async {
     testRepo.delete(id).map {

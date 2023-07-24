@@ -16,24 +16,23 @@
 
 package controllers
 
-import java.time.ZonedDateTime
 import base.BaseSpec
 import controllers.actions.FakeAllRolesAction
 import controllers.actions.FakeAllRolesAction.credential
-import mocks.{MockPublishedService, MockTimescalesService}
-import models.PublishedProcess
 import core.models.errors.{BadRequestError, InternalServerError, NotFoundError}
 import core.models.ocelot.ProcessJson
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import mocks.{MockPublishedService, MockTimescalesService}
+import models.PublishedProcess
 import play.api.http.ContentTypes
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
+import java.time.ZonedDateTime
 import scala.concurrent.Future
 
-class PublishedControllerSpec extends BaseSpec with GuiceOneAppPerSuite with ProcessJson {
+class PublishedControllerSpec extends BaseSpec with ProcessJson {
 
   private trait Test extends MockPublishedService with MockTimescalesService  {
 

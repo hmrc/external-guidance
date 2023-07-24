@@ -16,26 +16,23 @@
 
 package controllers
 
-import mocks.{MockTimescalesRepository, MockTimescalesService}
+import base.BaseSpec
 import core.models.errors.{InternalServerError, ValidationError}
+import mocks.{MockTimescalesRepository, MockTimescalesService}
 //import core.models.MongoDateTimeFormats
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import controllers.actions.FakeAllRolesAction
+import mocks.{MockApprovalService, MockPublishedService}
+import models.{TimescalesResponse, TimescalesUpdate, UpdateDetails}
 import play.api.http.ContentTypes
 import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.mvc._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import controllers.actions.FakeAllRolesAction
-import java.time.{ZoneId, ZonedDateTime}
-import play.api.mvc._
-import scala.concurrent.Future
-import models.{UpdateDetails, TimescalesResponse, TimescalesUpdate}
-import mocks.MockPublishedService
-import mocks.MockApprovalService
 
-class TimescalesControllerSpec extends AnyWordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite {
+import java.time.{ZoneId, ZonedDateTime}
+import scala.concurrent.Future
+
+class TimescalesControllerSpec extends BaseSpec {
 
   trait Test extends MockTimescalesService with MockTimescalesRepository with MockPublishedService with MockApprovalService {
     val timescaleJson: JsValue = Json.parse("""{"First": 1, "Second": 2, "Third": 3}""")

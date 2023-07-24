@@ -36,8 +36,7 @@ class ScratchServiceSpec extends BaseSpec {
     val pageBuilder = new ValidatingPageBuilder(new PageBuilder(new Timescales(new DefaultTodayProvider)))
     lazy val target: ScratchService = new ScratchService(mockScratchRepository,
                                                          pageBuilder,
-                                                         mockTimescalesService,
-                                                         MockAppConfig)
+                                                         mockTimescalesService)(ec, MockAppConfig)
   }
 
     "Calling save" should {

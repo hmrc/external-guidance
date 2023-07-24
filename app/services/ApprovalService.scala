@@ -17,8 +17,8 @@
 package services
 
 import java.util.UUID
-
 import config.AppConfig
+
 import javax.inject.{Inject, Singleton}
 import models._
 import core.models._
@@ -27,8 +27,8 @@ import core.services.fromPageDetails
 import play.api.Logger
 import play.api.libs.json._
 import repositories.{ApprovalProcessReviewRepository, ApprovalRepository, PublishedRepository}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+
+import scala.concurrent.{ExecutionContext, Future}
 import play.api.libs.json.{Json, OFormat}
 
 @Singleton
@@ -37,9 +37,8 @@ class ApprovalService @Inject() (
     reviewRepository: ApprovalProcessReviewRepository,
     publishedRepository: PublishedRepository,
     pageBuilder: ValidatingPageBuilder,
-    timescalesService: TimescalesService,
-    implicit val appConfig: AppConfig
-) {
+    timescalesService: TimescalesService
+)(implicit ec: ExecutionContext, val appConfig: AppConfig) {
 
   val logger: Logger = Logger(this.getClass)
 
