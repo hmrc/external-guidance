@@ -358,7 +358,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .get("1")
         .returns(Future.successful(Right(timescalesUpdate)))
 
-      whenReady(target.get) { result =>
+      whenReady(target.get()) { result =>
         result shouldBe Right(timescales)
       }
     }
@@ -368,7 +368,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .get("1")
         .returns(Future.successful(Left(NotFoundError)))
 
-      whenReady(target.get) { result =>
+      whenReady(target.get()) { result =>
         result shouldBe Right(timescales)
       }
     }
@@ -378,7 +378,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .get("1")
         .returns(Future.successful(Left(DatabaseError)))
 
-      whenReady(target.get) { result =>
+      whenReady(target.get()) { result =>
         result shouldBe Left(InternalServerError)
       }
     }

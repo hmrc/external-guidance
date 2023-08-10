@@ -217,8 +217,9 @@ class PublishedServiceSpec extends BaseSpec {
             .getById(validId)
             .returns(Future.successful(Left(NotFoundError)))
 
-          whenReady(target.archive(validId, "userId")) { outcome =>
-            if (outcome.left.get == BadRequestError) succeed else fail()
+          whenReady(target.archive(validId, "userId")) { 
+            case Left(err) if err == BadRequestError => succeed
+            case _ => fail()
           }
         }
       }

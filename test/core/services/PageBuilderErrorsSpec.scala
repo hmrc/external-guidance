@@ -312,7 +312,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
           }
           case errs => {
             fail(s"Failed with errors: $errs")}
-        }, _ => fail)
+        }, _ => fail())
     }
 
     "detect UnknownCalloutType" in {
@@ -341,7 +341,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         {
           case errors if errors == guidanceErrors => succeed
           case errs => fail(s"Failed with errors: $errs")
-        }, _ => fail)
+        }, _ => fail())
     }
 
     "pass as valid exclusive sequence with a single exclusive option" in {

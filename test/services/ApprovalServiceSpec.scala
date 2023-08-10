@@ -22,7 +22,6 @@ import core.services.{Timescales, PageBuilder}
 import base.BaseSpec
 import mocks.{MockAppConfig, MockApprovalProcessReviewRepository, MockApprovalRepository, MockPublishedRepository}
 import models._
-import core.models._
 import core.models.errors._
 import core.models.ocelot.ProcessJson
 import org.scalamock.scalatest.MockFactory

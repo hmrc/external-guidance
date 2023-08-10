@@ -493,7 +493,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       Json
         .parse(choiceStanzaJson(e, e))
         .validate[ChoiceStanza]
-        .fold(err => fail, cs => {
+        .fold(err => fail(), cs => {
           val choice = Choice(cs)
           choice.tests(0) shouldBe EqualsTest("VAL-3", "VAL-4")
           choice.tests(1) shouldBe EqualsTest("VAL-3", "VAL-4")
@@ -504,7 +504,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       Json
         .parse(choiceStanzaJson(ne, ne))
         .validate[ChoiceStanza]
-        .fold(err => fail, cs => {
+        .fold(err => fail(), cs => {
           val choice = Choice(cs)
           choice.tests(0) shouldBe NotEqualsTest("VAL-3", "VAL-4")
           choice.tests(1) shouldBe NotEqualsTest("VAL-3", "VAL-4")
@@ -514,7 +514,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       Json
         .parse(choiceStanzaJson(lt, lt))
         .validate[ChoiceStanza]
-        .fold(err => fail, cs => {
+        .fold(err => fail(), cs => {
           val choice = Choice(cs)
           choice.tests(0) shouldBe LessThanTest("VAL-1", "VAL-2")
           choice.tests(1) shouldBe LessThanTest("VAL-1", "VAL-2")
@@ -525,7 +525,7 @@ class ChoiceStanzaSpec extends BaseSpec {
         .parse(choiceStanzaJson(lte, lte))
         .validate[ChoiceStanza]
         .fold(
-          err => fail,
+          err => fail(),
           cs => {
             val choice = Choice(cs)
             choice.tests(0) shouldBe LessThanOrEqualsTest("VAL-1", "VAL-2")
@@ -537,7 +537,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       Json
         .parse(choiceStanzaJson(m, m))
         .validate[ChoiceStanza]
-        .fold(err => fail, cs => {
+        .fold(err => fail(), cs => {
           val choice = Choice(cs)
           choice.tests(0) shouldBe MoreThanTest("VAL-3", "VAL-4")
           choice.tests(1) shouldBe MoreThanTest("VAL-3", "VAL-4")
@@ -548,7 +548,7 @@ class ChoiceStanzaSpec extends BaseSpec {
         .parse(choiceStanzaJson(me, me))
         .validate[ChoiceStanza]
         .fold(
-          err => fail,
+          err => fail(),
           cs => {
             val choice = Choice(cs)
             choice.tests(0) shouldBe MoreThanOrEqualsTest("VAL-3", "VAL-4")
@@ -561,7 +561,7 @@ class ChoiceStanzaSpec extends BaseSpec {
         .parse(choiceStanzaJson(con, con))
         .validate[ChoiceStanza]
         .fold(
-          err => fail,
+          err => fail(),
           cs => {
             val choice = Choice(cs)
             choice.tests(0) shouldBe ContainsTest("VAL-3", "VAL-4")

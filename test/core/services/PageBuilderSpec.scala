@@ -1167,7 +1167,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with PageDefns {
 
       pageBuilder.pages(process) match {
         case Left(List(InvalidFieldWidth("2"))) => succeed
-        case Right(_) => fail()
+        case _ => fail()
       }
     }
 
