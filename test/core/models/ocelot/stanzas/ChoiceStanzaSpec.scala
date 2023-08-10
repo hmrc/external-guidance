@@ -624,7 +624,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       onePageJsonWithInvalidTestType.as[JsObject].validate[Process] match {
         case JsSuccess(_, _) => fail
         case JsError(errs) =>
-          GuidanceError.fromJsonValidationErrors(errs) match {
+          GuidanceError.fromJsonValidationErrors(mapValidationErrors(errs)) match {
             case Nil => fail
             case UnknownTestType("3", "UnknownType") :: _ => succeed
             case _ => fail

@@ -236,7 +236,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
 
       pageBuilder.pagesWithValidation(process) match {
         case Right(pages) => fail(s"Attempt to parse page with unsupported page redirect succeeded")
-        case Left(List(AllFlowsMustContainMultiplePages("3"), AllFlowsMustContainMultiplePages("5"), PageOccursInMultiplSequenceFlows("3"), PageOccursInMultiplSequenceFlows("5"), MissingTitle("3"), MissingTitle("5"), MissingTitle("7"))) => succeed
+        case Left(List(AllFlowsMustContainMultiplePages("3"), AllFlowsMustContainMultiplePages("5"), PageOccursInMultiplSequenceFlows("5"), PageOccursInMultiplSequenceFlows("3"), MissingTitle("3"), MissingTitle("5"), MissingTitle("7"))) => succeed
         case Left(err) => fail(s"Attempt to parse page with unsupported page redirect failed with error ${err}")
       }
     }

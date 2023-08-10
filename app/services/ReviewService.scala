@@ -181,7 +181,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
       Left(errors)
   }
 
-  private def getReviewInfo(id: String, reviewType: String, version: Int): Future[RequestOutcome[ProcessReview]] = {
+  private[services] def getReviewInfo(id: String, reviewType: String, version: Int): Future[RequestOutcome[ProcessReview]] = {
     reviewRepository.getByIdVersionAndType(id, version, reviewType) map {
       case Left(NotFoundError) => Left(NotFoundError)
       case Left(_) => Left(InternalServerError)

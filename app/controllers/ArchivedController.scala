@@ -25,7 +25,6 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.ArchiveService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import play.api.libs.json._
 
 import scala.concurrent.ExecutionContext
 
