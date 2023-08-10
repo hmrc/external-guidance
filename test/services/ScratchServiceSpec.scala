@@ -80,7 +80,7 @@ class ScratchServiceSpec extends BaseSpec {
         val process: JsObject = data.ProcessData.invalidOnePageJson.as[JsObject]
 
         whenReady(target.save(process)) {
-          case Right(_) => fail
+          case Right(_) => fail()
           case err if err == expected => succeed
           case err => fail(s"Failed with $err")
         }
@@ -102,7 +102,7 @@ class ScratchServiceSpec extends BaseSpec {
 
         whenReady(target.save(process)) {
           case result @ Left(err) if err.code == Error.UnprocessableEntity => succeed
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -119,7 +119,7 @@ class ScratchServiceSpec extends BaseSpec {
 
         whenReady(target.save(json)) {
           case result @ Left(_) => result shouldBe expected
-          case _ => fail
+          case _ => fail()
         }
       }
     }

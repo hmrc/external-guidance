@@ -1019,7 +1019,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with PageDefns {
           pageInfo(6).pageUrl shouldBe "/example-page-7"
           pageInfo(6).pageTitle shouldBe "Congratulations"
 
-        case _ => fail
+        case _ => fail()
       }
     }
 
@@ -1038,7 +1038,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with PageDefns {
           pageInfo(0).pageUrl shouldBe "/feeling-bad"
           pageInfo(0).pageTitle shouldBe "Do you have a tea bag?"
 
-        case _ => fail
+        case _ => fail()
       }
     }
 
@@ -1150,7 +1150,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with PageDefns {
               case i: Input =>
                 i.width shouldBe "4"
                 i.dontRepeatName shouldBe true
-              case _ => fail
+              case _ => fail()
             }
 
         case Left(err) => fail(s"Flow error $err")
@@ -1167,7 +1167,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with PageDefns {
 
       pageBuilder.pages(process) match {
         case Left(List(InvalidFieldWidth("2"))) => succeed
-        case Right(_) => fail
+        case Right(_) => fail()
       }
     }
 

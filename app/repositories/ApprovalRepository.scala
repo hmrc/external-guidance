@@ -135,10 +135,10 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
     }.distinct
 
     collection
-      .withReadPreference(ReadPreference.primaryPreferred)
-      .find(or(restrictions.toArray: _*))
+      .withReadPreference(ReadPreference.primaryPreferred())
+      .find(or(restrictions.toSeq: _*))
       .projection(fields(include("meta", "process.meta.id"), excludeId()))
-      .collect.toFutureOption
+      .collect().toFutureOption()
       .map {
         case None => Right(Nil)
         case Some(approvals) =>
@@ -159,7 +159,7 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
 
     collection
       .findOneAndUpdate(selector, modifier)
-      .toFutureOption
+      .toFutureOption()
       .map {
         _.fold[RequestOutcome[Unit]]{
           logger.error(s"Invalid Request - could not find process $id")
@@ -175,9 +175,9 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
 
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]] =
     collection
-      .withReadPreference(ReadPreference.primaryPreferred)
+      .withReadPreference(ReadPreference.primaryPreferred())
       .find(TimescalesInUseQuery)
-      .collect.toFutureOption()
+      .collect().toFutureOption()
       .map{
         case None => Right(Nil)
         case Some(ids) => Right(ids.flatMap(pps => pps.process.validate[Process].fold(_ => Nil, p => p.timescales.keys.toList)).distinct.toList)
@@ -192,8 +192,8 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
     collection
       .withReadPreference(ReadPreference.primaryPreferred())
       .find()
-      .collect
-      .toFutureOption
+      .collect()
+      .toFutureOption()
       .map{
         case None => Right(Nil)
         case Some(res) =>

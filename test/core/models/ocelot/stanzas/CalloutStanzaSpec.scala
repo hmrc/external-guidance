@@ -137,91 +137,91 @@ class CalloutStanzaSpec extends BaseSpec {
     "Create TitleCallout from Title noteType" in {
       Callout(expectedTitleCalloutStanza, core.models.ocelot.Phrase()) match {
         case _: TitleCallout => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
 
     "Create SubTitleCallout from SubTitle noteType" in {
       Callout(expectedSubTitleCalloutStanza, core.models.ocelot.Phrase()) match {
         case _: SubTitleCallout => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
 
     "Create SectionCallout from Section noteType" in {
       Callout(expectedSectionCalloutStanza, core.models.ocelot.Phrase()) match {
         case _: SectionCallout => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
 
     "Create SubSectionCallout from SubSection noteType" in {
       Callout(expectedSubSectionCalloutStanza, core.models.ocelot.Phrase()) match {
         case _: SubSectionCallout => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
 
     "Create LedeCallout from Lede noteType" in {
       Callout(expectedLedeCalloutStanza, core.models.ocelot.Phrase()) match {
         case _: LedeCallout => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
 
     "Create ErrorCallout from Error noteType" in {
       Callout(expectedErrorCalloutStanza, core.models.ocelot.Phrase()) match {
         case _: ErrorCallout => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
 
     "Create ValueErrorCallout from ValueError noteType" in {
       Callout(expectedValueErrorCalloutStanza, core.models.ocelot.Phrase()) match {
         case _: ValueErrorCallout => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
 
     "Create TypeErrorCallout from TypeError noteType" in {
       Callout(expectedTypeErrorCalloutStanza, core.models.ocelot.Phrase()) match {
         case _: TypeErrorCallout => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
 
     "Create ImportantCallout from Important noteType" in {
       Callout(expectedImportantCalloutStanza, core.models.ocelot.Phrase()) match {
         case _: ImportantCallout => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
 
     "Create YourCallCallout from YourCall noteType" in {
       Callout(expectedYourCallCalloutStanza, core.models.ocelot.Phrase()) match {
         case _: YourCallCallout => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
 
     "Create NumberedListItemCallout from NumberedList noteType" in {
       Callout(expectedNumberedListItemCalloutStanza, core.models.ocelot.Phrase()) match {
         case _: NumberedListItemCallout => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
 
     "Create NumberedCircleListItemCallout from NumberedCircleList noteType" in {
       Callout(expectedNumberedCircleListItemCalloutStanza, core.models.ocelot.Phrase()) match {
         case _: NumberedCircleListItemCallout => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
 
     "Create NoteCallout from Note noteType" in {
       Callout(expectedNoteCalloutStanza, core.models.ocelot.Phrase()) match {
         case _: NoteCallout => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
   }

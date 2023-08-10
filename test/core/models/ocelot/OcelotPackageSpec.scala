@@ -164,7 +164,7 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
     "recognise an invalid month" in {
       val invalidDate: String = "12/13/2020"
       asDate(invalidDate) match {
-        case Some(_) => fail
+        case Some(_) => fail()
         case _ => succeed
       }
     }
@@ -172,7 +172,7 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
     "recognise an invalid day" in {
       val invalidDate: String = "32/3/2000"
       asDate(invalidDate) match {
-        case Some(_) => fail
+        case Some(_) => fail()
         case _ => succeed
       }
     }

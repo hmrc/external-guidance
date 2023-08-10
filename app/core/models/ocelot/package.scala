@@ -21,7 +21,6 @@ import java.time.format.{DateTimeFormatter, ResolverStyle}
 import scala.util.Try
 import scala.util.matching.Regex
 import scala.util.matching.Regex.Match
-import play.api.libs.json.{JsonValidationError, JsPath}
 
 package object ocelot {
   type Validation[T] = Either[List[Int], T]
@@ -268,9 +267,5 @@ package object ocelot {
       case path => Some(path.mkString("/"))
     }
   }
-
-  // Convert mutable sequence within the results of Json validation to immutable sequences
-  def mapValidationErrors(in: scala.collection.Seq[(JsPath, scala.collection.Seq[JsonValidationError])]): Seq[(JsPath, Seq[JsonValidationError])] =
-    in.map{case (path, seq) => (path, seq.toSeq)}.toSeq
 
 }

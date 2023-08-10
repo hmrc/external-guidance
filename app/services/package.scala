@@ -27,7 +27,7 @@ package object services {
 
   def guidancePagesAndProcess(pb: ValidatingPageBuilder, jsObject: JsObject, timescalesService: TimescalesService, checkLevel: GuidanceCheckLevel = Strict)
                    (implicit c: AppConfig, ec: ExecutionContext): Future[RequestOutcome[(Process, Seq[Page], JsObject)]] =
-    jsObject.validate[Process].fold(errs => Future.successful(Left(Error(GuidanceError.fromJsonValidationErrors(mapValidationErrors(errs))))),
+    jsObject.validate[Process].fold(errs => Future.successful(Left(Error(GuidanceError.fromJsonValidationErrors(errs)))),
       incomingProcess => {
         // Transform process if fake welsh, secured process or timescales are indicated
         val (p, js) = fakeWelshTextIfRequired _ tupled securedProcessIfRequired(incomingProcess, Some(jsObject))

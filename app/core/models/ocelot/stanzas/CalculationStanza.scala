@@ -76,17 +76,17 @@ case class Calculation(override val next: Seq[String], calcs: Seq[Operation]) ex
   override val labelRefs: List[String] = calcs.flatMap(op => labelReferences(op.left) ++ labelReferences(op.right)).toList
 
   @tailrec
-  private def evalOps(ops: Seq[Operation], labels: Labels, errs: List[RuntimeError]): (Labels, List[RuntimeError]) =
+  private def evalOps(ops: List[Operation], labels: Labels, errs: List[RuntimeError]): (Labels, List[RuntimeError]) =
     ops match {
       case Nil => (labels, errs)
-      case op +: xs => op.eval(labels) match {
+      case op :: xs => op.eval(labels) match {
         case Left(err) => evalOps(xs, labels, err :: errs)
         case Right(updatedLabels) =>evalOps(xs, updatedLabels, errs)
       }
     }
 
   def eval(labels: Labels): (String, Labels, List[RuntimeError]) = {
-    val (updatedLabels, errs) = evalOps(calcs, labels, Nil)
+    val (updatedLabels, errs) = evalOps(calcs.toList, labels, Nil)
     (next.last, updatedLabels, errs)
   }
 }

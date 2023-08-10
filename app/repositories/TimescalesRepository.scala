@@ -69,7 +69,7 @@ class TimescalesRepositoryImpl @Inject() (component: MongoComponent, appConfig: 
           .upsert(true)
           .returnDocument(ReturnDocument.AFTER)
       )
-      .toFutureOption
+      .toFutureOption()
       .map{
         case None =>
           logger.error(s"Failed to find and update/insert TimescalesUpdate")

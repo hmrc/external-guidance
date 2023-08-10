@@ -18,9 +18,6 @@ package models
 
 import java.util.UUID
 import java.time.ZonedDateTime
-import play.api.libs.json.JsObject
-import java.util.UUID
-import java.time.ZonedDateTime
 import play.api.libs.json.{Reads, OWrites, JsObject, Format, __}
 import play.api.libs.functional.syntax._
 import core.models.MongoDateTimeFormats.Implicits._

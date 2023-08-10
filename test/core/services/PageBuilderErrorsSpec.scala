@@ -299,7 +299,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
     "detect an erroneous timescale" in {
       val jsObject = inValidOnePageWithTimescalesJson
       val result = jsObject.as[JsObject].validate[Process].fold(
-        errs => Left(GuidanceError.fromJsonValidationErrors(mapValidationErrors(errs))),
+        errs => Left(GuidanceError.fromJsonValidationErrors(errs)),
         process => {
           pageBuilder.pages(process, process.startPageId).fold(errs => Left(errs),
             pages => Right((process, pages, jsObject))
@@ -330,7 +330,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       val jsObject = assortedParseErrorsJson
       val result = jsObject.as[JsObject].validate[Process].fold(
         errs =>
-          Left(GuidanceError.fromJsonValidationErrors(mapValidationErrors(errs))),
+          Left(GuidanceError.fromJsonValidationErrors(errs)),
         process => {
           pageBuilder.pages(process, process.startPageId).fold(errs => Left(errs),
             pages => Right((process, pages, jsObject))

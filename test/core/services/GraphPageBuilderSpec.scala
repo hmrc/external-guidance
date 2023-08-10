@@ -174,7 +174,7 @@ class GraphPageBuilderSpec extends BaseSpec with ProcessJson {
 
       pageBuilder.pages(process) match {
         case Right(pages) => succeed
-        case Left(err) => fail
+        case Left(err) => fail()
       }
     }
   }

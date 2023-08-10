@@ -62,7 +62,7 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoCompon
   def save(review: ApprovalProcessReview): Future[RequestOutcome[UUID]] =
     collection
       .insertOne(review)
-      .toFutureOption
+      .toFutureOption()
       .map {
         case Some(r: InsertOneResult) if r.wasAcknowledged => Right(review.id)
         case _ =>
@@ -129,7 +129,7 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoCompon
 
     collection
       .findOneAndUpdate(selector, modifier)
-      .toFutureOption
+      .toFutureOption()
       .map{_.fold[RequestOutcome[Unit]](Left(NotFoundError))( _ => Right(()))}
       //$COVERAGE-OFF$
       .recover {

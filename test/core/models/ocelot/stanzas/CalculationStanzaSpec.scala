@@ -467,7 +467,7 @@ class CalculationStanzaSpec extends BaseSpec {
         calculationStanzaWithUnknownOperationType
       ).as[JsObject].validate[Process] match {
         case JsSuccess(_, _) => fail("A process should not be created from invalid JSON")
-        case JsError(errs) => GuidanceError.fromJsonValidationErrors(mapValidationErrors(errs)) match {
+        case JsError(errs) => GuidanceError.fromJsonValidationErrors(errs) match {
             case Nil => fail("Nothing to match from guidance error conversion")
             case UnknownCalcOperationType("3", sqrt) +: _ => succeed
             case _ => fail("An error occurred processing Json validation errors")
@@ -483,7 +483,7 @@ class CalculationStanzaSpec extends BaseSpec {
       ).as[JsObject].validate[Process] match {
         case JsSuccess(_,_) => fail("A process should not be created from invalid JSON")
         case JsError(errs) =>
-          val error = GuidanceError.fromJsonValidationErrors(mapValidationErrors(errs))
+          val error = GuidanceError.fromJsonValidationErrors(errs)
           error match {
             case Nil => fail("Nothing to match from guidance error conversion")
             case UnknownCalcOperationType("3", "false") +: _ => succeed

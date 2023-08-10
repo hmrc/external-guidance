@@ -201,7 +201,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       choice.next shouldBe stanza.next
       choice.tests.zipWithIndex.foreach {
         case (LessThanOrEqualsTest(_, _), index) if stanza.tests(index).test == LessThanOrEquals => succeed
-        case x => fail
+        case x => fail()
 
       }
     }
@@ -598,10 +598,10 @@ class ChoiceStanzaSpec extends BaseSpec {
         case JsError(errTuple :: _) =>
           errTuple match {
             case (_, err +: _) if err.messages(0) == "TestType" && err.args.contains("UnknownType") => succeed
-            case _ => fail
+            case _ => fail()
           }
-        case JsError(_) => fail
-        case JsSuccess(_, _) => fail
+        case JsError(_) => fail()
+        case JsSuccess(_, _) => fail()
       }
     }
 
@@ -611,10 +611,10 @@ class ChoiceStanzaSpec extends BaseSpec {
         case JsError(errTuple :: _) =>
           errTuple match {
             case (_, err +: _) if err.messages(0) == "TestType" && err.args.contains("44") => succeed
-            case _ => fail
+            case _ => fail()
           }
-        case JsError(_) => fail
-        case JsSuccess(_, _) => fail
+        case JsError(_) => fail()
+        case JsSuccess(_, _) => fail()
       }
     }
   }
@@ -622,12 +622,12 @@ class ChoiceStanzaSpec extends BaseSpec {
   "Page building" must {
     "be able to detect UnknownTestType error" in {
       onePageJsonWithInvalidTestType.as[JsObject].validate[Process] match {
-        case JsSuccess(_, _) => fail
+        case JsSuccess(_, _) => fail()
         case JsError(errs) =>
-          GuidanceError.fromJsonValidationErrors(mapValidationErrors(errs)) match {
-            case Nil => fail
+          GuidanceError.fromJsonValidationErrors(errs) match {
+            case Nil => fail()
             case UnknownTestType("3", "UnknownType") :: _ => succeed
-            case _ => fail
+            case _ => fail()
           }
       }
 

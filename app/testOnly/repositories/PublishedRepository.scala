@@ -45,7 +45,7 @@ class PublishedRepository @Inject() (component: MongoComponent)(implicit ec: Exe
 
     collection
       .deleteOne(equal("_id", id))
-      .toFuture
+      .toFuture()
       .map { _ =>
         Right(id)
       }

@@ -99,7 +99,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
             entry.ocelotId shouldBe validId
             entry.title shouldBe approvalProcessReview.title
             entry.pages.size shouldBe 1
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -117,7 +117,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
 
         whenReady(service.approvalReviewInfo(validId, ReviewType2i)) {
           case Left(DuplicateKeyError) => succeed
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -133,7 +133,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
 
         whenReady(service.approvalReviewInfo(validId, ReviewTypeFactCheck)) {
           case result @ Left(_) => result shouldBe expected
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -149,7 +149,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
 
         whenReady(service.approvalReviewInfo(validId, ReviewType2i)) {
           case result @ Left(_) => result shouldBe expected
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -173,7 +173,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
 
         whenReady(service.approvalReviewInfo(validId, ReviewTypeFactCheck)) {
           case result @ Left(_) => result shouldBe expected
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -197,7 +197,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
 
         whenReady(service.approvalReviewInfo(validId, ReviewType2i)) {
           case result @ Left(_) => result shouldBe expected
-          case _ => fail
+          case _ => fail()
         }
       }
     }

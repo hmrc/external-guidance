@@ -60,7 +60,7 @@ class RunModeSpec extends BaseSpec {
         Json.parse(""""Blah"""").as[RunMode]
       } catch {
         case jse: JsResultException => succeed
-        case _: Throwable => fail
+        case _: Throwable => fail()
       }
 
     }

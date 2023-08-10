@@ -124,7 +124,7 @@ case class MultiplyOperation(left: String, right: String, label: String) extends
 
 case class DivideOperation(left: String, right: String, label: String) extends Operation {
   override def evalNumericOp(left: BigDecimal, right: BigDecimal): Result[String] =
-    if (right.equals(0.0)) Right("Infinity") else Right((left / right).bigDecimal.toPlainString)
+    if (right == 0.0) Right("Infinity") else Right((left / right).bigDecimal.toPlainString)
 }
 
 case class CeilingOperation(left: String, right: String, label: String) extends Operation {

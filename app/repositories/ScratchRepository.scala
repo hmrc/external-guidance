@@ -65,7 +65,7 @@ class ScratchRepositoryImpl @Inject() (component: MongoComponent, appConfig: App
 
     collection
       .insertOne(document)
-      .toFutureOption
+      .toFutureOption()
       .map {
         case Some(r: InsertOneResult) if r.wasAcknowledged => Right(document.id)
         case _ =>

@@ -162,7 +162,7 @@ class PublishedServiceSpec extends BaseSpec {
 
         whenReady(target.save(validId, "userId", "processCode", validOnePageJson.as[JsObject])) {
           case Right(id) => id shouldBe validId
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -178,7 +178,7 @@ class PublishedServiceSpec extends BaseSpec {
 
         whenReady(target.save(validId, "userId", "processCode", validOnePageJson.as[JsObject])) {
           case Left(DuplicateKeyError) => succeed
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -206,7 +206,7 @@ class PublishedServiceSpec extends BaseSpec {
             .returns(Future.successful(Right(validId)))
 
           whenReady(target.archive(validId, "userId")) { outcome =>
-            if (outcome == expected) succeed else fail
+            if (outcome == expected) succeed else fail()
           }
         }
       }
@@ -218,7 +218,7 @@ class PublishedServiceSpec extends BaseSpec {
             .returns(Future.successful(Left(NotFoundError)))
 
           whenReady(target.archive(validId, "userId")) { outcome =>
-            if (outcome.left.get == BadRequestError) succeed else fail
+            if (outcome.left.get == BadRequestError) succeed else fail()
           }
         }
       }
@@ -240,7 +240,7 @@ class PublishedServiceSpec extends BaseSpec {
 
           whenReady(target.save(validId, "userId", "processCode", invalidProcess)) {
             case result@Left(_) => result shouldBe expected
-            case _ => fail
+            case _ => fail()
           }
         }
       }
@@ -256,7 +256,7 @@ class PublishedServiceSpec extends BaseSpec {
 
           whenReady(target.save(validId, "userId", "processCode", validOnePageJson.as[JsObject])) {
             case result@Left(_) => result shouldBe expected
-            case _ => fail
+            case _ => fail()
           }
         }
       }
