@@ -37,7 +37,7 @@ trait MockArchiveService extends MockFactory {
 
 
     def list: CallHandler[Future[RequestOutcome[JsValue]]] =
-      (mockArchiveService.list _).expects
+      (() => mockArchiveService.list).expects()
 
   }
 

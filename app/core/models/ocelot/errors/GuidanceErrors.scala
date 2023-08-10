@@ -86,7 +86,7 @@ object GuidanceError {
       }.getOrElse(FlowParseError(id, msg, jsPath.toString))
 
     val (jsPath: JsPath, errs) = err
-    val id = (jsPath.path.headOption.fold("/unknown")(pathNode => pathNode.toString)).drop(1)
+    val id = (jsPath.path.lift(1).fold("/unknown")(pathNode => pathNode.toString)).drop(1)
     val mainError = errs.head
     val arg = mainError.args.headOption.fold("")(_.toString)
     jsPath.path.headOption.fold("/unknown")(pathNode => pathNode.toString) match {

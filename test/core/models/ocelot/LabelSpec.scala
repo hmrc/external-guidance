@@ -541,7 +541,7 @@ class LabelSpec extends BaseSpec with ProcessJson {
         "Location" ->ScalarLabel("Location",List("Here"))
       )
 
-      val labels3 = labels2.flush
+      val labels3 = labels2.flush()
       labels3.updatedLabels shouldBe Map()
       labels3.value("X") shouldBe Some("49.5")
       labels3.value("Location") shouldBe Some("Here")

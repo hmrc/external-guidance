@@ -38,7 +38,7 @@ trait MockArchiveRepository extends MockFactory {
       (mockArchiveRepository.getById(_: String)).expects(id)
 
     def processSummaries(): CallHandler[Future[RequestOutcome[List[ProcessSummary]]]] =
-      (mockArchiveRepository.processSummaries _ ).expects
+      (mockArchiveRepository.processSummaries _ ).expects()
 
   }
 }
