@@ -24,7 +24,7 @@ import core.models.errors.IncompleteDataError
 import models.errors.OcelotError
 import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange, ApprovalProcessSummary}
 import play.api.http.Status._
-//import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{JsObject, JsValue}
 import play.api.libs.ws.WSResponse
 import stubs.{AuditStub, AuthStub}
 import support.IntegrationSpec
@@ -84,7 +84,7 @@ implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProc
           }
           val list: List[ApprovalProcessSummary] = response.body[JsValue].as[List[ApprovalProcessSummary]]
           val updatedEntry = list.find(p => p.id == id)
-          updatedEntry shouldBe 'defined
+          updatedEntry shouldBe Symbol("defined")
           updatedEntry.get.status shouldBe StatusComplete
         }
 
@@ -356,7 +356,7 @@ implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProc
           }
           val list: List[ApprovalProcessSummary] = response.body[JsValue].as[List[ApprovalProcessSummary]]
           val updatedEntry = list.find(p => p.id == id)
-          updatedEntry shouldBe 'defined
+          updatedEntry shouldBe Symbol("defined")
           updatedEntry.get.status shouldBe StatusComplete
         }
       }
