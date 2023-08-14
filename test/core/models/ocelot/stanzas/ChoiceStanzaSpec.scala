@@ -201,7 +201,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       choice.next shouldBe stanza.next
       choice.tests.zipWithIndex.foreach {
         case (LessThanOrEqualsTest(_, _), index) if stanza.tests(index).test == LessThanOrEquals => succeed
-        case x => fail
+        case x => fail()
 
       }
     }
@@ -493,7 +493,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       Json
         .parse(choiceStanzaJson(e, e))
         .validate[ChoiceStanza]
-        .fold(err => fail, cs => {
+        .fold(err => fail(), cs => {
           val choice = Choice(cs)
           choice.tests(0) shouldBe EqualsTest("VAL-3", "VAL-4")
           choice.tests(1) shouldBe EqualsTest("VAL-3", "VAL-4")
@@ -504,7 +504,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       Json
         .parse(choiceStanzaJson(ne, ne))
         .validate[ChoiceStanza]
-        .fold(err => fail, cs => {
+        .fold(err => fail(), cs => {
           val choice = Choice(cs)
           choice.tests(0) shouldBe NotEqualsTest("VAL-3", "VAL-4")
           choice.tests(1) shouldBe NotEqualsTest("VAL-3", "VAL-4")
@@ -514,7 +514,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       Json
         .parse(choiceStanzaJson(lt, lt))
         .validate[ChoiceStanza]
-        .fold(err => fail, cs => {
+        .fold(err => fail(), cs => {
           val choice = Choice(cs)
           choice.tests(0) shouldBe LessThanTest("VAL-1", "VAL-2")
           choice.tests(1) shouldBe LessThanTest("VAL-1", "VAL-2")
@@ -525,7 +525,7 @@ class ChoiceStanzaSpec extends BaseSpec {
         .parse(choiceStanzaJson(lte, lte))
         .validate[ChoiceStanza]
         .fold(
-          err => fail,
+          err => fail(),
           cs => {
             val choice = Choice(cs)
             choice.tests(0) shouldBe LessThanOrEqualsTest("VAL-1", "VAL-2")
@@ -537,7 +537,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       Json
         .parse(choiceStanzaJson(m, m))
         .validate[ChoiceStanza]
-        .fold(err => fail, cs => {
+        .fold(err => fail(), cs => {
           val choice = Choice(cs)
           choice.tests(0) shouldBe MoreThanTest("VAL-3", "VAL-4")
           choice.tests(1) shouldBe MoreThanTest("VAL-3", "VAL-4")
@@ -548,7 +548,7 @@ class ChoiceStanzaSpec extends BaseSpec {
         .parse(choiceStanzaJson(me, me))
         .validate[ChoiceStanza]
         .fold(
-          err => fail,
+          err => fail(),
           cs => {
             val choice = Choice(cs)
             choice.tests(0) shouldBe MoreThanOrEqualsTest("VAL-3", "VAL-4")
@@ -561,7 +561,7 @@ class ChoiceStanzaSpec extends BaseSpec {
         .parse(choiceStanzaJson(con, con))
         .validate[ChoiceStanza]
         .fold(
-          err => fail,
+          err => fail(),
           cs => {
             val choice = Choice(cs)
             choice.tests(0) shouldBe ContainsTest("VAL-3", "VAL-4")
@@ -598,10 +598,10 @@ class ChoiceStanzaSpec extends BaseSpec {
         case JsError(errTuple :: _) =>
           errTuple match {
             case (_, err +: _) if err.messages(0) == "TestType" && err.args.contains("UnknownType") => succeed
-            case _ => fail
+            case _ => fail()
           }
-        case JsError(_) => fail
-        case JsSuccess(_, _) => fail
+        case JsError(_) => fail()
+        case JsSuccess(_, _) => fail()
       }
     }
 
@@ -611,10 +611,10 @@ class ChoiceStanzaSpec extends BaseSpec {
         case JsError(errTuple :: _) =>
           errTuple match {
             case (_, err +: _) if err.messages(0) == "TestType" && err.args.contains("44") => succeed
-            case _ => fail
+            case _ => fail()
           }
-        case JsError(_) => fail
-        case JsSuccess(_, _) => fail
+        case JsError(_) => fail()
+        case JsSuccess(_, _) => fail()
       }
     }
   }
@@ -622,12 +622,12 @@ class ChoiceStanzaSpec extends BaseSpec {
   "Page building" must {
     "be able to detect UnknownTestType error" in {
       onePageJsonWithInvalidTestType.as[JsObject].validate[Process] match {
-        case JsSuccess(_, _) => fail
+        case JsSuccess(_, _) => fail()
         case JsError(errs) =>
           GuidanceError.fromJsonValidationErrors(errs) match {
-            case Nil => fail
+            case Nil => fail()
             case UnknownTestType("3", "UnknownType") :: _ => succeed
-            case _ => fail
+            case _ => fail()
           }
       }
 

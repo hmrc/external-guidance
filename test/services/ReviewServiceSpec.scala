@@ -99,7 +99,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
             entry.ocelotId shouldBe validId
             entry.title shouldBe approvalProcessReview.title
             entry.pages.size shouldBe 1
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -117,7 +117,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
 
         whenReady(service.approvalReviewInfo(validId, ReviewType2i)) {
           case Left(DuplicateKeyError) => succeed
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -133,7 +133,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
 
         whenReady(service.approvalReviewInfo(validId, ReviewTypeFactCheck)) {
           case result @ Left(_) => result shouldBe expected
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -149,7 +149,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
 
         whenReady(service.approvalReviewInfo(validId, ReviewType2i)) {
           case result @ Left(_) => result shouldBe expected
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -173,7 +173,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
 
         whenReady(service.approvalReviewInfo(validId, ReviewTypeFactCheck)) {
           case result @ Left(_) => result shouldBe expected
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -197,7 +197,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
 
         whenReady(service.approvalReviewInfo(validId, ReviewType2i)) {
           case result @ Left(_) => result shouldBe expected
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -960,9 +960,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
           .getByIdVersionAndType(validId, ReviewType2i)
           .returns(Future.successful(Right(approvalProcessReviewComplete)))
 
-        private val getReviewInfoPrivateMethod = PrivateMethod[Future[RequestOutcome[ProcessReview]]]('getReviewInfo)
-
-        whenReady(service invokePrivate getReviewInfoPrivateMethod(validId, ReviewType2i, 1)) { result =>
+        whenReady(service.getReviewInfo(validId, ReviewType2i, 1)) { result =>
           result shouldBe expected
         }
       }
@@ -976,9 +974,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
           .getByIdVersionAndType(validId, ReviewType2i)
           .returns(Future.successful(Left(NotFoundError)))
 
-        private val getReviewInfoPrivateMethod = PrivateMethod[Future[RequestOutcome[ProcessReview]]]('getReviewInfo)
-
-        whenReady(service invokePrivate getReviewInfoPrivateMethod(validId, ReviewType2i, 1)) { result =>
+        whenReady(service.getReviewInfo(validId, ReviewType2i, 1)) { result =>
           result shouldBe expected
         }
       }
@@ -992,9 +988,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
           .getByIdVersionAndType(validId, ReviewType2i)
           .returns(Future.successful(Left(DatabaseError)))
 
-        private val getReviewInfoPrivateMethod = PrivateMethod[Future[RequestOutcome[ProcessReview]]]('getReviewInfo)
-
-        whenReady(service invokePrivate getReviewInfoPrivateMethod(validId, ReviewType2i, 1)) { result =>
+        whenReady(service.getReviewInfo(validId, ReviewType2i, 1)) { result =>
           result shouldBe expected
         }
       }

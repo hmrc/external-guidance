@@ -44,7 +44,7 @@ class ApprovalRepository @Inject() (component: MongoComponent)(implicit ec: Exec
 
     collection
       .deleteOne(equal("_id", id))
-      .toFuture
+      .toFuture()
       .map { _ =>
         Right(id)
       }

@@ -258,7 +258,7 @@ class TimescalesServiceSpec extends BaseSpec {
 
         whenReady(target.save(timescalesJson, credId, user, email, Nil)) {
           case Right(response) if response == timescalesResponse => succeed
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -285,8 +285,8 @@ class TimescalesServiceSpec extends BaseSpec {
 
         whenReady(target.save(timescalesJsonWithDeletion, credId, user, email, List("First"))) {
           case Right(response) if response.lastUpdate.map(_.retainedDeletions).contains(List("First")) => succeed
-          case Right(response) => fail
-          case Left(_) => fail
+          case Right(response) => fail()
+          case Left(_) => fail()
         }
       }
     }
@@ -303,7 +303,7 @@ class TimescalesServiceSpec extends BaseSpec {
           .returns(Future.successful(Left(DatabaseError)))
 
         whenReady(target.save(timescalesJsonWithDeletion, credId, user, email, Nil)) {
-          case Right(response) => fail
+          case Right(response) => fail()
           case Left(_) => succeed
         }
       }
@@ -314,9 +314,9 @@ class TimescalesServiceSpec extends BaseSpec {
         val invalidTs: JsValue =  Json.parse("""{"Hello": "World"}""")
 
         whenReady(target.save(invalidTs, credId, user, email, Nil)) {
-          case Right(_) => fail
+          case Right(_) => fail()
           case Left(ValidationError) => succeed
-          case err => fail
+          case err => fail()
         }
       }
     }
@@ -345,7 +345,7 @@ class TimescalesServiceSpec extends BaseSpec {
 
         whenReady(target.save(timescalesJson, credId, user, email, Nil)) {
           case result @ Left(_) => result shouldBe Left(InternalServerError)
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -358,7 +358,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .get("1")
         .returns(Future.successful(Right(timescalesUpdate)))
 
-      whenReady(target.get) { result =>
+      whenReady(target.get()) { result =>
         result shouldBe Right(timescales)
       }
     }
@@ -368,7 +368,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .get("1")
         .returns(Future.successful(Left(NotFoundError)))
 
-      whenReady(target.get) { result =>
+      whenReady(target.get()) { result =>
         result shouldBe Right(timescales)
       }
     }
@@ -378,7 +378,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .get("1")
         .returns(Future.successful(Left(DatabaseError)))
 
-      whenReady(target.get) { result =>
+      whenReady(target.get()) { result =>
         result shouldBe Left(InternalServerError)
       }
     }
@@ -428,7 +428,7 @@ class TimescalesServiceSpec extends BaseSpec {
       whenReady(target.updateProcessTimescaleTable(jsonWithBlankTsTable)) { result =>
         result match {
           case Right(json) => (json.as[Process]).timescales shouldBe timescales
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -437,7 +437,7 @@ class TimescalesServiceSpec extends BaseSpec {
       whenReady(target.updateProcessTimescaleTable(jsonWithNoTsTable)) { result =>
         result match {
           case Right(json) => (json.as[Process]).timescales shouldBe Map()
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -446,7 +446,7 @@ class TimescalesServiceSpec extends BaseSpec {
       val update = Json.parse("{}").as[JsObject]
       whenReady(target.updateProcessTimescaleTable(update)) { result =>
         result match {
-          case Right(_) => fail
+          case Right(_) => fail()
           case Left(err) => err shouldBe ValidationError
         }
       }
@@ -460,7 +460,7 @@ class TimescalesServiceSpec extends BaseSpec {
       whenReady(target.updateProcessTimescaleTable(jsonWithBlankTsTable)) { result =>
         result match {
           case Right(json) => (json.as[Process]).timescales shouldBe timescales
-          case _ => fail
+          case _ => fail()
         }
       }
     }

@@ -312,24 +312,25 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
           }
           case errs => {
             fail(s"Failed with errors: $errs")}
-        }, _ => fail)
+        }, _ => fail())
     }
 
     "detect UnknownCalloutType" in {
       val guidanceErrors: List[GuidanceError] =
         List(
-          UnknownInputType("34", "UnknownInputType"),
-          LinksParseError("0", "error.path.missing", ""),
-          PhrasesParseError("5", "error.minLength","2"),
           UnknownStanza("2", "UnknownStanza"),
           FlowParseError("5", """'type' is undefined on object: {"next":["end"],"noteType":"Error","stack":false,"text":59}""", """/flow/5"""),
+          PhrasesParseError("5", "error.minLength","2"),
           UnknownCalloutType("4", "UnknownType"),
-          UnknownValueType("33", "AnUnknownType"),
-          MetaParseError("ocelot", "error.path.missing", ""))
+          LinksParseError("0", "error.path.missing", ""),
+          UnknownInputType("34", "UnknownInputType"),
+          MetaParseError("ocelot", "error.path.missing", ""),
+          UnknownValueType("33", "AnUnknownType"))
 
       val jsObject = assortedParseErrorsJson
       val result = jsObject.as[JsObject].validate[Process].fold(
-        errs => Left(GuidanceError.fromJsonValidationErrors(errs)),
+        errs =>
+          Left(GuidanceError.fromJsonValidationErrors(errs)),
         process => {
           pageBuilder.pages(process, process.startPageId).fold(errs => Left(errs),
             pages => Right((process, pages, jsObject))
@@ -340,7 +341,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
         {
           case errors if errors == guidanceErrors => succeed
           case errs => fail(s"Failed with errors: $errs")
-        }, _ => fail)
+        }, _ => fail())
     }
 
     "pass as valid exclusive sequence with a single exclusive option" in {

@@ -30,7 +30,7 @@ class PageBuilder @Inject() (val timescales: Timescales) extends ProcessPopulati
   def buildPage(key: String, process: Process): Either[GuidanceError, Page] = {
 
     @tailrec
-    def collectStanzas(keys: Seq[String],
+    def collectStanzas(keys: List[String],
                        pageStanza: Option[PageStanza] = None,
                        ids: Seq[String] = Nil,
                        stanzas: Seq[PopulatedStanza] = Nil,
@@ -38,8 +38,8 @@ class PageBuilder @Inject() (val timescales: Timescales) extends ProcessPopulati
                        endFound: Boolean = false): Either[GuidanceError, (Option[PageStanza], Seq[String], Seq[PopulatedStanza], Seq[String], Boolean)] =
       keys match {
         case Nil => Right((pageStanza, ids, stanzas, next, endFound))                                        // End Page
-        case key +: xs if ids.contains(key) => collectStanzas(xs, pageStanza, ids, stanzas, next, endFound)  // Already encountered, possibly more paths
-        case key +: xs =>
+        case key :: xs if ids.contains(key) => collectStanzas(xs, pageStanza, ids, stanzas, next, endFound)  // Already encountered, possibly more paths
+        case key :: xs =>
           (stanza(key, process), xs ) match {
             case (Right(_: PageStanza), _) if ids.nonEmpty => collectStanzas(xs, pageStanza, ids, stanzas, key +: next, endFound) // End, possibly more paths
             case (Right(s: PageStanza), _) => collectStanzas(xs ++ s.next, Some(s), ids :+ key, stanzas :+ s, next, endFound)     // Beginning of page
@@ -56,27 +56,28 @@ class PageBuilder @Inject() (val timescales: Timescales) extends ProcessPopulati
         val ks: Seq[KeyedStanza] = ids.zip(stanzas).map(t => KeyedStanza(t._1, t._2))
         Right(Page(ks.head.key, p.url, ks, next, endPage))
       case Left(err) => Left(err)
+      case Right((None, _, _, _, _)) => Left(PageStanzaMissing(key))
     }
   }
 
-  def pages(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], Seq[Page]] =
+  def pages(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], List[Page]] =
     pagesByKeys(List(start), Nil)(process) match {
       case Left(err) => Left(List(err))
       case Right(pages) => Right(pages)
     }
 
   @tailrec
-  private def pagesByKeys(keys: Seq[String], acc: Seq[Page])(implicit process: Process): Either[GuidanceError, Seq[Page]] =
+  private def pagesByKeys(keys: List[String], acc: List[Page])(implicit process: Process): Either[GuidanceError, List[Page]] =
     keys match {
       case Nil => Right(acc)
-      case key +: xs if !acc.exists(_.id == key) =>
+      case key :: xs if !acc.exists(_.id == key) =>
         buildPage(key, process) match {
           case Right(page) =>
-            pagesByKeys(page.next ++ xs ++ page.linked, acc :+ page)
+            pagesByKeys(page.next.toList ++ xs ++ page.linked, acc :+ page)
           case Left(err) =>
             logger.error(s"Page building failed with error - $err")
             Left(err)
         }
-      case _ +: xs => pagesByKeys(xs, acc)
+      case _ :: xs => pagesByKeys(xs, acc)
     }
 }

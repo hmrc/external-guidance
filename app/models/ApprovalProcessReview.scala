@@ -37,7 +37,7 @@ case class ApprovalProcessReview(
 
 object ApprovalProcessReview {
 
-  implicit val pageReviewFormat = ApprovalProcessPageReview.mongoFormat
+  implicit val pageReviewFormat: OFormat[ApprovalProcessPageReview] = ApprovalProcessPageReview.mongoFormat
 
   implicit val reads: Reads[ApprovalProcessReview] = (
     (__ \ "_id").read[UUID] and

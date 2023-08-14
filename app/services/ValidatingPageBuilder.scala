@@ -17,7 +17,7 @@
 package services
 
 import javax.inject.{Inject, Singleton}
-import core.services.{PageBuilder, processIdformat}
+import core.services.PageBuilder
 import core.models.ocelot._
 import core.models.ocelot.stanzas._
 import core.models.ocelot.errors._
@@ -92,10 +92,10 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
     }
 
   @tailrec
-  private def confirmInputPageErrorCallouts(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
+  private def confirmInputPageErrorCallouts(pages: List[Page], errors: List[GuidanceError]): List[GuidanceError] = {
 
     @tailrec
-    def inputCalloutState(stanzas: Seq[PopulatedStanza],
+    def inputCalloutState(stanzas: List[PopulatedStanza],
                           requiredError: Boolean = false,
                           typeError: Boolean = false,
                           input: Option[DataInput] = None):(Boolean, Boolean, Option[DataInput]) =
@@ -110,7 +110,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
       pages match {
         case Nil => errors
         case x :: xs =>
-          inputCalloutState(x.stanzas) match {
+          inputCalloutState(x.stanzas.toList) match {
             case (_, _, None) => confirmInputPageErrorCallouts(xs, errors)
             case (true, _, Some(x: Question)) => confirmInputPageErrorCallouts(xs, errors)
             case (true, _, Some(x: Sequence)) => confirmInputPageErrorCallouts(xs, errors)
@@ -122,7 +122,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
   }
 
   @tailrec
-  private def confirmPageTitles(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
+  private def confirmPageTitles(pages: List[Page], errors: List[GuidanceError]): List[GuidanceError] = {
     def missingPageTitle(p: Page): Boolean =
       p.stanzas.collectFirst{
         case _: TitleCallout => ()
@@ -138,16 +138,16 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
   }
 
   @tailrec
-  private def checkForInvalidLabelNames(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
+  private def checkForInvalidLabelNames(pages: List[Page], errors: List[GuidanceError]): List[GuidanceError] = {
     def stanzaLabelNameErrors(ks: KeyedStanza): List[GuidanceError] = ks.stanza.labels.collect{case l if !labelNameValid(l) => InvalidLabelName(ks.key)}
     pages match {
       case Nil => errors
-      case p +: xs => checkForInvalidLabelNames(xs, p.keyedStanzas.toList.flatMap(stanzaLabelNameErrors) ++ errors)
+      case p :: xs => checkForInvalidLabelNames(xs, p.keyedStanzas.toList.flatMap(stanzaLabelNameErrors) ++ errors)
     }
   }
 
   @tailrec
-  private def checkDateInputErrorCallouts(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] = {
+  private def checkDateInputErrorCallouts(pages: List[Page], errors: List[GuidanceError]): List[GuidanceError] = {
     def checkCalloutSufficiency(pId: String, callouts: Seq[Callout]): List[GuidanceError] =
       callouts
        .map(co => (co, EmbeddedParameterRegex.findAllIn(co.text.english).length))
@@ -159,7 +159,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
 
     pages match {
       case Nil => errors
-      case p +: xs => p.stanzas.collect{case d: DateInput => d} match {
+      case p :: xs => p.stanzas.collect{case d: DateInput => d} match {
         case Nil => checkDateInputErrorCallouts(xs, errors)
         case _ =>
         checkDateInputErrorCallouts(xs, checkCalloutSufficiency(p.id, p.stanzas.collect{case e: ErrorCallout => e}) ++
@@ -168,37 +168,37 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
     }
   }
 
-  private def detectUnsupportedPageRedirect(pages: Seq[Page]): Seq[GuidanceError] = {
+  private def detectUnsupportedPageRedirect(pages: List[Page]): Seq[GuidanceError] = {
     val pageIds = pages.map(_.id)
 
     @tailrec
-    def traverse(keys: Seq[String], pageStanzas: Map[String, Stanza], seen: List[String]): Option[String] =
+    def traverse(keys: List[String], pageStanzas: Map[String, Stanza], seen: List[String]): Option[String] =
       keys match {
         case Nil => None
-        case x +: xs if seen.contains(x) => traverse(xs, pageStanzas, seen)
-        case x +: xs => pageStanzas.get(x) match {
+        case x :: xs if seen.contains(x) => traverse(xs, pageStanzas, seen)
+        case x :: xs => pageStanzas.get(x) match {
           case None => traverse(xs, pageStanzas, x :: seen)
           case Some(_: DataInput) => traverse(xs, pageStanzas, x :: seen)
           case Some(s: Choice) if s.next.exists(n => pageIds.contains(n)) => Some(x)
-          case Some(s: Stanza) => traverse(s.next ++ xs, pageStanzas, x :: seen)
+          case Some(s: Stanza) => traverse(s.next.toList ++ xs, pageStanzas, x :: seen)
         }
       }
 
     pages.flatMap{p =>
-      traverse(Seq(p.id), p.keyedStanzas.map(ks => (ks.key, ks.stanza)).toMap, Nil).map(id => PageRedirectNotSupported(id))
+      traverse(List(p.id), p.keyedStanzas.map(ks => (ks.key, ks.stanza)).toMap, Nil).map(id => PageRedirectNotSupported(id))
     }
   }
 
   @tailrec
-  private def duplicateUrlErrors(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] =
+  private def duplicateUrlErrors(pages: List[Page], errors: List[GuidanceError]): List[GuidanceError] =
     pages match {
       case Nil => errors
-      case x +: xs if xs.exists(_.url == x.url) => duplicateUrlErrors(xs, DuplicatePageUrl(x.id, x.url) :: errors)
-      case _ +: xs => duplicateUrlErrors(xs, errors)
+      case x :: xs if xs.exists(_.url == x.url) => duplicateUrlErrors(xs, DuplicatePageUrl(x.id, x.url) :: errors)
+      case _ :: xs => duplicateUrlErrors(xs, errors)
     }
 
   @tailrec
-  private def checkForUseOfReservedUrls(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] =
+  private def checkForUseOfReservedUrls(pages: List[Page], errors: List[GuidanceError]): List[GuidanceError] =
     pages match {
       case Nil => errors
       case x :: xs if Process.ReservedUrls.contains(x.url) => checkForUseOfReservedUrls(xs, UseOfReservedUrl(x.id) :: errors)
@@ -206,7 +206,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
     }
 
   @tailrec
-  private def checkExclusiveSequenceTypeError(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] =
+  private def checkExclusiveSequenceTypeError(pages: List[Page], errors: List[GuidanceError]): List[GuidanceError] =
     pages match {
       case Nil => errors
       case p :: xs if p.stanzas.collectFirst{case seq: Sequence => seq}.fold(false)(seq => seq.exclusive.nonEmpty) &&
@@ -277,10 +277,10 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
     }
 
   @tailrec
-  private def checkDataInputPages(pages: Seq[Page], errors: List[GuidanceError]): List[GuidanceError] =
+  private def checkDataInputPages(pages: List[Page], errors: List[GuidanceError]): List[GuidanceError] =
     pages match {
       case Nil => errors
-      case x +: xs =>
+      case x :: xs =>
         x.keyedStanzas.find(
           _.stanza match {
             case _: DataInput => true
@@ -290,7 +290,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
           case Some(d) =>
             val stanzaMap: Map[String, Stanza] = x.keyedStanzas.map(ks => (ks.key, ks.stanza)).toMap
             val leadingStanzaIds: List[String] = stanzasBeforeDataInput(List(x.keyedStanzas.head.key), stanzaMap, Nil, Nil)
-            val anyErrors = checkDataInputFollowers(d.stanza.next, stanzaMap, leadingStanzaIds, Nil)
+            val anyErrors = checkDataInputFollowers(d.stanza.next.toList, stanzaMap, leadingStanzaIds, Nil)
             checkDataInputPages(xs, anyErrors ++ errors)
         }
     }
@@ -308,19 +308,18 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
     }
 
   @tailrec
-  private def checkDataInputFollowers(
-                                       p: Seq[String],
+  private def checkDataInputFollowers( p: List[String],
                                        keyedStanzas: Map[String, Stanza],
                                        leadingStanzaIds: List[String],
                                        seen: List[String]): List[GuidanceError] =
     p match {
       case Nil => Nil
-      case x +: xs if seen.contains(x) => checkDataInputFollowers(xs, keyedStanzas, leadingStanzaIds, seen)
-      case x +: _ if leadingStanzaIds.contains(x) && leadingStanzaIds.indexOf(x) != 1 => List(ErrorRedirectToFirstNonPageStanzaOnly(x))
-      case x +: xs if leadingStanzaIds.contains(x) => checkDataInputFollowers(xs, keyedStanzas, leadingStanzaIds, x :: seen)
-      case x +: xs if !keyedStanzas.contains(x) => checkDataInputFollowers(xs, keyedStanzas, leadingStanzaIds, x :: seen)
-      case x +: _ if keyedStanzas(x).visual => List(VisualStanzasAfterDataInput(x))
-      case x +: xs => checkDataInputFollowers(keyedStanzas(x).next ++ xs, keyedStanzas, leadingStanzaIds, x :: seen)
+      case x :: xs if seen.contains(x) => checkDataInputFollowers(xs, keyedStanzas, leadingStanzaIds, seen)
+      case x :: _ if leadingStanzaIds.contains(x) && leadingStanzaIds.indexOf(x) != 1 => List(ErrorRedirectToFirstNonPageStanzaOnly(x))
+      case x :: xs if leadingStanzaIds.contains(x) => checkDataInputFollowers(xs, keyedStanzas, leadingStanzaIds, x :: seen)
+      case x :: xs if !keyedStanzas.contains(x) => checkDataInputFollowers(xs, keyedStanzas, leadingStanzaIds, x :: seen)
+      case x :: _ if keyedStanzas(x).visual => List(VisualStanzasAfterDataInput(x))
+      case x :: xs => checkDataInputFollowers(keyedStanzas(x).next.toList ++ xs, keyedStanzas, leadingStanzaIds, x :: seen)
     }
 
 }

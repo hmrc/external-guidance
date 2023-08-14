@@ -97,10 +97,10 @@ class Timescales @Inject() (tp: TodayProvider) extends TimescaleExpansion {
         }{_ => longOrShort(m, todaysDate)}
       }{literal => literal}
 
-    timescalesRegex.replaceAllIn(str, m =>
+    timescalesRegex.replaceAllIn(str, m => {
       Option(m.group(TimescaleIdGroup)).fold(dateTimescale(m)){tsId =>
-        timescaleDefns.getOrElse(tsId, m.group(0)).toString
+        timescaleDefns.get(tsId).fold(m.group(0))(_.toString)
       }
-    )
+    })
   }
 }

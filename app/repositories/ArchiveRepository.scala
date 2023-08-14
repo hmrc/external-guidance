@@ -74,7 +74,7 @@ class ArchiveRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: Execu
 
     collection
       .findOneAndUpdate(selector, modifier, FindOneAndUpdateOptions().upsert(true))
-      .toFutureOption
+      .toFutureOption()
       .map (_ => Right(id))
       .recover {
         case error =>
@@ -103,8 +103,8 @@ class ArchiveRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: Execu
     collection
       .withReadPreference(ReadPreference.primaryPreferred())
       .find()
-      .collect
-      .toFutureOption
+      .collect()
+      .toFutureOption()
       .map{
         case None => Right(Nil)
         case Some(res) =>

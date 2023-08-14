@@ -53,7 +53,7 @@ class CalculationSpec extends BaseSpec {
     "Fail to contruct from invalid Json" in {
       Json.parse(opJson("[label:X]", "[label:Y]", "label", "ad")).validate[Operation] match {
         case _: JsError => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
   }
@@ -75,7 +75,7 @@ class CalculationSpec extends BaseSpec {
     "Fail to contruct from invalid Json" in {
       Json.parse(opJson("[label:X]", "[label:Y]", "label", "ad")).validate[Operation] match {
         case _: JsError => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
   }
@@ -97,7 +97,7 @@ class CalculationSpec extends BaseSpec {
     "Fail to contruct from invalid Json" in {
       Json.parse(opJson("[label:X]", "[label:Y]", "label", "mul")).validate[Operation] match {
         case _: JsError => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
   }
@@ -119,7 +119,7 @@ class CalculationSpec extends BaseSpec {
     "Fail to contruct from invalid Json" in {
       Json.parse(opJson("[label:X]", "[label:Y]", "label", "di")).validate[Operation] match {
         case _: JsError => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
   }
@@ -141,7 +141,7 @@ class CalculationSpec extends BaseSpec {
     "Fail to contruct from invalid Json" in {
       Json.parse(opJson("[label:X]", "[label:Y]", "label", "ad")).validate[Operation] match {
         case _: JsError => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
   }
@@ -163,7 +163,7 @@ class CalculationSpec extends BaseSpec {
     "Fail to contruct from invalid Json" in {
       Json.parse(opJson("[label:X]", "[label:Y]", "label", "ad")).validate[Operation] match {
         case _: JsError => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
   }
@@ -210,7 +210,7 @@ class CalculationSpec extends BaseSpec {
     "Fail to contruct from invalid Json" in {
       Json.parse(invalidJson).validate[Calculation] match {
         case _: JsError => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
   }

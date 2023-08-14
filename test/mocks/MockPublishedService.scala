@@ -57,8 +57,8 @@ trait MockPublishedService extends MockFactory {
         .expects()
 
     def list: CallHandler[Future[RequestOutcome[JsValue]]] =
-      (mockPublishedService
-        .list _)
+      (() => mockPublishedService
+        .list)
         .expects()
 
   }

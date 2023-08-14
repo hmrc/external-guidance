@@ -41,7 +41,7 @@ class GetPublishedProcessISpec extends IntegrationSpec {
 
     lazy val response: WSResponse = {
       AuditStub.audit()
-      await(request.get)
+      await(request.get())
     }
 
     "return an OK status" ignore {
@@ -66,7 +66,7 @@ class GetPublishedProcessISpec extends IntegrationSpec {
 
     lazy val response: WSResponse = {
       AuditStub.audit()
-      await(request.get)
+      await(request.get())
     }
 
     "return a not found status" in {

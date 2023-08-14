@@ -113,7 +113,7 @@ class ArchiveServiceSpec extends BaseSpec {
             val entry = list.head
             entry.id shouldBe processSummary.id
             entry.status shouldBe processSummary.status
-          case _ => fail
+          case _ => fail()
         }
       }
     }

@@ -43,7 +43,7 @@ class ScratchRepository @Inject() (component: MongoComponent)(implicit ec: Execu
     logger.info(s"[test-only] Deleting scratch process with the ID $id")
     collection
       .deleteOne(equal("_id", id))
-      .toFuture
+      .toFuture()
       .map { _ =>
         Right(id)
       }

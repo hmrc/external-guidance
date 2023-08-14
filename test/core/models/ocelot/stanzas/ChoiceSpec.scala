@@ -53,7 +53,7 @@ class ChoiceSpec extends BaseSpec {
     "Fail to contruct from invalid Json" in {
       Json.parse(testJson("[label:X]", "[label:Y]", "e")).validate[ChoiceTest] match {
         case _: JsError => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
   }
@@ -75,7 +75,7 @@ class ChoiceSpec extends BaseSpec {
     "Fail to contruct from invalid Json" in {
       Json.parse(testJson("[label:X]", "[label:Y]", "e")).validate[ChoiceTest] match {
         case _: JsError => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
   }
@@ -97,7 +97,7 @@ class ChoiceSpec extends BaseSpec {
     "Fail to contruct from invalid Json" in {
       Json.parse(testJson("[label:X]", "[label:Y]", "e")).validate[ChoiceTest] match {
         case _: JsError => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
   }
@@ -119,7 +119,7 @@ class ChoiceSpec extends BaseSpec {
     "Fail to contruct from invalid Json" in {
       Json.parse(testJson("[label:X]", "[label:Y]", "e")).validate[ChoiceTest] match {
         case _: JsError => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
   }
@@ -141,7 +141,7 @@ class ChoiceSpec extends BaseSpec {
     "Fail to contruct from invalid Json" in {
       Json.parse(testJson("[label:X]", "[label:Y]", "e")).validate[ChoiceTest] match {
         case _: JsError => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
   }
@@ -163,7 +163,7 @@ class ChoiceSpec extends BaseSpec {
     "Fail to contruct from invalid Json" in {
       Json.parse(testJson("[label:X]", "[label:Y]", "e")).validate[ChoiceTest] match {
         case _: JsError => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
   }
@@ -185,7 +185,7 @@ class ChoiceSpec extends BaseSpec {
     "Fail to contruct from invalid Json" in {
       Json.parse(testJson("[label:X]", "[label:Y]", "e")).validate[ChoiceTest] match {
         case _: JsError => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
   }
@@ -235,7 +235,7 @@ class ChoiceSpec extends BaseSpec {
     "Fail to contruct from invalid Json" in {
       Json.parse(invalidJson).validate[Choice] match {
         case _: JsError => succeed
-        case _ => fail
+        case _ => fail()
       }
     }
   }

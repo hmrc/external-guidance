@@ -83,7 +83,7 @@ class ProcessSpec extends BaseSpec with ProcessJson {
       //case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase], links: Vector[Link], timescales: Map[String, Int] = Map())
       val newValueStanza = flow(blankValueStanzaID) match {
         case v: ValueStanza => v.copy(values = List(Value(ScalarType, s"${Process.PhaseBannerPhase}", "Yes")))
-        case _ => fail
+        case _ => fail()
       }
       val newFlow = flow + (blankValueStanzaID -> newValueStanza)
       Process(meta, newFlow, phrases, links).betaPhaseBanner shouldBe true
@@ -94,7 +94,7 @@ class ProcessSpec extends BaseSpec with ProcessJson {
       //case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase], links: Vector[Link], timescales: Map[String, Int] = Map())
       val newValueStanza = flow(blankValueStanzaID) match {
         case v: ValueStanza => v.copy(values = List(Value(ScalarType, s"${Process.PhaseBannerPhase}", "no")))
-        case _ => fail
+        case _ => fail()
       }
       val newFlow = flow + (blankValueStanzaID -> newValueStanza)
       Process(meta, newFlow, phrases, links).betaPhaseBanner shouldBe false

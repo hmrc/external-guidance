@@ -73,7 +73,7 @@ object GuidanceError {
   // Some flow errors add a hint the to JsonValidationError message to indicate that an
   // unsupported type/stanza or option has been found. Other validation errors are
   // converted to a general parse error for the containing section
-  def fromJsonValidationError(err: (JsPath, Seq[JsonValidationError])): GuidanceError = {
+  def fromJsonValidationError(err: (JsPath, scala.collection.Seq[JsonValidationError])): GuidanceError = {
 
     def flowError(jsPath: JsPath, id: String, arg: String, msg: String, msgs: Seq[String]): FlowError =
       msgs.headOption.collect{
@@ -85,11 +85,11 @@ object GuidanceError {
         case "CalcOperationType" => UnknownCalcOperationType(id, arg)
       }.getOrElse(FlowParseError(id, msg, jsPath.toString))
 
-    val (jsPath, errs) = err
-    val id = jsPath.path.lift(1).getOrElse("/Unknown").toString.drop(1)
+    val (jsPath: JsPath, errs) = err
+    val id = (jsPath.path.lift(1).fold("/unknown")(pathNode => pathNode.toString)).drop(1)
     val mainError = errs.head
     val arg = mainError.args.headOption.fold("")(_.toString)
-    jsPath.path.headOption.getOrElse("/").toString match {
+    jsPath.path.headOption.fold("/unknown")(pathNode => pathNode.toString) match {
       case "/flow" => flowError(jsPath, id, arg, mainError.message, mainError.messages)
       case "/meta" => MetaParseError(id, mainError.message, arg)
       case "/phrases" => PhrasesParseError(id.dropRight(1), mainError.message, arg)
@@ -98,6 +98,6 @@ object GuidanceError {
     }
   }
 
-  def fromJsonValidationErrors(jsErrors: Seq[(JsPath, Seq[JsonValidationError])]): List[GuidanceError] =
+  def fromJsonValidationErrors(jsErrors: scala.collection.Seq[(JsPath, scala.collection.Seq[JsonValidationError])]): List[GuidanceError] =
     jsErrors.map(fromJsonValidationError).toList
 }

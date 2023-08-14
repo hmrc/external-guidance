@@ -45,7 +45,7 @@ abstract class ProcessPopulation(timescaleExpansion: TimescaleExpansion) {
       )
 
     def populateQuestion(q: QuestionStanza): Either[GuidanceError, Question] =
-      phrases(q.text +: q.answers, Nil, id, process) match {
+      phrases(q.text :: q.answers.toList, Nil, id, process) match {
         case Right(_) if q.answers.length != q.next.length => Left(InconsistentQuestion(id))
         case Right(texts) => Right(Question(q, texts.head, texts.tail))
         case Left(err) => Left(err)
@@ -61,13 +61,13 @@ abstract class ProcessPopulation(timescaleExpansion: TimescaleExpansion) {
       })
 
     def populateRow(r: RowStanza): Either[GuidanceError, Row] =
-      phrases(r.cells, Nil, id, process) match {
+      phrases(r.cells.toList, Nil, id, process) match {
         case Right(texts) => Right(Row(r, texts, pageLinkIds(texts)))
         case Left(err) => Left(err)
       }
 
     def populateSequence(s: SequenceStanza): Either[GuidanceError, Sequence] =
-      phrases(s.options, Nil, id, process).fold(Left(_), options =>
+      phrases(s.options.toList, Nil, id, process).fold(Left(_), options =>
         options.partition(p => p.english.contains(ExclusivePlaceholder) && p.welsh.contains(ExclusivePlaceholder)) match {
           case (exclusive: Seq[Phrase], _) if exclusive.length > 1 => Left(MultipleExclusiveOptions(id))
           case (exclusive: Seq[Phrase], standard: Seq[Phrase]) =>
@@ -97,6 +97,7 @@ abstract class ProcessPopulation(timescaleExpansion: TimescaleExpansion) {
       case s: SequenceStanza => populateSequence(s)
       case vs: ValueStanza => Right(vs.copy(values = vs.values.map(v => v.copy(value = expand(v.value, process.timescales)))))
       case s: PopulatedStanza => Right(s)
+      case u => Left(UnknownStanza(id, u.toString))
     }
   }
 
@@ -115,10 +116,10 @@ abstract class ProcessPopulation(timescaleExpansion: TimescaleExpansion) {
     }
 
   @tailrec
-  private def phrases(indexes: Seq[Int], acc: Seq[Phrase], stanzaId: String, process: Process): Either[GuidanceError, Seq[Phrase]] =
+  private def phrases(indexes: List[Int], acc: Seq[Phrase], stanzaId: String, process: Process): Either[GuidanceError, Seq[Phrase]] =
     indexes match {
       case Nil => Right(acc)
-      case index +: xs =>
+      case index :: xs =>
         phrase(index, stanzaId, process) match {
           case Right(phrase) => phrases(xs, acc :+ phrase, stanzaId, process)
           case Left(err) => Left(err)

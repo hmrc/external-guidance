@@ -4,19 +4,19 @@ import sbt._
 object AppDependencies {
 
   val compile = Seq(
-    "uk.gov.hmrc"       %% "bootstrap-backend-play-28" % "7.18.0",
-    "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28"        % "0.74.0",
+    "uk.gov.hmrc"       %% "bootstrap-backend-play-28" % "7.21.0",
+    "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28"        % "1.3.0",
     "uk.gov.hmrc"       %% "auth-client"               % "6.1.0-play-28"
   )
 
   val test = Seq(
     "org.scalamock"                %% "scalamock"               % "5.2.0"  % "test",
     "com.typesafe.play"            %% "play-test"               % current  % "test",
-    "uk.gov.hmrc.mongo"            %% "hmrc-mongo-test-play-28" % "0.74.0" % "test",
+    "uk.gov.hmrc.mongo"            %% "hmrc-mongo-test-play-28" % "1.3.0" % "test",
     "org.scalatestplus.play"       %% "scalatestplus-play"      % "5.1.0"  % "test, it",
     "com.github.tomakehurst"       %  "wiremock-jre8"           % "2.35.0" % "test, it",
     "com.fasterxml.jackson.module" %% "jackson-module-scala"    % "2.15.2" % "test, it",
-    "uk.gov.hmrc"                  %% "bootstrap-test-play-28"  % "7.18.0" % "test, it",
-    "com.typesafe.play"            %% "play-akka-http-server"   % "2.8.19" % "test, it"
+    "uk.gov.hmrc"                  %% "bootstrap-test-play-28"  % "7.21.0" % "test, it",
+    "com.typesafe.play"            %% "play-akka-http-server"   % "2.8.20" % "test, it"
   )
 }

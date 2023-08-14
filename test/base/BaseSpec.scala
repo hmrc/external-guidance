@@ -101,7 +101,7 @@ trait TestConstants {
         "day.display.value.7" -> "Dydd Sul"
       )
 
-  def message(lang: Lang)(id: String, param: Any*): String =
+  def message(lang: Lang)(id: String, param: Seq[Any]): String =
     lang.code match {
       case "en" => enmessages(id)
       case "cy" => cymessages(id)

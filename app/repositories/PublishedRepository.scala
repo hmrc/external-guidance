@@ -78,7 +78,7 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
 
     collection
       .findOneAndUpdate(selector, modifier, FindOneAndUpdateOptions().upsert(true))
-      .toFutureOption
+      .toFutureOption()
       .map { _ =>
         Right(id)
       }
@@ -108,10 +108,10 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
 
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]] =
     collection
-      .withReadPreference(ReadPreference.primaryPreferred)
+      .withReadPreference(ReadPreference.primaryPreferred())
       .find(TimescalesInUseQuery)
-      .collect
-      .toFutureOption
+      .collect()
+      .toFutureOption()
       .map{
         case None => Right(Nil)
         case Some(ids) => Right(ids.flatMap(pps => pps.process.validate[Process].fold(_ => Nil, p => p.timescales.keys.toList)).distinct.toList)
@@ -126,7 +126,7 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
   def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]] =
     collection
       .find(equal("processCode", processCode))
-      .headOption
+      .headOption()
       .map {
         case None => Left(NotFoundError)
         case Some(publishedProcess) => Right(publishedProcess)
@@ -140,10 +140,10 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
   def delete(id: String): Future[RequestOutcome[String]] =
     collection
       .deleteOne(equal("_id", id))
-      .toFutureOption
+      .toFutureOption()
       .map {
         case Some(result: DeleteResult) if result.getDeletedCount > 0 => Right(id)
-        case None =>
+        case _ =>
           logger.error(s"Attempt to delete process $id from collection published failed")
           Left(DatabaseError)
       }
@@ -157,8 +157,8 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
     collection
       .withReadPreference(ReadPreference.primaryPreferred())
       .find()
-      .collect
-      .toFutureOption
+      .collect()
+      .toFutureOption()
       .map{
         case None => Right(Nil)
         case Some(res) =>

@@ -22,7 +22,6 @@ import core.services.{Timescales, PageBuilder}
 import base.BaseSpec
 import mocks.{MockAppConfig, MockApprovalProcessReviewRepository, MockApprovalRepository, MockPublishedRepository}
 import models._
-import core.models._
 import core.models.errors._
 import core.models.ocelot.ProcessJson
 import org.scalamock.scalatest.MockFactory
@@ -206,7 +205,7 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
 
         whenReady(service.save(validOnePageJson.as[JsObject], ReviewType2i, StatusSubmittedFor2iReview)) {
           case Left(DuplicateKeyError) => succeed
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -225,7 +224,7 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
 
         whenReady(service.save(validOnePageJson.as[JsObject], ReviewType2i, StatusSubmittedFor2iReview)) {
           case Left(DuplicateKeyError) => succeed
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -254,7 +253,7 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
 
           whenReady(service.save(validOnePageJson.as[JsObject], ReviewType2i, StatusSubmittedFor2iReview)) {
             case result @ Left(_) => result shouldBe expected
-            case _ => fail
+            case _ => fail()
           }
         }
       }
@@ -280,7 +279,7 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
 
           whenReady(service.save(validOnePageJson.as[JsObject], ReviewType2i, StatusSubmittedFor2iReview)) {
             case result @ Left(_) => result shouldBe expected
-            case _ => fail
+            case _ => fail()
           }
         }
       }
@@ -304,7 +303,7 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
 
           whenReady(service.save(validOnePageJson.as[JsObject], ReviewType2i, StatusSubmittedFor2iReview)) {
             case result @ Left(_) => result shouldBe expected
-            case _ => fail
+            case _ => fail()
           }
         }
       }
@@ -322,7 +321,7 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
       "return a HTTP 422 error" in new Test {
         whenReady(service.save(invalidProcess, ReviewType2i, StatusSubmittedFor2iReview)) {
           case result @ Left(err) if err.code == Error.UnprocessableEntity => succeed
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -342,7 +341,7 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
 
         whenReady(service.save(validOnePageJson.as[JsObject], ReviewType2i, StatusSubmittedFor2iReview)) {
           case result @ Left(_) => result shouldBe expected
-          case _ => fail
+          case _ => fail()
         }
       }
     }
@@ -368,7 +367,7 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
             entry.title shouldBe approvalProcessSummary.title
             entry.status shouldBe approvalProcessSummary.status
             entry.reviewType shouldBe approvalProcessSummary.reviewType
-          case _ => fail
+          case _ => fail()
         }
       }
     }

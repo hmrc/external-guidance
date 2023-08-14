@@ -45,7 +45,7 @@ class ApprovalProcessReviewRepository @Inject() (implicit component: MongoCompon
 
     collection
       .deleteOne(equal("ocelotId",id))
-      .toFuture
+      .toFuture()
       .map { _ =>
         Right(id)
       }

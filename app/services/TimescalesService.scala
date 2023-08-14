@@ -93,7 +93,7 @@ class TimescalesService @Inject() (
                 case inUseDeletions =>
                   logger.warn(s"TIMESCALES: Timescale deletions still in-use retained: ${inUseDeletions.mkString(",")}")
                   // Save new timescales retaining the in-use deletions
-                  saveTimescales(ts.filterKeys(inUseDeletions.contains(_)) ++ mp, credId, user, email, inUseDeletions)
+                  saveTimescales(ts.view.filterKeys(inUseDeletions.contains(_)).toMap ++ mp, credId, user, email, inUseDeletions)
               }
           }
         case Left(NotFoundError) => saveTimescales(mp, credId, user, email)

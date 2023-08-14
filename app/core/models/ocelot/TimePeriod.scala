@@ -18,7 +18,7 @@ package core.models.ocelot
 
 import java.time.LocalDate
 
-trait TimeUnit
+sealed trait TimeUnit
 
 case object Day extends TimeUnit
 case object Week extends TimeUnit
