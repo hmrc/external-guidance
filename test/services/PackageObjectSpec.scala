@@ -18,7 +18,6 @@ package services
 
 import base.BaseSpec
 import core.models.errors.Error
-import core.models.errors.Error._
 import mocks.mockAppConfig
 import core.models.ocelot._
 import core.models.ocelot.errors.LanguageLinkIdsDiffer
@@ -167,11 +166,8 @@ class PackageObjectSpec extends BaseSpec with ProcessJson {
       MockTimescalesService.get().returns(Future.successful(Right(Map())))
 
       whenReady(guidancePagesAndProcess(validatingPageBuilder, jsonWithDiffLangIds.as[JsObject], mockTimescalesService)(MockAppConfig, ec)){
-        case Left(Error(List(LanguageLinkIdsDiffer("", "1")))) =>
-          succeed
-        case Right(_) =>
-          fail()
-
+        case Left(Error(_, List(LanguageLinkIdsDiffer("", "1")), _, _)) => succeed
+        case _ => fail()
       }
     }
   }
