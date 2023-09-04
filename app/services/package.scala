@@ -35,7 +35,6 @@ package object services {
         val linkIdErrors: List[GuidanceError] = p.phrases.zipWithIndex.collect{
           case (Phrase(e, w), idx) if pageLinkIds(e).sorted != pageLinkIds(w).sorted => LanguageLinkIdsDiffer("", idx.toString)
         }.toList
-        println(s"##########$linkIdErrors")
         pb.pagesWithValidation(p, p.startPageId, checkLevel).fold(
           errs => Future.successful(Left(Error(errs ++ linkIdErrors))),
           pages => linkIdErrors match {
