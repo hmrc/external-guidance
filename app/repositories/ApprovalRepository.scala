@@ -65,6 +65,7 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
     with ApprovalRepository {
 
   val logger: Logger = Logger(getClass)
+  override lazy val requiresTtlIndex = false
 
       //$COVERAGE-OFF$
 

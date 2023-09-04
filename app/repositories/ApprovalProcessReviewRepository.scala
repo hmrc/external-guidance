@@ -58,6 +58,7 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoCompon
     )
     with ApprovalProcessReviewRepository {
   val logger: Logger = Logger(getClass)
+  override lazy val requiresTtlIndex = false
 
   def save(review: ApprovalProcessReview): Future[RequestOutcome[UUID]] =
     collection
