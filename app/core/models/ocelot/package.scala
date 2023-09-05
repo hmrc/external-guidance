@@ -63,7 +63,7 @@ package object ocelot {
   val timeConstantPattern: String = s"^($TenDigitIntPattern)\\s*(days?|weeks?|months?|years?)$$"
   val PositiveIntListPattern: String = s"^$TenDigitIntPattern(?:,$TenDigitIntPattern)*$$"
   val DatePlaceHolderPattern: String = s"\\[date:($DatePattern|$LabelPattern)?:(year|month|month_start|month_end|month_name|dow|dow_name|day)\\]"
-  val listPattern: String = s"\\[list:($LabelNamePattern):(length|first|last|$TenDigitIntPattern)\\]"
+  val listPattern: String = s"\\[list:($LabelNamePattern):(length|first|last|$TenDigitIntPattern|$LabelPattern)\\]"
   val operandPattern: String = s"^$LabelPattern|$listPattern|$DateAddPattern|$DatePlaceHolderPattern$$"
   val operandRegex: Regex = operandPattern.r
   val UiExpansionPattern: String = s"$LabelPattern|$listPattern|$DateAddPattern|$DatePlaceHolderPattern"
@@ -104,13 +104,15 @@ package object ocelot {
   val LabelNameGroup: Int = 1
   val LabelOutputFormatGroup: Int = 2
   val ListLabelNameGroup: Int = 3
-  val ListLabelIndexGroup: Int = 4
-  val DateAddLabelNameGroup: Int = 5
-  val DateAddLiteralGroup: Int = 6
-  val DateAddTimescaleIdGroup: Int = 7
-  val DatePlaceholderDateLiteralGroup: Int = 8
-  val DatePlaceholderLabelNameGroup: Int = 9
-  val DatePlaceholderFnGroup: Int = 11
+  val ListLabelIdxGroup: Int = 4
+  val ListIndexLabelNameGroup: Int = 5
+  val ListIndexLabelFormatGroup: Int = 6 // Ignored
+  val DateAddLabelNameGroup: Int = 7
+  val DateAddLiteralGroup: Int = 8
+  val DateAddTimescaleIdGroup: Int = 9
+  val DatePlaceholderDateLiteralGroup: Int = 10
+  val DatePlaceholderLabelNameGroup: Int = 11
+  val DatePlaceholderFnGroup: Int = 13
 
   def scalarMatch(capture: Int => Option[String], lbl: String => Option[String])(implicit labels: Labels): Option[String] =
     capture(LabelNameGroup).fold{
@@ -122,7 +124,8 @@ package object ocelot {
             }{label => datePlaceholder(lbl(label), fn)}
           }
         }{tsId => capture(DateAddLabelNameGroup).fold(dateAdd(capture(DateAddLiteralGroup), tsId, labels)){daLabel => dateAdd(lbl(daLabel), tsId, labels)}}
-      }{list => listOp(list, capture(ListLabelIndexGroup), labels)}
+      }{list => capture(ListIndexLabelNameGroup).fold(listOp(list, capture(ListLabelIdxGroup), labels)){lblName => listOp(list, lbl(lblName), labels)}
+      }
     }{label => lbl(label)}
 
   def labelNameValid(v: String): Boolean = v match {

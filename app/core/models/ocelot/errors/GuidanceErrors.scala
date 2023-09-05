@@ -30,6 +30,7 @@ sealed trait RuntimeError extends EGError
 case class UnsupportedOperationError(op: String, lvalue: String, rvalue: String, left: String, right: String) extends RuntimeError
 case object NonTerminatingPageError extends RuntimeError
 case object UnsupportedUiPatternError extends RuntimeError
+case class ProgrammingError(msg: String) extends RuntimeError
 
 // General and section parse errors
 case class ParseError(jsPath: JsPath, errs: Seq[JsonValidationError]) extends GuidanceError

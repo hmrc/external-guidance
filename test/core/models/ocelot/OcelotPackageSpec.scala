@@ -357,6 +357,17 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
       val labelsWithMyDate = labels.update("MyDate", "22/9/1973")
       operandValue("[label:MyDate]")(labelsWithMyDate) shouldBe Some("22/9/1973")
     }
+
+    "parse list place holder using a numeric index" in {
+      val labels = LabelCache().updateList("L", List("6", "7", "8"))
+      operandValue("[list:L:2]")(labels) shouldBe Some("7")
+    }
+
+    "parse list place holder using a label index" in {
+      val labels = LabelCache().updateList("L", List("6", "7", "8"))
+                               .update("Idx", "3")
+      operandValue("[list:L:[label:Idx]]")(labels) shouldBe Some("8")
+    }    
   }
 
   "Timescale functions" must {
