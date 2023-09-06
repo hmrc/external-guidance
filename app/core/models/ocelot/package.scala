@@ -64,10 +64,10 @@ package object ocelot {
   val PositiveIntListPattern: String = s"^$TenDigitIntPattern(?:,$TenDigitIntPattern)*$$"
   val DatePlaceHolderPattern: String = s"\\[date:($DatePattern|$LabelPattern)?:(year|month|month_start|month_end|month_name|dow|dow_name|day)\\]"
   val listPattern: String = s"\\[list:($LabelNamePattern):(length|first|last|$TenDigitIntPattern|$LabelPattern)\\]"
-  val operandPattern: String = s"^$LabelPattern|$listPattern|$DateAddPattern|$DatePlaceHolderPattern$$"
-  val operandRegex: Regex = operandPattern.r
-  val UiExpansionPattern: String = s"$LabelPattern|$listPattern|$DateAddPattern|$DatePlaceHolderPattern"
-  val UiExpansionRegex: Regex = UiExpansionPattern.r
+  val LabelsAndFunctionsPattern: String = s"$LabelPattern|$listPattern|$DateAddPattern|$DatePlaceHolderPattern"
+  val UiExpansionRegex: Regex = LabelsAndFunctionsPattern.r
+  val OperandPattern: String = s"^$LabelsAndFunctionsPattern$$"
+  val OperandRegex: Regex = OperandPattern.r
   val hintRegex: Regex = "\\[hint:([^\\]]+)\\]".r
   val pageLinkRegex: Regex = pageLinkPattern.r
   val buttonLinkRegex: Regex = buttonLinkPattern.r
@@ -100,7 +100,7 @@ package object ocelot {
 
   def matchGroup(m: Match)(grp: Int): Option[String] = Option(m.group(grp))
   def operandValue(str: String)(implicit labels: Labels): Option[String] =
-    operandRegex.findFirstMatchIn(str).fold[Option[String]](Some(str)){m => scalarMatch(matchGroup(m), labels.value)}
+    OperandRegex.findFirstMatchIn(str).fold[Option[String]](Some(str)){m => scalarMatch(matchGroup(m), labels.value)}
   val LabelNameGroup: Int = 1
   val LabelOutputFormatGroup: Int = 2
   val ListLabelNameGroup: Int = 3
