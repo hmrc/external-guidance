@@ -614,7 +614,5 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       }
     }
 
-
   }
-
 }

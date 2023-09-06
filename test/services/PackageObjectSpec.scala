@@ -17,13 +17,16 @@
 package services
 
 import base.BaseSpec
+import core.models.errors.Error
 import mocks.mockAppConfig
 import core.models.ocelot._
+import core.models.ocelot.errors.LanguageLinkIdsDiffer
 import play.api.libs.json._
 import core.services._
 import mocks.MockAppConfig
 import mocks.MockTimescalesService
-import scala.concurrent.{Future, ExecutionContext}
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class PackageObjectSpec extends BaseSpec with ProcessJson {
   "Faking welsh text" should {
@@ -74,6 +77,74 @@ class PackageObjectSpec extends BaseSpec with ProcessJson {
   }
 
   "guidancePagesAndProcess" should {
+
+    val jsonWithDiffLangIds: JsValue = Json.parse(
+      """
+        |{
+        |  "meta": {
+        |    "id": "oct90001",
+        |    "title": "Customer wants to make a cup of tea",
+        |    "ocelot": 1,
+        |    "lastAuthor": "000000",
+        |    "lastUpdate": 1500298931016,
+        |    "version": 4,
+        |    "filename": "oct90001.js",
+        |    "titlePhrase": 8,
+        |    "processCode": "cup-of-tea"
+        |  },
+        |  "flow": {
+        |    "start": {
+        |      "type": "PageStanza",
+        |      "url": "/feeling-bad",
+        |      "next": ["33"],
+        |      "stack": true
+        |    },
+        |    "33": {
+        |      "next": [
+        |        "3"
+        |      ],
+        |      "noteType": "Title",
+        |      "stack": false,
+        |      "text": 1,
+        |      "type": "CalloutStanza"
+        |    },
+        |    "3": {
+        |      "type": "InstructionStanza",
+        |      "text": 1,
+        |      "next": [
+        |        "2"
+        |      ],
+        |      "stack": true
+        |    },
+        |    "2": {
+        |      "type": "InstructionStanza",
+        |      "text": 0,
+        |      "next": [
+        |        "end"
+        |      ],
+        |      "stack": true
+        |    },
+        |    "end": {
+        |      "type": "EndStanza"
+        |    }
+        |  },
+        |  "phrases": [
+        |    ["Ask the customer if they have a tea bag", "Welsh: Ask the customer if they have a tea bag"],
+        |    ["Do you have a tea bag [link:Change:start]?", "Welsh: Do you have a tea bag [link:Change:99]?"],
+        |    ["Yes - they do have a tea bag", "Welsh: Yes - they do have a tea bag"],
+        |    ["No - they do not have a tea bag", "Welsh: No - they do not have a tea bag"],
+        |    ["Ask the customer if they have a cup", "Welsh: Ask the customer if they have a cup"],
+        |    ["Do you have a cup?", "Welsh: Do you have a cup?"],
+        |    ["yes - they do have a cup ", "Welsh: yes - they do have a cup "],
+        |    ["no - they don’t have a cup", "Welsh: no - they don’t have a cup"],
+        |    ["Customer wants to make a cup of tea", "Welsh: Customer wants to make a cup of tea"]
+        |  ],
+        |  "links": [],
+        |  "timescales": {}
+        |}
+    """.stripMargin
+    )
+
     "Add a complete timescales table to process and json" in new Test {
       val process: Process = rawOcelotTimescalesJson.as[Process]
 
@@ -89,5 +160,16 @@ class PackageObjectSpec extends BaseSpec with ProcessJson {
           (updatedJsObject.as[Process]).timescales shouldBe Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0)
       }
     }
+
+    "detect mismatched English and Welsh Link ids" in new Test {
+
+      MockTimescalesService.get().returns(Future.successful(Right(Map())))
+
+      whenReady(guidancePagesAndProcess(validatingPageBuilder, jsonWithDiffLangIds.as[JsObject], mockTimescalesService)(MockAppConfig, ec)){
+        case Left(Error(_, List(LanguageLinkIdsDiffer("", "1")), _, _)) => succeed
+        case _ => fail()
+      }
+    }
   }
+
 }
