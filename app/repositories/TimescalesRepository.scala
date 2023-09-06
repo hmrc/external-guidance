@@ -53,6 +53,7 @@ class TimescalesRepositoryImpl @Inject() (component: MongoComponent, appConfig: 
     )
     with TimescalesRepository {
   val logger: Logger = Logger(getClass)
+  override lazy val requiresTtlIndex: Boolean = false
 
   def save(timescales: JsValue, when: ZonedDateTime, credId: String, user: String, email: String): Future[RequestOutcome[TimescalesUpdate]] =
     collection

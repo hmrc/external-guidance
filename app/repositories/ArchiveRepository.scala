@@ -56,6 +56,7 @@ class ArchiveRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: Execu
     )
     with ArchiveRepository {
   val logger: Logger = Logger(getClass)
+  override lazy val requiresTtlIndex = false
 
   def archive(id: String, user: String, processCode: String, process: PublishedProcess): Future[RequestOutcome[String]] = {
 

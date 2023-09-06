@@ -62,6 +62,7 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
     with PublishedRepository {
 
   val logger: Logger = Logger(getClass)
+  override lazy val requiresTtlIndex = false
 
   def save(id: String, user: String, processCode: String, process: JsObject): Future[RequestOutcome[String]] = {
 
