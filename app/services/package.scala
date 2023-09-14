@@ -31,31 +31,25 @@ package object services {
       incomingProcess => {
         // Transform process if fake welsh, secured process or timescales are indicated
         val (p, js) = fakeWelshTextIfRequired _ tupled securedProcessIfRequired(incomingProcess, Some(jsObject))
-
-        val linkIdErrors: List[GuidanceError] = p.phrases.zipWithIndex.collect{
-          case (Phrase(e, w), idx) if pageLinkIds(e).sorted != pageLinkIds(w).sorted => LanguageLinkIdsDiffer("", idx.toString)
-        }.toList
         pb.pagesWithValidation(p, p.startPageId, checkLevel).fold(
-          errs => Future.successful(Left(Error(errs ++ linkIdErrors))),
-          pages => linkIdErrors match {
-            case Nil =>
-              // If valid process, collect list of timescale ids from process flow and phrases
-              val timescaleIds = (pb.pageBuilder.timescales.referencedNonPhraseIds(incomingProcess.flow) ++
-                pb.pageBuilder.timescales.referencedIds(incomingProcess.phrases)).distinct
-              timescaleIds match {
-                case Nil => Future.successful(Right((p, pages, js.fold(Json.toJsObject(p))(json => json))))
-                case _ =>
-                  timescalesService.get().flatMap{
-                    case Left(err) => Future.successful(Left(err))
-                    case Right(timescales) if timescaleIds.forall(id => timescales.contains(id)) =>
-                      // All timescales used in process are currently available from the timescales service
-                      val updatedProcess = p.copy(timescales = timescaleIds.map(id => (id, 0)).toMap)
-                      Future.successful(Right((updatedProcess, pages, Json.toJsObject(updatedProcess))))
-                    case Right(timescales) =>
-                      Future.successful(Left(Error(timescaleIds.filterNot(timescales.contains).map(MissingTimescaleDefinition))))
-                  }
-              }
-            case _ => Future.successful(Left(Error(linkIdErrors)))
+          errs => Future.successful(Left(Error(errs))),
+          pages => {
+            // If valid process, collect list of timescale ids from process flow and phrases
+            val timescaleIds = (pb.pageBuilder.timescales.referencedNonPhraseIds(incomingProcess.flow) ++
+              pb.pageBuilder.timescales.referencedIds(incomingProcess.phrases)).distinct
+            timescaleIds match {
+              case Nil => Future.successful(Right((p, pages, js.fold(Json.toJsObject(p))(json => json))))
+              case _ =>
+                timescalesService.get().flatMap{
+                  case Left(err) => Future.successful(Left(err))
+                  case Right(timescales) if timescaleIds.forall(id => timescales.contains(id)) =>
+                    // All timescales used in process are currently available from the timescales service
+                    val updatedProcess = p.copy(timescales = timescaleIds.map(id => (id, 0)).toMap)
+                    Future.successful(Right((updatedProcess, pages, Json.toJsObject(updatedProcess))))
+                  case Right(timescales) =>
+                    Future.successful(Left(Error(timescaleIds.filterNot(timescales.contains).map(MissingTimescaleDefinition))))
+                }
+            }
           }
         )
       }

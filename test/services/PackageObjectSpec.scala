@@ -145,6 +145,81 @@ class PackageObjectSpec extends BaseSpec with ProcessJson {
     """.stripMargin
     )
 
+    val jsonWithDiffLangIdsInUnusedPhrase: JsValue = Json.parse(
+      """
+        |{
+        |  "meta": {
+        |    "id": "oct90001",
+        |    "title": "Customer wants to make a cup of tea",
+        |    "ocelot": 1,
+        |    "lastAuthor": "000000",
+        |    "lastUpdate": 1500298931016,
+        |    "version": 4,
+        |    "filename": "oct90001.js",
+        |    "titlePhrase": 8,
+        |    "processCode": "cup-of-tea"
+        |  },
+        |  "flow": {
+        |    "start": {
+        |      "type": "PageStanza",
+        |      "url": "/feeling-bad",
+        |      "next": ["33"],
+        |      "stack": true
+        |    },
+        |    "33": {
+        |      "next": [
+        |        "3"
+        |      ],
+        |      "noteType": "Title",
+        |      "stack": false,
+        |      "text": 2,
+        |      "type": "CalloutStanza"
+        |    },
+        |    "3": {
+        |      "type": "InstructionStanza",
+        |      "text": 2,
+        |      "next": [
+        |        "2"
+        |      ],
+        |      "stack": true
+        |    },
+        |    "39393": {
+        |      "type": "InstructionStanza",
+        |      "text": 1,
+        |      "next": [
+        |        "2"
+        |      ],
+        |      "stack": true
+        |    },
+        |    "2": {
+        |      "type": "InstructionStanza",
+        |      "text": 0,
+        |      "next": [
+        |        "end"
+        |      ],
+        |      "stack": true
+        |    },
+        |    "end": {
+        |      "type": "EndStanza"
+        |    }
+        |  },
+        |  "phrases": [
+        |    ["Ask the customer if they have a tea bag", "Welsh: Ask the customer if they have a tea bag"],
+        |    ["Do you have a tea bag [link:Change:start]?", "Welsh: Do you have a tea bag [link:Change:99]?"],
+        |    ["Yes - they do have a tea bag", "Welsh: Yes - they do have a tea bag"],
+        |    ["No - they do not have a tea bag", "Welsh: No - they do not have a tea bag"],
+        |    ["Ask the customer if they have a cup", "Welsh: Ask the customer if they have a cup"],
+        |    ["Do you have a cup?", "Welsh: Do you have a cup?"],
+        |    ["yes - they do have a cup ", "Welsh: yes - they do have a cup "],
+        |    ["no - they don’t have a cup", "Welsh: no - they don’t have a cup"],
+        |    ["Customer wants to make a cup of tea", "Welsh: Customer wants to make a cup of tea"]
+        |  ],
+        |  "links": [],
+        |  "timescales": {}
+        |}
+    """.stripMargin
+    )
+
     "Add a complete timescales table to process and json" in new Test {
       val process: Process = rawOcelotTimescalesJson.as[Process]
 
@@ -166,10 +241,22 @@ class PackageObjectSpec extends BaseSpec with ProcessJson {
       MockTimescalesService.get().returns(Future.successful(Right(Map())))
 
       whenReady(guidancePagesAndProcess(validatingPageBuilder, jsonWithDiffLangIds.as[JsObject], mockTimescalesService)(MockAppConfig, ec)){
-        case Left(Error(_, List(LanguageLinkIdsDiffer("", "1")), _, _)) => succeed
-        case _ => fail()
+        case Left(Error(_, List(LanguageLinkIdsDiffer("33"), LanguageLinkIdsDiffer("3")), _, _)) => succeed
+        case Left(errs) => fail(errs.toString())
+        case err => fail(err.toString)
       }
     }
+
+    "Ignore mismatched English and Welsh Link ids in unused phrases" in new Test {
+
+      MockTimescalesService.get().returns(Future.successful(Right(Map())))
+
+      whenReady(guidancePagesAndProcess(validatingPageBuilder, jsonWithDiffLangIdsInUnusedPhrase.as[JsObject], mockTimescalesService)(MockAppConfig, ec)){
+        case Right(_) => succeed
+        case err => fail(err.toString)
+      }
+    }
+
   }
 
 }

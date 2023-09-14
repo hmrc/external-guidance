@@ -64,6 +64,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
           confirmInputPageErrorCallouts(pages, Nil) ++
           confirmPageTitles(pages, Nil)
         } else Nil) ++
+        checkPhraseLinkIdUsage(pages) ++
         checkDataInputPages(pages, Nil) ++
         duplicateUrlErrors(pages.reverse, Nil) ++
         checkExclusiveSequenceTypeError(pages, Nil) ++
@@ -76,6 +77,22 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
       }
     )
 
+  private def checkPhraseLinkIdUsage(pages: List[Page]): List[GuidanceError] =
+    pages.flatMap{p =>
+      p.keyedStanzas.collect{
+        case KeyedStanza(id, s: Question) if !validPhrase(s.text) => LanguageLinkIdsDiffer(id)
+        case KeyedStanza(id, s: Instruction) if !validPhrase(s.text) => LanguageLinkIdsDiffer(id)
+        case KeyedStanza(id, s: Callout) if !validPhrase(s.text) => LanguageLinkIdsDiffer(id)
+        case KeyedStanza(id, s: Sequence) if !validPhrase(s.text) => LanguageLinkIdsDiffer(id)
+        case KeyedStanza(id, s: Input) if !validPhrase(s.name) => LanguageLinkIdsDiffer(id)
+        case KeyedStanza(id, s: Row) if !s.cells.collect{case p if !validPhrase(p) => id}.isEmpty => LanguageLinkIdsDiffer(id)
+      }
+    }
+
+    
+  private def validPhrase(phrase: Phrase): Boolean =
+    pageLinkIds(phrase.english).sorted == pageLinkIds(phrase.welsh).sorted
+    
   private def checkSequenceErrors(vertices: List[PageVertex], vertexMap: Map[String, PageVertex], mainFlow: List[String])
                             (implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] =
     checkForMinimumTwoPageFlows(vertices, vertexMap) match {

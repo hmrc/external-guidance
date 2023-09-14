@@ -68,7 +68,7 @@ case class MissingTimescaleDefinition(timescaleId: String) extends TimescalesErr
 case class IncompleteInputPage(id: String) extends FlowError
 case class MissingTitle(id: String) extends FlowError
 case class AllFlowsMustContainMultiplePages(id: String) extends FlowError
-case class LanguageLinkIdsDiffer(id: String, phraseId: String) extends FlowError
+case class LanguageLinkIdsDiffer(id: String) extends FlowError
 
 object GuidanceError {
 
