@@ -79,14 +79,13 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
 
   private def checkPhraseLinkIdUsage(pages: List[Page]): List[GuidanceError] =
     pages.flatMap{p =>
-      p.keyedStanzas.flatMap{
-        case KeyedStanza(id, s: Question) if !validPhrase(s.text) => List(LanguageLinkIdsDiffer(id))
-        case KeyedStanza(id, s: Instruction) if !validPhrase(s.text) => List(LanguageLinkIdsDiffer(id))
-        case KeyedStanza(id, s: Callout) if !validPhrase(s.text) => List(LanguageLinkIdsDiffer(id))
-        case KeyedStanza(id, s: Sequence) if !validPhrase(s.text) => List(LanguageLinkIdsDiffer(id))
-        case KeyedStanza(id, s: Input) if !validPhrase(s.name) => List(LanguageLinkIdsDiffer(id))
-        case KeyedStanza(id, s: Row) if !s.cells.collect{case p if !validPhrase(p) => id}.isEmpty => List(LanguageLinkIdsDiffer(id))
-        case _ => Nil
+      p.keyedStanzas.collect{
+        case KeyedStanza(id, s: Question) if !validPhrase(s.text) => LanguageLinkIdsDiffer(id)
+        case KeyedStanza(id, s: Instruction) if !validPhrase(s.text) => LanguageLinkIdsDiffer(id)
+        case KeyedStanza(id, s: Callout) if !validPhrase(s.text) => LanguageLinkIdsDiffer(id)
+        case KeyedStanza(id, s: Sequence) if !validPhrase(s.text) => LanguageLinkIdsDiffer(id)
+        case KeyedStanza(id, s: Input) if !validPhrase(s.name) => LanguageLinkIdsDiffer(id)
+        case KeyedStanza(id, s: Row) if !s.cells.collect{case p if !validPhrase(p) => id}.isEmpty => LanguageLinkIdsDiffer(id)
       }
     }
 
