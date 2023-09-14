@@ -61,7 +61,7 @@ package object errors {
     case e: MissingTitle =>
       ErrorReport(s"MissingTitle: Non input page \'${e.id}\' does not contain a Callout of type Title", e.id)
     case e: LanguageLinkIdsDiffer =>
-      ErrorReport(s"LanguageLinkIdsDiffer: Link target Ids in phrase \'${e.phraseId}\' differ between English and Welsh", e.id)
+      ErrorReport(s"LanguageLinkIdsDiffer: Link target Ids used in the text of stanzas \'${e.stanzas}\' differ between English and Welsh", e.id)
 
     case e: ParseError =>
       ErrorReport(s"ParseError: Unknown parse error ${e.errs.map(_.messages.mkString(",")).mkString(",")} at location ${e.jsPath.toString}", "")
