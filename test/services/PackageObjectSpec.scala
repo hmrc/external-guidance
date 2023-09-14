@@ -183,6 +183,14 @@ class PackageObjectSpec extends BaseSpec with ProcessJson {
         |      ],
         |      "stack": true
         |    },
+        |    "39393": {
+        |      "type": "InstructionStanza",
+        |      "text": 1,
+        |      "next": [
+        |        "2"
+        |      ],
+        |      "stack": true
+        |    },
         |    "2": {
         |      "type": "InstructionStanza",
         |      "text": 0,
@@ -233,7 +241,8 @@ class PackageObjectSpec extends BaseSpec with ProcessJson {
       MockTimescalesService.get().returns(Future.successful(Right(Map())))
 
       whenReady(guidancePagesAndProcess(validatingPageBuilder, jsonWithDiffLangIds.as[JsObject], mockTimescalesService)(MockAppConfig, ec)){
-        case Left(Error(_, List(LanguageLinkIdsDiffer("33", List("33", "3"))), _, _)) => succeed
+        case Left(Error(_, List(LanguageLinkIdsDiffer("33"), LanguageLinkIdsDiffer("3")), _, _)) => succeed
+        case Left(errs) => fail(errs.toString())
         case err => fail(err.toString)
       }
     }

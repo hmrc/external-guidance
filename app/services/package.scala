@@ -19,7 +19,6 @@ import core.models.errors.Error
 import core.models.ocelot.errors._
 import core.models._
 import core.models.ocelot.Process
-import core.models.ocelot.stanzas._
 import play.api.libs.json._
 import config.AppConfig
 import scala.concurrent.{Future, ExecutionContext}
@@ -32,46 +31,29 @@ package object services {
       incomingProcess => {
         // Transform process if fake welsh, secured process or timescales are indicated
         val (p, js) = fakeWelshTextIfRequired _ tupled securedProcessIfRequired(incomingProcess, Some(jsObject))
-        val linkIdErrors: List[GuidanceError] = p.phrases.zipWithIndex.collect{
-          case (Phrase(e, w), idx) if pageLinkIds(e).sorted != pageLinkIds(w).sorted =>
-            val stanzas = stanzaUsingPhrase(idx, p) // Get list of stanzas using phrase
-            LanguageLinkIdsDiffer(stanzas.headOption.getOrElse(""), stanzas)
-        }.toList.filterNot(_.stanzas.isEmpty) // Ignore errors in unused phrases
         pb.pagesWithValidation(p, p.startPageId, checkLevel).fold(
-          errs => Future.successful(Left(Error(errs ++ linkIdErrors))),
-          pages => linkIdErrors match {
-            case Nil =>
-              // If valid process, collect list of timescale ids from process flow and phrases
-              val timescaleIds = (pb.pageBuilder.timescales.referencedNonPhraseIds(incomingProcess.flow) ++
-                pb.pageBuilder.timescales.referencedIds(incomingProcess.phrases)).distinct
-              timescaleIds match {
-                case Nil => Future.successful(Right((p, pages, js.fold(Json.toJsObject(p))(json => json))))
-                case _ =>
-                  timescalesService.get().flatMap{
-                    case Left(err) => Future.successful(Left(err))
-                    case Right(timescales) if timescaleIds.forall(id => timescales.contains(id)) =>
-                      // All timescales used in process are currently available from the timescales service
-                      val updatedProcess = p.copy(timescales = timescaleIds.map(id => (id, 0)).toMap)
-                      Future.successful(Right((updatedProcess, pages, Json.toJsObject(updatedProcess))))
-                    case Right(timescales) =>
-                      Future.successful(Left(Error(timescaleIds.filterNot(timescales.contains).map(MissingTimescaleDefinition))))
-                  }
-              }
-            case _ => Future.successful(Left(Error(linkIdErrors)))
+          errs => Future.successful(Left(Error(errs))),
+          pages => {
+            // If valid process, collect list of timescale ids from process flow and phrases
+            val timescaleIds = (pb.pageBuilder.timescales.referencedNonPhraseIds(incomingProcess.flow) ++
+              pb.pageBuilder.timescales.referencedIds(incomingProcess.phrases)).distinct
+            timescaleIds match {
+              case Nil => Future.successful(Right((p, pages, js.fold(Json.toJsObject(p))(json => json))))
+              case _ =>
+                timescalesService.get().flatMap{
+                  case Left(err) => Future.successful(Left(err))
+                  case Right(timescales) if timescaleIds.forall(id => timescales.contains(id)) =>
+                    // All timescales used in process are currently available from the timescales service
+                    val updatedProcess = p.copy(timescales = timescaleIds.map(id => (id, 0)).toMap)
+                    Future.successful(Right((updatedProcess, pages, Json.toJsObject(updatedProcess))))
+                  case Right(timescales) =>
+                    Future.successful(Left(Error(timescaleIds.filterNot(timescales.contains).map(MissingTimescaleDefinition))))
+                }
+            }
           }
         )
       }
     )
-
-  private def stanzaUsingPhrase(phraseId: Int, p: Process): List[String] =
-    p.flow.collect{
-      case (id: String, q: QuestionStanza) if q.text == phraseId => id
-      case (id: String, q: InstructionStanza) if q.text == phraseId => id
-      case (id: String, q: CalloutStanza) if q.text == phraseId => id
-      case (id: String, q: SequenceStanza) if q.text == phraseId => id
-      case (id: String, q: InputStanza) if q.name == phraseId => id
-      case (id: String, q: RowStanza) if q.cells.contains(phraseId) => id
-    }.toList
 
   private[services] def fakeWelshTextIfRequired(process: Process, jsObject: Option[JsObject])(implicit c: AppConfig): (Process,  Option[JsObject]) =
     if (process.passPhrase.isDefined || c.fakeWelshInUnauthenticatedGuidance) {
