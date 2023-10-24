@@ -44,7 +44,8 @@ package object ocelot {
   val DatePattern: String = "\\d{1,2}\\/\\d{1,2}\\/\\d{4}"
   val HttpUriPattern: String = "https?:[a-zA-Z0-9\\/\\.\\-\\?_\\.=&#:]+"
   val UrlPathPattern: String = "[a-zA-Z0-9\\/\\.\\-\\?_\\.=&#:]+"
-  val JavascriptPattern: String = "javascript\\:.+?"
+  val JavascriptPattern: String = "javascript\\:window\\.print\\(\\)"
+  val JavascriptPatternString: String = JavascriptPattern.filterNot(_.equals('\\'))
   val EmailPattern: String = "mailto\\:.+?"
   val StanzaIdPattern: String = s"\\d+|${Process.StartStanzaId}"
   val TenDigitIntPattern: String = "\\d{1,10}"

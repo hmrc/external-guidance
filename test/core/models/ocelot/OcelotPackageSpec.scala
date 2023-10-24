@@ -420,7 +420,7 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
     }
 
     "correctly match a link to javascript code" in {
-      val link = "[link:Print Page:javascript:winddow.print()]"
+      val link = "[link:Print Page:javascript:window.print()]"
       link.matches(linkPattern) shouldBe true
     }
 
