@@ -45,7 +45,7 @@
 
     <logger name="com.google.inject" level="WARN"/>
 
-    <logger name="uk.gov" level="WARN"/>
+    <logger name="uk.gov" level="ERROR"/>
 
     <logger name="application" level="WARN"/>
 

@@ -24,6 +24,7 @@ case object Currency extends InputType
 case object CurrencyPoundsOnly extends InputType
 case object Number extends InputType
 case object Txt extends InputType
+case object PassphraseText extends InputType
 case object Date extends InputType
 
 object InputType {
@@ -34,6 +35,7 @@ object InputType {
     case JsString("Date") => JsSuccess(Date, __)
     case JsString("Number") => JsSuccess(Number, __)
     case JsString("Text") => JsSuccess(Txt, __)
+    case JsString("PassphraseText") => JsSuccess(PassphraseText, __)
     case typeName: JsString => JsError(JsonValidationError(Seq("InputType"), typeName.value))
     case unknown => JsError(JsonValidationError(Seq("InputType"), unknown.toString))
   }
@@ -44,6 +46,7 @@ object InputType {
     case Date => Json.toJson("Date")
     case Number => Json.toJson("Number")
     case Txt => Json.toJson("Text")
+    case PassphraseText => Json.toJson("PassphraseText")  
   }
 
 }
