@@ -16,6 +16,7 @@
 
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
+import core.models.ocelot.Process
 import play.api.libs.json.Json
 
 package object repositories {
@@ -27,4 +28,6 @@ package object repositories {
                                 )
                               )).toString
   val TimescalesInUseQuery = nor(jsonSchema(Document(json)))
+  def passphraseStatus(p: Process): Option[String] =
+    p.meta.encryptedPassPhrase.fold(p.meta.passPhrase.map(_ => "Plaintext"))(_ => Some("Encrypted"))
 }

@@ -205,7 +205,7 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
               p.meta.processCode,
               process.meta.version,
               process.meta.lastAuthor,
-              process.meta.passPhrase,
+              passphraseStatus(process),
               p.meta.lastModified,
               "",
               p.meta.reviewType

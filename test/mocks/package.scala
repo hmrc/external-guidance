@@ -23,6 +23,7 @@ package object mocks {
     MockAppConfig.factCheckerRole,
     MockAppConfig.twoEyeReviewerRole,
     MockAppConfig.fakeWelshInUnauthenticatedGuidance,
-    MockAppConfig.seedTimescales
+    MockAppConfig.seedTimescales,
+    MockAppConfig.passphraseHashKey
   )
  }

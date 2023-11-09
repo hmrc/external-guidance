@@ -18,7 +18,7 @@ package services
 
 import base.BaseSpec
 import core.models.errors.Error
-import mocks.mockAppConfig
+import mocks._
 import core.models.ocelot._
 import core.models.ocelot.errors.LanguageLinkIdsDiffer
 import play.api.libs.json._
@@ -28,13 +28,22 @@ import mocks.MockTimescalesService
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class PackageObjectSpec extends BaseSpec with ProcessJson {
+class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService with ProcessJson {
+  val service = new ProcessFinalisationService(
+                  mockAppConfig,
+                  new ValidatingPageBuilder(
+                            new PageBuilder(new Timescales(new DefaultTodayProvider))
+                          ),
+                  mockTimescalesService,
+                  new EncrypterService(mockAppConfig)
+                )
+
   "Faking welsh text" should {
     "Add fake welsh to all passphrase protected guidance" in {
       val json = Some(validOnePageProcessWithPassPhrase.as[JsObject])
       val process: Process = validOnePageProcessWithPassPhrase.as[Process]
       val withMissingWelsh = process.copy(phrases = process.phrases.map(p => Phrase(p.english, "")))
-      val (fakedProcess, _) = fakeWelshTextIfRequired(withMissingWelsh, json)(mockAppConfig)
+      val (fakedProcess, _) = service.fakeWelshTextIfRequired(withMissingWelsh, json)(mockAppConfig)
 
       fakedProcess.phrases shouldBe process.phrases
     }
@@ -44,7 +53,7 @@ class PackageObjectSpec extends BaseSpec with ProcessJson {
       val withMissingWelsh = process.copy(phrases = process.phrases.map(p => Phrase(p.english, "")))
       val jsObjectWithMissingwelsh = Some(Json.toJsObject(withMissingWelsh))
       val configFakeWelshFalse = mockAppConfig.copy(fakeWelshInUnauthenticatedGuidance = false)
-      val (fakedProcess, _) = fakeWelshTextIfRequired(withMissingWelsh, jsObjectWithMissingwelsh)(configFakeWelshFalse)
+      val (fakedProcess, _) = service.fakeWelshTextIfRequired(withMissingWelsh, jsObjectWithMissingwelsh)(configFakeWelshFalse)
 
       fakedProcess.phrases shouldBe withMissingWelsh.phrases
     }
@@ -53,7 +62,7 @@ class PackageObjectSpec extends BaseSpec with ProcessJson {
       val process: Process = validOnePageJson.as[Process]
       val jsObject = Some(validOnePageJson.as[JsObject])
       val withMissingWelsh = process.copy(phrases = process.phrases.map(p => Phrase(p.english, "")))
-      val (fakedProcess, _) = fakeWelshTextIfRequired(withMissingWelsh, jsObject)(mockAppConfig)
+      val (fakedProcess, _) = service.fakeWelshTextIfRequired(withMissingWelsh, jsObject)(mockAppConfig)
 
       fakedProcess.phrases shouldBe process.phrases
     }
@@ -62,7 +71,7 @@ class PackageObjectSpec extends BaseSpec with ProcessJson {
       val process: Process = validOnePageJson.as[Process]
       val jsObject = Some(validOnePageJson.as[JsObject])
       val configFakeWelshFalse = mockAppConfig.copy(fakeWelshInUnauthenticatedGuidance = false)
-      val (fakedProcess, fakedJsObject) = fakeWelshTextIfRequired(process, jsObject)(configFakeWelshFalse)
+      val (fakedProcess, fakedJsObject) = service.fakeWelshTextIfRequired(process, jsObject)(configFakeWelshFalse)
 
       fakedProcess shouldBe process
       fakedJsObject shouldBe jsObject
@@ -74,6 +83,12 @@ class PackageObjectSpec extends BaseSpec with ProcessJson {
     implicit val ec: ExecutionContext = ExecutionContext.global
     val timescales = new Timescales(new DefaultTodayProvider)
     val validatingPageBuilder = new ValidatingPageBuilder(new PageBuilder(timescales))
+    val service = new ProcessFinalisationService(
+                    mockAppConfig,
+                    validatingPageBuilder,
+                    mockTimescalesService,
+                    new EncrypterService(mockAppConfig)
+                  )
   }
 
   "guidancePagesAndProcess" should {
@@ -227,7 +242,7 @@ class PackageObjectSpec extends BaseSpec with ProcessJson {
 
       MockTimescalesService.get().returns(Future.successful(Right(Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0))))
 
-      whenReady(guidancePagesAndProcess(validatingPageBuilder, rawOcelotTimescalesJson.as[JsObject], mockTimescalesService)(MockAppConfig, ec)){
+      whenReady(service.guidancePagesAndProcess(rawOcelotTimescalesJson.as[JsObject])(MockAppConfig, ec)){
         case Left(err) => fail(s"Failed with $err")
         case Right((updatedProcess, pages, updatedJsObject)) =>
           updatedProcess.timescales shouldBe Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0)
@@ -240,7 +255,7 @@ class PackageObjectSpec extends BaseSpec with ProcessJson {
 
       MockTimescalesService.get().returns(Future.successful(Right(Map())))
 
-      whenReady(guidancePagesAndProcess(validatingPageBuilder, jsonWithDiffLangIds.as[JsObject], mockTimescalesService)(MockAppConfig, ec)){
+      whenReady(service.guidancePagesAndProcess(jsonWithDiffLangIds.as[JsObject])(MockAppConfig, ec)){
         case Left(Error(_, List(LanguageLinkIdsDiffer("33"), LanguageLinkIdsDiffer("3")), _, _)) => succeed
         case Left(errs) => fail(errs.toString())
         case err => fail(err.toString)
@@ -251,7 +266,7 @@ class PackageObjectSpec extends BaseSpec with ProcessJson {
 
       MockTimescalesService.get().returns(Future.successful(Right(Map())))
 
-      whenReady(guidancePagesAndProcess(validatingPageBuilder, jsonWithDiffLangIdsInUnusedPhrase.as[JsObject], mockTimescalesService)(MockAppConfig, ec)){
+      whenReady(service.guidancePagesAndProcess(jsonWithDiffLangIdsInUnusedPhrase.as[JsObject])(MockAppConfig, ec)){
         case Right(_) => succeed
         case err => fail(err.toString)
       }
