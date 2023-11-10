@@ -38,7 +38,8 @@ case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase
   lazy val title: Phrase = meta.titlePhrase.fold(Phrase(meta.title, meta.title))(idx => phraseOption(idx).getOrElse(Phrase(meta.title, meta.title)))
   lazy val startUrl: Option[String] = flow.get(StartStanzaId).collect{case ps: PageStanza => ps.url}
   lazy val startPageId: String = flow.get(PassPhrasePageId).fold(StartStanzaId)(_ => PassPhrasePageId)
-  lazy val passPhrase: Option[String] = meta.encryptedPassPhrase.fold(meta.passPhrase)(_ => meta.encryptedPassPhrase)
+  lazy val passPhrase: Option[String] = meta.passPhrase
+  lazy val encryptedPassPhrase: Option[String] = meta.encryptedPassPhrase
   lazy val valueStanzaPassPhrase: Option[String] = flow.values
       .collect{case vs: ValueStanza => vs.values}.flatten
       .collectFirst{case Value(_, PassPhraseLabelName, value) => value}
