@@ -67,7 +67,7 @@ class ProcessFinalisationService @Inject() (
     )
 
   private[services] def fakeWelshTextIfRequired(process: Process, jsObject: Option[JsObject])(implicit c: AppConfig): (Process,  Option[JsObject]) =
-    if (process.passPhrase.isDefined || c.fakeWelshInUnauthenticatedGuidance) {
+    if (process.passPhrase.isDefined || process.encryptedPassPhrase.isDefined || c.fakeWelshInUnauthenticatedGuidance) {
       val fakedWelshProcess = process.copy(phrases = process.phrases.map(p => if (p.welsh.trim.isEmpty) Phrase(p.english, s"Welsh: ${p.english}") else p))
       (fakedWelshProcess, None)
     } else (process, jsObject)

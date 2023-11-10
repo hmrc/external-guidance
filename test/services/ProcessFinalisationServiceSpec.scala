@@ -20,6 +20,7 @@ import base.BaseSpec
 import core.models.errors.Error
 import mocks._
 import core.models.ocelot._
+import core.models.ocelot.stanzas.ValueStanza
 import core.models.ocelot.errors.LanguageLinkIdsDiffer
 import play.api.libs.json._
 import core.services._
@@ -29,14 +30,37 @@ import mocks.MockTimescalesService
 import scala.concurrent.{ExecutionContext, Future}
 
 class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService with ProcessJson {
+  val encrypter: EncrypterService = new EncrypterService(mockAppConfig)
   val service = new ProcessFinalisationService(
                   mockAppConfig,
                   new ValidatingPageBuilder(
                             new PageBuilder(new Timescales(new DefaultTodayProvider))
                           ),
                   mockTimescalesService,
-                  new EncrypterService(mockAppConfig)
+                  encrypter
                 )
+
+  "updateFlowPassPhrase" should {
+      "should replace orignal plaintext password in originating ValueStanza with supplied string" in {
+        val process: Process = validOnePageProcessWithPassPhrase.as[Process]
+        val updatedFlow = service.updateFlowPassPhrase(process, "ENCRYPTED")
+        updatedFlow("33") match {
+         case v: ValueStanza =>
+            v.values.filter(_.label == "_GuidancePassPhrase").headOption.map(_.value) shouldBe Some("ENCRYPTED")
+         case _ => fail()
+        }
+      }
+  }
+
+  "securedProcessIfRequired" should {
+      "encrypt plaintext password and store in process property encryptedPassPhrase" in {
+        val json = Some(validOnePageProcessWithPassPhrase.as[JsObject])
+        val process: Process = validOnePageProcessWithPassPhrase.as[Process]
+        val (updatedProcess, updatedJson) = service.securedProcessIfRequired(process, json)
+        val encryptedPassPhrase = process.passPhrase.map(encrypter.encrypt)
+        updatedProcess.encryptedPassPhrase shouldBe encryptedPassPhrase
+      }
+  }
 
   "Faking welsh text" should {
     "Add fake welsh to all passphrase protected guidance" in {
