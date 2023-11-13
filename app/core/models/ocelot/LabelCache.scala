@@ -66,7 +66,7 @@ trait Labels extends Flows with TimescaleDefns with Messages with Mode with Encr
   def flush(): Labels
 }
 
-object PlaintextEncrypter extends Encrypter {
+object IdentityEncrypter extends Encrypter {
   def encrypt(plaintext: String): String = plaintext
 }
 
@@ -78,7 +78,7 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
                                      timescales: Map[String, Int] = Map(),
                                      messages: (String, Seq[Any]) => String = (_,_) => "",
                                      val runMode: RunMode = Published,
-                                     encrypter: Encrypter = PlaintextEncrypter) extends Labels {
+                                     encrypter: Encrypter = IdentityEncrypter) extends Labels {
 
   // Labels
   def value(name: String): Option[String] = label(name).collect{case s: ScalarLabel => s.english.headOption.getOrElse("")}
