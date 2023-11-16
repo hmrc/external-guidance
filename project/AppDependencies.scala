@@ -19,4 +19,6 @@ object AppDependencies {
     "uk.gov.hmrc"                  %% "bootstrap-test-play-28"  % "7.21.0" % "test, it",
     "com.typesafe.play"            %% "play-akka-http-server"   % "2.8.20" % "test, it"
   )
+
+  val itDependencies: Seq[ModuleID] = Seq()
 }
