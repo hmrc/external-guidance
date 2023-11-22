@@ -47,7 +47,11 @@ trait Mode {
   val runMode: RunMode
 }
 
-trait Labels extends Flows with TimescaleDefns with Messages with Mode {
+trait Encrypter {
+  def encrypt(text: String): String
+}
+
+trait Labels extends Flows with TimescaleDefns with Messages with Mode with Encrypter {
   def value(name: String): Option[String]
   def valueAsList(name: String): Option[List[String]]
   def displayValue(name: String)(implicit lang: Lang): Option[String]
@@ -62,6 +66,10 @@ trait Labels extends Flows with TimescaleDefns with Messages with Mode {
   def flush(): Labels
 }
 
+object IdentityEncrypter extends Encrypter {
+  def encrypt(plaintext: String): String = plaintext
+}
+
 private[ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
                                      cache: Map[String, Label] = Map(),
                                      stack: List[FlowStage] = Nil,
@@ -69,7 +77,8 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
                                      poolCache: Map[String, Stanza] = Map(),
                                      timescales: Map[String, Int] = Map(),
                                      messages: (String, Seq[Any]) => String = (_,_) => "",
-                                     val runMode: RunMode = Published) extends Labels {
+                                     val runMode: RunMode = Published,
+                                     encrypter: Encrypter = IdentityEncrypter) extends Labels {
 
   // Labels
   def value(name: String): Option[String] = label(name).collect{case s: ScalarLabel => s.english.headOption.getOrElse("")}
@@ -161,6 +170,9 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
 
   // Messages
   def msg(id: String, param: Seq[Any]): String = messages(id, param)
+
+  // Encrypter
+  def encrypt(text: String): String = encrypter.encrypt(text)
 }
 
 object LabelCache {
@@ -174,5 +186,6 @@ object LabelCache {
             pool: Map[String, Stanza],
             timescales: Map[String, Int],
             messages: (String, Seq[Any]) => String,
-            runMode: RunMode): Labels = new LabelCacheImpl(labels, cache, stack, pool, Map(), timescales, messages, runMode)
+            runMode: RunMode,
+            encrypter: Encrypter): Labels = new LabelCacheImpl(labels, cache, stack, pool, Map(), timescales, messages, runMode, encrypter)
 }

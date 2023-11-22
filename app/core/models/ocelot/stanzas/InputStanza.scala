@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot.{Validation, validDate, Page, Labels, Phrase, asAnyInt, asCurrency, asCurrencyPounds, asTextString, labelReferences, stringFromDate, Ten}
+import core.models.ocelot.{SecuredProcess, Validation, validDate, Page, Labels, Phrase, asAnyInt, asCurrency, asCurrencyPounds, asTextString, labelReferences, stringFromDate, Ten}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -99,6 +99,23 @@ case class TextInput(
   override def rendered(expand: Phrase => Phrase): DataInputStanza = copy(name = expand(name), help = help.map(expand), placeholder = placeholder.map(expand))
 }
 
+case class PassphraseInput(
+  override val next: Seq[String],
+  name: Phrase,
+  help: Option[Phrase],
+  label: String, // IGNORED
+  placeholder: Option[Phrase],
+  stack: Boolean,
+  dontRepeatName: Boolean = false,
+  width: String = Ten
+) extends Input {
+  def validInput(value: String): Validation[String] = asTextString(value).fold[Validation[String]](Left(Nil))(v => Right(v.toString))
+  override def rendered(expand: Phrase => Phrase): DataInputStanza = copy(name = expand(name), help = help.map(expand), placeholder = placeholder.map(expand))
+  override def eval(value: String, page: Page, labels: Labels): (Option[String], Labels) =
+    (next.headOption, labels.update(SecuredProcess.PassPhraseResponseLabelName, value)
+                            .update(SecuredProcess.EncryptedPassphraseResponseLabelName, labels.encrypt(value)))  
+}
+
 case class CurrencyInput(
   override val next: Seq[String],
   name: Phrase,
@@ -148,6 +165,7 @@ object Input {
     stanza.ipt_type match {
       case Number => NumberInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack, dontRepeatName, width)
       case Txt => TextInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack, dontRepeatName, width)
+      case PassphraseText => PassphraseInput(stanza.next, name, help, "", placeholder, stanza.stack, dontRepeatName, width)  
       case Currency => CurrencyInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack, dontRepeatName, width)
       case CurrencyPoundsOnly => CurrencyPoundsOnlyInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack, dontRepeatName, width)
       case Date => DateInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack, dontRepeatName, width)

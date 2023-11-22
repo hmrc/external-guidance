@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package object mocks {
-  val mockAppConfig = MockAppConfigCopyable(
-    MockAppConfig.scratchExpiryHour,
-    MockAppConfig.scratchExpiryMinutes,
-    MockAppConfig.scratchExpiryTZ,
-    MockAppConfig.designerRole,
-    MockAppConfig.factCheckerRole,
-    MockAppConfig.twoEyeReviewerRole,
-    MockAppConfig.fakeWelshInUnauthenticatedGuidance,
-    MockAppConfig.seedTimescales,
-    MockAppConfig.passphraseHashKey
-  )
- }
+package core.services
+
+import javax.inject.{Inject, Singleton}
+import play.api.Logging
+import config.AppConfig
+import core.models.ocelot.Encrypter
+import uk.gov.hmrc.crypto.{Sha512Crypto, OnewayCryptoFactory, PlainText}
+
+@Singleton
+class EncrypterService @Inject() (config: AppConfig) extends Encrypter with Logging {
+  private val hasher: Sha512Crypto = OnewayCryptoFactory.sha(config.passphraseHashKey)
+
+  def encrypt(phrase: String): String = hasher.hash(PlainText(phrase)).value
+}

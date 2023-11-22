@@ -34,9 +34,15 @@ class ScratchServiceSpec extends BaseSpec {
   private trait Test extends MockScratchRepository with MockTimescalesService {
     implicit def executionContext: ExecutionContext = ExecutionContext.global
     val pageBuilder = new ValidatingPageBuilder(new PageBuilder(new Timescales(new DefaultTodayProvider)))
-    lazy val target: ScratchService = new ScratchService(mockScratchRepository,
-                                                         pageBuilder,
-                                                         mockTimescalesService)(ec, MockAppConfig)
+
+    val fsService = new ProcessFinalisationService(
+                    MockAppConfig,
+                    pageBuilder,
+                    mockTimescalesService,
+                    new EncrypterService(MockAppConfig)
+                  )
+
+    lazy val target: ScratchService = new ScratchService(mockScratchRepository, fsService)(ec, MockAppConfig)
   }
 
     "Calling save" should {

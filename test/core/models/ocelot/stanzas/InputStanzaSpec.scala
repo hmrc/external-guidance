@@ -18,7 +18,8 @@ package core.models.ocelot.stanzas
 
 import base.BaseSpec
 import play.api.libs.json._
-import core.models.ocelot.{LabelCache, Phrase, Page}
+import play.api.i18n.Lang
+import core.models.ocelot.{Label, LabelCache, Phrase, Page, SecuredProcess, Published, Encrypter, Labels}
 
 class InputStanzaSpec extends BaseSpec {
 
@@ -43,6 +44,7 @@ class InputStanzaSpec extends BaseSpec {
   val expectedDateStanza: InputStanza = inputStanza(Date)
   val expectedNumberStanza: InputStanza = inputStanza(Number)
   val expectedTextStanza: InputStanza = inputStanza(Txt)
+  val expectedPassphraseStanza: InputStanza = inputStanza(PassphraseText)
 
   val jsonToStanzaMappings: Map[JsValue, InputStanza] = Map(
     getStanzaJson("Currency") -> expectedCurrencyStanza,
@@ -193,6 +195,40 @@ class InputStanzaSpec extends BaseSpec {
 
     "Determine valid input to be correct" in {
       val input = Input(expectedTextStanza, Phrase("",""), None, None)
+      input.validInput("a value") shouldBe Right("a value")
+      input.validInput("""any valid text!@£%^&*()":;'?><,./""") shouldBe Right("""any valid text!@£%^&*()":;'?><,./""")
+    }
+  }
+
+  "PassphraseInput" should {
+
+    "update the passphrase response labels" in {
+      val encrypter = new Encrypter{ def encrypt(p: String): String = p.reverse }
+      val labels: Labels = LabelCache(
+        Map[String, Label](), 
+        Map[String, Label](), 
+        Nil, 
+        Map[String, Stanza](), 
+        Map[String, Int](), 
+        message(Lang("en")) _, 
+        Published, 
+        encrypter)
+      //val labels = LabelCache()
+      val inputText = "Hello"
+      val encryptedInput = labels.encrypt(inputText)
+      val input = Input(expectedPassphraseStanza, Phrase("",""), None, None)
+      val (_, updatedLabels) = input.eval(inputText, blankPage, labels)
+      updatedLabels.updatedLabels(SecuredProcess.PassPhraseResponseLabelName).english shouldBe List(inputText)
+      updatedLabels.updatedLabels(SecuredProcess.EncryptedPassphraseResponseLabelName).english shouldBe List(encryptedInput)
+    }
+
+    "Determine invalid input to be incorrect" in {
+      val input = Input(expectedPassphraseStanza, Phrase("Name","Name"), None, None)
+      input.validInput("") shouldBe Left(Nil)
+    }
+
+    "Determine valid input to be correct" in {
+      val input = Input(expectedPassphraseStanza, Phrase("",""), None, None)
       input.validInput("a value") shouldBe Right("a value")
       input.validInput("""any valid text!@£%^&*()":;'?><,./""") shouldBe Right("""any valid text!@£%^&*()":;'?><,./""")
     }

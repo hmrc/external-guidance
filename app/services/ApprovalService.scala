@@ -36,14 +36,13 @@ class ApprovalService @Inject() (
     repository: ApprovalRepository,
     reviewRepository: ApprovalProcessReviewRepository,
     publishedRepository: PublishedRepository,
-    pageBuilder: ValidatingPageBuilder,
-    timescalesService: TimescalesService
+    finalisationService: ProcessFinalisationService
 )(implicit ec: ExecutionContext, val appConfig: AppConfig) {
 
   val logger: Logger = Logger(this.getClass)
 
   def save(incomingJson: JsObject, reviewType: String, initialStatus: String, checkLevel: GuidanceCheckLevel = Strict): Future[RequestOutcome[String]] =
-    guidancePagesAndProcess(pageBuilder, incomingJson, timescalesService, checkLevel).flatMap{
+    finalisationService.guidancePagesAndProcess(incomingJson, checkLevel).flatMap{
       case Left(err) => Future.successful(Left(err))
       case Right((process, pages, json)) =>
         val processMetaSection =

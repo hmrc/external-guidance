@@ -23,6 +23,7 @@ import play.api.libs.functional.syntax._
 case class Meta(id: String,
                 title: String,
                 passPhrase: Option[String],
+                encryptedPassPhrase: Option[String],
                 ocelot: Int,
                 lastAuthor: String,
                 lastUpdate: Long,
@@ -36,6 +37,7 @@ object Meta {
   def buildMetaSection(id: String,
                 title: String,
                 passPhrase: Option[String],
+                encryptedPassPhrase: Option[String],
                 ocelot: Int,
                 lastAuthor: Option[String],
                 lastUpdate: Option[Long],
@@ -46,6 +48,7 @@ object Meta {
     Meta(id,
          title,
          passPhrase,
+         encryptedPassPhrase,
          ocelot,
          lastAuthor.getOrElse(""),
          lastUpdate.getOrElse(ZonedDateTime.now.toInstant.toEpochMilli),
@@ -59,6 +62,7 @@ object Meta {
     (__ \ "id").read[String] and
       (__ \ "title").read[String] and
       (__ \ "passPhrase").readNullable[String] and
+      (__ \ "encryptedPassPhrase").readNullable[String] and
       (__ \ "ocelot").read[Int] and
       (__ \ "lastAuthor").readNullable[String] and
       (__ \ "lastUpdate").readNullable[Long] and
@@ -72,6 +76,7 @@ object Meta {
     (__ \ "id").write[String] and
       (__ \ "title").write[String] and
       (__ \ "passPhrase").writeNullable[String] and
+      (__ \ "encryptedPassPhrase").writeNullable[String] and
       (__ \ "ocelot").write[Int] and
       (__ \ "lastAuthor").write[String] and
       (__ \ "lastUpdate").write[Long] and

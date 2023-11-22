@@ -170,7 +170,7 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
               p.processCode,
               process.meta.version,
               process.meta.lastAuthor,
-              process.meta.passPhrase,
+              passphraseStatus(process),
               p.datePublished,
               p.publishedBy,
               "Published"

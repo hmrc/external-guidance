@@ -116,7 +116,7 @@ class ArchiveRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: Execu
               p.processCode,
               process.meta.version,
               process.meta.lastAuthor,
-              process.meta.passPhrase,
+              passphraseStatus(process),
               p.dateArchived,
               p.archivedBy,
               "Archived"

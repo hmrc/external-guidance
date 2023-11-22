@@ -14,29 +14,40 @@
  * limitations under the License.
  */
 
-import core.models.ocelot._
+package services
+
+import javax.inject.{Inject, Singleton}
 import core.models.errors.Error
 import core.models.ocelot.errors._
 import core.models._
-import core.models.ocelot.Process
+import core.models.ocelot.{Phrase, SecuredProcess, Process, Page}
+import core.models.ocelot.stanzas.{Value, Stanza}
 import play.api.libs.json._
-import config.AppConfig
 import scala.concurrent.{Future, ExecutionContext}
+import config.AppConfig
+import play.api.Logging
+import core.services.EncrypterService
 
-package object services {
+@Singleton
+class ProcessFinalisationService @Inject() (
+    appConfig: AppConfig,
+    vpb: ValidatingPageBuilder, 
+    timescalesService: TimescalesService,
+    encrypter: EncrypterService) extends Logging {
 
-  def guidancePagesAndProcess(pb: ValidatingPageBuilder, jsObject: JsObject, timescalesService: TimescalesService, checkLevel: GuidanceCheckLevel = Strict)
+
+  def guidancePagesAndProcess(jsObject: JsObject, checkLevel: GuidanceCheckLevel = Strict)
                              (implicit c: AppConfig, ec: ExecutionContext): Future[RequestOutcome[(Process, Seq[Page], JsObject)]] =
     jsObject.validate[Process].fold(errs => Future.successful(Left(Error(GuidanceError.fromJsonValidationErrors(errs)))),
       incomingProcess => {
         // Transform process if fake welsh, secured process or timescales are indicated
         val (p, js) = fakeWelshTextIfRequired _ tupled securedProcessIfRequired(incomingProcess, Some(jsObject))
-        pb.pagesWithValidation(p, p.startPageId, checkLevel).fold(
+        vpb.pagesWithValidation(p, p.startPageId, checkLevel).fold(
           errs => Future.successful(Left(Error(errs))),
           pages => {
             // If valid process, collect list of timescale ids from process flow and phrases
-            val timescaleIds = (pb.pageBuilder.timescales.referencedNonPhraseIds(incomingProcess.flow) ++
-              pb.pageBuilder.timescales.referencedIds(incomingProcess.phrases)).distinct
+            val timescaleIds = (vpb.pageBuilder.timescales.referencedNonPhraseIds(incomingProcess.flow) ++
+              vpb.pageBuilder.timescales.referencedIds(incomingProcess.phrases)).distinct
             timescaleIds match {
               case Nil => Future.successful(Right((p, pages, js.fold(Json.toJsObject(p))(json => json))))
               case _ =>
@@ -56,15 +67,28 @@ package object services {
     )
 
   private[services] def fakeWelshTextIfRequired(process: Process, jsObject: Option[JsObject])(implicit c: AppConfig): (Process,  Option[JsObject]) =
-    if (process.passPhrase.isDefined || c.fakeWelshInUnauthenticatedGuidance) {
+    if (process.passPhrase.isDefined || process.encryptedPassPhrase.isDefined || c.fakeWelshInUnauthenticatedGuidance) {
       val fakedWelshProcess = process.copy(phrases = process.phrases.map(p => if (p.welsh.trim.isEmpty) Phrase(p.english, s"Welsh: ${p.english}") else p))
       (fakedWelshProcess, None)
     } else (process, jsObject)
 
   private[services] def securedProcessIfRequired(p: Process, jsObject: Option[JsObject]): (Process, Option[JsObject]) =
     p.valueStanzaPassPhrase.fold((p, jsObject)){passPhrase =>
-      // Add optional passphrase to process meta section
-      val securedProcess = p.copy(meta = p.meta.copy(passPhrase = Some(passPhrase)))
+      val encryptedPhrase = encrypter.encrypt(passPhrase)                                          // Encrypt password
+      val securedProcess = p.copy(meta = p.meta.copy(encryptedPassPhrase = Some(encryptedPhrase)), // Add optional passphrase to process meta section
+                                  flow = updateFlowPassPhrase(p, encryptedPhrase))
       (securedProcess, None)
     }
+
+  private[services] def updateFlowPassPhrase(p: Process, encryptedPassPhrase: String): Map[String, Stanza] = 
+    p.passphraseValueStanza.fold(p.flow){
+      case (id, valueStanza) =>
+        val updatedValues = valueStanza.values.map{
+          case v: Value if v.label == SecuredProcess.PassPhraseLabelName => v.copy(value = encryptedPassPhrase)
+          case v => v
+        }
+        p.flow.filterNot(p => p._1 == id) ++ Map(id -> valueStanza.copy(values = updatedValues))
+    }
 }
+
+

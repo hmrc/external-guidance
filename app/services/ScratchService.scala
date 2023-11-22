@@ -32,13 +32,12 @@ import config.AppConfig
 
 @Singleton
 class ScratchService @Inject() (repository: ScratchRepository,
-                                pageBuilder: ValidatingPageBuilder,
-                                timescalesService: TimescalesService)
+                                finalisationService: ProcessFinalisationService)
                                (implicit ec: ExecutionContext, val c: AppConfig) {
   val logger: Logger = Logger(getClass)
 
   def save(json: JsObject): Future[RequestOutcome[UUID]] =
-    guidancePagesAndProcess(pageBuilder, json, timescalesService, Tolerant).flatMap{
+    finalisationService.guidancePagesAndProcess(json, Tolerant).flatMap{
       case Left(err) => Future.successful(Left(err))
       case Right((_, _, process)) => {
         repository.save(process).map {
