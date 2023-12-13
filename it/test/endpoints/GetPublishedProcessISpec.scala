@@ -33,30 +33,7 @@ import support.IntegrationSpec
   */
 class GetPublishedProcessISpec extends IntegrationSpec {
 
-  "Calling the published endpoint with a valid process id" should {
-
-    val processId: String = "this-is-the-process-code"
-
-    lazy val request: WSRequest = buildRequest(s"/external-guidance/published/$processId")
-
-    lazy val response: WSResponse = {
-      AuditStub.audit()
-      await(request.get())
-    }
-
-    "return an OK status" ignore {
-
-      response.status shouldBe Status.OK
-
-    }
-
-    "return content as JSON" ignore {
-
-      response.contentType shouldBe ContentTypes.JSON
-
-    }
-
-  }
+  // "Calling the published endpoint with a valid process id" is tested within endpoints.PostProcessReviewISpec.scala
 
   "Calling the published endpoint with an unknown process id" should {
 
