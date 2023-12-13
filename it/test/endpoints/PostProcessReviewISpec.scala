@@ -30,6 +30,7 @@ import stubs.{AuditStub, AuthStub}
 import support.IntegrationSpec
 import models.Constants._
 import play.api.libs.json.{Json, OFormat}
+import play.api.http.{ContentTypes, Status}
 
 class PostProcessReviewISpec extends IntegrationSpec {
 implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
@@ -126,6 +127,8 @@ implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProc
           AuditStub.audit()
           await(request.get())
         }
+        response.status shouldBe Status.OK
+        response.contentType shouldBe ContentTypes.JSON
         val publishedEntry: Process = response.body[JsValue].as[Process]
         publishedEntry.meta.id shouldBe id
       }
