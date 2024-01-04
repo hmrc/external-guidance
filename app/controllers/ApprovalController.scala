@@ -76,7 +76,7 @@ class ApprovalController @Inject() (allRolesAction: AllRolesAction,
   def get(id: String): Action[AnyContent] = Action.async { _ =>
     approvalService.getById(id).flatMap {
       case Right(approvalProcess) =>
-        timescalesService.updateProcessTimescaleTable(approvalProcess).map{
+        timescalesService.updateProcessTimescaleTableAndDetails(approvalProcess).map{
           case Right(result) => Ok(result)
           case Left(_) => InternalServerError(toJson(OcelotError(ServerError)))
         }
@@ -89,7 +89,7 @@ class ApprovalController @Inject() (allRolesAction: AllRolesAction,
   def getByProcessCode(processCode: String): Action[AnyContent] = Action.async { _ =>
     approvalService.getByProcessCode(processCode).flatMap {
       case Right(approvalProcess) =>
-        timescalesService.updateProcessTimescaleTable(approvalProcess).map{
+        timescalesService.updateProcessTimescaleTableAndDetails(approvalProcess).map{
           case Right(result) => Ok(result)
           case Left(_) => InternalServerError(toJson(OcelotError(ServerError)))
         }

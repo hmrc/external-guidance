@@ -55,7 +55,7 @@ class ScratchController @Inject() (scratchService: ScratchService,
 
   def get(id: String): Action[AnyContent] = Action.async { _ =>
     scratchService.getById(id).flatMap {
-      case Right(process) => timescalesService.updateProcessTimescaleTable(process).map {
+      case Right(process) => timescalesService.updateProcessTimescaleTableAndDetails(process).map {
         case Right(result) => Ok(result)
         case Left(_) => InternalServerError(toJson(OcelotError(ServerError)))
       }

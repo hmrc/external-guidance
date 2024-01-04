@@ -264,7 +264,7 @@ class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService
 
       process.timescales shouldBe Map()
 
-      MockTimescalesService.get().returns(Future.successful(Right(Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0))))
+      MockTimescalesService.get().returns(Future.successful(Right(Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0), 0L)))
 
       whenReady(service.guidancePagesAndProcess(rawOcelotTimescalesJson.as[JsObject])(MockAppConfig, ec)){
         case Left(err) => fail(s"Failed with $err")
@@ -277,7 +277,7 @@ class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService
 
     "detect mismatched English and Welsh Link ids" in new Test {
 
-      MockTimescalesService.get().returns(Future.successful(Right(Map())))
+      MockTimescalesService.get().returns(Future.successful(Right((Map(), 0L))))
 
       whenReady(service.guidancePagesAndProcess(jsonWithDiffLangIds.as[JsObject])(MockAppConfig, ec)){
         case Left(Error(_, List(LanguageLinkIdsDiffer("33"), LanguageLinkIdsDiffer("3")), _, _)) => succeed
@@ -288,7 +288,7 @@ class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService
 
     "Ignore mismatched English and Welsh Link ids in unused phrases" in new Test {
 
-      MockTimescalesService.get().returns(Future.successful(Right(Map())))
+      MockTimescalesService.get().returns(Future.successful(Right((Map(), 0L))))
 
       whenReady(service.guidancePagesAndProcess(jsonWithDiffLangIdsInUnusedPhrase.as[JsObject])(MockAppConfig, ec)){
         case Right(_) => succeed

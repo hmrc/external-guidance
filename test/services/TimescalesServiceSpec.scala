@@ -225,6 +225,7 @@ class TimescalesServiceSpec extends BaseSpec {
     val timescalesJsonWithDeletion: JsValue = Json.parse("""{"Second": 2, "Third": 3, "Fourth": 4}""")
 
     val timescales: Map[String, Int] = Map("First" -> 1, "Second" -> 2, "Third" -> 3)
+    val rimeScalesWithVersion = (Map("First" -> 1, "Second" -> 2, "Third" -> 3), 0L)
     val credId: String = "234324234"
     val user: String = "User Blah"
     val email: String = "user@blah.com"
@@ -359,7 +360,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .returns(Future.successful(Right(timescalesUpdate)))
 
       whenReady(target.get()) { result =>
-        result shouldBe Right(timescales)
+        result shouldBe Right(rimeScalesWithVersion)
       }
     }
 
@@ -369,7 +370,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .returns(Future.successful(Left(NotFoundError)))
 
       whenReady(target.get()) { result =>
-        result shouldBe Right(timescales)
+        result shouldBe Right(rimeScalesWithVersion)
       }
     }
 
@@ -425,7 +426,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .get("1")
         .returns(Future.successful(Right(timescalesUpdate)))
 
-      whenReady(target.updateProcessTimescaleTable(jsonWithBlankTsTable)) { result =>
+      whenReady(target.updateProcessTimescaleTableAndDetails(jsonWithBlankTsTable)) { result =>
         result match {
           case Right(json) => (json.as[Process]).timescales shouldBe timescales
           case _ => fail()
@@ -434,7 +435,7 @@ class TimescalesServiceSpec extends BaseSpec {
     }
 
     "Update table using mongo timescale defns where json contains no timescale table" in new Test {
-      whenReady(target.updateProcessTimescaleTable(jsonWithNoTsTable)) { result =>
+      whenReady(target.updateProcessTimescaleTableAndDetails(jsonWithNoTsTable)) { result =>
         result match {
           case Right(json) => (json.as[Process]).timescales shouldBe Map()
           case _ => fail()
@@ -444,7 +445,7 @@ class TimescalesServiceSpec extends BaseSpec {
 
     "Update table using mongo timescale defns where json is not a valid Process" in new Test {
       val update = Json.parse("{}").as[JsObject]
-      whenReady(target.updateProcessTimescaleTable(update)) { result =>
+      whenReady(target.updateProcessTimescaleTableAndDetails(update)) { result =>
         result match {
           case Right(_) => fail()
           case Left(err) => err shouldBe ValidationError
@@ -457,7 +458,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .get("1")
         .returns(Future.successful(Left(NotFoundError)))
 
-      whenReady(target.updateProcessTimescaleTable(jsonWithBlankTsTable)) { result =>
+      whenReady(target.updateProcessTimescaleTableAndDetails(jsonWithBlankTsTable)) { result =>
         result match {
           case Right(json) => (json.as[Process]).timescales shouldBe timescales
           case _ => fail()
@@ -471,7 +472,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .get("1")
         .returns(Future.successful(Left(DatabaseError)))
 
-      whenReady(target.updateProcessTimescaleTable(jsonWithBlankTsTable)) { result =>
+      whenReady(target.updateProcessTimescaleTableAndDetails(jsonWithBlankTsTable)) { result =>
         result shouldBe Left(InternalServerError)
       }
     }

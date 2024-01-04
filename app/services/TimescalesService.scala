@@ -17,6 +17,7 @@
 package services
 
 import javax.inject.{Inject, Singleton}
+import java.time.temporal.ChronoField.NANO_OF_SECOND
 import core.models.RequestOutcome
 import core.models.ocelot.Process
 import core.models.errors.{InternalServerError, NotFoundError, ValidationError}
@@ -51,13 +52,13 @@ class TimescalesService @Inject() (
         Left(InternalServerError)
     }
 
-  def updateProcessTimescaleTable(js: JsObject): Future[RequestOutcome[JsObject]] =
+  def updateProcessTimescaleTableAndDetails(js: JsObject): Future[RequestOutcome[JsObject]] =
     js.validate[Process].fold(_ => Future.successful(Left(ValidationError)),
       process =>
         if (process.timescales.isEmpty) Future.successful(Right(js))
         else get().map{
           case Right(ts) =>
-            val timescalesTable: Map[String, Int] = process.timescales.keys.toList.map(k => (k, ts(k))).toMap
+            val timescalesTable: Map[String, Int] = process.timescales.keys.toList.map(k => (k, ts._1(k))).toMap
             Json.toJson(process.copy(timescales = timescalesTable)).validate[JsObject].fold(
               _ => Left(ValidationError),
               jsObj => Right(jsObj)
@@ -66,12 +67,13 @@ class TimescalesService @Inject() (
         }
     )
 
-  def get(): Future[RequestOutcome[Map[String, Int]]] =
+  def get(): Future[RequestOutcome[(Map[String, Int], Long)]] =
     repository.get(repository.CurrentTimescalesID) map {
-      case Right(tsUpdate) => tsUpdate.timescales.validate[Map[String, Int]].fold(_ => Left(InternalServerError), mp => Right(mp))
+      case Right(tsUpdate) => tsUpdate.timescales.validate[Map[String, Int]].fold(_ => Left(InternalServerError), mp =>
+        Right((mp, tsUpdate.when.toInstant.getLong(NANO_OF_SECOND))))
       case Left(NotFoundError) =>
         logger.warn(s"No timescales found returning seed timescale details")
-        Right(appConfig.seedTimescales)
+        Right(appConfig.seedTimescales, 0L)
       case Left(err) =>
         logger.error(s"Unable to retrieve timescale table due error, $err")
         Left(InternalServerError)
@@ -83,7 +85,7 @@ class TimescalesService @Inject() (
       get().flatMap{
         case Right(ts) =>
           // Check for deletions from the existing list
-          ts.keys.toList.diff(mp.keys.toList) match {
+          ts._1.keys.toList.diff(mp.keys.toList) match {
             case Nil => saveTimescales(mp, credId, user, email)
             case deletions =>
               logger.warn(s"Timescale update contains the following deletions: ${deletions.mkString(",")}")
@@ -93,7 +95,7 @@ class TimescalesService @Inject() (
                 case inUseDeletions =>
                   logger.warn(s"TIMESCALES: Timescale deletions still in-use retained: ${inUseDeletions.mkString(",")}")
                   // Save new timescales retaining the in-use deletions
-                  saveTimescales(ts.view.filterKeys(inUseDeletions.contains(_)).toMap ++ mp, credId, user, email, inUseDeletions)
+                  saveTimescales(ts._1.view.filterKeys(inUseDeletions.contains(_)).toMap ++ mp, credId, user, email, inUseDeletions)
               }
           }
         case Left(NotFoundError) => saveTimescales(mp, credId, user, email)
