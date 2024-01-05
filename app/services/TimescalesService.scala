@@ -17,7 +17,6 @@
 package services
 
 import javax.inject.{Inject, Singleton}
-import java.time.temporal.ChronoField.NANO_OF_SECOND
 import core.models.RequestOutcome
 import core.models.ocelot.Process
 import core.models.errors.{InternalServerError, NotFoundError, ValidationError}
@@ -70,7 +69,7 @@ class TimescalesService @Inject() (
   def get(): Future[RequestOutcome[(Map[String, Int], Long)]] =
     repository.get(repository.CurrentTimescalesID) map {
       case Right(tsUpdate) => tsUpdate.timescales.validate[Map[String, Int]].fold(_ => Left(InternalServerError), mp =>
-        Right((mp, tsUpdate.when.toInstant.getLong(NANO_OF_SECOND))))
+        Right((mp, tsUpdate.when.toInstant.toEpochMilli)))
       case Left(NotFoundError) =>
         logger.warn(s"No timescales found returning seed timescale details")
         Right(appConfig.seedTimescales, 0L)

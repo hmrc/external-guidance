@@ -225,7 +225,8 @@ class TimescalesServiceSpec extends BaseSpec {
     val timescalesJsonWithDeletion: JsValue = Json.parse("""{"Second": 2, "Third": 3, "Fourth": 4}""")
 
     val timescales: Map[String, Int] = Map("First" -> 1, "Second" -> 2, "Third" -> 3)
-    val rimeScalesWithVersion = (Map("First" -> 1, "Second" -> 2, "Third" -> 3), 0L)
+    val timeScalesWithVersion = (Map("First" -> 1, "Second" -> 2, "Third" -> 3), lastUpdateTime.toInstant.toEpochMilli)
+    val timeScalesWithZeroVersion = (Map("First" -> 1, "Second" -> 2, "Third" -> 3), 0L)
     val credId: String = "234324234"
     val user: String = "User Blah"
     val email: String = "user@blah.com"
@@ -360,7 +361,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .returns(Future.successful(Right(timescalesUpdate)))
 
       whenReady(target.get()) { result =>
-        result shouldBe Right(rimeScalesWithVersion)
+        result shouldBe Right(timeScalesWithVersion)
       }
     }
 
@@ -370,7 +371,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .returns(Future.successful(Left(NotFoundError)))
 
       whenReady(target.get()) { result =>
-        result shouldBe Right(rimeScalesWithVersion)
+        result shouldBe Right(timeScalesWithZeroVersion)
       }
     }
 
