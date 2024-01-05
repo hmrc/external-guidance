@@ -56,7 +56,7 @@ class ScratchServiceSpec extends BaseSpec {
           .save(json)
           .returns(Future.successful(expected))
 
-        MockTimescalesService.get().returns(Future.successful(Right(Map())))
+        MockTimescalesService.get().returns(Future.successful(Right((Map(), 0L))))
 
         whenReady(target.save(json)) { result =>
           result shouldBe Left(Error(Error.UnprocessableEntity, List(MissingTimescaleDefinition("RepayReimb")), None))

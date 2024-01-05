@@ -30,7 +30,9 @@ case class Meta(id: String,
                 version: Int,
                 fileName: Option[String],
                 titlePhrase: Option[Int] = None,
-                processCode: String)
+                processCode: String,
+                timescalesVersion : Option[Long] = None,
+                ratesVersion : Option[Long] = None)
 
 object Meta {
 
@@ -44,7 +46,9 @@ object Meta {
                 optionalVersion: Option[Int],
                 fileName: Option[String],
                 titlePhrase: Option[Int] = None,
-                processCode: String): Meta =
+                processCode: String,
+                timescalesVersion : Option[Long],
+                ratesVersion : Option[Long]): Meta =
     Meta(id,
          title,
          passPhrase,
@@ -55,7 +59,9 @@ object Meta {
          optionalVersion.getOrElse(1),
          fileName,
          titlePhrase,
-         processCode
+         processCode,
+         timescalesVersion,
+         ratesVersion
        )
 
   implicit val metaReads: Reads[Meta] = (
@@ -69,7 +75,9 @@ object Meta {
       (__ \ "version").readNullable[Int] and
       (__ \ "filename").readNullable[String] and
       (__ \ "titlePhrase").readNullable[Int] and
-      (__ \ "processCode").read[String]
+      (__ \ "processCode").read[String] and
+      (__ \ "timescalesVersion").readNullable[Long] and
+      (__ \ "ratesVersion").readNullable[Long]
   )(buildMetaSection _)
 
   implicit val writes: Writes[Meta] = (
@@ -83,6 +91,8 @@ object Meta {
       (__ \ "version").write[Int] and
       (__ \ "filename").writeNullable[String] and
       (__ \ "titlePhrase").writeNullable[Int] and
-      (__ \ "processCode").write[String]
+      (__ \ "processCode").write[String] and
+      (__ \ "timescalesVersion").writeNullable[Long] and
+      (__ \ "ratesVersion").writeNullable[Long]
   )(unlift(Meta.unapply))
 }
