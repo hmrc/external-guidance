@@ -55,7 +55,7 @@ class ProcessFinalisationService @Inject() (
                   case Left(err) => Future.successful(Left(err))
                   case Right(timescales) if timescaleIds.forall(id => timescales._1.contains(id)) =>
                     // All timescales used in process are currently available from the timescales service
-                    val updatedProcess = p.copy(timescales = timescaleIds.map(id => (id, 0)).toMap, p.meta.timescalesVersion = p.meta.copy(timescalesVersion = Some(timescales._2)))
+                    val updatedProcess = p.copy(timescales = timescaleIds.map(id => (id, 0)).toMap)
                     Future.successful(Right((updatedProcess, pages, Json.toJsObject(updatedProcess))))
                   case Right(timescales) =>
                     Future.successful(Left(Error(timescaleIds.filterNot(timescales._1.contains).map(MissingTimescaleDefinition))))
