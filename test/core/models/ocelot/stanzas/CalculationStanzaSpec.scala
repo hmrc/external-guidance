@@ -18,7 +18,7 @@ package core.models.ocelot.stanzas
 
 import base.BaseSpec
 import core.models.ocelot.{LabelCache, _}
-import core.models.ocelot.errors.{GuidanceError, UnknownCalcOperationType}
+import core.models.ocelot.errors.{GuidanceError, UnknownCalcOperationType, DivideByZeroError}
 import play.api.libs.json._
 
 class CalculationStanzaSpec extends BaseSpec {
@@ -1759,10 +1759,10 @@ class CalculationStanzaSpec extends BaseSpec {
       val ops: Seq[CalcOperation] = Seq( CalcOperation("34", Divide, "0", "result"))
       val calculation: Calculation = Calculation(CalculationStanza(ops, Seq("16"), stack = false))
 
-      val (nextStanza, updatedLabels, _) = calculation.eval(LabelCache())
+      val (_, _, errs) = calculation.eval(LabelCache())
 
-      nextStanza shouldBe "16"
-      updatedLabels.value("result") shouldBe Some("Infinity")
+      errs shouldBe List(DivideByZeroError("34", "0"))
+
     }
 
   }
