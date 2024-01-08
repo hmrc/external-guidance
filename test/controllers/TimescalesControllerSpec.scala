@@ -222,7 +222,7 @@ class TimescalesControllerSpec extends BaseSpec {
 
       trait ValidGetTest extends Test {
         val ts: Map[String, Int] = Map("blah" -> 32, "another" -> 56)
-        MockTimescalesService.get().returns(Future.successful(Right(ts, 0L)))
+        MockTimescalesService.get().returns(Future.successful(Right((ts, 0L))))
         lazy val request: FakeRequest[AnyContent] = FakeRequest()
       }
 

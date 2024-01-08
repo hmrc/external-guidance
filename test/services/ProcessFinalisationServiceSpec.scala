@@ -264,7 +264,7 @@ class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService
 
       process.timescales shouldBe Map()
 
-      MockTimescalesService.get().returns(Future.successful(Right(Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0), 0L)))
+      MockTimescalesService.get().returns(Future.successful(Right((Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0), 0L))))
 
       whenReady(service.guidancePagesAndProcess(rawOcelotTimescalesJson.as[JsObject])(MockAppConfig, ec)){
         case Left(err) => fail(s"Failed with $err")
