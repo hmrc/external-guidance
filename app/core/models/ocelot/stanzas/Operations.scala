@@ -17,7 +17,7 @@
 package core.models.ocelot.stanzas
 
 import core.models.ocelot._
-import core.models.ocelot.errors.{UnsupportedOperationError, RuntimeError}
+import core.models.ocelot.errors.{UnsupportedOperationError, RuntimeError, DivideByZeroError}
 import play.api.Logger
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
@@ -123,8 +123,9 @@ case class MultiplyOperation(left: String, right: String, label: String) extends
 }
 
 case class DivideOperation(left: String, right: String, label: String) extends Operation {
-  override def evalNumericOp(left: BigDecimal, right: BigDecimal): Result[String] =
-    if (right == 0.0) Right("Infinity") else Right((left / right).bigDecimal.toPlainString)
+  override def evalNumericOp(numerator: BigDecimal, denominator: BigDecimal): Result[String] = {
+    if (denominator == 0.0) Left(DivideByZeroError(left, right)) else Right((numerator / denominator).bigDecimal.toPlainString)
+  }
 }
 
 case class CeilingOperation(left: String, right: String, label: String) extends Operation {

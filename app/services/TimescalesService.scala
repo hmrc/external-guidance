@@ -72,7 +72,7 @@ class TimescalesService @Inject() (
         Right((mp, tsUpdate.when.toInstant.toEpochMilli)))
       case Left(NotFoundError) =>
         logger.warn(s"No timescales found returning seed timescale details")
-        Right(appConfig.seedTimescales, 0L)
+        Right((appConfig.seedTimescales, 0L))
       case Left(err) =>
         logger.error(s"Unable to retrieve timescale table due error, $err")
         Left(InternalServerError)

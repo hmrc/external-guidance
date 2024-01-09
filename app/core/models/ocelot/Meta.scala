@@ -31,8 +31,8 @@ case class Meta(id: String,
                 fileName: Option[String],
                 titlePhrase: Option[Int] = None,
                 processCode: String,
-                timescalesVersion : Option[Long] = None,
-                ratesVersion : Option[Long] = None)
+                timescalesVersion: Option[Long] = None,
+                ratesVersion: Option[Long] = None)
 
 object Meta {
 
@@ -47,8 +47,8 @@ object Meta {
                 fileName: Option[String],
                 titlePhrase: Option[Int] = None,
                 processCode: String,
-                timescalesVersion : Option[Long],
-                ratesVersion : Option[Long]): Meta =
+                timescalesVersion: Option[Long],
+                ratesVersion: Option[Long]): Meta =
     Meta(id,
          title,
          passPhrase,

@@ -31,6 +31,7 @@ case class UnsupportedOperationError(op: String, lvalue: String, rvalue: String,
 case object NonTerminatingPageError extends RuntimeError
 case object UnsupportedUiPatternError extends RuntimeError
 case class ProgrammingError(msg: String) extends RuntimeError
+case class DivideByZeroError(left: String, right: String) extends RuntimeError
 
 // General and section parse errors
 case class ParseError(jsPath: JsPath, errs: Seq[JsonValidationError]) extends GuidanceError
