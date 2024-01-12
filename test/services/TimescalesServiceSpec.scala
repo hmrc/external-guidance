@@ -429,7 +429,10 @@ class TimescalesServiceSpec extends BaseSpec {
 
       whenReady(target.updateProcessTimescaleTableAndDetails(jsonWithBlankTsTable)) { result =>
         result match {
-          case Right(json) => (json.as[Process]).timescales shouldBe timescales
+          case Right(json) => 
+            val process = json.as[Process]
+            process.meta.timescalesVersion shouldBe Some(timescalesUpdate.when.toInstant().toEpochMilli())
+            process.timescales shouldBe timescales
           case _ => fail()
         }
       }
