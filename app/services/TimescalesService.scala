@@ -56,12 +56,10 @@ class TimescalesService @Inject() (
       process =>
         if (process.timescales.isEmpty) Future.successful(Right(js))
         else get().map{
-          case Right(ts) =>
-            val timescalesTable: Map[String, Int] = process.timescales.keys.toList.map(k => (k, ts._1(k))).toMap
-            Json.toJson(process.copy(timescales = timescalesTable)).validate[JsObject].fold(
-              _ => Left(ValidationError),
-              jsObj => Right(jsObj)
-            )
+          case Right((ts, version)) =>
+            val timescalesTable: Map[String, Int] = process.timescales.keys.toList.map(k => (k, ts(k))).toMap
+            val updatedProcess: Process = process.copy(meta = process.meta.copy(timescalesVersion = Some(version)), timescales = timescalesTable)
+            Json.toJson(updatedProcess).validate[JsObject].fold(_ => Left(ValidationError), jsObj => Right(jsObj))
           case Left(err) => Left(err)
         }
     )
