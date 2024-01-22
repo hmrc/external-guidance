@@ -19,7 +19,7 @@ package core.models.ocelot
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
-trait Label {
+sealed trait Label {
   val name: String
   val english: List[String]
   val welsh: List[String]
