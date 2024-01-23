@@ -102,7 +102,7 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
   def updatedLabels: Map[String, Label] = cache
   def labelMap:Map[String, Label] = labels
   def flush(): Labels = new LabelCacheImpl(labels ++ cache.toList, Map(), stack, pool, poolCache, timescales, messages, runMode)
-
+  
   // Label ops
   private def label(name: String): Option[Label] = cache.get(name).fold(labels.get(name))(Some(_))
 

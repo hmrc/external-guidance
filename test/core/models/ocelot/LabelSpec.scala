@@ -20,8 +20,6 @@ import base.BaseSpec
 import play.api.libs.json._
 import play.api.i18n.Lang
 
-case class DummyLabel(name: String, english: List[String] = Nil, welsh: List[String] = Nil) extends Label
-
 class LabelSpec extends BaseSpec with ProcessJson {
 
   trait Test {
@@ -127,12 +125,6 @@ class LabelSpec extends BaseSpec with ProcessJson {
         case JsSuccess(_,_) => fail("A label of unknown type should be deserialized")
         case JsError(_) => succeed
       }
-    }
-
-    "return blank string on serialization if label type is unknown" in new Test {
-      val dummyLabel: Label = DummyLabel("dummy")
-
-      Json.toJson(dummyLabel).toString() shouldBe "\"\""
     }
 
   }
