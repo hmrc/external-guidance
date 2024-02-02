@@ -280,7 +280,7 @@ class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService
       MockTimescalesService.get().returns(Future.successful(Right((Map(), 0L))))
 
       whenReady(service.guidancePagesAndProcess(jsonWithDiffLangIds.as[JsObject])(MockAppConfig, ec)){
-        case Left(Error(_, List(LanguageLinkIdsDiffer("33"), LanguageLinkIdsDiffer("3")), _, _)) => succeed
+        case Left(Error(_, List(LanguageLinkIdsDiffer("33"), LanguageLinkIdsDiffer("3")), _, _, _)) => succeed
         case Left(errs) => fail(errs.toString())
         case err => fail(err.toString)
       }

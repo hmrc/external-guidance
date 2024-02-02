@@ -57,7 +57,7 @@ class ApprovalController @Inject() (allRolesAction: AllRolesAction,
         case Right(id) =>
           logger.info(s"Saved process for $reviewType with id $id")
           Created(Json.obj("id" -> id))
-        case Left(err @ Error(Error.UnprocessableEntity, details, _, _)) =>
+        case Left(err @ Error(Error.UnprocessableEntity, details, _, _, _)) =>
           logger.error(s"Failed to save process for approval due to process errors $details")
           UnprocessableEntity(toJson(OcelotError(err)))
         case Left(DuplicateKeyError) =>

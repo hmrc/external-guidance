@@ -41,7 +41,7 @@ class ScratchController @Inject() (scratchService: ScratchService,
     }, process => {
       scratchService.save(process).map {
         case Right(id) => Created(obj("id" -> id.toString))
-        case Left(err @ Error(Error.UnprocessableEntity, details, _, _)) =>
+        case Left(err @ Error(Error.UnprocessableEntity, details, _, _, _)) =>
           logger.error(s"Failed to save scratch process due to process errors $details")
           UnprocessableEntity(toJson(OcelotError(err)))
         case Left(ValidationError) =>

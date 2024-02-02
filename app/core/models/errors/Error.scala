@@ -16,11 +16,16 @@
 
 package core.models.errors
 
+import core.models.admin.DebugInformation
 import core.models.ocelot.RunMode
 import core.models.ocelot.errors.EGError
 import core.models.ocelot.errors.{GuidanceError, RuntimeError}
 
-case class Error(code: String, errors: List[EGError] = Nil, runMode: Option[RunMode] = None, stanzaId: Option[String] = None)
+case class Error(code: String,
+                 errors: List[EGError] = Nil,
+                 runMode: Option[RunMode] = None,
+                 stanzaId: Option[String] = None,
+                 debugInformation: Option[DebugInformation] = None)
 
 object InternalServerError extends Error("INTERNAL_SERVER_ERROR")
 object DatabaseError extends Error("DATABASE_ERROR")
@@ -45,7 +50,7 @@ object Error {
   val UnprocessableEntity = "UNPROCESSABLE_ENTITY"
   val ExecutionError = "EXECUTION_ERROR"
 
-  def apply(error: RuntimeError, runMode: RunMode, stanzaId: Option[String]): Error = Error(ExecutionError, List(error), Some(runMode), stanzaId)
+  def apply(error: RuntimeError, runMode: RunMode, stanzaId: Option[String]): Error = Error(ExecutionError, List(error), Some(runMode), stanzaId, None)
   def apply(errors: List[GuidanceError]): Error = Error(UnprocessableEntity, errors, None, None)
   def apply(error: GuidanceError): Error = Error(List(error))
 }
