@@ -46,7 +46,7 @@ case class ValueStanza(values: List[Value], override val next: Seq[String], stac
   override val labels: List[String] = values.map(v => v.label)
   override val labelRefs: List[String] = values.flatMap(v => labelReferences(v.value))
 
-  def eval(originalLabels: Labels): (String, Labels, List[RuntimeError]) = {
+  def eval(originalLabels: Labels): (String, Labels, Option[RuntimeError]) = {
 
     def assignValue(v: Value, labels: Labels): Labels = v.valueType match {
         case ScalarType => labels.update(v.label, operandValue(v.value)(labels).getOrElse(""))
@@ -62,7 +62,7 @@ case class ValueStanza(values: List[Value], override val next: Seq[String], stac
           assignValToLabels(xs, assignValue(x, l))
       }
 
-    (next.head, assignValToLabels(values, originalLabels), Nil)
+    (next.head, assignValToLabels(values, originalLabels), None)
   }
 }
 

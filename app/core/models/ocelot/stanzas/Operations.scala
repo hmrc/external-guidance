@@ -92,13 +92,12 @@ sealed trait Operation {
       case (Some(l: Scalar[_]), Some(StringCollection(r))) => storeResultLabel(evalScalarCollectionOp(l.toString, r), labels.updateList)
       // No typed op, fall back to String, String op
       case (Some(l: Operand[_]), Some(r: Operand[_])) => storeResultLabel(evalStringOp(l.toString, r.toString), labels.update)
-      case _ => unsupported(left, right)
+      case (l, r) => unsupported(l.map(_.toString).getOrElse("UNINITIALISED"), r.map(_.toString).getOrElse("UNINITIALISED"))
     }
   }
 
-  protected def unsupported[A, B, C, D](l: A, r: B): Result[D] =
+  protected def unsupported[A, B, D](l: A, r: B): Result[D] =
     Left(UnsupportedOperationError(getClass.getSimpleName, l.toString, r.toString, left, right))
-
 }
 
 case class AddOperation(left: String, right: String, label: String) extends Operation {
