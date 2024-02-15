@@ -211,7 +211,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       val stanza: ChoiceStanza = ChoiceStanza(next, Seq(ChoiceStanzaTest("4", LessThanOrEquals, "3"), ChoiceStanzaTest("3", LessThanOrEquals, "4")), false)
       val choice = Choice(stanza)
       val lc = LabelCache()
-      val expectedResult = ("41", lc, Nil)
+      val expectedResult = ("41", lc, None)
       choice.eval(lc) shouldBe expectedResult
     }
 
@@ -220,7 +220,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       val stanza: ChoiceStanza = ChoiceStanza(next, Seq(ChoiceStanzaTest("4", LessThanOrEquals, "3"), ChoiceStanzaTest("3", MoreThan, "4")), false)
       val choice = Choice(stanza)
       val lc = LabelCache()
-      val expectedResult = ("50", lc, Nil)
+      val expectedResult = ("50", lc, None)
       choice.eval(lc) shouldBe expectedResult
     }
 
@@ -234,7 +234,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       val choice = Choice(stanza)
       val labels = Map("X" -> ScalarLabel("X", List("33.5")), "Y" -> ScalarLabel("Y", List("44")))
       val lc = LabelCache(labels)
-      val expectedResult = ("40", lc, Nil)
+      val expectedResult = ("40", lc, None)
       choice.eval(lc) shouldBe expectedResult
     }
 
@@ -248,7 +248,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       val choice = Choice(stanza)
       val labels = Map("X" -> ScalarLabel("X", List("33.5")), "Y" -> ScalarLabel("Y", List("4")))
       val lc = LabelCache(labels)
-      val expectedResult = ("51", lc, Nil)
+      val expectedResult = ("51", lc, None)
       choice.eval(lc) shouldBe expectedResult
     }
 
@@ -267,7 +267,7 @@ class ChoiceStanzaSpec extends BaseSpec {
 
       val lc = LabelCache(labels)
 
-      val expectedResult = ("1", lc, Nil)
+      val expectedResult = ("1", lc, None)
 
       choice.eval(lc) shouldBe expectedResult
     }
@@ -291,7 +291,7 @@ class ChoiceStanzaSpec extends BaseSpec {
 
       val lc = LabelCache(labels)
 
-      val expectedResult = ("0", lc, Nil)
+      val expectedResult = ("0", lc, None)
 
       choice.eval(lc) shouldBe expectedResult
     }

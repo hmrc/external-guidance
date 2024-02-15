@@ -1761,7 +1761,7 @@ class CalculationStanzaSpec extends BaseSpec {
 
       val (_, _, errs) = calculation.eval(LabelCache())
 
-      errs shouldBe List(DivideByZeroError("34", "0"))
+      errs shouldBe Some(DivideByZeroError("34", "0"))
 
     }
 

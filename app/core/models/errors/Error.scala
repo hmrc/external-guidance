@@ -20,7 +20,10 @@ import core.models.ocelot.RunMode
 import core.models.ocelot.errors.EGError
 import core.models.ocelot.errors.{GuidanceError, RuntimeError}
 
-case class Error(code: String, errors: List[EGError] = Nil, runMode: Option[RunMode] = None, stanzaId: Option[String] = None)
+case class Error(code: String,
+                 errors: List[EGError] = Nil,
+                 runMode: Option[RunMode] = None,
+                 stanzaId: Option[String] = None)
 
 object InternalServerError extends Error("INTERNAL_SERVER_ERROR")
 object DatabaseError extends Error("DATABASE_ERROR")
