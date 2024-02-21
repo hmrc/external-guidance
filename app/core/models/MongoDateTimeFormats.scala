@@ -16,7 +16,7 @@
 
 package core.models
 
-import java.time.{ZonedDateTime, LocalDateTime, ZoneOffset, Instant, LocalDate}
+import java.time.{ZonedDateTime, ZoneOffset, Instant, LocalDate}
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 import play.api.libs.json._
 
@@ -48,23 +48,9 @@ trait MongoDateTimeFormats {
   final val tolerantLocalDateFormat: Format[LocalDate] =
     Format(tolerantLocalDateReads, MongoJavatimeFormats.localDateWrites)
 
-  // LocalDateTime
-
-  final val localDateTimeReads: Reads[LocalDateTime] =
-    Reads.at[String](__ \ "$date" \ "$numberLong")
-      .map(dateTime => Instant.ofEpochMilli(dateTime.toLong).atZone(ZoneOffset.UTC).toLocalDateTime)
-
-  final val localDateTimeWrites: Writes[LocalDateTime] =
-    Writes.at[String](__ \ "$date" \ "$numberLong")
-      .contramap(_.toInstant(ZoneOffset.UTC).toEpochMilli.toString)
-
-  final val localDateTimeFormat: Format[LocalDateTime] =
-    Format(localDateTimeReads, localDateTimeWrites)
-
 
   trait Implicits {
     implicit val mdInstantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
-    implicit val mdLocalDateTimeFormat: Format[LocalDateTime] = localDateTimeFormat
     implicit val mdLocalDateFormat: Format[LocalDate] = tolerantLocalDateFormat
     implicit val mdZonedDateTimeFormat: Format[ZonedDateTime] = zonedDateTimeFormat
   }

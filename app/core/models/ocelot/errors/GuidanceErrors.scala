@@ -27,7 +27,7 @@ sealed trait LinksError extends GuidanceError
 sealed trait TimescalesError extends GuidanceError
 sealed trait RuntimeError extends EGError
 
-case class UnsupportedOperationError(op: String, lvalue: String, rvalue: String, left: String, right: String) extends RuntimeError
+case class UnsupportedOperationError(op: String, lvalue: Option[String], rvalue: Option[String], left: String, right: String) extends RuntimeError
 case object NonTerminatingPageError extends RuntimeError
 case object UnsupportedUiPatternError extends RuntimeError
 case class ProgrammingError(msg: String) extends RuntimeError

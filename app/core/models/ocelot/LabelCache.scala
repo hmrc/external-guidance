@@ -70,15 +70,15 @@ object IdentityEncrypter extends Encrypter {
   def encrypt(plaintext: String): String = plaintext
 }
 
-private[ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
-                                     cache: Map[String, Label] = Map(),
-                                     stack: List[FlowStage] = Nil,
-                                     pool: Map[String, Stanza] = Map(),
-                                     poolCache: Map[String, Stanza] = Map(),
-                                     timescales: Map[String, Int] = Map(),
-                                     messages: (String, Seq[Any]) => String = (_,_) => "",
-                                     val runMode: RunMode = Published,
-                                     encrypter: Encrypter = IdentityEncrypter) extends Labels {
+private[ocelot] class LabelCacheImpl(labels: Map[String, Label],
+                                     cache: Map[String, Label],
+                                     stack: List[FlowStage],
+                                     pool: Map[String, Stanza],
+                                     poolCache: Map[String, Stanza],
+                                     timescales: Map[String, Int],
+                                     messages: (String, Seq[Any]) => String,
+                                     val runMode: RunMode,
+                                     encrypter: Encrypter) extends Labels {
 
   // Labels
   def value(name: String): Option[String] = label(name).collect{case s: ScalarLabel => s.english.headOption.getOrElse("")}
@@ -90,18 +90,18 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
     }
   }
   def update(name: String, english: String): Labels =
-    new LabelCacheImpl(labels, updateOrAddScalarLabel(name, english, None), stack, pool, poolCache, timescales, messages, runMode)
+    new LabelCacheImpl(labels, updateOrAddScalarLabel(name, english, None), stack, pool, poolCache, timescales, messages, runMode, encrypter)
   def update(name: String, english: String, welsh: String): Labels =
-    new LabelCacheImpl(labels, updateOrAddScalarLabel(name, english, Some(welsh)), stack, pool, poolCache, timescales, messages, runMode)
+    new LabelCacheImpl(labels, updateOrAddScalarLabel(name, english, Some(welsh)), stack, pool, poolCache, timescales, messages, runMode, encrypter)
   def updateList(name: String, english: List[String]): Labels =
-    new LabelCacheImpl(labels, updateOrAddListLabel(name, english), stack, pool, poolCache, timescales, messages, runMode)
+    new LabelCacheImpl(labels, updateOrAddListLabel(name, english), stack, pool, poolCache, timescales, messages, runMode, encrypter)
   def updateList(name: String, english: List[String], welsh: List[String]): Labels =
-    new LabelCacheImpl(labels, updateOrAddListLabel(name, english, welsh), stack, pool, poolCache, timescales, messages, runMode)
+    new LabelCacheImpl(labels, updateOrAddListLabel(name, english, welsh), stack, pool, poolCache, timescales, messages, runMode, encrypter)
 
   // Persistence access
   def updatedLabels: Map[String, Label] = cache
   def labelMap:Map[String, Label] = labels
-  def flush(): Labels = new LabelCacheImpl(labels ++ cache.toList, Map(), stack, pool, poolCache, timescales, messages, runMode)
+  def flush(): Labels = new LabelCacheImpl(labels ++ cache.toList, Map(), stack, pool, poolCache, timescales, messages, runMode, encrypter)
   
   // Label ops
   private def label(name: String): Option[Label] = cache.get(name).fold(labels.get(name))(Some(_))
@@ -126,7 +126,7 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
       case Nil => (Some(continue), this)
       case x :: xs =>
         (Some(x.next),
-         x.labelValue.fold(new LabelCacheImpl(labels, cache, x :: xs ++ (Continuation(continue) :: stack), pool, poolCache ++ stanzas, timescales, messages))
+         x.labelValue.fold(new LabelCacheImpl(labels, cache, x :: xs ++ (Continuation(continue) :: stack), pool, poolCache ++ stanzas, timescales, messages, runMode, encrypter))
                           (lv => new LabelCacheImpl(labels,
                                                     updateOrAddScalarLabel(lv.name, lv.value.english, Some(lv.value.welsh)),
                                                     x :: xs ++ (Continuation(continue) :: stack),
@@ -134,7 +134,8 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
                                                     poolCache ++ stanzas,
                                                     timescales,
                                                     messages,
-                                                    runMode))
+                                                    runMode,
+                                                    encrypter))
         )
     }
 
@@ -145,7 +146,7 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
       case _ :: (y: Flow) :: xs =>
         Some(
           (y.next,
-           y.labelValue.fold(new LabelCacheImpl(labels, cache, stack.tail, pool, poolCache, timescales, messages))
+           y.labelValue.fold(new LabelCacheImpl(labels, cache, stack.tail, pool, poolCache, timescales, messages, runMode, encrypter))
                                (lv => new LabelCacheImpl(labels,
                                                          updateOrAddScalarLabel(lv.name, lv.value.english, Some(lv.value.welsh)),
                                                          y :: xs,
@@ -153,9 +154,10 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
                                                          poolCache,
                                                          timescales,
                                                          messages,
-                                                         runMode)))
+                                                         runMode,
+                                                         encrypter)))
         )
-      case _ :: (c: Continuation) :: xs => Some((c.next, new LabelCacheImpl(labels, cache, xs, pool, poolCache, timescales, messages)))
+      case _ :: (c: Continuation) :: xs => Some((c.next, new LabelCacheImpl(labels, cache, xs, pool, poolCache, timescales, messages, runMode, encrypter)))
     }
 
   def activeFlow: Option[FlowStage] = stack.headOption
@@ -176,10 +178,12 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label] = Map(),
 }
 
 object LabelCache {
-  def apply(): Labels = new LabelCacheImpl()
-  def apply(labels: List[Label]): Labels = new LabelCacheImpl(labels.map(l => (l.name -> l)).toMap)
-  def apply(labels: Map[String, Label]): Labels = new LabelCacheImpl(labels)
-  def apply(labels: Map[String, Label], cache: Map[String, Label]): Labels = new LabelCacheImpl(labels, cache)
+  // TEST only 
+  def apply(): Labels = new LabelCacheImpl(Map(),Map(), Nil,Map(),Map(),Map(),(_,_) => "", Published, IdentityEncrypter)
+  def apply(labels: List[Label]): Labels = new LabelCacheImpl(labels.map(l => (l.name -> l)).toMap,Map(), Nil,Map(),Map(),Map(),(_,_) => "", Published, IdentityEncrypter)
+  def apply(labels: Map[String, Label]): Labels = new LabelCacheImpl(labels,Map(), Nil,Map(),Map(),Map(),(_,_) => "", Published, IdentityEncrypter)
+  def apply(labels: Map[String, Label], cache: Map[String, Label]): Labels = new LabelCacheImpl(labels, cache,Nil, Map(),Map(),Map(), (_,_) => "", Published, IdentityEncrypter)
+
   def apply(labels: Map[String, Label],
             cache: Map[String, Label],
             stack: List[FlowStage],
