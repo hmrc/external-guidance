@@ -174,7 +174,7 @@ class OperationsSpec extends BaseSpec {
       AddOperation("", "", "").evalNumericOp(aNumber, aNumber) shouldBe Right(s"${aNumber + aNumber}")
     }
     "Evaluate two dates correctly or return None" in {
-      AddOperation("", "", "").evalDateOp(aDate, aDate) shouldBe Left(UnsupportedOperationError("AddOperation", "2018-02-20", "2018-02-20", "", ""))
+      AddOperation("", "", "").evalDateOp(aDate, aDate) shouldBe Left(UnsupportedOperationError("AddOperation", Some("2018-02-20"), Some("2018-02-20"), "", ""))
     }
     "Evaluate two strings correctly or return None" in {
       AddOperation("", "", "").evalStringOp(aString, aString) shouldBe Right(aString + aString)
@@ -198,13 +198,13 @@ class OperationsSpec extends BaseSpec {
       SubtractOperation("", "", "").evalDateOp(aDate, aDate) shouldBe Right(aDate.until(aDate, ChronoUnit.DAYS).toString)
     }
     "Evaluate two strings correctly or return None" in {
-      SubtractOperation("", "", "").evalStringOp(aString, aString) shouldBe Left(UnsupportedOperationError("SubtractOperation", aString, aString, "", ""))
+      SubtractOperation("", "", "").evalStringOp(aString, aString) shouldBe Left(UnsupportedOperationError("SubtractOperation", Some(aString), Some(aString), "", ""))
     }
     "Evaluate list and string correctly or return None" in {
       SubtractOperation("", "", "").evalCollectionScalarOp(aList, aString) shouldBe Right(aList.filterNot(_ == aString))
     }
     "Evaluate string and list correctly or return None" in {
-      SubtractOperation("", "", "").evalScalarCollectionOp(aString, aList) shouldBe Left(UnsupportedOperationError("SubtractOperation", aString, aList.toString, "", ""))
+      SubtractOperation("", "", "").evalScalarCollectionOp(aString, aList) shouldBe Left(UnsupportedOperationError("SubtractOperation", Some(aString), Some(aList.toString), "", ""))
     }
     "Evaluate list and list correctly or return None" in {
       SubtractOperation("", "", "").evalCollectionCollectionOp(otherList, aList) shouldBe Right(otherList.filterNot(aList.contains(_)))
@@ -216,19 +216,19 @@ class OperationsSpec extends BaseSpec {
       MultiplyOperation("", "", "").evalNumericOp(aNumber, aNumber) shouldBe Right(s"${aNumber * aNumber}")
     }
     "Evaluate two dates correctly or return None" in {
-      MultiplyOperation("", "", "").evalDateOp(aDate, aDate) shouldBe Left(UnsupportedOperationError("MultiplyOperation", aDate.toString, aDate.toString, "",""))
+      MultiplyOperation("", "", "").evalDateOp(aDate, aDate) shouldBe Left(UnsupportedOperationError("MultiplyOperation", Some(aDate.toString), Some(aDate.toString), "",""))
     }
     "Evaluate two strings correctly or return None" in {
-      MultiplyOperation("", "", "").evalStringOp(aString, aString) shouldBe Left(UnsupportedOperationError("MultiplyOperation", aString, aString, "", ""))
+      MultiplyOperation("", "", "").evalStringOp(aString, aString) shouldBe Left(UnsupportedOperationError("MultiplyOperation", Some(aString), Some(aString), "", ""))
     }
     "Evaluate list and string correctly or return None" in {
-      MultiplyOperation("", "", "").evalCollectionScalarOp(aList, aString) shouldBe Left(UnsupportedOperationError("MultiplyOperation", aList.toString, aString, "", ""))
+      MultiplyOperation("", "", "").evalCollectionScalarOp(aList, aString) shouldBe Left(UnsupportedOperationError("MultiplyOperation", Some(aList.toString), Some(aString), "", ""))
     }
     "Evaluate string and list correctly or return None" in {
-      MultiplyOperation("", "", "").evalScalarCollectionOp(aString, aList) shouldBe Left(UnsupportedOperationError("MultiplyOperation", aString, aList.toString, "", ""))
+      MultiplyOperation("", "", "").evalScalarCollectionOp(aString, aList) shouldBe Left(UnsupportedOperationError("MultiplyOperation", Some(aString), Some(aList.toString), "", ""))
     }
     "Evaluate list and list correctly or return None" in {
-      MultiplyOperation("", "", "").evalCollectionCollectionOp(otherList, aList) shouldBe Left(UnsupportedOperationError("MultiplyOperation", otherList.toString, aList.toString, "", ""))
+      MultiplyOperation("", "", "").evalCollectionCollectionOp(otherList, aList) shouldBe Left(UnsupportedOperationError("MultiplyOperation", Some(otherList.toString), Some(aList.toString), "", ""))
     }
   }
 
@@ -237,19 +237,19 @@ class OperationsSpec extends BaseSpec {
       DivideOperation("", "", "").evalNumericOp(aNumber, aNumber) shouldBe Right(s"${aNumber / aNumber}")
     }
     "Evaluate two dates correctly or return None" in {
-      DivideOperation("", "", "").evalDateOp(aDate, aDate) shouldBe Left(UnsupportedOperationError("DivideOperation", aDate.toString, aDate.toString, "", ""))
+      DivideOperation("", "", "").evalDateOp(aDate, aDate) shouldBe Left(UnsupportedOperationError("DivideOperation", Some(aDate.toString), Some(aDate.toString), "", ""))
     }
     "Evaluate two strings correctly or return None" in {
-      DivideOperation("", "", "").evalStringOp(aString, aString) shouldBe Left(UnsupportedOperationError("DivideOperation", aString, aString, "", ""))
+      DivideOperation("", "", "").evalStringOp(aString, aString) shouldBe Left(UnsupportedOperationError("DivideOperation", Some(aString), Some(aString), "", ""))
     }
     "Evaluate list and string correctly or return None" in {
-      DivideOperation("", "", "").evalCollectionScalarOp(aList, aString) shouldBe Left(UnsupportedOperationError("DivideOperation", aList.toString, aString, "", ""))
+      DivideOperation("", "", "").evalCollectionScalarOp(aList, aString) shouldBe Left(UnsupportedOperationError("DivideOperation", Some(aList.toString), Some(aString), "", ""))
     }
     "Evaluate string and list correctly or return None" in {
-      DivideOperation("", "", "").evalScalarCollectionOp(aString, aList) shouldBe Left(UnsupportedOperationError("DivideOperation", aString, aList.toString, "", ""))
+      DivideOperation("", "", "").evalScalarCollectionOp(aString, aList) shouldBe Left(UnsupportedOperationError("DivideOperation", Some(aString), Some(aList.toString), "", ""))
     }
     "Evaluate list and list correctly or return None" in {
-      DivideOperation("", "", "").evalCollectionCollectionOp(otherList, aList) shouldBe Left(UnsupportedOperationError("DivideOperation", otherList.toString, aList.toString, "", ""))
+      DivideOperation("", "", "").evalCollectionCollectionOp(otherList, aList) shouldBe Left(UnsupportedOperationError("DivideOperation", Some(otherList.toString), Some(aList.toString), "", ""))
     }
   }
 
@@ -258,19 +258,19 @@ class OperationsSpec extends BaseSpec {
       CeilingOperation("", "", "").evalNumericOp(aNumber, aNumber) shouldBe Right(s"${aNumber.setScale(aNumber.toInt, RoundingMode.CEILING).bigDecimal.toPlainString}")
     }
     "Evaluate two dates correctly or return None" in {
-      CeilingOperation("", "", "").evalDateOp(aDate, aDate) shouldBe Left(UnsupportedOperationError("CeilingOperation", aDate.toString, aDate.toString, "", ""))
+      CeilingOperation("", "", "").evalDateOp(aDate, aDate) shouldBe Left(UnsupportedOperationError("CeilingOperation", Some(aDate.toString), Some(aDate.toString), "", ""))
     }
     "Evaluate two strings correctly or return None" in {
-      CeilingOperation("", "", "").evalStringOp(aString, aString) shouldBe Left(UnsupportedOperationError("CeilingOperation", aString, aString, "", ""))
+      CeilingOperation("", "", "").evalStringOp(aString, aString) shouldBe Left(UnsupportedOperationError("CeilingOperation", Some(aString), Some(aString), "", ""))
     }
     "Evaluate list and string correctly or return None" in {
-      CeilingOperation("", "", "").evalCollectionScalarOp(aList, aString) shouldBe Left(UnsupportedOperationError("CeilingOperation", aList.toString, aString, "", ""))
+      CeilingOperation("", "", "").evalCollectionScalarOp(aList, aString) shouldBe Left(UnsupportedOperationError("CeilingOperation", Some(aList.toString), Some(aString), "", ""))
     }
     "Evaluate string and list correctly or return None" in {
-      CeilingOperation("", "", "").evalScalarCollectionOp(aString, aList) shouldBe Left(UnsupportedOperationError("CeilingOperation", aString, aList.toString, "", ""))
+      CeilingOperation("", "", "").evalScalarCollectionOp(aString, aList) shouldBe Left(UnsupportedOperationError("CeilingOperation", Some(aString), Some(aList.toString), "", ""))
     }
     "Evaluate list and list correctly or return None" in {
-      CeilingOperation("", "", "").evalCollectionCollectionOp(otherList, aList) shouldBe Left(UnsupportedOperationError("CeilingOperation", otherList.toString, aList.toString, "", ""))
+      CeilingOperation("", "", "").evalCollectionCollectionOp(otherList, aList) shouldBe Left(UnsupportedOperationError("CeilingOperation", Some(otherList.toString), Some(aList.toString), "", ""))
     }
   }
 
@@ -279,19 +279,19 @@ class OperationsSpec extends BaseSpec {
       FloorOperation("", "", "").evalNumericOp(aNumber, aNumber) shouldBe Right(s"${aNumber.setScale(aNumber.toInt, RoundingMode.FLOOR).bigDecimal.toPlainString}")
     }
     "Evaluate two dates correctly or return None" in {
-      FloorOperation("", "", "").evalDateOp(aDate, aDate) shouldBe Left(UnsupportedOperationError("FloorOperation", aDate.toString, aDate.toString, "", ""))
+      FloorOperation("", "", "").evalDateOp(aDate, aDate) shouldBe Left(UnsupportedOperationError("FloorOperation", Some(aDate.toString), Some(aDate.toString), "", ""))
     }
     "Evaluate two strings correctly or return None" in {
-      FloorOperation("", "", "").evalStringOp(aString, aString) shouldBe Left(UnsupportedOperationError("FloorOperation", aString, aString, "", ""))
+      FloorOperation("", "", "").evalStringOp(aString, aString) shouldBe Left(UnsupportedOperationError("FloorOperation", Some(aString), Some(aString), "", ""))
     }
     "Evaluate list and string correctly or return None" in {
-      FloorOperation("", "", "").evalCollectionScalarOp(aList, aString) shouldBe Left(UnsupportedOperationError("FloorOperation", aList.toString, aString, "", ""))
+      FloorOperation("", "", "").evalCollectionScalarOp(aList, aString) shouldBe Left(UnsupportedOperationError("FloorOperation", Some(aList.toString), Some(aString), "", ""))
     }
     "Evaluate string and list correctly or return None" in {
-      FloorOperation("", "", "").evalScalarCollectionOp(aString, aList) shouldBe Left(UnsupportedOperationError("FloorOperation", aString, aList.toString, "", ""))
+      FloorOperation("", "", "").evalScalarCollectionOp(aString, aList) shouldBe Left(UnsupportedOperationError("FloorOperation", Some(aString), Some(aList.toString), "", ""))
     }
     "Evaluate list and list correctly or return None" in {
-      FloorOperation("", "", "").evalCollectionCollectionOp(otherList, aList) shouldBe Left(UnsupportedOperationError("FloorOperation", otherList.toString, aList.toString, "", ""))
+      FloorOperation("", "", "").evalCollectionCollectionOp(otherList, aList) shouldBe Left(UnsupportedOperationError("FloorOperation", Some(otherList.toString), Some(aList.toString), "", ""))
     }
   }
 }

@@ -23,7 +23,7 @@ import play.api.i18n.Lang
 import java.time.LocalDate
 
 class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
-  implicit val labels: Labels = new LabelCacheImpl(Map(), Map(), Nil, Map(), Map(), timescaleMap, message(Lang("en")))
+  implicit val labels: Labels = new LabelCacheImpl(Map(), Map(), Nil, Map(), Map(), timescaleMap, message(Lang("en")), Published, IdentityEncrypter)
 
   "Label name validation" must {
     "Not allow invalid characters @ £ % etc in label names" in {
