@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-import uk.gov.hmrc.DefaultBuildSettings
-
 val appName = "external-guidance"
-val silencerVersion = "1.17.13"
+val silencerVersion = "1.7.16"
 
 ThisBuild / majorVersion := 0
-ThisBuild / scalaVersion := "2.13.8"
+ThisBuild / scalaVersion := "2.13.12"
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)

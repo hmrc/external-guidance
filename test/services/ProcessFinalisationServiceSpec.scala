@@ -46,7 +46,7 @@ class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService
         val updatedFlow = service.updateFlowPassPhrase(process, "ENCRYPTED")
         updatedFlow("33") match {
          case v: ValueStanza =>
-            v.values.filter(_.label == "_GuidancePassPhrase").headOption.map(_.value) shouldBe Some("ENCRYPTED")
+            v.values.find(_.label == "_GuidancePassPhrase").map(_.value) shouldBe Some("ENCRYPTED")
          case _ => fail()
         }
       }
@@ -271,7 +271,7 @@ class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService
         case Right((updatedProcess, pages, updatedJsObject)) =>
           updatedProcess.timescales shouldBe Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0)
 
-          (updatedJsObject.as[Process]).timescales shouldBe Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0)
+          updatedJsObject.as[Process].timescales shouldBe Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0)
       }
     }
 
@@ -281,7 +281,7 @@ class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService
 
       whenReady(service.guidancePagesAndProcess(jsonWithDiffLangIds.as[JsObject])(MockAppConfig, ec)){
         case Left(Error(_, List(LanguageLinkIdsDiffer("33"), LanguageLinkIdsDiffer("3")), _, _)) => succeed
-        case Left(errs) => fail(errs.toString())
+        case Left(errs) => fail(errs.toString)
         case err => fail(err.toString)
       }
     }
