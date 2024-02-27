@@ -107,7 +107,7 @@ class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService
     implicit val ec: ExecutionContext = ExecutionContext.global
     val timescales = new Timescales(new DefaultTodayProvider)
     val validatingPageBuilder = new ValidatingPageBuilder(new PageBuilder(timescales))
-    val service = new ProcessFinalisationService(
+    val processFinalisationService = new ProcessFinalisationService(
                     mockAppConfig,
                     validatingPageBuilder,
                     mockTimescalesService,
@@ -266,7 +266,7 @@ class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService
 
       MockTimescalesService.get().returns(Future.successful(Right((Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0), 0L))))
 
-      whenReady(service.guidancePagesAndProcess(rawOcelotTimescalesJson.as[JsObject])(MockAppConfig, ec)){
+      whenReady(processFinalisationService.guidancePagesAndProcess(rawOcelotTimescalesJson.as[JsObject])(MockAppConfig, ec)){
         case Left(err) => fail(s"Failed with $err")
         case Right((updatedProcess, pages, updatedJsObject)) =>
           updatedProcess.timescales shouldBe Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0)
@@ -279,7 +279,7 @@ class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService
 
       MockTimescalesService.get().returns(Future.successful(Right((Map(), 0L))))
 
-      whenReady(service.guidancePagesAndProcess(jsonWithDiffLangIds.as[JsObject])(MockAppConfig, ec)){
+      whenReady(processFinalisationService.guidancePagesAndProcess(jsonWithDiffLangIds.as[JsObject])(MockAppConfig, ec)){
         case Left(Error(_, List(LanguageLinkIdsDiffer("33"), LanguageLinkIdsDiffer("3")), _, _)) => succeed
         case Left(errs) => fail(errs.toString)
         case err => fail(err.toString)

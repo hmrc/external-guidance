@@ -319,7 +319,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       val guidanceErrors: List[GuidanceError] =
         List(
           UnknownStanza("2", "UnknownStanza"),
-          FlowParseError("5", """'type' is undefined on object.Available keys are 'next', 'noteType', 'stack', 'text'""", """/flow/5"""),
+          FlowParseError("5", """'type' is undefined on object. Available keys are 'next', 'noteType', 'stack', 'text'""", """/flow/5"""),
           PhrasesParseError("5", "error.minLength","2"),
           UnknownCalloutType("4", "UnknownType"),
           LinksParseError("0", "error.path.missing", ""),
