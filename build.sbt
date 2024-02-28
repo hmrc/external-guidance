@@ -15,7 +15,6 @@
  */
 
 val appName = "external-guidance"
-val silencerVersion = "1.7.16"
 
 ThisBuild / majorVersion := 0
 ThisBuild / scalaVersion := "2.13.12"
