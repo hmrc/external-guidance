@@ -46,7 +46,7 @@ class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService
         val updatedFlow = service.updateFlowPassPhrase(process, "ENCRYPTED")
         updatedFlow("33") match {
          case v: ValueStanza =>
-            v.values.filter(_.label == "_GuidancePassPhrase").headOption.map(_.value) shouldBe Some("ENCRYPTED")
+            v.values.find(_.label == "_GuidancePassPhrase").map(_.value) shouldBe Some("ENCRYPTED")
          case _ => fail()
         }
       }
@@ -107,7 +107,7 @@ class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService
     implicit val ec: ExecutionContext = ExecutionContext.global
     val timescales = new Timescales(new DefaultTodayProvider)
     val validatingPageBuilder = new ValidatingPageBuilder(new PageBuilder(timescales))
-    val service = new ProcessFinalisationService(
+    val processFinalisationService = new ProcessFinalisationService(
                     mockAppConfig,
                     validatingPageBuilder,
                     mockTimescalesService,
@@ -266,12 +266,12 @@ class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService
 
       MockTimescalesService.get().returns(Future.successful(Right((Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0), 0L))))
 
-      whenReady(service.guidancePagesAndProcess(rawOcelotTimescalesJson.as[JsObject])(MockAppConfig, ec)){
+      whenReady(processFinalisationService.guidancePagesAndProcess(rawOcelotTimescalesJson.as[JsObject])(MockAppConfig, ec)){
         case Left(err) => fail(s"Failed with $err")
         case Right((updatedProcess, pages, updatedJsObject)) =>
           updatedProcess.timescales shouldBe Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0)
 
-          (updatedJsObject.as[Process]).timescales shouldBe Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0)
+          updatedJsObject.as[Process].timescales shouldBe Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0)
       }
     }
 
@@ -279,9 +279,9 @@ class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService
 
       MockTimescalesService.get().returns(Future.successful(Right((Map(), 0L))))
 
-      whenReady(service.guidancePagesAndProcess(jsonWithDiffLangIds.as[JsObject])(MockAppConfig, ec)){
+      whenReady(processFinalisationService.guidancePagesAndProcess(jsonWithDiffLangIds.as[JsObject])(MockAppConfig, ec)){
         case Left(Error(_, List(LanguageLinkIdsDiffer("33"), LanguageLinkIdsDiffer("3")), _, _)) => succeed
-        case Left(errs) => fail(errs.toString())
+        case Left(errs) => fail(errs.toString)
         case err => fail(err.toString)
       }
     }

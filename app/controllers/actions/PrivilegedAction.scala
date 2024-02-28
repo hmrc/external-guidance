@@ -26,13 +26,12 @@ import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name, ~}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
-import uk.gov.hmrc.play.bootstrap.config.AuthRedirects
 import scala.concurrent.{ExecutionContext, Future}
 import config.AppConfig
 
 trait IdentifierAction extends ActionBuilder[IdentifierRequest, AnyContent] with ActionFunction[Request, IdentifierRequest]
 
-trait PrivilegedAction extends AuthorisedFunctions with AuthRedirects {
+trait PrivilegedAction extends AuthorisedFunctions{
   val predicate: Predicate
   implicit val executionContext: ExecutionContext
   val logger: Logger = Logger(getClass)
@@ -55,5 +54,4 @@ trait PrivilegedAction extends AuthorisedFunctions with AuthRedirects {
         Unauthorized
     }
   }
-
 }
