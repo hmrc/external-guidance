@@ -145,7 +145,7 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoCompon
 
   def delete(id: String): Future[RequestOutcome[Unit]] = {
     collection
-      .deleteOne(equal("_id", id))
+      .deleteOne(equal("ocelotId", id))
       .toFutureOption()
       .map {
         case Some(result: DeleteResult) if result.getDeletedCount > 0 => Right(())
