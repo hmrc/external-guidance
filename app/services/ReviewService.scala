@@ -84,7 +84,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
         publishIfRequired(ap).flatMap {
           case Right(ap) =>
             changeStatus(id, info.status, info.userId, ReviewType2i) flatMap {
-              case Right(_) => reviewRepository.delete(id).map {
+              case Right(_) => reviewRepository.deleteReviewForApproval(id).map {
                 case Right(_) => validateProcess(ap, info)
                 case Left(error) => Left(error)
               }
