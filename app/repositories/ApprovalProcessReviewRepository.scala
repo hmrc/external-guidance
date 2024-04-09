@@ -41,7 +41,7 @@ trait ApprovalProcessReviewRepository {
   def getByIdVersionAndType(id: String, version: Int, reviewType: String): Future[RequestOutcome[ApprovalProcessReview]]
   def updateReview(id: String, version: Int, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]]
   def updatePageReview(id: String, version: Int, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]]
-  def deleteReviewForApproval(approvalProcessId: String): Future[RequestOutcome[Unit]]
+  def deleteForApproval(approvalProcessId: String): Future[RequestOutcome[Unit]]
 }
 
 @Singleton
@@ -143,7 +143,7 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoCompon
     //$COVERAGE-ON$
   }
 
-  def deleteReviewForApproval(approvalProcessId: String): Future[RequestOutcome[Unit]] = {
+  def deleteForApproval(approvalProcessId: String): Future[RequestOutcome[Unit]] = {
     collection
       .deleteOne(equal("ocelotId", approvalProcessId))
       .toFutureOption()
