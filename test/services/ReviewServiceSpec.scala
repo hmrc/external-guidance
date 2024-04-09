@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -218,12 +218,12 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
             .getByIdVersionAndType(validId, ReviewType2i, approvalProcessWithValidProcess.version)
             .returns(Future.successful(Right(approvalProcessReviewComplete)))
 
-          MockApprovalProcessReviewRepository
-            .updateReview(validId, approvalProcessWithValidProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, statusChange2iReviewInfo.status)
-            .returns(Future.successful(Right(())))
-
           MockApprovalRepository
             .changeStatus(validId, StatusWithDesignerForUpdate, "user id")
+            .returns(Future.successful(Right(())))
+
+          MockApprovalProcessReviewRepository
+            .delete(validId)
             .returns(Future.successful(Right(())))
 
           whenReady(service.twoEyeReviewComplete(validId, statusChange2iReviewInfo)) { result =>
@@ -246,17 +246,53 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
             .getByIdVersionAndType("validId", ReviewType2i, approvalProcessWithValidProcess.version)
             .returns(Future.successful(Right(approvalProcessReviewComplete)))
 
-          MockApprovalProcessReviewRepository
-            .updateReview("validId", approvalProcessWithValidProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, StatusPublished)
-            .returns(Future.successful(Right(())))
-
           MockApprovalRepository
             .changeStatus("validId", StatusPublished, "user id")
+            .returns(Future.successful(Right(())))
+
+          MockApprovalProcessReviewRepository
+            .delete("validId")
             .returns(Future.successful(Right(())))
 
           MockPublishedService
             .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcessWithValidProcess.process)
             .returns(Future.successful(Right("validId")))
+
+          whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
+            result shouldBe expected
+          }
+        }
+      }
+
+      "the status is published" should {
+        "confirm that the correct record has been deleted" in new ReviewCompleteTest {
+
+          val expected: RequestOutcome[AuditInfo] = Right(auditInfo)
+          val publishedStatusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
+
+          MockApprovalRepository
+            .getById("validId")
+            .returns(Future.successful(Right(approvalProcessWithValidProcess)))
+
+          MockApprovalProcessReviewRepository
+            .getByIdVersionAndType("validId", ReviewType2i, approvalProcessWithValidProcess.version)
+            .returns(Future.successful(Right(approvalProcessReviewComplete)))
+
+          MockApprovalRepository
+            .changeStatus("validId", StatusPublished, "user id")
+            .returns(Future.successful(Right(())))
+
+          MockApprovalProcessReviewRepository
+            .delete("validId")
+            .returns(Future.successful(Right(())))
+
+          MockPublishedService
+            .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcessWithValidProcess.process)
+            .returns(Future.successful(Right("validId")))
+
+          MockApprovalProcessReviewRepository
+            .getByIdVersionAndType("validId", ReviewType2i, approvalProcessWithValidProcess.version)
+            .returns(Future.successful(Left(DatabaseError)))
 
           whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
             result shouldBe expected
@@ -313,7 +349,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
           }
         }
       }
-      "the updateReview fails to update the details" should {
+      "the delete fails to delete the details" should {
         "return a not found response" in new ReviewCompleteTest {
 
           val expected: RequestOutcome[ApprovalProcess] = Left(DatabaseError)
@@ -326,8 +362,12 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
             .getByIdVersionAndType("validId", ReviewType2i, approvalProcess.version)
             .returns(Future.successful(Right(approvalProcessReviewComplete)))
 
+          MockApprovalRepository
+            .changeStatus("validId", StatusWithDesignerForUpdate, "user id")
+            .returns(Future.successful(Right(())))
+
           MockApprovalProcessReviewRepository
-            .updateReview("validId", approvalProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, statusChange2iReviewInfo.status)
+            .delete("validId")
             .returns(Future.successful(Left(DatabaseError)))
 
           whenReady(service.twoEyeReviewComplete("validId", statusChange2iReviewInfo)) { result =>
@@ -450,6 +490,32 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
           result shouldBe expected
         }
       }
+
+      "confirm the record is retained" in new ReviewCompleteTest {
+
+        val expected: RequestOutcome[ApprovalProcess] = Left(InternalServerError)
+        val publishedStatusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
+
+        MockApprovalRepository
+          .getById("validId")
+          .returns(Future.successful(Right(approvalProcess)))
+
+        MockApprovalProcessReviewRepository
+          .getByIdVersionAndType("validId", ReviewType2i, approvalProcess.version)
+          .returns(Future.successful(Right(approvalProcessReviewComplete)))
+
+        MockPublishedService
+          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process)
+          .returns(Future.successful(Left(InternalServerError)))
+
+        MockApprovalProcessReviewRepository
+          .getByIdVersionAndType("validId", ReviewType2i, approvalProcess.version)
+          .returns(Future.successful(Right(approvalProcessReviewComplete)))
+
+        whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
+          result shouldBe expected
+        }
+      }
     }
 
     "the process fails to be published due to a duplicate processCode in the published repository" should {
@@ -502,13 +568,13 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
           .getByIdVersionAndType("validId", ReviewType2i, approvalProcess.version)
           .returns(Future.successful(Right(approvalProcessReviewComplete)))
 
-        MockApprovalProcessReviewRepository
-          .updateReview("validId", approvalProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, StatusPublished)
-          .returns(Future.successful(Right(())))
-
         MockApprovalRepository
           .changeStatus("validId", StatusPublished, "user id")
           .returns(Future.successful(expectedChangeStatusResponse))
+
+        MockApprovalProcessReviewRepository
+          .delete("validId")
+          .returns(Future.successful(Right(())))
 
         MockPublishedService
           .save("validId", publishedStatusChangeInfo.userId, "processCode", invalidApprovalProcess.process)
