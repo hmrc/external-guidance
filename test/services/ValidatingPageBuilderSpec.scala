@@ -45,25 +45,25 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
     val pageIds = Seq(pageId1, pageId2, pageId3, pageId4, pageId5, pageId6, pageId7)
 
     private val flow = Map(
-      pageId1 -> PageStanza("/start", Seq("111"), false),
+      pageId1 -> PageStanza("/start", Seq("111"), stack = false),
       "111" -> CalloutStanza(Title, 0, Seq("1"), stack = false),
-      "1" -> InstructionStanza(3, Seq("2"), None, false),
-      "2" -> QuestionStanza(1, Seq(2, 1), Seq(pageId2, pageId4), None, false),
-      pageId2 -> PageStanza("/this4", Seq("5"), false),
-      "5" -> InstructionStanza(1, Seq("end"), Some(2), false),
-      pageId3 -> PageStanza("/this6", Seq("7"), false),
-      "7" -> InstructionStanza(2, Seq("8"), None, false),
-      "8" -> QuestionStanza(1, Seq(2, 3), Seq(pageId4, pageId6), None, false),
-      pageId4 -> PageStanza("/this9", Seq("16"), false),
-      "16" -> InstructionStanza(3, Seq("10"), None, false),
-      "10" -> InstructionStanza(2, Seq("end"), None, false),
-      pageId5 -> PageStanza("/this11", Seq("12"), false),
-      "12" -> InstructionStanza(0, Seq("13"), None, false),
-      "13" -> QuestionStanza(1, Seq(2, 3), Seq(pageId6, pageId2), None, false),
-      pageId6 -> PageStanza("/this14", Seq("15"), false),
-      "15" -> InstructionStanza(0, Seq("end"), None, false),
-      pageId7 -> PageStanza("/this15", Seq("18"), false),
-      "18" -> InstructionStanza(0, Seq("end"), None, false),
+      "1" -> InstructionStanza(3, Seq("2"), None, stack = false),
+      "2" -> QuestionStanza(1, Seq(2, 1), Seq(pageId2, pageId4), None, stack = false),
+      pageId2 -> PageStanza("/this4", Seq("5"), stack = false),
+      "5" -> InstructionStanza(1, Seq("end"), Some(2), stack = false),
+      pageId3 -> PageStanza("/this6", Seq("7"), stack = false),
+      "7" -> InstructionStanza(2, Seq("8"), None, stack = false),
+      "8" -> QuestionStanza(1, Seq(2, 3), Seq(pageId4, pageId6), None, stack = false),
+      pageId4 -> PageStanza("/this9", Seq("16"), stack = false),
+      "16" -> InstructionStanza(3, Seq("10"), None, stack = false),
+      "10" -> InstructionStanza(2, Seq("end"), None, stack = false),
+      pageId5 -> PageStanza("/this11", Seq("12"), stack = false),
+      "12" -> InstructionStanza(0, Seq("13"), None, stack = false),
+      "13" -> QuestionStanza(1, Seq(2, 3), Seq(pageId6, pageId2), None, stack = false),
+      pageId6 -> PageStanza("/this14", Seq("15"), stack = false),
+      "15" -> InstructionStanza(0, Seq("end"), None, stack = false),
+      pageId7 -> PageStanza("/this15", Seq("18"), stack = false),
+      "18" -> InstructionStanza(0, Seq("end"), None, stack = false),
       "end" -> EndStanza
     )
 
@@ -75,7 +75,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
       Phrase(Vector("Some Text [button:HELLO:333]", "Welsh: Some Text [button:HELLO:333]")),
     )
 
-    private val links = Vector(Link(0, pageId3, "", false), Link(1, pageId6, "", false), Link(2, Process.StartStanzaId, "Back to the start", false))
+    private val links = Vector(Link(0, pageId3, "", window = false), Link(1, pageId6, "", window = false), Link(2, Process.StartStanzaId, "Back to the start", window = false))
 
     val processWithLinks = Process(metaSection, flow, phrases, links)
   }
@@ -112,9 +112,9 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
       val flow = Map(
         Process.StartStanzaId -> PageStanza("/start", Seq("111"), stack = false),
         "111" -> CalloutStanza(Title, 0, Seq("2"), stack = false),
-        "2" -> ValueStanza(List(Value(ScalarType, "Label ", "/blah")), Seq("3"), false),
+        "2" -> ValueStanza(List(Value(ScalarType, "Label ", "/blah")), Seq("3"), stack = false),
         "3" -> InputStanza(Currency, Seq("4"), 1, Some(2), "Lab&&el", None, stack = false),
-        "4" -> ValueStanza(List(Value(ScalarType, "Lab@", "/blah")), Seq("end"), false),
+        "4" -> ValueStanza(List(Value(ScalarType, "Lab@", "/blah")), Seq("end"), stack = false),
         "end" -> EndStanza
       )
 
@@ -131,14 +131,14 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
       confirmInvalidLabelNameError(Map(
         Process.StartStanzaId -> PageStanza("/start", Seq("111"), stack = false),
         "111" -> CalloutStanza(Title, 0, Seq("2"), stack = false),
-        "2" -> ValueStanza(List(Value(ScalarType, "Label ", "/blah")), Seq("end"), false),
+        "2" -> ValueStanza(List(Value(ScalarType, "Label ", "/blah")), Seq("end"), stack = false),
         "end" -> EndStanza
       ))
 
       confirmValidLabelNameUsage(Map(
         Process.StartStanzaId -> PageStanza("/start", Seq("111"), stack = false),
         "111" -> CalloutStanza(Title, 0, Seq("2"), stack = false),
-        "2" -> ValueStanza(List(Value(ScalarType, "Label", "/blah")), Seq("end"), false),
+        "2" -> ValueStanza(List(Value(ScalarType, "Label", "/blah")), Seq("end"), stack = false),
         "end" -> EndStanza
       ))
     }
@@ -166,7 +166,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
         Process.StartStanzaId -> PageStanza("/start", Seq("1"), stack = false),
         "1" -> CalloutStanza(Error, 0, Seq("11"), stack = false),
         "11" -> CalloutStanza(TypeError, 0, Seq("2"), stack = false),
-        "2" -> QuestionStanza(1, Seq(2, 1), Seq("end", "end"), Some("Blah&&"), false),
+        "2" -> QuestionStanza(1, Seq(2, 1), Seq("end", "end"), Some("Blah&&"), stack = false),
         "end" -> EndStanza
       ))
 
@@ -174,7 +174,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
         Process.StartStanzaId -> PageStanza("/start", Seq("1"), stack = false),
         "1" -> CalloutStanza(Error, 0, Seq("11"), stack = false),
         "11" -> CalloutStanza(TypeError, 0, Seq("2"), stack = false),
-        "2" -> QuestionStanza(1, Seq(2, 1), Seq("end", "end"), Some("Blah"), false),
+        "2" -> QuestionStanza(1, Seq(2, 1), Seq("end", "end"), Some("Blah"), stack = false),
         "end" -> EndStanza
       ))
     }
@@ -278,19 +278,19 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
 
     "Detect an unsupported page redirection from a Choice stanza" in new Test {
       val invalidFlow = Map(
-      pageId1 -> PageStanza("/start", Seq("1"), false),
-      "1" -> InstructionStanza(2, Seq("66"), None, false),
+      pageId1 -> PageStanza("/start", Seq("1"), stack = false),
+      "1" -> InstructionStanza(2, Seq("66"), None, stack = false),
       "66" -> CalloutStanza(Error, 0, Seq("2"), stack = false),
-      "2" -> QuestionStanza(1, Seq(2, 1), Seq(pageId2, pageId3), None, false),
-      pageId2 -> PageStanza("/this4", Seq("55"), false),
-      "55" -> ChoiceStanza(Seq("5", pageId7), Seq(ChoiceStanzaTest("yes", LessThanOrEquals, "No")), false),
-      "5" -> InstructionStanza(1, Seq("end"), Some(2), false),
-      pageId3 -> PageStanza("/this6", Seq("7"), false),
-      "7" -> InstructionStanza(2, Seq("77"), None, false),
+      "2" -> QuestionStanza(1, Seq(2, 1), Seq(pageId2, pageId3), None, stack = false),
+      pageId2 -> PageStanza("/this4", Seq("55"), stack = false),
+      "55" -> ChoiceStanza(Seq("5", pageId7), Seq(ChoiceStanzaTest("yes", LessThanOrEquals, "No")), stack = false),
+      "5" -> InstructionStanza(1, Seq("end"), Some(2), stack = false),
+      pageId3 -> PageStanza("/this6", Seq("7"), stack = false),
+      "7" -> InstructionStanza(2, Seq("77"), None, stack = false),
       "77" -> CalloutStanza(Error, 0, Seq("8"), stack = false),
-      "8" -> QuestionStanza(1, Seq(2, 3), Seq(pageId2, pageId7), None, false),
-      pageId7 -> PageStanza("/this15", Seq("18"), false),
-      "18" -> InstructionStanza(0, Seq("end"), None, false),
+      "8" -> QuestionStanza(1, Seq(2, 3), Seq(pageId2, pageId7), None, stack = false),
+      pageId7 -> PageStanza("/this15", Seq("18"), stack = false),
+      "18" -> InstructionStanza(0, Seq("end"), None, stack = false),
       "end" -> EndStanza
     )
       val testProcess = processWithLinks.copy(flow = invalidFlow)
@@ -485,7 +485,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
 
       pageBuilder.pagesWithValidation(process) match {
         case Right(_) => fail( "PageBuilder should not create a row from a row stanza with an invalid phrase identifier")
-        case Left(List(PhraseNotFound("2", five))) => succeed
+        case Left(List(PhraseNotFound("2", fifth))) => succeed
         case Left(err) => fail( s"Expected error PhraseNotFound(2, 5) but received ${err.toString}")
       }
 

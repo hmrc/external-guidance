@@ -74,12 +74,12 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
 
     "detect VisualStanzasAfterDataInput error when Question stanzas followed by UI stanzas" in {
       val flow = Map(
-        Process.StartStanzaId -> PageStanza("/url", Seq("1"), true),
-        "1" -> InstructionStanza(0, Seq("11"), None, false),
+        Process.StartStanzaId -> PageStanza("/url", Seq("1"), stack = true),
+        "1" -> InstructionStanza(0, Seq("11"), None, stack = false),
         "11" -> CalloutStanza(Error, 0, Seq("2"), stack = false),
-        "2" -> QuestionStanza(1, Seq(2, 3), Seq("4", "5"), None, false),
-        "4" -> InstructionStanza(0, Seq("end"), None, false),
-        "5" -> InstructionStanza(0, Seq("end"), None, false),
+        "2" -> QuestionStanza(1, Seq(2, 3), Seq("4", "5"), None, stack = false),
+        "4" -> InstructionStanza(0, Seq("end"), None, stack = false),
+        "5" -> InstructionStanza(0, Seq("end"), None, stack = false),
         "end" -> EndStanza
       )
       val process = Process(
@@ -103,14 +103,14 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
 
     "detect VisualStanzasAfterDataInput with possible loop in post Question stanzas" in {
       val flow = Map(
-        Process.StartStanzaId -> PageStanza("/url", Seq("1"), true),
-        "1" -> InstructionStanza(0, Seq("11"), None, false),
+        Process.StartStanzaId -> PageStanza("/url", Seq("1"), stack = true),
+        "1" -> InstructionStanza(0, Seq("11"), None, stack = false),
         "11" -> CalloutStanza(Error, 0, Seq("2"), stack = false),
-        "2" -> QuestionStanza(1, Seq(2, 3, four, five), Seq("4", "5", "6", "7"), None, false),
-        "4" -> Choice(ChoiceStanza(Seq("5","6"), Seq(ChoiceStanzaTest("[label:X]", LessThanOrEquals, "8")), false)),
-        "5" -> ValueStanza(List(Value(ScalarType, "PageUrl", "/blah")), Seq("4"), false),
-        "6" -> InstructionStanza(0, Seq("end"), None, false),
-        "7" -> InstructionStanza(0, Seq("end"), None, false),
+        "2" -> QuestionStanza(1, Seq(2, 3, four, five), Seq("4", "5", "6", "7"), None, stack = false),
+        "4" -> Choice(ChoiceStanza(Seq("5","6"), Seq(ChoiceStanzaTest("[label:X]", LessThanOrEquals, "8")), stack = false)),
+        "5" -> ValueStanza(List(Value(ScalarType, "PageUrl", "/blah")), Seq("4"), stack = false),
+        "6" -> InstructionStanza(0, Seq("end"), None, stack = false),
+        "7" -> InstructionStanza(0, Seq("end"), None, stack = false),
         "end" -> EndStanza
       )
       val process = Process(
@@ -346,12 +346,12 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
 
     "detect DuplicatePageUrl" in {
       val flow = Map(
-        Process.StartStanzaId -> PageStanza("/this", Seq("1"), false),
-        "1" -> InstructionStanza(0, Seq("11"), None, false),
+        Process.StartStanzaId -> PageStanza("/this", Seq("1"), stack = false),
+        "1" -> InstructionStanza(0, Seq("11"), None, stack = false),
         "11" -> CalloutStanza(Error, 0, Seq("2"), stack = false),
-        "2" -> QuestionStanza(1, Seq(2, 3), Seq("4", "5"), None, false),
-        "4" -> PageStanza("/this", Seq("5"), false),
-        "5" -> PageStanza("/that", Seq("end"), false),
+        "2" -> QuestionStanza(1, Seq(2, 3), Seq("4", "5"), None, stack = false),
+        "4" -> PageStanza("/this", Seq("5"), stack = false),
+        "5" -> PageStanza("/that", Seq("end"), stack = false),
         "end" -> EndStanza
       )
       val process = Process(
@@ -375,13 +375,13 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
 
     "detect UseOfReservedUrl" in {
       val flow = Map(
-        Process.StartStanzaId -> PageStanza("/this", Seq("1"), false),
-        "1" -> InstructionStanza(0, Seq("11"), None, false),
+        Process.StartStanzaId -> PageStanza("/this", Seq("1"), stack = false),
+        "1" -> InstructionStanza(0, Seq("11"), None, stack = false),
         "11" -> CalloutStanza(Error, 0, Seq("2"), stack = false),
-        "2" -> QuestionStanza(1, Seq(2, 3), Seq("4", "5"), None, false),
-        "4" -> PageStanza("/session-restart", Seq("5"), false),
-        "5" -> PageStanza("/session-timeout", Seq("6"), false),
-        "6" -> PageStanza(s"/${SecuredProcess.SecuredProcessStartUrl}", Seq("end"), false),
+        "2" -> QuestionStanza(1, Seq(2, 3), Seq("4", "5"), None, stack = false),
+        "4" -> PageStanza("/session-restart", Seq("5"), stack = false),
+        "5" -> PageStanza("/session-timeout", Seq("6"), stack = false),
+        "6" -> PageStanza(s"/${SecuredProcess.SecuredProcessStartUrl}", Seq("end"), stack = false),
         "end" -> EndStanza
       )
       val process = Process(
@@ -419,11 +419,11 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
 
     "detect MissingWelshText" in {
       val flow = Map(
-        Process.StartStanzaId -> PageStanza("/this", Seq("1"), false),
-        "1" -> InstructionStanza(0, Seq("2"), None, false),
-        "2" -> QuestionStanza(1, Seq(2, 3), Seq("4", "5"), None, false),
-        "4" -> PageStanza("/that", Seq("5"), false),
-        "5" -> InstructionStanza(0, Seq("end"), None, false),
+        Process.StartStanzaId -> PageStanza("/this", Seq("1"), stack = false),
+        "1" -> InstructionStanza(0, Seq("2"), None, stack = false),
+        "2" -> QuestionStanza(1, Seq(2, 3), Seq("4", "5"), None, stack = false),
+        "4" -> PageStanza("/that", Seq("5"), stack = false),
+        "5" -> InstructionStanza(0, Seq("end"), None, stack = false),
         "end" -> EndStanza
       )
       val process = Process(
@@ -446,11 +446,11 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
 
     "detect InconsistentQuestion" in {
       val flow = Map(
-        Process.StartStanzaId -> PageStanza("/this", Seq("1"), false),
-        "1" -> InstructionStanza(0, Seq("2"), None, false),
-        "2" -> QuestionStanza(1, Seq(2, 3), Seq("4"), None, false),
-        "4" -> PageStanza("/that", Seq("5"), false),
-        "5" -> InstructionStanza(0, Seq("end"), None, false),
+        Process.StartStanzaId -> PageStanza("/this", Seq("1"), stack = false),
+        "1" -> InstructionStanza(0, Seq("2"), None, stack = false),
+        "2" -> QuestionStanza(1, Seq(2, 3), Seq("4"), None, stack = false),
+        "4" -> PageStanza("/that", Seq("5"), stack = false),
+        "5" -> InstructionStanza(0, Seq("end"), None, stack = false),
         "end" -> EndStanza
       )
       val process = Process(
@@ -476,17 +476,17 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       val flow: Map[String, Stanza] = Map(
         Process.StartStanzaId -> PageStanza("/start", Seq("11"), stack = false),
         "11" -> CalloutStanza(Error, 0, Seq("10"), stack = false),
-        "10" -> CalloutStanza(TypeError, 2, Seq("1"), false),
+        "10" -> CalloutStanza(TypeError, 2, Seq("1"), stack = false),
         "1" -> InstructionStanza(0, Seq("2"), None, stack = false),
         "2" -> SequenceStanza(1, Seq("3", "5", "7"), Seq(2, 3), None, stack = false),
         "3" -> PageStanza("/page-1", Seq("100"), stack = false),
-        "100" -> CalloutStanza(Title, 2, Seq("4"), false),
+        "100" -> CalloutStanza(Title, 2, Seq("4"), stack = false),
         "4" -> InstructionStanza(0, Seq("end"), None, stack = false),
         "5" -> PageStanza("/page-2", Seq("101"), stack = false),
-        "101" -> CalloutStanza(Title, 2, Seq("6"), false),
+        "101" -> CalloutStanza(Title, 2, Seq("6"), stack = false),
         "6" -> InstructionStanza(0, Seq("end"), None, stack = false),
         "7" -> PageStanza("/page-3", Seq("102"), stack = false),
-        "102" -> CalloutStanza(Title, 2, Seq("8"), false),
+        "102" -> CalloutStanza(Title, 2, Seq("8"), stack = false),
         "8" -> InstructionStanza(0, Seq("end"), None, stack = false),
         "end" -> EndStanza
       )
@@ -514,7 +514,7 @@ class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
 
       val flow: Map[String, Stanza] = Map(
         Process.StartStanzaId -> PageStanza("/start", Seq("10"), stack = false),
-        "10" -> CalloutStanza(TypeError, 2, Seq("1"), false),
+        "10" -> CalloutStanza(TypeError, 2, Seq("1"), stack = false),
         "1" -> InstructionStanza(0, Seq("2"), None, stack = false),
         "2" -> SequenceStanza(1, Seq("3", "5", "7"), Seq(2, 3), None, stack = false),
         "3" -> PageStanza("/page-1", Seq("4"), stack = false),
