@@ -119,8 +119,8 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
       stanzas match {
         case Nil => (requiredError, typeError, input)
         case (s: DataInput) :: xs => inputCalloutState(xs, requiredError, typeError, Some(s))
-        case (r: ErrorCallout) :: xs => inputCalloutState(xs, true, typeError, input)
-        case (t: TypeErrorCallout) :: xs => inputCalloutState(xs, requiredError, true, input)
+        case (r: ErrorCallout) :: xs => inputCalloutState(xs, requiredError = true, typeError = typeError, input)
+        case (t: TypeErrorCallout) :: xs => inputCalloutState(xs, requiredError, typeError = true, input)
         case x :: xs => inputCalloutState(xs, requiredError, typeError, input)
       }
 

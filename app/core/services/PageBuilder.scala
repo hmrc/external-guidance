@@ -43,7 +43,7 @@ class PageBuilder @Inject() (val timescales: Timescales) extends ProcessPopulati
           (stanza(key, process), xs ) match {
             case (Right(_: PageStanza), _) if ids.nonEmpty => collectStanzas(xs, pageStanza, ids, stanzas, key +: next, endFound) // End, possibly more paths
             case (Right(s: PageStanza), _) => collectStanzas(xs ++ s.next, Some(s), ids :+ key, stanzas :+ s, next, endFound)     // Beginning of page
-            case (Right(EndStanza), _) => collectStanzas(xs, pageStanza, ids :+ key, stanzas :+ EndStanza, next, true)            // End, possibly more paths
+            case (Right(EndStanza), _) => collectStanzas(xs, pageStanza, ids :+ key, stanzas :+ EndStanza, next, endFound = true)            // End, possibly more paths
             case (Right(_: PopulatedStanza), _) if ids.isEmpty => Left(PageStanzaMissing(key))                                             // No PageStanza at start
             case (Right(s: PopulatedStanza), _) => collectStanzas(xs ++ s.next, pageStanza, ids :+ key, stanzas :+ s, next, endFound)      // Within-page stanza
             case (Left(err), _) => Left(err)
