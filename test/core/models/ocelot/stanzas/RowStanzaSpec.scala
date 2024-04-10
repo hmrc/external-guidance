@@ -73,9 +73,9 @@ class RowStanzaSpec extends BaseSpec {
     val singleCellSequence: Seq[Int] = Seq(1)
     val multipleCellSequence: Seq[Int] = Seq(ten, eleven, twelve, thirteen, fourteen, fifteen)
 
-    val expectedRowStanzaWithZeroCells: RowStanza = RowStanza(Nil, nextSequence, false)
-    val expectedRowStanzaWithSingleCell: RowStanza = RowStanza(singleCellSequence, nextSequence, true)
-    val expectedRowStanzaWithMultipleCells: RowStanza = RowStanza(multipleCellSequence, nextSequence, false)
+    val expectedRowStanzaWithZeroCells: RowStanza = RowStanza(Nil, nextSequence, stack = false)
+    val expectedRowStanzaWithSingleCell: RowStanza = RowStanza(singleCellSequence, nextSequence, stack = true)
+    val expectedRowStanzaWithMultipleCells: RowStanza = RowStanza(multipleCellSequence, nextSequence, stack = false)
 
     val onePageJsonWithValidRowStanza: JsValue = Json.parse(
       """
@@ -227,7 +227,7 @@ class RowStanzaSpec extends BaseSpec {
         case JsSuccess(process, _) => {
           process.flow.get("3") match {
             case Some(stanza) => stanza match {
-              case r: RowStanza => r shouldBe RowStanza( Seq(nine, ten), Seq( "end"), false)
+              case r: RowStanza => r shouldBe RowStanza( Seq(nine, ten), Seq( "end"), stack = false)
               case _ => fail( "Stanza with identifier of row stanza is not a row stanza")
             }
             case _ => fail( "Stanza with identifier of row stanza not found in process")

@@ -158,7 +158,7 @@ class ChoiceStanzaSpec extends BaseSpec {
 
     "serialize to json" in {
       val stanza: ChoiceStanza =
-        ChoiceStanza(next, Seq(ChoiceStanzaTest("VAL-1", LessThanOrEquals, "VAL-2"), ChoiceStanzaTest("VAL-3", LessThanOrEquals, "VAL-4")), false)
+        ChoiceStanza(next, Seq(ChoiceStanzaTest("VAL-1", LessThanOrEquals, "VAL-2"), ChoiceStanzaTest("VAL-3", LessThanOrEquals, "VAL-4")), stack = false)
       val expectedJson: String = s"""{"next":[${next
         .map(x => s""""$x"""")
         .mkString(",")}],"tests":[{"left":"VAL-1","test":"lessThanOrEquals","right":"VAL-2"},{"left":"VAL-3","test":"lessThanOrEquals","right":"VAL-4"}],"stack":false}"""
@@ -168,7 +168,7 @@ class ChoiceStanzaSpec extends BaseSpec {
 
     "serialize to json from a Stanza reference" in {
       val stanza: Stanza =
-        ChoiceStanza(next, Seq(ChoiceStanzaTest("VAL-1", LessThanOrEquals, "VAL-2"), ChoiceStanzaTest("VAL-3", LessThanOrEquals, "VAL-4")), false)
+        ChoiceStanza(next, Seq(ChoiceStanzaTest("VAL-1", LessThanOrEquals, "VAL-2"), ChoiceStanzaTest("VAL-3", LessThanOrEquals, "VAL-4")), stack = false)
       val expectedJson: String = s"""{"type":"ChoiceStanza","next":[${next
         .map(x => s""""$x"""")
         .mkString(",")}],"tests":[{"left":"VAL-1","test":"lessThanOrEquals","right":"VAL-2"},{"left":"VAL-3","test":"lessThanOrEquals","right":"VAL-4"}],"stack":false}"""
@@ -196,7 +196,7 @@ class ChoiceStanzaSpec extends BaseSpec {
   "Choice" must {
 
     "be creatable from a ChoiceStanza " in {
-      val stanza: ChoiceStanza = ChoiceStanza(next, Seq(ChoiceStanzaTest("4", LessThanOrEquals, "3"), ChoiceStanzaTest("3", LessThanOrEquals, "4")), false)
+      val stanza: ChoiceStanza = ChoiceStanza(next, Seq(ChoiceStanzaTest("4", LessThanOrEquals, "3"), ChoiceStanzaTest("3", LessThanOrEquals, "4")), stack = false)
       val choice = Choice(stanza)
       choice.next shouldBe stanza.next
       choice.tests.zipWithIndex.foreach {
@@ -208,7 +208,7 @@ class ChoiceStanzaSpec extends BaseSpec {
 
     "Evaluate to correct result when one of the tests succeed" in {
       val next = Seq("40", "41", "50")
-      val stanza: ChoiceStanza = ChoiceStanza(next, Seq(ChoiceStanzaTest("4", LessThanOrEquals, "3"), ChoiceStanzaTest("3", LessThanOrEquals, "4")), false)
+      val stanza: ChoiceStanza = ChoiceStanza(next, Seq(ChoiceStanzaTest("4", LessThanOrEquals, "3"), ChoiceStanzaTest("3", LessThanOrEquals, "4")), stack = false)
       val choice = Choice(stanza)
       val lc = LabelCache()
       val expectedResult = ("41", lc, None)
@@ -217,7 +217,7 @@ class ChoiceStanzaSpec extends BaseSpec {
 
     "Evaluate to correct result when no tests succeed" in {
       val next = Seq("40", "41", "50")
-      val stanza: ChoiceStanza = ChoiceStanza(next, Seq(ChoiceStanzaTest("4", LessThanOrEquals, "3"), ChoiceStanzaTest("3", MoreThan, "4")), false)
+      val stanza: ChoiceStanza = ChoiceStanza(next, Seq(ChoiceStanzaTest("4", LessThanOrEquals, "3"), ChoiceStanzaTest("3", MoreThan, "4")), stack = false)
       val choice = Choice(stanza)
       val lc = LabelCache()
       val expectedResult = ("50", lc, None)
@@ -229,7 +229,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       val stanza: ChoiceStanza = ChoiceStanza(
         next,
         Seq(ChoiceStanzaTest("[label:X]", LessThanOrEquals, "[label:Y]"), ChoiceStanzaTest("3", LessThanOrEquals, "4"), ChoiceStanzaTest("3", NotEquals, "4")),
-        false
+        stack = false
       )
       val choice = Choice(stanza)
       val labels = Map("X" -> ScalarLabel("X", List("33.5")), "Y" -> ScalarLabel("Y", List("44")))
@@ -243,7 +243,7 @@ class ChoiceStanzaSpec extends BaseSpec {
       val stanza: ChoiceStanza = ChoiceStanza(
         next,
         Seq(ChoiceStanzaTest("[label:X]", LessThanOrEquals, "[label:Y]"), ChoiceStanzaTest("3", Equals, "4"), ChoiceStanzaTest("1", MoreThanOrEquals, "4")),
-        false
+        stack = false
       )
       val choice = Choice(stanza)
       val labels = Map("X" -> ScalarLabel("X", List("33.5")), "Y" -> ScalarLabel("Y", List("4")))
@@ -298,7 +298,7 @@ class ChoiceStanzaSpec extends BaseSpec {
 
     "Evaluate to correct result when date test succeeds referencing a label and a timescale wrapped literal" in {
       val next: Seq[String] = Seq("1,", "0")
-      val choice: Choice = Choice(ChoiceStanza(next, Seq(ChoiceStanzaTest("[label:date1]", LessThanOrEquals, "[timescale:20/01/2021]")), false))
+      val choice: Choice = Choice(ChoiceStanza(next, Seq(ChoiceStanzaTest("[label:date1]", LessThanOrEquals, "[timescale:20/01/2021]")), stack = false))
 
       val labels = LabelCache(Map(
         "date1" -> ScalarLabel("date1", List("19/01/2021")),
@@ -313,7 +313,7 @@ class ChoiceStanzaSpec extends BaseSpec {
 
     "Evaluate to correct result when date test fails referencing a label and a timescale wrapped literal" in {
       val next: Seq[String] = Seq("1,", "0")
-      val choice: Choice = Choice(ChoiceStanza(next, Seq(ChoiceStanzaTest("[label:date1]", MoreThanOrEquals, "[timescale:20/01/2021]")), false))
+      val choice: Choice = Choice(ChoiceStanza(next, Seq(ChoiceStanzaTest("[label:date1]", MoreThanOrEquals, "[timescale:20/01/2021]")), stack = false))
 
       val labels = LabelCache(Map(
         "date1" -> ScalarLabel("date1", List("19/01/2021")),

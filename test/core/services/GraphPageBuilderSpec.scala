@@ -54,27 +54,27 @@ class GraphPageBuilderSpec extends BaseSpec with ProcessJson {
     val pageIds = Seq(pageId1, pageId2, pageId3, pageId4, pageId5, pageId6, pageId7)
     val choiceTest = ChoiceStanzaTest("yes", LessThanOrEquals, "No")
     private val flow = Map(
-      pageId1 -> PageStanza("/start", Seq("1"), false),
-      "1" -> InstructionStanza(3, Seq("2"), None, false),
-      "2" -> QuestionStanza(1, Seq(2, 1), Seq("3", "3"), None, false),
-      "3" -> ChoiceStanza(Seq(pageId2, pageId4), Seq(choiceTest), false),
-      pageId2 -> PageStanza("/this4", Seq("5"), false),
-      "5" -> InstructionStanza(1, Seq("end"), Some(2), false),
-      pageId3 -> PageStanza("/this6", Seq("7"), false),
-      "7" -> InstructionStanza(2, Seq("8"), None, false),
-      "8" -> QuestionStanza(1, Seq(2, 3), Seq(pageId4, pageId6), None, false),
-      pageId4 -> PageStanza("/this9", Seq("16"), false),
-      "16" -> InstructionStanza(3, Seq("161"), None, false),
-      "161"-> ValueStanza(List(Value(ScalarType, "error", "0")), Seq("10"), false),
-      "10" -> InstructionStanza(2, Seq("100"), None, false),
-      "100" -> ChoiceStanza(Seq("161", pageId6, pageId5),Seq(choiceTest), false),
-      pageId5 -> PageStanza("/this11", Seq("12"), false),
-      "12" -> InstructionStanza(0, Seq("13"), None, false),
-      "13" -> QuestionStanza(1, Seq(2, 3), Seq(pageId6, pageId2), None, false),
-      pageId6 -> PageStanza("/this14", Seq("15"), false),
-      "15" -> InstructionStanza(0, Seq("end"), None, false),
-      pageId7 -> PageStanza("/this15", Seq("18"), false),
-      "18" -> InstructionStanza(0, Seq("end"), None, false),
+      pageId1 -> PageStanza("/start", Seq("1"), stack = false),
+      "1" -> InstructionStanza(3, Seq("2"), None, stack = false),
+      "2" -> QuestionStanza(1, Seq(2, 1), Seq("3", "3"), None, stack = false),
+      "3" -> ChoiceStanza(Seq(pageId2, pageId4), Seq(choiceTest), stack = false),
+      pageId2 -> PageStanza("/this4", Seq("5"), stack = false),
+      "5" -> InstructionStanza(1, Seq("end"), Some(2), stack = false),
+      pageId3 -> PageStanza("/this6", Seq("7"), stack = false),
+      "7" -> InstructionStanza(2, Seq("8"), None, stack = false),
+      "8" -> QuestionStanza(1, Seq(2, 3), Seq(pageId4, pageId6), None, stack = false),
+      pageId4 -> PageStanza("/this9", Seq("16"), stack = false),
+      "16" -> InstructionStanza(3, Seq("161"), None, stack = false),
+      "161"-> ValueStanza(List(Value(ScalarType, "error", "0")), Seq("10"), stack = false),
+      "10" -> InstructionStanza(2, Seq("100"), None, stack = false),
+      "100" -> ChoiceStanza(Seq("161", pageId6, pageId5),Seq(choiceTest), stack = false),
+      pageId5 -> PageStanza("/this11", Seq("12"), stack = false),
+      "12" -> InstructionStanza(0, Seq("13"), None, stack = false),
+      "13" -> QuestionStanza(1, Seq(2, 3), Seq(pageId6, pageId2), None, stack = false),
+      pageId6 -> PageStanza("/this14", Seq("15"), stack = false),
+      "15" -> InstructionStanza(0, Seq("end"), None, stack = false),
+      pageId7 -> PageStanza("/this15", Seq("18"), stack = false),
+      "18" -> InstructionStanza(0, Seq("end"), None, stack = false),
       "end" -> EndStanza
     )
 
@@ -93,15 +93,15 @@ class GraphPageBuilderSpec extends BaseSpec with ProcessJson {
 
     // Osric's Loop flow to build list of tax years since 2013
     val loopFlow = Map(
-      pageId1 -> PageStanza("/start", Seq("1000"), false),
-      "1000" -> CalloutStanza(Note, 3, Seq("1"), false),
-      "1" -> ValueStanza(values, Seq("2"), true),
+      pageId1 -> PageStanza("/start", Seq("1000"), stack = false),
+      "1000" -> CalloutStanza(Note, 3, Seq("1"), stack = false),
+      "1" -> ValueStanza(values, Seq("2"), stack = true),
       "2" -> CalculationStanza(Seq(CalcOperation("[label:ThisYear]", Subtraction, "2013", "YearCount")), Seq("4"), stack = false),
-      "4" -> ChoiceStanza(Seq("5", "6"), Seq(ChoiceStanzaTest("[label:index]", LessThanOrEquals, "[label:YearCount]")), false),
+      "4" -> ChoiceStanza(Seq("5", "6"), Seq(ChoiceStanzaTest("[label:index]", LessThanOrEquals, "[label:YearCount]")), stack = false),
       "5" -> CalculationStanza(calcOperations, Seq("4"), stack = false),
-      "6" -> InstructionStanza(2, Seq("6000"), None, true),
-      "6000" -> PageStanza("/chooser2", Seq("7"), false),
-      "7" -> CalloutStanza(Title, 3, Seq("end"), false),
+      "6" -> InstructionStanza(2, Seq("6000"), None, stack = true),
+      "6000" -> PageStanza("/chooser2", Seq("7"), stack = false),
+      "7" -> CalloutStanza(Title, 3, Seq("end"), stack = false),
       "end" -> EndStanza
     )
 
@@ -112,7 +112,7 @@ class GraphPageBuilderSpec extends BaseSpec with ProcessJson {
       Phrase(Vector(s"Some [link:Link to stanza 11:$pageId5] Text3", s"Welsh: Some [link:Link to stanza 11:$pageId5] Text3"))
     )
 
-    private val links = Vector(Link(0, pageId3, "", false), Link(1, pageId6, "", false), Link(2, Process.StartStanzaId, "Back to the start", false))
+    private val links = Vector(Link(0, pageId3, "", window = false), Link(1, pageId6, "", window = false), Link(2, Process.StartStanzaId, "Back to the start", window = false))
 
     val process = Process(metaSection, flow, phrases, links)
   }
