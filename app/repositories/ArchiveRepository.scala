@@ -18,8 +18,8 @@ package repositories
 
 import core.models.RequestOutcome
 import core.models.ocelot.Process
-import core.models.errors.{NotFoundError, DatabaseError}
-import models.{ArchivedProcess, PublishedProcess, ProcessSummary}
+import core.models.errors.{DatabaseError, NotFoundError}
+import models.{ArchivedProcess, ProcessSummary, PublishedProcess}
 import play.api.Logger
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
@@ -28,11 +28,14 @@ import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+
 import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
 import core.models.MongoDateTimeFormats.Implicits._
+
+import java.util.concurrent.TimeUnit
 
 //$COVERAGE-OFF$
 trait ArchiveRepository {
@@ -50,7 +53,8 @@ class ArchiveRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: Execu
       indexes = Seq(IndexModel(ascending("processCode"),
                                IndexOptions()
                                 .name("archived-secondary-Index-process-code")
-                                .unique(false))),
+                                .unique(false)
+                                .expireAfter(30, TimeUnit.SECONDS))),
       extraCodecs = Seq(Codecs.playFormatCodec(zonedDateTimeFormat)),
       replaceIndexes = true
     )
