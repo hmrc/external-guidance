@@ -85,7 +85,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
         case KeyedStanza(id, s: Callout) if !validPhrase(s.text) => LanguageLinkIdsDiffer(id)
         case KeyedStanza(id, s: Sequence) if !validPhrase(s.text) => LanguageLinkIdsDiffer(id)
         case KeyedStanza(id, s: Input) if !validPhrase(s.name) => LanguageLinkIdsDiffer(id)
-        case KeyedStanza(id, s: Row) if !s.cells.collect{case p if !validPhrase(p) => id}.isEmpty => LanguageLinkIdsDiffer(id)
+        case KeyedStanza(id, s: Row) if !s.cells.collect{case cell if !validPhrase(cell) => id}.isEmpty => LanguageLinkIdsDiffer(id)
       }
     }
 
