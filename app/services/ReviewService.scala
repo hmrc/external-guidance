@@ -83,13 +83,12 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
       case Right(ap) =>
         publishIfRequired(ap).flatMap {
           case Right(ap) =>
-            reviewRepository.updateReview(id, ap.version, ReviewType2i, info.userId, info.status) flatMap {
-              case Right(()) =>
-                changeStatus(id, info.status, info.userId, ReviewType2i) map {
-                  case Right(_) => validateProcess(ap, info)
-                  case Left(err) => Left(err)
-                }
-              case Left(errors) => Future.successful(Left(errors))
+            changeStatus(id, info.status, info.userId, ReviewType2i) flatMap {
+              case Right(_) => reviewRepository.deleteForApproval(id).map {
+                case Right(_) => validateProcess(ap, info)
+                case Left(error) => Left(error)
+              }
+              case Left(err) => Future.successful(Left(err))
             }
           case Left(errors) =>
             logger.error(s"updateReviewOnCompletion: Could not change status of 2i review for process $id, $errors")

@@ -62,7 +62,7 @@ class QuestionStanzaSpec extends BaseSpec with TestConstants {
 
     "Evaluate valid input and return a next stanza and updated Labels" in {
       val labels = LabelCache()
-      val stanza: Question = Question(Phrase("Question",""), Seq(Phrase("Yes",""), Phrase("No", "")), Seq("4", "5"), Some("Answer"), true)
+      val stanza: Question = Question(Phrase("Question",""), Seq(Phrase("Yes",""), Phrase("No", "")), Seq("4", "5"), Some("Answer"), stack = true)
       val (nxt, updatedLabels) = stanza.eval("0", blankPage, labels)
 
       nxt shouldBe Some("4")
@@ -71,7 +71,7 @@ class QuestionStanzaSpec extends BaseSpec with TestConstants {
 
     "Evaluate invalid input and return None and original Labels" in {
       val labels = LabelCache()
-      val stanza: Question = Question(Phrase("Question",""), Seq(Phrase("Yes",""), Phrase("No", "")), Seq("4", "5"), Some("Answer"), true)
+      val stanza: Question = Question(Phrase("Question",""), Seq(Phrase("Yes",""), Phrase("No", "")), Seq("4", "5"), Some("Answer"), stack = true)
       val (nxt, updatedLabels) = stanza.eval("7", blankPage, labels)
 
       nxt shouldBe None
@@ -103,7 +103,7 @@ class QuestionStanzaSpec extends BaseSpec with TestConstants {
       val answerDestinations = Seq("4", "5", "6")
       val questionPhrase: Phrase = Phrase(Vector("Some Text", "Welsh: Some Text"))
 
-      val question: core.models.ocelot.stanzas.Question = Question(questionPhrase, answers, answerDestinations, None, false)
+      val question: core.models.ocelot.stanzas.Question = Question(questionPhrase, answers, answerDestinations, None, stack = false)
 
       question.validInput("1") shouldBe Right("1")
     }
@@ -116,7 +116,7 @@ class QuestionStanzaSpec extends BaseSpec with TestConstants {
       val answerDestinations = Seq("4", "5", "6")
       val questionPhrase: Phrase = Phrase(Vector("Some Text", "Welsh: Some Text"))
 
-      val question: core.models.ocelot.stanzas.Question = Question(questionPhrase, answers, answerDestinations, None, false)
+      val question: core.models.ocelot.stanzas.Question = Question(questionPhrase, answers, answerDestinations, None, stack = false)
 
       question.validInput("4") shouldBe Left(Nil)
       question.validInput("-1") shouldBe Left(Nil)
@@ -124,13 +124,13 @@ class QuestionStanzaSpec extends BaseSpec with TestConstants {
     }
 
     "serialise to json" in {
-      val stanza: QuestionStanza = QuestionStanza(0, Seq(1, 2), Seq("4", "5"), None, true)
+      val stanza: QuestionStanza = QuestionStanza(0, Seq(1, 2), Seq("4", "5"), None, stack = true)
       val expectedJson: String = """{"text":0,"answers":[1,2],"next":["4","5"],"stack":true}"""
       Json.toJson(stanza).toString shouldBe expectedJson
     }
 
     "serialise to json from a Stanza reference" in {
-      val stanza: Stanza = QuestionStanza(0, Seq(1, 2), Seq("4", "5"), None, true)
+      val stanza: Stanza = QuestionStanza(0, Seq(1, 2), Seq("4", "5"), None, stack = true)
       val expectedJson: String = """{"type":"QuestionStanza","text":0,"answers":[1,2],"next":["4","5"],"stack":true}"""
       Json.toJson(stanza).toString shouldBe expectedJson
     }
