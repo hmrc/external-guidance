@@ -38,12 +38,12 @@ class PageBuilder @Inject() (val timescales: Timescales) extends ProcessPopulati
                        endFound: Boolean = false): Either[GuidanceError, (Option[PageStanza], Seq[String], Seq[PopulatedStanza], Seq[String], Boolean)] =
       keys match {
         case Nil => Right((pageStanza, ids, stanzas, next, endFound))                                        // End Page
-        case id :: xs if ids.contains(id) => collectStanzas(xs, pageStanza, ids, stanzas, next, endFound)  // Already encountered, possibly more paths
+        case id :: xs if ids.contains(id) => collectStanzas(xs, pageStanza, ids, stanzas, next, endFound)    // Already encountered, possibly more paths
         case id :: xs =>
           (stanza(id, process), xs ) match {
             case (Right(_: PageStanza), _) if ids.nonEmpty => collectStanzas(xs, pageStanza, ids, stanzas, id +: next, endFound) // End, possibly more paths
             case (Right(s: PageStanza), _) => collectStanzas(xs ++ s.next, Some(s), ids :+ id, stanzas :+ s, next, endFound)     // Beginning of page
-            case (Right(EndStanza), _) => collectStanzas(xs, pageStanza, ids :+ id, stanzas :+ EndStanza, next, endFound = true)            // End, possibly more paths
+            case (Right(EndStanza), _) => collectStanzas(xs, pageStanza, ids :+ id, stanzas :+ EndStanza, next, endFound = true)          // End, possibly more paths
             case (Right(_: PopulatedStanza), _) if ids.isEmpty => Left(PageStanzaMissing(id))                                             // No PageStanza at start
             case (Right(s: PopulatedStanza), _) => collectStanzas(xs ++ s.next, pageStanza, ids :+ id, stanzas :+ s, next, endFound)      // Within-page stanza
             case (Left(err), _) => Left(err)

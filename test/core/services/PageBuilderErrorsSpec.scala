@@ -136,7 +136,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       )
 
       pageBuilder.pages(process) match {
-        case Left(List(PhraseNotFound(id, fourth))) => succeed
+        case Left(List(PhraseNotFound(id, PageBuilderErrorsSpec.this.four))) => succeed
         case Left(err) => fail(s"Missing PhraseNotFound(4) with error $err")
         case Right(_) => fail(s"Missing PhraseNotFound(4)")
       }
@@ -164,7 +164,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       )
 
       pageBuilder.pages(process) match {
-        case Left(List(PhraseNotFound(id, fourth))) => succeed
+        case Left(List(PhraseNotFound(id, PageBuilderErrorsSpec.this.four))) => succeed
         case Left(err) => fail(s"Missing PhraseNotFound(4) with error $err")
         case Right(_) => fail(s"Missing PhraseNotFound(4)")
       }

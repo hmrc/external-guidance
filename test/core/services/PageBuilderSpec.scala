@@ -926,7 +926,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with PageDefns {
 
       pageBuilder.pages(process) match {
         case Right(_) => fail( "PageBuilder should not create a row from a row stanza with an invalid phrase identifier")
-        case Left(List(PhraseNotFound("2", fifth))) => succeed
+        case Left(List(PhraseNotFound("2", PageBuilderSpec.this.five))) => succeed
         case Left(err) => fail( s"Expected error PhraseNotFound(2, 5) but received ${err.toString}")
       }
 

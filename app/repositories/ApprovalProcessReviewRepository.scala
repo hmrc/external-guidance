@@ -150,12 +150,12 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoCompon
       .map {
         case Some(result: DeleteResult) if result.getDeletedCount > 0 => Right(())
         case _ =>
-          logger.error(s"Attempt to delete document $approvalProcessId from collection approvalProcessReviews failed")
+          logger.error(s"Attempt to delete review with ocelotId = $approvalProcessId from collection approvalProcessReviews failed")
           Left(DatabaseError)
       }
       .recover {
         case error =>
-          logger.error(s"Attempt to delete document $approvalProcessId from collection approvalProcessReviews failed with error : ${error.getMessage}")
+          logger.error(s"Attempt to delete review with ocelotId =  $approvalProcessId from collection approvalProcessReviews failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
   }
