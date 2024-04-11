@@ -19,6 +19,7 @@ package object mocks {
     MockAppConfig.scratchExpiryHour,
     MockAppConfig.scratchExpiryMinutes,
     MockAppConfig.scratchExpiryTZ,
+    MockAppConfig.archivedExpiryHours,
     MockAppConfig.designerRole,
     MockAppConfig.factCheckerRole,
     MockAppConfig.twoEyeReviewerRole,
