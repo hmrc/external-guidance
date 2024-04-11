@@ -72,21 +72,21 @@ class InstructionStanzaSpec extends BaseSpec {
     }
 
     "serialise to json" in {
-      val stanza: InstructionStanza = InstructionStanza(0, Seq("4"), None, true)
+      val stanza: InstructionStanza = InstructionStanza(0, Seq("4"), None, stack = true)
       val expectedJson: String = """{"text":0,"next":["4"],"stack":true}"""
       Json.toJson(stanza).toString shouldBe expectedJson
 
-      val stanzaWithLink: InstructionStanza = InstructionStanza(0, Seq("4"), Some(0), true)
+      val stanzaWithLink: InstructionStanza = InstructionStanza(0, Seq("4"), Some(0), stack = true)
       val expectedJsonWithLink: String = """{"text":0,"next":["4"],"link":0,"stack":true}"""
       Json.toJson(stanzaWithLink).toString shouldBe expectedJsonWithLink
     }
 
     "serialise to json from a Stanza reference" in {
-      val stanza: Stanza = InstructionStanza(0, Seq("4"), None, true)
+      val stanza: Stanza = InstructionStanza(0, Seq("4"), None, stack = true)
       val expectedJson: String = """{"type":"InstructionStanza","text":0,"next":["4"],"stack":true}"""
       Json.toJson(stanza).toString shouldBe expectedJson
 
-      val stanzaWithLink: Stanza = InstructionStanza(0, Seq("4"), Some(0), true)
+      val stanzaWithLink: Stanza = InstructionStanza(0, Seq("4"), Some(0), stack = true)
       val expectedJsonWithLink: String = """{"type":"InstructionStanza","text":0,"next":["4"],"link":0,"stack":true}"""
       Json.toJson(stanzaWithLink).toString shouldBe expectedJsonWithLink
     }

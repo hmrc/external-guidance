@@ -85,7 +85,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
         case KeyedStanza(id, s: Callout) if !validPhrase(s.text) => LanguageLinkIdsDiffer(id)
         case KeyedStanza(id, s: Sequence) if !validPhrase(s.text) => LanguageLinkIdsDiffer(id)
         case KeyedStanza(id, s: Input) if !validPhrase(s.name) => LanguageLinkIdsDiffer(id)
-        case KeyedStanza(id, s: Row) if !s.cells.collect{case p if !validPhrase(p) => id}.isEmpty => LanguageLinkIdsDiffer(id)
+        case KeyedStanza(id, s: Row) if !s.cells.collect{case cell if !validPhrase(cell) => id}.isEmpty => LanguageLinkIdsDiffer(id)
       }
     }
 
@@ -119,8 +119,8 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
       stanzas match {
         case Nil => (requiredError, typeError, input)
         case (s: DataInput) :: xs => inputCalloutState(xs, requiredError, typeError, Some(s))
-        case (r: ErrorCallout) :: xs => inputCalloutState(xs, true, typeError, input)
-        case (t: TypeErrorCallout) :: xs => inputCalloutState(xs, requiredError, true, input)
+        case (r: ErrorCallout) :: xs => inputCalloutState(xs, requiredError = true, typeError = typeError, input)
+        case (t: TypeErrorCallout) :: xs => inputCalloutState(xs, requiredError, typeError = true, input)
         case x :: xs => inputCalloutState(xs, requiredError, typeError, input)
       }
 

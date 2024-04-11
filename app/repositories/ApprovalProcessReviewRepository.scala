@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,9 @@ import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+
 import scala.concurrent.{ExecutionContext, Future}
-import org.mongodb.scala.result.InsertOneResult
+import org.mongodb.scala.result.{DeleteResult, InsertOneResult}
 import org.mongodb.scala.bson.conversions.Bson
 
 trait ApprovalProcessReviewRepository {
@@ -40,6 +41,7 @@ trait ApprovalProcessReviewRepository {
   def getByIdVersionAndType(id: String, version: Int, reviewType: String): Future[RequestOutcome[ApprovalProcessReview]]
   def updateReview(id: String, version: Int, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]]
   def updatePageReview(id: String, version: Int, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]]
+  def deleteForApproval(approvalProcessId: String): Future[RequestOutcome[Unit]]
 }
 
 @Singleton
@@ -139,5 +141,22 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoCompon
           Left(DatabaseError)
       }
     //$COVERAGE-ON$
+  }
+
+  def deleteForApproval(approvalProcessId: String): Future[RequestOutcome[Unit]] = {
+    collection
+      .deleteMany(equal("ocelotId", approvalProcessId))
+      .toFutureOption()
+      .map {
+        case Some(result: DeleteResult) if result.getDeletedCount > 0 => Right(())
+        case _ =>
+          logger.error(s"Attempt to delete review with ocelotId = $approvalProcessId from collection approvalProcessReviews failed")
+          Left(DatabaseError)
+      }
+      .recover {
+        case error =>
+          logger.error(s"Attempt to delete review with ocelotId =  $approvalProcessId from collection approvalProcessReviews failed with error : ${error.getMessage}")
+          Left(DatabaseError)
+      }
   }
 }

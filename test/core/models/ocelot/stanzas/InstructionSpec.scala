@@ -28,11 +28,11 @@ class InstructionSpec extends AnyWordSpec with Matchers {
     val linkId: Int = 0
     val stack: Boolean = false
     val linkDest = "4"
-    val link = Link(linkId, linkDest, "", false)
+    val link = Link(linkId, linkDest, "", window = false)
     val pageLinkedStanzaId = "6"
     val phrase0 = Phrase(Vector(s"hello [link:Blah:${pageLinkedStanzaId}] ;lasdk ", s"Welsh: hello [link:Blah:${pageLinkedStanzaId}] ;lasdk "))
-    val simpleInstruction = InstructionStanza(text, next, None, false)
-    val linkInstruction = InstructionStanza(text, next, Some(linkId), false)
+    val simpleInstruction = InstructionStanza(text, next, None, stack = false)
+    val linkInstruction = InstructionStanza(text, next, Some(linkId), stack = false)
   }
 
   "when constructed via apply() Instruction" must {

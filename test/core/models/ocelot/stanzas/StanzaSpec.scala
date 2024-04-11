@@ -83,7 +83,7 @@ class StanzaSpec extends BaseSpec {
 
       val stanza: Stanza = validValueStanzaJson.as[Stanza]
 
-      stanza shouldBe ValueStanza(List(Value(ScalarType, pageNameLabel, pageName), Value(ScalarType, pageUrlLabel, pageUrl)), Seq(next), false)
+      stanza shouldBe ValueStanza(List(Value(ScalarType, pageNameLabel, pageName), Value(ScalarType, pageUrlLabel, pageUrl)), Seq(next), stack = false)
     }
 
   }

@@ -66,6 +66,12 @@ trait MockApprovalProcessReviewRepository extends MockFactory {
 
     }
 
+    def deleteForApproval(approvalProcessId: String): CallHandler[Future[RequestOutcome[Unit]]] = {
+      (mockApprovalProcessReviewRepository
+        .deleteForApproval(_: String))
+        .expects(approvalProcessId)
+    }
+
   }
 
 }

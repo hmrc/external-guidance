@@ -31,36 +31,36 @@ class StanzaRenderingSpec extends BaseSpec {
 
   "Label references" must {
     "expand in English text of Instructions" in  {
-      Instruction(phrase, Seq("1"), None, false).rendered(expand) shouldBe Instruction(expEn, Seq("1"), None, false)
+      Instruction(phrase, Seq("1"), None, stack = false).rendered(expand) shouldBe Instruction(expEn, Seq("1"), None, stack = false)
     }
 
     "expand in English text of Callouts" in  {
-      TitleCallout(phrase, Seq("1"), false).rendered(expand) shouldBe TitleCallout(expEn, Seq("1"), false)
-      SubTitleCallout(phrase, Seq("1"), false).rendered(expand) shouldBe SubTitleCallout(expEn, Seq("1"), false)
-      SectionCallout(phrase, Seq("1"), false).rendered(expand) shouldBe SectionCallout(expEn, Seq("1"), false)
-      SubSectionCallout(phrase, Seq("1"), false).rendered(expand) shouldBe SubSectionCallout(expEn, Seq("1"), false)
-      LedeCallout(phrase, Seq("1"), false).rendered(expand) shouldBe LedeCallout(expEn, Seq("1"), false)
-      ErrorCallout(phrase, Seq("1"), false).rendered(expand) shouldBe ErrorCallout(expEn, Seq("1"), false)
-      ValueErrorCallout(phrase, Seq("1"), false).rendered(expand) shouldBe ValueErrorCallout(expEn, Seq("1"), false)
-      TypeErrorCallout(phrase, Seq("1"), false).rendered(expand) shouldBe TypeErrorCallout(expEn, Seq("1"), false)
-      ImportantCallout(phrase, Seq("1"), false).rendered(expand) shouldBe ImportantCallout(expEn, Seq("1"), false)
-      YourCallCallout(phrase, Seq("1"), false).rendered(expand) shouldBe YourCallCallout(expEn, Seq("1"), false)
-      NumberedListItemCallout(phrase, Seq("1"), false).rendered(expand) shouldBe NumberedListItemCallout(expEn, Seq("1"), false)
-      NumberedCircleListItemCallout(phrase, Seq("1"), false).rendered(expand) shouldBe NumberedCircleListItemCallout(expEn, Seq("1"), false)
-      NoteCallout(phrase, Seq("1"), false).rendered(expand) shouldBe NoteCallout(expEn, Seq("1"), false)
+      TitleCallout(phrase, Seq("1"), stack = false).rendered(expand) shouldBe TitleCallout(expEn, Seq("1"), stack = false)
+      SubTitleCallout(phrase, Seq("1"), stack = false).rendered(expand) shouldBe SubTitleCallout(expEn, Seq("1"), stack = false)
+      SectionCallout(phrase, Seq("1"), stack = false).rendered(expand) shouldBe SectionCallout(expEn, Seq("1"), stack = false)
+      SubSectionCallout(phrase, Seq("1"), stack = false).rendered(expand) shouldBe SubSectionCallout(expEn, Seq("1"), stack = false)
+      LedeCallout(phrase, Seq("1"), stack = false).rendered(expand) shouldBe LedeCallout(expEn, Seq("1"), stack = false)
+      ErrorCallout(phrase, Seq("1"), stack = false).rendered(expand) shouldBe ErrorCallout(expEn, Seq("1"), stack = false)
+      ValueErrorCallout(phrase, Seq("1"), stack = false).rendered(expand) shouldBe ValueErrorCallout(expEn, Seq("1"), stack = false)
+      TypeErrorCallout(phrase, Seq("1"), stack = false).rendered(expand) shouldBe TypeErrorCallout(expEn, Seq("1"), stack = false)
+      ImportantCallout(phrase, Seq("1"), stack = false).rendered(expand) shouldBe ImportantCallout(expEn, Seq("1"), stack = false)
+      YourCallCallout(phrase, Seq("1"), stack = false).rendered(expand) shouldBe YourCallCallout(expEn, Seq("1"), stack = false)
+      NumberedListItemCallout(phrase, Seq("1"), stack = false).rendered(expand) shouldBe NumberedListItemCallout(expEn, Seq("1"), stack = false)
+      NumberedCircleListItemCallout(phrase, Seq("1"), stack = false).rendered(expand) shouldBe NumberedCircleListItemCallout(expEn, Seq("1"), stack = false)
+      NoteCallout(phrase, Seq("1"), stack = false).rendered(expand) shouldBe NoteCallout(expEn, Seq("1"), stack = false)
     }
 
     "expand in English text of Inputs" in  {
-      NumberInput(Seq("1"), phrase, Some(phrase),"label", Some(phrase), false).rendered(expand) shouldBe
-        NumberInput(Seq("1"), expEn, Some(expEn),"label", Some(expEn), false)
-      TextInput(Seq("1"), phrase, Some(phrase),"label", Some(phrase), false).rendered(expand) shouldBe
-        TextInput(Seq("1"), expEn, Some(expEn),"label", Some(expEn), false)
-      CurrencyInput(Seq("1"), phrase, Some(phrase),"label", Some(phrase), false).rendered(expand) shouldBe
-        CurrencyInput(Seq("1"), expEn, Some(expEn),"label", Some(expEn), false)
-      CurrencyPoundsOnlyInput(Seq("1"), phrase, Some(phrase),"label", Some(phrase), false).rendered(expand) shouldBe
-        CurrencyPoundsOnlyInput(Seq("1"), expEn, Some(expEn),"label", Some(expEn), false)
-      DateInput(Seq("1"), phrase, Some(phrase),"label", Some(phrase), false).rendered(expand) shouldBe
-        DateInput(Seq("1"), expEn, Some(expEn),"label", Some(expEn), false)
+      NumberInput(Seq("1"), phrase, Some(phrase),"label", Some(phrase), stack = false).rendered(expand) shouldBe
+        NumberInput(Seq("1"), expEn, Some(expEn),"label", Some(expEn), stack = false)
+      TextInput(Seq("1"), phrase, Some(phrase),"label", Some(phrase), stack = false).rendered(expand) shouldBe
+        TextInput(Seq("1"), expEn, Some(expEn),"label", Some(expEn), stack = false)
+      CurrencyInput(Seq("1"), phrase, Some(phrase),"label", Some(phrase), stack = false).rendered(expand) shouldBe
+        CurrencyInput(Seq("1"), expEn, Some(expEn),"label", Some(expEn), stack = false)
+      CurrencyPoundsOnlyInput(Seq("1"), phrase, Some(phrase),"label", Some(phrase), stack = false).rendered(expand) shouldBe
+        CurrencyPoundsOnlyInput(Seq("1"), expEn, Some(expEn),"label", Some(expEn), stack = false)
+      DateInput(Seq("1"), phrase, Some(phrase),"label", Some(phrase), stack = false).rendered(expand) shouldBe
+        DateInput(Seq("1"), expEn, Some(expEn),"label", Some(expEn), stack = false)
     }
 
     "expand in English text of Rows" in  {
@@ -68,11 +68,11 @@ class StanzaRenderingSpec extends BaseSpec {
     }
 
     "expand in English text of Questions" in  {
-      Question(phrase, Seq(phrase, phrase), Seq("1"), None, false).rendered(expand) shouldBe Question(expEn, Seq(expEn, expEn), Seq("1"), None, false)
+      Question(phrase, Seq(phrase, phrase), Seq("1"), None, stack = false).rendered(expand) shouldBe Question(expEn, Seq(expEn, expEn), Seq("1"), None, stack = false)
     }
 
     "expand in English text of Sequences" in  {
-      Sequence(phrase, Seq("1"), Seq(phrase, phrase), Some(phrase), None, false).rendered(expand) shouldBe Sequence(expEn, Seq("1"), Seq(expEn, expEn), Some(expEn), None, false)
+      Sequence(phrase, Seq("1"), Seq(phrase, phrase), Some(phrase), None, stack = false).rendered(expand) shouldBe Sequence(expEn, Seq("1"), Seq(expEn, expEn), Some(expEn), None, stack = false)
     }
  }
 }
