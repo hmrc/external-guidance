@@ -23,6 +23,7 @@ object MockAppConfig extends AppConfig {
   val scratchExpiryHour: Int = 23
   val scratchExpiryMinutes: Int = 59
   val scratchExpiryTZ: String = "Europe/London"
+  val archivedExpiryHours: Int = 720
 
   val designerRole: String = "Designer"
   val factCheckerRole: String = "FactChecker"
@@ -35,6 +36,7 @@ object MockAppConfig extends AppConfig {
 case class MockAppConfigCopyable(scratchExpiryHour: Int,
                                  scratchExpiryMinutes: Int,
                                  scratchExpiryTZ: String,
+                                 archivedExpiryHours: Int,
                                  designerRole: String,
                                  factCheckerRole: String,
                                  twoEyeReviewerRole: String,
