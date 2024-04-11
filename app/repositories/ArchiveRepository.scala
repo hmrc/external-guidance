@@ -16,6 +16,7 @@
 
 package repositories
 
+import config.AppConfig
 import core.models.RequestOutcome
 import core.models.ocelot.Process
 import core.models.errors.{DatabaseError, NotFoundError}
@@ -45,7 +46,7 @@ trait ArchiveRepository {
 }
 
 @Singleton
-class ArchiveRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
+class ArchiveRepositoryImpl @Inject() (config: AppConfig, mongo: MongoComponent)(implicit ec: ExecutionContext)
     extends PlayMongoRepository[ArchivedProcess](
       collectionName = "archivedProcesses",
       mongoComponent = mongo,
@@ -53,8 +54,12 @@ class ArchiveRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: Execu
       indexes = Seq(IndexModel(ascending("processCode"),
                                IndexOptions()
                                 .name("archived-secondary-Index-process-code")
+                                .unique(false)),
+                    IndexModel(ascending("dateArchived"),
+                              IndexOptions()
+                                .name("expiryIndex")
                                 .unique(false)
-                                .expireAfter(30, TimeUnit.SECONDS))),
+                                .expireAfter(config.archivedExpiryHours, TimeUnit.HOURS))),
       extraCodecs = Seq(Codecs.playFormatCodec(zonedDateTimeFormat)),
       replaceIndexes = true
     )

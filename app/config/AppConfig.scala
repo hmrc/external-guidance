@@ -25,6 +25,7 @@ trait AppConfig {
   val scratchExpiryHour: Int
   val scratchExpiryMinutes: Int
   val scratchExpiryTZ: String
+  val archivedExpiryHours: Int
 
   val designerRole: String
   val factCheckerRole: String
@@ -40,6 +41,7 @@ class AppConfigImpl @Inject() (config: Configuration, servicesConfig: ServicesCo
   lazy val scratchExpiryHour: Int = servicesConfig.getInt("mongodb.scratchExpiryHour")
   lazy val scratchExpiryMinutes: Int = servicesConfig.getInt("mongodb.scratchExpiryMinutes")
   lazy val scratchExpiryTZ: String = servicesConfig.getString("mongodb.scratchExpiryTZ")
+  lazy val archivedExpiryHours: Int = servicesConfig.getInt("mongodb.archivedExpiryHours")
 
   lazy val designerRole: String = servicesConfig.getString("strideAuth.roles.designer")
   lazy val factCheckerRole: String = servicesConfig.getString("strideAuth.roles.factChecker")
