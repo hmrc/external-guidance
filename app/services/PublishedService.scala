@@ -98,7 +98,11 @@ class PublishedService @Inject() (published: PublishedRepository,
             for {
               _       <- approval.changeStatus(id, "Archived", user)
               deleted <- published.delete(id)
+  //            deletedA <- archive.delete(id)
             } yield deleted
+            for {
+            deletedA <- archive.delete(id)
+          } yield deletedA
         }
     }
 }
