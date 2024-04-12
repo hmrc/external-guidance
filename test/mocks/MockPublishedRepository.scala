@@ -45,7 +45,7 @@ trait MockPublishedRepository extends MockFactory {
         .save(_: String, _: String, _: String, _: JsObject))
         .expects(id, user, processCode, process)
 
-    def delete(id: String): CallHandler[Future[RequestOutcome[String]]] =
+    def delete(id: String): CallHandler[Future[RequestOutcome[Unit]]] =
       (mockPublishedRepository
         .delete(_: String))
         .expects(id)

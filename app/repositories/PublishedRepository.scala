@@ -42,7 +42,7 @@ trait PublishedRepository {
   def getById(id: String): Future[RequestOutcome[PublishedProcess]]
   def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]]
   def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]]
-  def delete(id: String): Future[RequestOutcome[String]]
+  def delete(id: String): Future[RequestOutcome[Unit]]
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]]
 }
 
@@ -138,12 +138,12 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
           Left(DatabaseError)
       }
 
-  def delete(id: String): Future[RequestOutcome[String]] =
+  def delete(id: String): Future[RequestOutcome[Unit]] =
     collection
       .deleteOne(equal("_id", id))
       .toFutureOption()
       .map {
-        case Some(result: DeleteResult) if result.getDeletedCount > 0 => Right(id)
+        case Some(result: DeleteResult) if result.getDeletedCount > 0 => Right(())
         case _ =>
           logger.error(s"Attempt to delete process $id from collection published failed")
           Left(DatabaseError)

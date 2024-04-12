@@ -35,7 +35,6 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
 import core.models.MongoDateTimeFormats.Implicits._
-import org.mongodb.scala.result.DeleteResult
 
 import java.util.concurrent.TimeUnit
 
@@ -43,7 +42,6 @@ import java.util.concurrent.TimeUnit
 trait ArchiveRepository {
   def archive(id: String, user: String, processCode: String, process: PublishedProcess): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[ArchivedProcess]]
-  def delete(id:String): Future[RequestOutcome[String]]
   def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]]
 }
 
@@ -110,22 +108,6 @@ class ArchiveRepositoryImpl @Inject() (config: AppConfig, mongo: MongoComponent)
           Left(DatabaseError)
       }
   }
-
-  def delete(id: String): Future[RequestOutcome[String]] =
-    collection
-      .deleteOne(equal("_id", id))
-      .toFutureOption()
-      .map {
-        case Some(result: DeleteResult) if result.getDeletedCount > 0 => Right(id)
-        case _ =>
-          logger.error(s"Attempt to delete process $id from collection archived failed")
-          Left(DatabaseError)
-      }
-      .recover {
-        case error =>
-          logger.error(s"Attempt to delete process $id from collection archived failed with error : ${error.getMessage}")
-          Left(DatabaseError)
-      }
 
   def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]] =
     collection
