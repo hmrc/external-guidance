@@ -46,7 +46,7 @@ trait MockPublishedService extends MockFactory {
         .save(_: String, _: String, _: String, _: JsObject))
         .expects(id, user, processCode, jsonProcess)
 
-    def archive(id: String, user: String): CallHandler[Future[RequestOutcome[String]]] =
+    def archive(id: String, user: String): CallHandler[Future[RequestOutcome[Unit]]] =
       (mockPublishedService
         .archive(_: String, _: String))
         .expects(id, user)

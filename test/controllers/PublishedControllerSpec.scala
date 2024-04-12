@@ -323,7 +323,7 @@ class PublishedControllerSpec extends BaseSpec with ProcessJson {
 
         MockPublishedService
           .archive(validId, credential)
-          .returns(Future.successful(Right("")))
+          .returns(Future.successful(Right(())))
 
       }
 
