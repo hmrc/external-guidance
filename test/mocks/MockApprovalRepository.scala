@@ -54,6 +54,11 @@ trait MockApprovalRepository extends MockFactory {
         .changeStatus(_: String, _: String, _: String))
         .expects(id, status, user)
 
+    def delete(id: String): CallHandler[Future[RequestOutcome[Unit]]] =
+      (mockApprovalRepository
+        .delete(_: String))
+        .expects(id)
+
     def getTimescalesInUse(): CallHandler[Future[RequestOutcome[List[String]]]] =
       (mockApprovalRepository
         .getTimescalesInUse _)
