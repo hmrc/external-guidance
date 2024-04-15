@@ -223,7 +223,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
             .returns(Future.successful(Right(())))
 
           MockApprovalProcessReviewRepository
-            .deleteForApproval(validId)
+            .deleteForApproval(validId, approvalProcessWithValidProcess.version, ReviewType2i)
             .returns(Future.successful(Right(())))
 
           whenReady(service.twoEyeReviewComplete(validId, statusChange2iReviewInfo)) { result =>
@@ -251,7 +251,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
             .returns(Future.successful(Right(())))
 
           MockApprovalProcessReviewRepository
-            .deleteForApproval("validId")
+            .deleteForApproval("validId", approvalProcessWithValidProcess.version, ReviewType2i)
             .returns(Future.successful(Right(())))
 
           MockPublishedService
@@ -283,7 +283,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
             .returns(Future.successful(Right(())))
 
           MockApprovalProcessReviewRepository
-            .deleteForApproval("validId")
+            .deleteForApproval("validId", approvalProcessWithValidProcess.version, ReviewType2i)
             .returns(Future.successful(Right(())))
 
           MockPublishedService
@@ -367,7 +367,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
             .returns(Future.successful(Right(())))
 
           MockApprovalProcessReviewRepository
-            .deleteForApproval("validId")
+            .deleteForApproval("validId", approvalProcess.version, ReviewType2i)
             .returns(Future.successful(Left(DatabaseError)))
 
           whenReady(service.twoEyeReviewComplete("validId", statusChange2iReviewInfo)) { result =>
@@ -573,7 +573,7 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
           .returns(Future.successful(expectedChangeStatusResponse))
 
         MockApprovalProcessReviewRepository
-          .deleteForApproval("validId")
+          .deleteForApproval("validId", approvalProcess.version, ReviewType2i)
           .returns(Future.successful(Right(())))
 
         MockPublishedService
