@@ -66,10 +66,10 @@ trait MockApprovalProcessReviewRepository extends MockFactory {
 
     }
 
-    def deleteForApproval(approvalProcessId: String): CallHandler[Future[RequestOutcome[Unit]]] = {
+    def deleteForApproval(id: String, version: Int, reviewType: String): CallHandler[Future[RequestOutcome[Unit]]] = {
       (mockApprovalProcessReviewRepository
-        .deleteForApproval(_: String))
-        .expects(approvalProcessId)
+        .deleteForApproval(_: String, _: Int, _: String))
+        .expects(id, version, reviewType)
     }
 
   }
