@@ -41,7 +41,7 @@ trait ApprovalProcessReviewRepository {
   def getByIdVersionAndType(id: String, version: Int, reviewType: String): Future[RequestOutcome[ApprovalProcessReview]]
   def updateReview(id: String, version: Int, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]]
   def updatePageReview(id: String, version: Int, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]]
-  def deleteForApproval(approvalProcessId: String): Future[RequestOutcome[Unit]]
+  def deleteForApproval(id: String, version: Int, reviewType: String): Future[RequestOutcome[Unit]]
 }
 
 @Singleton
@@ -143,19 +143,19 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoCompon
     //$COVERAGE-ON$
   }
 
-  def deleteForApproval(approvalProcessId: String): Future[RequestOutcome[Unit]] = {
+  def deleteForApproval(id: String, version: Int, reviewType: String): Future[RequestOutcome[Unit]] = {
     collection
-      .deleteMany(equal("ocelotId", approvalProcessId))
+      .deleteOne(and(equal("ocelotId", id), equal("version", version), equal("reviewType", reviewType)))
       .toFutureOption()
       .map {
         case Some(result: DeleteResult) if result.getDeletedCount > 0 => Right(())
         case _ =>
-          logger.error(s"Attempt to delete review with ocelotId = $approvalProcessId from collection approvalProcessReviews failed")
+          logger.error(s"Attempt to delete review with ($id, $version, $reviewType) from collection approvalProcessReviews failed")
           Left(DatabaseError)
       }
       .recover {
         case error =>
-          logger.error(s"Attempt to delete review with ocelotId =  $approvalProcessId from collection approvalProcessReviews failed with error : ${error.getMessage}")
+          logger.error(s"Attempt to delete review with ($id, $version, $reviewType) from collection approvalProcessReviews failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
   }
