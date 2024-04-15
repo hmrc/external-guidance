@@ -22,8 +22,23 @@ import play.api.libs.json.{JsObject, JsValue}
 import play.api.libs.ws.WSResponse
 import stubs.AuditStub
 import support.IntegrationSpec
+import uk.gov.hmrc.mongo.MongoComponent
 
-class PostApprovalProcessISpec extends IntegrationSpec {
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
+
+class PostApprovalProcessISpec @Inject() (mongoComponent: MongoComponent) (implicit ec: ExecutionContext) extends IntegrationSpec {
+
+  def clearDatabase: Future[Unit] = {
+    mongoComponent.database.listCollectionNames().toFuture().map { names =>
+      names.foreach { name =>
+        if (name == "approvalProcessReviews") {
+          mongoComponent.database.getCollection(name).dropIndexes().toFuture()
+          println("removed data from collection: approvalProcessReviews")
+        }
+      }
+    }
+  }
 
   "Calling the approval POST endpoint with a valid payload" should {
 
@@ -55,4 +70,5 @@ class PostApprovalProcessISpec extends IntegrationSpec {
       id shouldBe idToSave
     }
   }
+  clearDatabase
 }

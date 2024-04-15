@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,29 @@ import play.api.libs.json.{JsArray, JsObject, JsValue}
 import play.api.libs.ws.WSResponse
 import stubs.{AuditStub, AuthStub}
 import support.IntegrationSpec
+import uk.gov.hmrc.mongo.MongoComponent
 
-class GetApprovalProcessISpec extends IntegrationSpec {
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
+
+class GetApprovalProcessISpec @Inject() (mongoComponent: MongoComponent)(implicit ec: ExecutionContext) extends IntegrationSpec {
+
+  def clearDatabase: Future[Unit] = {
+    //      lazy val request = buildRequest("/external-guidance/approval/2i-review")
+    //
+    //      val result = await(request.delete)
+    //      val json = result.body[JsValue].as[JsObject]
+    //      (json \ "id").as[String]
+    mongoComponent.database.listCollectionNames().toFuture().map { names =>
+      names.foreach { name =>
+        if (name == "approvalProcesses") {
+          //mongoComponent.database.getCollection(name).drop().toFuture()
+          mongoComponent.database.getCollection(name).dropIndexes().toFuture()
+          println("removed data from collection: approvalProcesses")
+        }
+      }
+    }
+  }
 
   "Calling the approval GET endpoint with a valid ID" should {
 
@@ -172,5 +193,5 @@ class GetApprovalProcessISpec extends IntegrationSpec {
       response.status shouldBe Status.UNAUTHORIZED
     }
   }
-
+  clearDatabase
 }
