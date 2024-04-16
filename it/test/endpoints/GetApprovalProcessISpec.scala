@@ -22,29 +22,17 @@ import play.api.libs.json.{JsArray, JsObject, JsValue}
 import play.api.libs.ws.WSResponse
 import stubs.{AuditStub, AuthStub}
 import support.IntegrationSpec
-import uk.gov.hmrc.mongo.MongoComponent
 
-import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+class GetApprovalProcessISpec extends IntegrationSpec {
 
-class GetApprovalProcessISpec @Inject() (mongoComponent: MongoComponent)(implicit ec: ExecutionContext) extends IntegrationSpec {
+  override def beforeAll(): Unit = {
+    super.beforeAll()
 
-  def clearDatabase: Future[Unit] = {
-    //      lazy val request = buildRequest("/external-guidance/approval/2i-review")
-    //
-    //      val result = await(request.delete)
-    //      val json = result.body[JsValue].as[JsObject]
-    //      (json \ "id").as[String]
-    mongoComponent.database.listCollectionNames().toFuture().map { names =>
-      names.foreach { name =>
-        if (name == "approvalProcesses") {
-          //mongoComponent.database.getCollection(name).drop().toFuture()
-          mongoComponent.database.getCollection(name).dropIndexes().toFuture()
-          println("removed data from collection: approvalProcesses")
-        }
-      }
-    }
-  }
+    lazy val request = buildRequest(s"/test-only/processes/approval/trn90099")
+    AuditStub.audit()
+    AuthStub.authorise()
+    await(request.delete())
+  }  
 
   "Calling the approval GET endpoint with a valid ID" should {
 
@@ -193,5 +181,5 @@ class GetApprovalProcessISpec @Inject() (mongoComponent: MongoComponent)(implici
       response.status shouldBe Status.UNAUTHORIZED
     }
   }
-  clearDatabase
+  
 }

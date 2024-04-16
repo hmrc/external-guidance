@@ -22,12 +22,21 @@ import play.api.libs.json.{JsObject, JsValue}
 import play.api.libs.ws.WSResponse
 import stubs.{AuditStub, AuthStub}
 import support.IntegrationSpec
-import uk.gov.hmrc.mongo.MongoComponent
 
-import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+class GetProcessReviewISpec extends IntegrationSpec {
 
-class GetProcessReviewISpec @Inject() (mongoComponent: MongoComponent)(implicit ec: ExecutionContext) extends IntegrationSpec {
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+
+    lazy val request = buildRequest(s"/test-only/processes/approval/trn90099")
+    lazy val response: WSResponse = {
+      AuditStub.audit()
+      AuthStub.authorise()
+      await(request.delete())
+    }
+
+    println(response)
+  }
 
   def populateDatabase(processToSave: JsValue): String = {
     lazy val request = buildRequest("/external-guidance/approval/2i-review")
@@ -35,17 +44,6 @@ class GetProcessReviewISpec @Inject() (mongoComponent: MongoComponent)(implicit 
     val result = await(request.post(processToSave))
     val json = result.body[JsValue].as[JsObject]
     (json \ "id").as[String]
-  }
-
-  def clearDatabase: Future[Unit] = {
-    mongoComponent.database.listCollectionNames().toFuture().map { names =>
-      names.foreach { name =>
-        if (name == "approvalProcessReviews") {
-          mongoComponent.database.getCollection(name).dropIndexes().toFuture()
-          println("removed data from collection: approvalProcessReviews")
-        }
-      }
-    }
   }
 
   val processToSave: JsValue = ExamplePayloads.validProcessWithCallouts
@@ -160,5 +158,5 @@ class GetProcessReviewISpec @Inject() (mongoComponent: MongoComponent)(implicit 
       response.status shouldBe Status.UNAUTHORIZED
     }
   }
-  clearDatabase
+  
 }

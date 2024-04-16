@@ -96,7 +96,6 @@ class PublishedService @Inject() (published: PublishedRepository,
           case _ =>
             logger.warn(s"ARCHIVE: Process $id archived by $user")
             for {
-              _ <- approval.changeStatus(id, "Archived", user)
               _ <- published.delete(id)
               _ <- approval.delete(id)
             } yield Right(())
