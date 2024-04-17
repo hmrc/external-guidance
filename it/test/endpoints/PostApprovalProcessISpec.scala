@@ -20,10 +20,19 @@ import data.ExamplePayloads
 import play.api.http.{ContentTypes, Status}
 import play.api.libs.json.{JsObject, JsValue}
 import play.api.libs.ws.WSResponse
-import stubs.AuditStub
+import stubs.{AuthStub, AuditStub}
 import support.IntegrationSpec
 
 class PostApprovalProcessISpec extends IntegrationSpec {
+
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+
+    lazy val request = buildRequest(s"/test-only/processes/approval/trn90099")
+    AuditStub.audit()
+    AuthStub.authorise()
+    await(request.delete())
+  }
 
   "Calling the approval POST endpoint with a valid payload" should {
 
@@ -55,4 +64,5 @@ class PostApprovalProcessISpec extends IntegrationSpec {
       id shouldBe idToSave
     }
   }
+  
 }

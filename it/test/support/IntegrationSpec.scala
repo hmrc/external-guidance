@@ -45,6 +45,7 @@ trait IntegrationSpec
   private val servicesPath = "microservice.services"
 
   def overriddenConfig: Map[String, Any] = Map(
+    "play.http.router" -> "testOnlyDoNotUseInAppConf.Routes",
     s"$servicesPath.auth.host" -> mockHost,
     s"$servicesPath.auth.port" -> mockPort,
     "auditing.consumer.baseUri.port" -> mockPort

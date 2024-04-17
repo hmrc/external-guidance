@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,15 @@ import stubs.{AuditStub, AuthStub}
 import support.IntegrationSpec
 
 class GetApprovalProcessISpec extends IntegrationSpec {
+
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+
+    lazy val request = buildRequest(s"/test-only/processes/approval/trn90099")
+    AuditStub.audit()
+    AuthStub.authorise()
+    await(request.delete())
+  }
 
   "Calling the approval GET endpoint with a valid ID" should {
 
@@ -172,5 +181,5 @@ class GetApprovalProcessISpec extends IntegrationSpec {
       response.status shouldBe Status.UNAUTHORIZED
     }
   }
-
+  
 }

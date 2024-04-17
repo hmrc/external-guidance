@@ -32,11 +32,13 @@ import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import models.ApprovalProcessMeta
 import models.ApprovalProcessMeta.mongoFormat
 import core.models.ocelot.Process
+
 import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
 import core.models.MongoDateTimeFormats.Implicits._
+import org.mongodb.scala.result.DeleteResult
 
 trait ApprovalRepository {
   def update(process: ApprovalProcess): Future[RequestOutcome[String]]
@@ -45,6 +47,7 @@ trait ApprovalRepository {
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]]
   def changeStatus(id: String, status: String, user: String): Future[RequestOutcome[Unit]]
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]]
+  def delete(id:String): Future[RequestOutcome[Unit]]
   def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]]
 }
 
@@ -186,6 +189,22 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
       .recover{
         case error =>
           logger.error(s"Listing timescales used in the approval processes failed with error : ${error.getMessage}")
+          Left(DatabaseError)
+      }
+
+  def delete(id: String): Future[RequestOutcome[Unit]] =
+    collection
+      .deleteOne(equal("_id", id))
+      .toFutureOption()
+      .map {
+        case Some(result: DeleteResult) if result.getDeletedCount > 0 => Right(())
+        case _ =>
+          logger.error(s"Attempt to delete process $id from collection approvalProcesses failed")
+          Left(DatabaseError)
+      }
+      .recover {
+        case error =>
+          logger.error(s"Attempt to delete process $id from collection approvalProcesses failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
 

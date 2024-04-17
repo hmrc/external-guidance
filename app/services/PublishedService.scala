@@ -85,7 +85,7 @@ class PublishedService @Inject() (published: PublishedRepository,
       case err => err
     }
 
-  def archive(id: String, user: String): Future[RequestOutcome[String]] =
+  def archive(id: String, user: String): Future[RequestOutcome[Unit]] =
     published.getById(id).flatMap {
       case Left(_) =>
         logger.error(s"Invalid process id submitted to method getById. The requested id was $id")
@@ -96,9 +96,9 @@ class PublishedService @Inject() (published: PublishedRepository,
           case _ =>
             logger.warn(s"ARCHIVE: Process $id archived by $user")
             for {
-              _       <- approval.changeStatus(id, "Archived", user)
-              deleted <- published.delete(id)
-            } yield deleted
+              _ <- published.delete(id)
+              _ <- approval.delete(id)
+            } yield Right(())
         }
     }
 }

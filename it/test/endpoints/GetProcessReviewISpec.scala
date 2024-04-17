@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,16 @@ import stubs.{AuditStub, AuthStub}
 import support.IntegrationSpec
 
 class GetProcessReviewISpec extends IntegrationSpec {
+
+  // Clear down approval before running tests
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+
+    lazy val request = buildRequest(s"/test-only/processes/approval/trn90099")
+    AuditStub.audit()
+    AuthStub.authorise()
+    await(request.delete())
+  }
 
   def populateDatabase(processToSave: JsValue): String = {
     lazy val request = buildRequest("/external-guidance/approval/2i-review")
@@ -145,4 +155,5 @@ class GetProcessReviewISpec extends IntegrationSpec {
       response.status shouldBe Status.UNAUTHORIZED
     }
   }
+  
 }

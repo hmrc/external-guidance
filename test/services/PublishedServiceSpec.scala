@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -187,7 +187,7 @@ class PublishedServiceSpec extends BaseSpec {
       "the id retrieves a document" should {
         "move it to the archive" in new Test {
 
-          val expected: RequestOutcome[String] = Right(validId)
+          val expected: RequestOutcome[Unit] = Right(())
 
           MockPublishedRepository
             .getById(validId)
@@ -203,7 +203,11 @@ class PublishedServiceSpec extends BaseSpec {
 
           MockPublishedRepository
             .delete(validId)
-            .returns(Future.successful(Right(validId)))
+            .returns(Future.successful(Right(())))
+
+          MockApprovalRepository
+            .delete(validId)
+            .returns(Future.successful(Right(())))
 
           whenReady(target.archive(validId, "userId")) { outcome =>
             if (outcome == expected) succeed else fail()
