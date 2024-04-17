@@ -28,6 +28,7 @@ class Module extends AbstractModule {
     bind(classOf[PublishedRepository]).to(classOf[PublishedRepositoryImpl])
     bind(classOf[ScratchRepository]).to(classOf[ScratchRepositoryImpl])
     bind(classOf[ApprovalRepository]).to(classOf[ApprovalRepositoryImpl])
+    bind(classOf[ApprovalsRepository]).to(classOf[ApprovalsRepositoryImpl])
     bind(classOf[ArchiveRepository]).to(classOf[ArchiveRepositoryImpl])
     bind(classOf[TimescalesRepository]).to(classOf[TimescalesRepositoryImpl])
     bind(classOf[ApprovalProcessReviewRepository]).to(classOf[ApprovalProcessReviewRepositoryImpl])

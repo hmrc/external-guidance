@@ -18,7 +18,7 @@ package models
 
 import play.api.libs.json._
 
-case class Approval(id: String, meta: ApprovalProcessMeta, review: Option[ApprovalReview], process: JsObject, version: Int = 1)
+case class Approval(id: String, meta: ApprovalProcessMeta, review: ApprovalReview, process: JsObject, version: Int = 1)
 
 object Approval {
   implicit val metaFormat: Format[ApprovalProcessMeta] = ApprovalProcessMeta.mongoFormat

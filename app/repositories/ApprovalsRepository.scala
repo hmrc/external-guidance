@@ -37,6 +37,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
 import core.models.MongoDateTimeFormats.Implicits._
 import org.mongodb.scala.bson.conversions.Bson
+import models.ApprovalReview
 
 trait ApprovalsRepository {
   def createOrUpdate(process: Approval): Future[RequestOutcome[String]]
@@ -58,9 +59,10 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(implicit appC
       domainFormat = Approval.format,
       indexes = Seq(IndexModel(ascending("meta.processCode"),
                                IndexOptions()
-                                .name("approval-secondary-Index-process-code")
+                                .name("approvals-secondary-Index-process-code")
                                 .unique(true))),
       extraCodecs = Seq(Codecs.playFormatCodec(ApprovalProcessMeta.mongoFormat),
+                        Codecs.playFormatCodec(ApprovalReview.format),
                         Codecs.playFormatCodec(zonedDateTimeFormat)),
       replaceIndexes = true
     )
@@ -183,7 +185,7 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(implicit appC
     collection
       .withReadPreference(ReadPreference.primaryPreferred())
       .find(or(restrictions.toSeq: _*))
-      .projection(fields(include("meta", "process.meta.id"), excludeId()))
+      .projection(fields(include("meta", "process.meta.id", "review"), excludeId()))
       .collect().toFutureOption()
       .map {
         case None => Right(Nil)

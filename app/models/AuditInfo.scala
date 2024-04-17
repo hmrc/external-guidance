@@ -31,7 +31,7 @@ case class AuditInfo(
 
 object AuditInfo {
 
-  def apply(pid: String, ap: ApprovalProcess, p: Process): AuditInfo =
-    AuditInfo(pid, ap.id, ap.meta.title, ap.version, p.meta.lastAuthor, p.meta.lastUpdate, p.meta.version)
+  def apply(pid: String, id: String, version: Int, title: String, p: Process): AuditInfo =
+    AuditInfo(pid, id, title, version, p.meta.lastAuthor, p.meta.lastUpdate, p.meta.version)
   implicit val formats: OFormat[AuditInfo] = Json.format[AuditInfo]
 }

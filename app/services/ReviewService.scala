@@ -124,7 +124,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
       .validate[Process]
       .fold(
         _ => Left(BadRequestError),
-        process => Right(AuditInfo(info.userId, ap, process))
+        process => Right(AuditInfo(info.userId, ap.id, ap.version, ap.meta.title, process))
       )
 
   def approvalPageComplete(id: String, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] =
@@ -186,7 +186,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
       case Left(_) => Left(InternalServerError)
       case Right(info) =>
         val pages: List[PageReview] = info.pages.map(p => PageReview(p.id, p.pageTitle, p.pageUrl, p.status, p.result))
-        Right(ProcessReview(info.id, info.ocelotId, info.version, info.reviewType, info.title, info.lastUpdated, pages))
+        Right(ProcessReview(info.id.toString, info.ocelotId, info.version, info.reviewType, info.title, info.lastUpdated, pages))
     }
   }
 
