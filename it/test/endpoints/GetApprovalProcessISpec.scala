@@ -32,7 +32,7 @@ class GetApprovalProcessISpec extends IntegrationSpec {
     AuditStub.audit()
     AuthStub.authorise()
     await(request.delete())
-  }  
+  }
 
   "Calling the approval GET endpoint with a valid ID" should {
 

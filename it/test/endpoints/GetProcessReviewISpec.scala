@@ -25,17 +25,14 @@ import support.IntegrationSpec
 
 class GetProcessReviewISpec extends IntegrationSpec {
 
+  // Clear down approval before running tests
   override def beforeAll(): Unit = {
     super.beforeAll()
 
     lazy val request = buildRequest(s"/test-only/processes/approval/trn90099")
-    lazy val response: WSResponse = {
-      AuditStub.audit()
-      AuthStub.authorise()
-      await(request.delete())
-    }
-
-    println(response)
+    AuditStub.audit()
+    AuthStub.authorise()
+    await(request.delete())
   }
 
   def populateDatabase(processToSave: JsValue): String = {
