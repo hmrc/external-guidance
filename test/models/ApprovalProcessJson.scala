@@ -96,43 +96,36 @@ trait ApprovalProcessJson {
       |            "id": "id1",
       |            "title": "how-did-you-earn-extra-income",
       |            "status": "$InitialPageReviewStatus",
-      |            "comment": ""
       |        },
       |        {
       |            "id": "id2",
       |            "title": "sold-goods-or-services/did-you-only-sell-personal-possessions",
       |            "status": "$InitialPageReviewStatus",
-      |            "comment": ""
       |        },
       |        {
       |            "id": "id3",
       |            "title": "sold-goods-or-services/have-you-made-a-profit-of-6000-or-more",
       |            "status": "$InitialPageReviewStatus",
-      |            "comment": ""
       |        },
       |        {
       |            "id": "id4",
       |            "title": "sold-goods-or-services/have-you-made-1000-or-more",
       |            "status": "$InitialPageReviewStatus",
-      |            "comment": ""
       |        },
       |        {
       |            "id": "id5",
       |            "title": "sold-goods-or-services/you-do-not-need-to-tell-hmrc",
       |            "status": "$InitialPageReviewStatus",
-      |            "comment": ""
       |        },
       |        {
       |            "id": "id6",
       |            "title": "rent-a-property/do-you-receive-any-income",
       |            "status": "$InitialPageReviewStatus",
-      |            "comment": ""
       |        },
       |        {
       |            "id": "id7",
       |            "title": "rent-a-property/have-you-rented-out-a-room",
       |            "status": "$InitialPageReviewStatus",
-      |            "comment": ""
       |        }
       |    ]
       |}
@@ -159,7 +152,6 @@ trait ApprovalProcessJson {
        |			"pageTitle" : "title",
        |			"result" : "",
        |			"status" : "$InitialPageReviewStatus",
-       |			"comment" : "",
        |			"updateDate" : {"$$date": {"$$numberLong":"1590760487000"}},
        |			"updateUser" : ""
        |		}

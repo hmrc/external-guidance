@@ -37,6 +37,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
 import core.models.MongoDateTimeFormats.Implicits._
 import org.mongodb.scala.bson.conversions.Bson
+import org.mongodb.scala.result.DeleteResult
 import models.ApprovalReview
 
 trait ApprovalsRepository {
@@ -48,6 +49,7 @@ trait ApprovalsRepository {
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]]
   def changeStatus(id: String, status: String, user: String): Future[RequestOutcome[Unit]]
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]]
+  def delete(id: String): Future[RequestOutcome[Unit]]
   def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]]
 }
 
@@ -118,13 +120,13 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(implicit appC
   }
 
   def updatePageReview(id: String, version: Int, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] = {
+    println(s"## updatePageReview: $id, $version, $pageUrl, $reviewType, $reviewInfo")
     val selector = and(equal("_id", id),
-                       equal("review.reviewType", reviewType),
+                       equal("meta.reviewType", reviewType),
                        equal("review.pages.pageUrl", pageUrl))
     val modifier = combine(
       Vector(set("review.pages.$.status",reviewInfo.status), set("review.pages.$.updateDate", Codecs.toBson(ZonedDateTime.now))) ++
       reviewInfo.result.fold[Vector[Bson]](Vector())(r => Vector(set("review.pages.$.result", r))) ++
-      reviewInfo.comment.fold[Vector[Bson]](Vector())(c => Vector(set("review.pages.$.comment", c))) ++
       reviewInfo.updateUser.fold[Vector[Bson]](Vector())(u => Vector(set("review.pages.$.updateUser", u))): _*
     )
 
@@ -233,6 +235,22 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(implicit appC
       .recover{
         case error =>
           logger.error(s"Listing timescales used in the approval processes failed with error : ${error.getMessage}")
+          Left(DatabaseError)
+      }
+
+  def delete(id: String): Future[RequestOutcome[Unit]] =
+    collection
+      .deleteOne(equal("_id", id))
+      .toFutureOption()
+      .map {
+        case Some(result: DeleteResult) if result.getDeletedCount > 0 => Right(())
+        case _ =>
+          logger.error(s"Attempt to delete process $id from collection approvals failed")
+          Left(DatabaseError)
+      }
+      .recover {
+        case error =>
+          logger.error(s"Attempt to delete process $id from collection approvals failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
 

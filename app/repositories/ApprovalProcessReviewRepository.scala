@@ -104,7 +104,6 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoCompon
     val modifier = combine(
       Vector(set("pages.$.status",reviewInfo.status), set("pages.$.updateDate", Codecs.toBson(ZonedDateTime.now))) ++
       reviewInfo.result.fold[Vector[Bson]](Vector())(r => Vector(set("pages.$.result", r))) ++
-      reviewInfo.comment.fold[Vector[Bson]](Vector())(c => Vector(set("pages.$.comment", c))) ++
       reviewInfo.updateUser.fold[Vector[Bson]](Vector())(u => Vector(set("pages.$.updateUser", u))): _*
     )
 

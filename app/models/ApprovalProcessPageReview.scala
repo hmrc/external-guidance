@@ -26,7 +26,6 @@ case class ApprovalProcessPageReview(
     pageTitle: String,
     result: Option[String] = None,
     status: String = Constants.InitialPageReviewStatus,
-    comment: Option[String] = None,
     updateDate: ZonedDateTime = ZonedDateTime.now(),
     updateUser: Option[String] = None
 )
@@ -42,7 +41,6 @@ object ApprovalProcessPageReview {
       (__ \ "pageTitle").read[String] and
       (__ \ "result").readNullable[String] and
       (__ \ "status").read[String] and
-      (__ \ "comment").readNullable[String] and
       (__ \ "updateDate").read[ZonedDateTime] and
       (__ \ "updateUser").readNullable[String]
   )(ApprovalProcessPageReview.apply _)
@@ -53,7 +51,6 @@ object ApprovalProcessPageReview {
       (__ \ "pageTitle").write[String] and
       (__ \ "result").writeNullable[String] and
       (__ \ "status").write[String] and
-      (__ \ "comment").writeNullable[String] and
       (__ \ "updateDate").write[ZonedDateTime] and
       (__ \ "updateUser").writeNullable[String]
   )(unlift(ApprovalProcessPageReview.unapply))

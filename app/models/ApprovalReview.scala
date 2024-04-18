@@ -29,5 +29,6 @@ case class ApprovalReview(
 )
 
 object ApprovalReview {
+  implicit val pageReviewMongoFormat: OFormat[ApprovalProcessPageReview]  = ApprovalProcessPageReview.mongoFormat
   implicit val format: OFormat[ApprovalReview] = Json.format[ApprovalReview]
 }

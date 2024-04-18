@@ -23,7 +23,7 @@ import core.models.RequestOutcome
 import models.{ProcessSummary, PublishedProcess}
 import play.api.Logger
 import play.api.libs.json.JsObject
-import repositories.{ApprovalRepository, ArchiveRepository, PublishedRepository}
+import repositories.{ApprovalsRepository, ArchiveRepository, PublishedRepository}
 import core.services.validateProcessId
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,7 +32,7 @@ import play.api.libs.json.{JsValue, Json, OFormat}
 @Singleton
 class PublishedService @Inject() (published: PublishedRepository,
                                   archive: ArchiveRepository,
-                                  approval: ApprovalRepository)(implicit ec: ExecutionContext) {
+                                  approval: ApprovalsRepository)(implicit ec: ExecutionContext) {
 
   val logger: Logger = Logger(this.getClass)
 
