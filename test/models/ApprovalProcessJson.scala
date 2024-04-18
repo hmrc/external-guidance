@@ -33,7 +33,7 @@ trait ApprovalProcessJson {
 
   val approvalProcessMeta: ApprovalProcessMeta =
     ApprovalProcessMeta(validId, "This is the title", StatusSubmitted, dateSubmitted, dateSubmitted.atStartOfDay(localZoneID), processCode = "processCode")
-  val approvalProcess: ApprovalProcess = ApprovalProcess(validId, approvalProcessMeta, Json.obj())
+  val approvalProcess: Approval = Approval(validId, approvalProcessMeta, ApprovalReview(Nil), Json.obj())
   val approvalProcessWithValidProcess = approvalProcess.copy(process = process90087Json)
 
   val approvalProcessSummary: ApprovalProcessSummary =

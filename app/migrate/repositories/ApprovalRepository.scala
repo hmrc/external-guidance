@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package repositories
+package migrate.repositories
 
 import config.AppConfig
 import core.models.RequestOutcome
 import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
-import models.{ApprovalProcess, ApprovalProcessSummary, Constants, ProcessSummary}
+import models._
+import migrate.models._
 import play.api.Logger
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
@@ -32,7 +33,7 @@ import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import models.ApprovalProcessMeta
 import models.ApprovalProcessMeta.mongoFormat
 import core.models.ocelot.Process
-
+import repositories._
 import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}

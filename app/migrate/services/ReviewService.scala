@@ -23,7 +23,8 @@ import Constants._
 import core.models.errors._
 import core.models.ocelot.Process
 import play.api.Logger
-import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
+import migrate.models._
+import migrate.repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
 
 import scala.concurrent.{ExecutionContext, Future}
 

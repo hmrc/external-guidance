@@ -21,16 +21,16 @@ import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 
 class ApprovalProcessSpec extends BaseSpec with ApprovalProcessJson {
 
-  import models.ApprovalProcess.mongoFormat
+  import models.Approval.format
 
   private val invalidJson = Json.parse("{}")
 
 
-  "Deserializing a JSON payload into an instance of ApprovalProcess" should {
+  "Deserializing a JSON payload into an instance of Approval" should {
 
     "Result in a successful conversion for valid JSON" in {
 
-      validApprovalProcessJson.validate[ApprovalProcess] match {
+      validApprovalProcessJson.validate[Approval] match {
         case JsSuccess(result, _) if result == approvalProcess => succeed
         case JsSuccess(result, _) => fail("Deserializing valid JSON did not create correct process")
         case JsError(errs) => fail("Unable to parse valid Json")
@@ -39,7 +39,7 @@ class ApprovalProcessSpec extends BaseSpec with ApprovalProcessJson {
 
     "Result in a successful conversion for valid JSON that does not have an _id" in {
 
-      validApprovalProcessWithoutAnIdJson.validate[ApprovalProcess] match {
+      validApprovalProcessWithoutAnIdJson.validate[Approval] match {
         case JsSuccess(result, _) if result == approvalProcess => succeed
         case JsSuccess(_, _) => fail("Deserializing valid JSON did not create correct process")
         case err => fail("Unable to parse valid Json")
@@ -48,7 +48,7 @@ class ApprovalProcessSpec extends BaseSpec with ApprovalProcessJson {
 
     "Result in a failure when for invalid JSON" in {
 
-      invalidJson.validate[ApprovalProcess] match {
+      invalidJson.validate[Approval] match {
         case e: JsError => succeed
         case _ => fail("Invalid JSON payload should not have been successfully deserialized")
       }

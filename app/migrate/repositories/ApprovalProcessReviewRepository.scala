@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package repositories
+package migrate.repositories
 
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -31,7 +31,6 @@ import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-
 import scala.concurrent.{ExecutionContext, Future}
 import org.mongodb.scala.result.{DeleteResult, InsertOneResult}
 import org.mongodb.scala.bson.conversions.Bson

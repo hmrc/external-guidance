@@ -18,7 +18,8 @@ package services
 
 import java.util.UUID
 import config.AppConfig
-
+import migrate.models._
+import migrate.repositories._
 import javax.inject.{Inject, Singleton}
 import models._
 import core.models._
@@ -26,7 +27,7 @@ import core.models.errors.{DuplicateKeyError, InternalServerError, NotFoundError
 import core.services.fromPageDetails
 import play.api.Logger
 import play.api.libs.json._
-import repositories.{ApprovalProcessReviewRepository, ApprovalRepository, PublishedRepository}
+import repositories.PublishedRepository
 
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.libs.json.{Json, OFormat}

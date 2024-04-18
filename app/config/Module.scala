@@ -20,6 +20,7 @@ import core.services.{DefaultTodayProvider, TodayProvider}
 import com.google.inject.AbstractModule
 import controllers.actions._
 import repositories._
+import migrate.repositories._
 
 class Module extends AbstractModule {
 
