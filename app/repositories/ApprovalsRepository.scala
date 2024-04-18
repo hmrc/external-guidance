@@ -43,7 +43,7 @@ import models.ApprovalReview
 trait ApprovalsRepository {
   def createOrUpdate(process: Approval): Future[RequestOutcome[String]]
   def updateReview(id: String, version: Int, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]]
-  def updatePageReview(id: String, version: Int, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]]
+  def updatePageReview(id: String, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]]
   def getById(id: String): Future[RequestOutcome[Approval]]
   def getByProcessCode(processCode: String): Future[RequestOutcome[Approval]]
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]]
@@ -119,8 +119,7 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(implicit appC
       }
   }
 
-  def updatePageReview(id: String, version: Int, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] = {
-    println(s"## updatePageReview: $id, $version, $pageUrl, $reviewType, $reviewInfo")
+  def updatePageReview(id: String, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] = {
     val selector = and(equal("_id", id),
                        equal("meta.reviewType", reviewType),
                        equal("review.pages.pageUrl", pageUrl))
@@ -139,7 +138,7 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(implicit appC
         case error =>
           logger.error(s"Attempt to update page review on pageUrl $pageUrl of approval $id from collection $collectionName failed with error : ${error.getMessage}")
           Left(DatabaseError)
-      }    
+      }
   }
 
   //$COVERAGE-OFF$

@@ -17,7 +17,7 @@
 package mocks
 
 import core.models.RequestOutcome
-import models.{Approval, ApprovalProcessSummary}
+import models.{Approval, ApprovalProcessPageReview, ApprovalProcessSummary}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import repositories.ApprovalsRepository
@@ -63,6 +63,19 @@ trait MockApprovalsRepository extends MockFactory {
       (mockApprovalsRepository
         .getTimescalesInUse _)
         .expects()
+
+    def updatePageReview(id: String, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): CallHandler[Future[RequestOutcome[Unit]]] =
+      (mockApprovalsRepository
+        .updatePageReview(_: String, _: String, _: String, _: ApprovalProcessPageReview))
+        .expects(id, pageUrl, reviewType, reviewInfo)
+
+    def updateReview(id: String, version: Int, reviewType: String, updateUser: String, result: String): CallHandler[Future[RequestOutcome[Unit]]] =
+      (mockApprovalsRepository
+        .updateReview(_: String, _: Int, _: String, _: String, _: String))
+        .expects(id, version, reviewType, updateUser, result)
+
+
+
   }
 
 }

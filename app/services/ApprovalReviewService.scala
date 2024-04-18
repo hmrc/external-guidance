@@ -61,7 +61,10 @@ class ApprovalReviewService @Inject() (
             Future.successful(Left(DuplicateKeyError))
           case _ =>
             val review = ApprovalReview(fromPageDetails(pages)(ApprovalProcessPageReview(_, _, _)))
-            repository.createOrUpdate(Approval(process.meta.id, processMetaSection, review, json))
+            repository.createOrUpdate(Approval(process.meta.id, processMetaSection, review, json)).map{
+              case Left(DatabaseError) => Left(InternalServerError)
+              case result => result
+            }
         }
     }
 
@@ -205,7 +208,7 @@ class ApprovalReviewService @Inject() (
         Future.successful(Left(NotFoundError))
       case Left(_) => Future.successful(Left(InternalServerError))
       case Right(process) =>
-        repository.updatePageReview(process.id, process.version, pageUrl, reviewType, reviewInfo) flatMap {
+        repository.updatePageReview(process.id, pageUrl, reviewType, reviewInfo) flatMap {
           case Left(NotFoundError) =>
             logger.warn(s"updatePageReview failed for process $id, version ${process.version}, reviewType $reviewType and pageUrl $pageUrl not found.")
             Future.successful(Left(NotFoundError))
