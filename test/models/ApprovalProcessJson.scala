@@ -60,8 +60,7 @@ trait ApprovalProcessJson {
       |  "process" : {
       |  },
       |  "review" : {
-      |    "lastUpdated": "2020-05-10",
-      |    "status" : "$StatusSubmitted",
+      |    "lastUpdated": {"$$date":{"$$numberLong":"1589068800000"}},
       |    "pages": [
       |        {
       |            "id": "2",
@@ -81,25 +80,33 @@ trait ApprovalProcessJson {
   val validApprovalProcessWithoutAnIdJson: JsObject = Json
     .parse(
       s"""
-        |{
-        |  "meta" : {
-        |    "id" : "$validId",
-        |    "title" : "This is the title",
-        |    "status" : "$StatusSubmitted",
-        |    "dateSubmitted" : {"$$date": {"$$numberLong":"$submittedDateInMilliseconds"}},
-        |    "lastModified" : {"$$date": {"$$numberLong":"$submittedDateInMilliseconds"}},
-        |    "reviewType" : "$ReviewType2i",
-        |    "processCode" : "processCode"
-        |  },
-        |  "process" : {
-        |  },
-        |  "review" : {
-        |    "lastUpdated": "2020-05-10",
-        |    "status" : "$StatusSubmitted",
-        |    "pages": [
-        |    ]
-        |  },
-        |  "version" : 1
+      | {
+      |  "meta" : {
+      |    "id" : "$validId",
+      |    "title" : "This is the title",
+      |    "status" : "$StatusSubmitted",
+      |    "dateSubmitted" : {"$$date": {"$$numberLong":"$submittedDateInMilliseconds"}},
+      |    "lastModified" : {"$$date": {"$$numberLong":"$submittedDateInMilliseconds"}},
+      |    "ocelotDateSubmitted" : 1,
+      |    "ocelotVersion" : 1,
+      |    "reviewType" : "$ReviewType2i",
+      |    "processCode" : "processCode"
+      |  },
+      |  "process" : {
+      |  },
+      |  "review" : {
+      |    "lastUpdated": "2020-05-10",
+      |    "pages": [
+      |        {
+      |            "id": "2",
+      |            "pageUrl": "/pageUrl2",
+      |            "pageTitle": "title",
+      |            "status": "$ReviewCompleteStatus",
+      |            "updateDate": {"$$date": {"$$numberLong":"$currentDateTimeInMillis"}}
+      |        }
+      |    ]
+      |  },
+      |  "version" : 1
         |}
     """.stripMargin
     )

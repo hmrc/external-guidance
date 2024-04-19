@@ -155,7 +155,7 @@ object ExamplePayloads {
 
   val processReviewInfo: ProcessReview =
     ProcessReview(
-      UUID.randomUUID(),
+      UUID.randomUUID().toString,
       validId,
       1,
       ReviewType2i,
