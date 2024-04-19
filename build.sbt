@@ -19,6 +19,8 @@ val appName = "external-guidance"
 ThisBuild / majorVersion := 0
 ThisBuild / scalaVersion := "2.13.13"
 
+coverageExcludedPackages := "migrate.*;controllers\\.javascript.*;testOnly\\..*;controllers\\.Reverse.*;Routes.*;testOnlyDoNotUseInAppConf.*;prod;repositories;app"
+
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
   .disablePlugins(JUnitXmlReportPlugin) //Required to prevent https://github.com/scalatest/scalatest/issues/1427

@@ -21,7 +21,8 @@ import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import core.models.errors.{DatabaseError, NotFoundError}
 import core.models.RequestOutcome
-import models.{ApprovalProcessPageReview, ApprovalProcessReview}
+import models.ApprovalProcessPageReview
+import migrate.models.ApprovalProcessReview
 import play.api.Logger
 import core.models.MongoDateTimeFormats.Implicits._
 import org.mongodb.scala._

@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package services
+package migrate.services
 
-import java.util.UUID
 import config.AppConfig
-import migrate.models._
 import migrate.repositories._
 import javax.inject.{Inject, Singleton}
 import models._
 import core.models._
-import core.models.errors.{DuplicateKeyError, InternalServerError, NotFoundError}
-import core.services.fromPageDetails
+import core.models.errors.{InternalServerError, NotFoundError}
 import play.api.Logger
 import play.api.libs.json._
 import repositories.PublishedRepository
@@ -36,59 +33,58 @@ import play.api.libs.json.{Json, OFormat}
 class ApprovalService @Inject() (
     repository: ApprovalRepository,
     reviewRepository: ApprovalProcessReviewRepository,
-    publishedRepository: PublishedRepository,
-    finalisationService: ProcessFinalisationService
+    publishedRepository: PublishedRepository
 )(implicit ec: ExecutionContext, val appConfig: AppConfig) {
 
   val logger: Logger = Logger(this.getClass)
 
-  def save(incomingJson: JsObject, reviewType: String, initialStatus: String, checkLevel: GuidanceCheckLevel = Strict): Future[RequestOutcome[String]] =
-    finalisationService.guidancePagesAndProcess(incomingJson, checkLevel).flatMap{
-      case Left(err) => Future.successful(Left(err))
-      case Right((process, pages, json)) =>
-        val processMetaSection =
-          ApprovalProcessMeta(
-            process.meta.id,
-            process.meta.title,
-            initialStatus,
-            reviewType = reviewType,
-            processCode = process.meta.processCode)
+  // def save(incomingJson: JsObject, reviewType: String, initialStatus: String, checkLevel: GuidanceCheckLevel = Strict): Future[RequestOutcome[String]] =
+  //   finalisationService.guidancePagesAndProcess(incomingJson, checkLevel).flatMap{
+  //     case Left(err) => Future.successful(Left(err))
+  //     case Right((process, pages, json)) =>
+  //       val processMetaSection =
+  //         ApprovalProcessMeta(
+  //           process.meta.id,
+  //           process.meta.title,
+  //           initialStatus,
+  //           reviewType = reviewType,
+  //           processCode = process.meta.processCode)
 
-        // Check no published process with this processCode for another processId
-        publishedRepository.getByProcessCode(process.meta.processCode).flatMap{
-          case Right(p) if p.id != process.meta.id =>
-            logger.error(s"Attempt to persist approval process ${process.meta.id} with code ${process.meta.processCode} " +
-              s": duplicate key in published collection for process ${p.id}")
-            Future.successful(Left(DuplicateKeyError))
-          case _ =>
-            repository.update(ApprovalProcess(process.meta.id, processMetaSection, json)) flatMap {
-              case Right(savedId) =>
-                repository.getById(savedId) flatMap {
-                  case Right(approvalProcess) =>
-                    saveReview(
-                      ApprovalProcessReview(
-                        UUID.randomUUID(),
-                        process.meta.id,
-                        approvalProcess.version,
-                        reviewType,
-                        process.meta.title,
-                        fromPageDetails(pages)(ApprovalProcessPageReview(_, _, _))
-                      )
-                    )
-                  case Left(NotFoundError) => Future.successful(Left(NotFoundError))
-                  case Left(_) => Future.successful(Left(InternalServerError))
-                }
-              case Left(DuplicateKeyError) => Future.successful(Left(DuplicateKeyError))
-              case _ => Future.successful(Left(InternalServerError))
-            }
-        }
-    }
+  //       // Check no published process with this processCode for another processId
+  //       publishedRepository.getByProcessCode(process.meta.processCode).flatMap{
+  //         case Right(p) if p.id != process.meta.id =>
+  //           logger.error(s"Attempt to persist approval process ${process.meta.id} with code ${process.meta.processCode} " +
+  //             s": duplicate key in published collection for process ${p.id}")
+  //           Future.successful(Left(DuplicateKeyError))
+  //         case _ =>
+  //           repository.update(ApprovalProcess(process.meta.id, processMetaSection, json)) flatMap {
+  //             case Right(savedId) =>
+  //               repository.getById(savedId) flatMap {
+  //                 case Right(approvalProcess) =>
+  //                   saveReview(
+  //                     ApprovalProcessReview(
+  //                       UUID.randomUUID(),
+  //                       process.meta.id,
+  //                       approvalProcess.version,
+  //                       reviewType,
+  //                       process.meta.title,
+  //                       fromPageDetails(pages)(ApprovalProcessPageReview(_, _, _))
+  //                     )
+  //                   )
+  //                 case Left(NotFoundError) => Future.successful(Left(NotFoundError))
+  //                 case Left(_) => Future.successful(Left(InternalServerError))
+  //               }
+  //             case Left(DuplicateKeyError) => Future.successful(Left(DuplicateKeyError))
+  //             case _ => Future.successful(Left(InternalServerError))
+  //           }
+  //       }
+  //   }
 
-  private def saveReview(approvalProcessReview: ApprovalProcessReview): Future[RequestOutcome[String]] =
-    reviewRepository.save(approvalProcessReview) map {
-      case Right(_) => Right(approvalProcessReview.ocelotId)
-      case _ => Left(InternalServerError)
-    }
+  // private def saveReview(approvalProcessReview: ApprovalProcessReview): Future[RequestOutcome[String]] =
+  //   reviewRepository.save(approvalProcessReview) map {
+  //     case Right(_) => Right(approvalProcessReview.ocelotId)
+  //     case _ => Left(InternalServerError)
+  //   }
 
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]] =
     repository.getTimescalesInUse().map{

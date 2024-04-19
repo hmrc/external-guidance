@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services
+package migrate.services
 
 import javax.inject.{Inject, Singleton}
 import models._
@@ -25,7 +25,7 @@ import core.models.ocelot.Process
 import play.api.Logger
 import migrate.models._
 import migrate.repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
-
+import services.PublishedService
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton

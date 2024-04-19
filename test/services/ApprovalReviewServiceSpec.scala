@@ -17,7 +17,6 @@
 package services
 
 import java.time.ZonedDateTime
-import java.util.UUID
 import core.services.{Timescales, PageBuilder}
 import base.BaseSpec
 import data.ReviewData
@@ -57,16 +56,6 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
                           mockPublishedService,
                           fsService
                           )(ec, MockAppConfig)
-
-    val processReview: ApprovalProcessReview =
-      ApprovalProcessReview(
-        UUID.randomUUID(),
-        "oct90001",
-        1,
-        ReviewType2i,
-        "title",
-        List()
-      )
 
     val publishedProcessSuccessResponse: RequestOutcome[PublishedProcess] =
       Right(PublishedProcess(validId, 1, ZonedDateTime.now(), JsObject.empty, "publishedBy", approvalProcess.meta.processCode))
@@ -848,17 +837,6 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
   "Calling the approvalPageInfo method" when {
 
     trait PageInfoTest extends Test {
-      val processReview2: ApprovalProcessReview = ApprovalProcessReview(
-        UUID.randomUUID(),
-        "validId",
-        1,
-        ReviewType2i,
-        "This is the title",
-        List(
-          ApprovalProcessPageReview("1", "/pageUrl", "titlel", Some("result1")),
-          ApprovalProcessPageReview("2", "/pageUrl2", "title", Some("NotStarted"), updateDate = currentDateTime))
-      )
-
     }
 
     "the ID identifies a valid process" when {
@@ -941,7 +919,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
       "the approvals repository reports a database error" should {
         "return an internal server error" in new PageInfoTest {
 
-          val expected: RequestOutcome[ApprovalProcessReview] = Left(InternalServerError)
+          val expected: RequestOutcome[ApprovalReview] = Left(InternalServerError)
 
           MockApprovalsRepository
             .getById("validId")

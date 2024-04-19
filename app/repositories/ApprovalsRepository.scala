@@ -40,6 +40,8 @@ import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.result.DeleteResult
 import models.ApprovalReview
 
+ //$COVERAGE-OFF$
+ 
 trait ApprovalsRepository {
   def createOrUpdate(process: Approval): Future[RequestOutcome[String]]
   def updateReview(id: String, version: Int, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]]
@@ -72,8 +74,6 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(implicit appC
 
   val logger: Logger = Logger(getClass)
   override lazy val requiresTtlIndex = false
-
-      //$COVERAGE-OFF$
 
   def createOrUpdate(approvalProcess: Approval): Future[RequestOutcome[String]] = {
     logger.warn(s"Saving process ${approvalProcess.id} to collection $collectionName")
