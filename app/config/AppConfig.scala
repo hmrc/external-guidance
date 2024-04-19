@@ -51,3 +51,4 @@ class AppConfigImpl @Inject() (config: Configuration, servicesConfig: ServicesCo
   lazy val seedTimescales: Map[String, Int] = config.get[Map[String, Int]]("seed-timescales")
   lazy val passphraseHashKey: String = config.get[String]("passphrase-hashkey")
 }
+// Comment
