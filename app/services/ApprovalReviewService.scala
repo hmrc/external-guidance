@@ -68,12 +68,6 @@ class ApprovalReviewService @Inject() (
         }
     }
 
-  // private def saveReview(approvalProcessReview: ApprovalProcessReview): Future[RequestOutcome[String]] =
-  //   reviewRepository.save(approvalProcessReview) map {
-  //     case Right(_) => Right(approvalProcessReview.ocelotId)
-  //     case _ => Left(InternalServerError)
-  //   }
-
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]] =
     repository.getTimescalesInUse().map{
       case Right(timescalesInUse) => Right(timescalesInUse)
@@ -265,17 +259,5 @@ class ApprovalReviewService @Inject() (
         logger.warn(s"getApprovalProcessToUpdate - error retrieving process $id - error returned $errors.")
         Left(errors)
     }
-
-  // private[services] def getReviewInfo(id: String, reviewType: String, version: Int): Future[RequestOutcome[ProcessReview]] = {
-  //   repository.getByIdVersionAndType(id, version, reviewType) map {
-  //     case Left(NotFoundError) => Left(NotFoundError)
-  //     case Left(_) => Left(InternalServerError)
-  //     case Right(info) =>
-  //       val pages: List[PageReview] = info.pages.map(p => PageReview(p.id, p.pageTitle, p.pageUrl, p.status, p.result))
-  //       Right(ProcessReview(info.id, info.ocelotId, info.version, info.reviewType, info.title, info.lastUpdated, pages))
-  //   }
-  // }
-
-
 
 }
