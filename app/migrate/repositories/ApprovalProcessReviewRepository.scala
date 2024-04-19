@@ -16,8 +16,6 @@
 
 package migrate.repositories
 
-import java.time.ZonedDateTime
-import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import core.models.errors.{DatabaseError, NotFoundError}
 import core.models.RequestOutcome
@@ -25,23 +23,15 @@ import models.ApprovalProcessPageReview
 import migrate.models.ApprovalProcessReview
 import play.api.Logger
 import core.models.MongoDateTimeFormats.Implicits._
-import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Sorts._
-import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import scala.concurrent.{ExecutionContext, Future}
-import org.mongodb.scala.result.{DeleteResult, InsertOneResult}
-import org.mongodb.scala.bson.conversions.Bson
 
 trait ApprovalProcessReviewRepository {
-  def save(review: ApprovalProcessReview): Future[RequestOutcome[UUID]]
   def getByIdVersionAndType(id: String, version: Int, reviewType: String): Future[RequestOutcome[ApprovalProcessReview]]
-  def updateReview(id: String, version: Int, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]]
-  def updatePageReview(id: String, version: Int, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]]
-  def deleteForApproval(id: String, version: Int, reviewType: String): Future[RequestOutcome[Unit]]
 }
 
 @Singleton
@@ -62,24 +52,6 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoCompon
   val logger: Logger = Logger(getClass)
   override lazy val requiresTtlIndex = false
 
-  def save(review: ApprovalProcessReview): Future[RequestOutcome[UUID]] =
-    collection
-      .insertOne(review)
-      .toFutureOption()
-      .map {
-        case Some(r: InsertOneResult) if r.wasAcknowledged => Right(review.id)
-        case _ =>
-          logger.error(s"Failed to insert ApprovalProcessReview: $review")
-          Left(DatabaseError)
-      }
-      //$COVERAGE-OFF$
-      .recover {
-        case error =>
-          logger.error(s"Attempt to persist process ${review.id} to collection published failed with error : ${error.getMessage}")
-          Left(DatabaseError)
-      }
-    //$COVERAGE-ON$
-
   def getByIdVersionAndType(id: String, version: Int, reviewType: String): Future[RequestOutcome[ApprovalProcessReview]] =
     collection
       .find(and(equal("ocelotId",id), equal("version", version), equal("reviewType", reviewType)))
@@ -95,67 +67,4 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoCompon
           Left(DatabaseError)
       }
     //$COVERAGE-ON$
-
-  def updatePageReview(id: String, version: Int, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] = {
-    val selector = and(equal("ocelotId", id),
-                       equal("version", version),
-                       equal("reviewType", reviewType),
-                       equal("pages.pageUrl", pageUrl))
-    val modifier = combine(
-      Vector(set("pages.$.status",reviewInfo.status), set("pages.$.updateDate", Codecs.toBson(ZonedDateTime.now))) ++
-      reviewInfo.result.fold[Vector[Bson]](Vector())(r => Vector(set("pages.$.result", r))) ++
-      reviewInfo.updateUser.fold[Vector[Bson]](Vector())(u => Vector(set("pages.$.updateUser", u))): _*
-    )
-
-    collection
-      .findOneAndUpdate(selector, modifier)
-      .toFutureOption()
-      .map{_.fold[RequestOutcome[Unit]](Left(NotFoundError))( _ => Right(()))}
-      //$COVERAGE-OFF$
-      .recover {
-        case error =>
-          logger.error(s"Attempt to update page review $id and pageUrl $pageUrl from collection $collectionName failed with error : ${error.getMessage}")
-          Left(DatabaseError)
-      }
-    //$COVERAGE-ON$
-  }
-
-  def updateReview(id: String, version: Int, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]] = {
-
-    val selector = and(equal("ocelotId", id), equal("version", version), equal("reviewType", reviewType))
-    val modifier = combine(
-      set("result", result),
-      set("completionUser", updateUser),
-      set("completionDate", Codecs.toBson(ZonedDateTime.now))
-    )
-
-    collection
-      .findOneAndUpdate(selector, modifier)
-      .toFutureOption()
-      .map{_.fold[RequestOutcome[Unit]](Left(NotFoundError))( _ => Right(()))}
-      //$COVERAGE-OFF$
-      .recover {
-        case error =>
-          logger.error(s"Attempt to update review $id from collection $collectionName failed with error : ${error.getMessage}")
-          Left(DatabaseError)
-      }
-    //$COVERAGE-ON$
-  }
-
-  def deleteForApproval(id: String, version: Int, reviewType: String): Future[RequestOutcome[Unit]] = {
-    collection
-      .deleteOne(and(equal("ocelotId", id), equal("version", version), equal("reviewType", reviewType)))
-      .toFutureOption()
-      .map {
-        case Some(result: DeleteResult) if result.getDeletedCount > 0 => Right(())
-        case _ =>
-          logger.error(s"Attempt to delete review with ($id, $version, $reviewType) from collection approvalProcessReviews failed")
-          Left(DatabaseError)
-      }
-      .recover {
-        case error =>
-          logger.error(s"Attempt to delete review with ($id, $version, $reviewType) from collection approvalProcessReviews failed with error : ${error.getMessage}")
-          Left(DatabaseError)
-      }
-  }
 }
