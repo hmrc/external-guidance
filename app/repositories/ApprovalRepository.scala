@@ -47,7 +47,7 @@ trait ApprovalRepository {
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]]
   def changeStatus(id: String, status: String, user: String): Future[RequestOutcome[Unit]]
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]]
-  def delete(id:String): Future[RequestOutcome[Unit]]
+  def delete(id:String, version: Int, reviewType: String): Future[RequestOutcome[Unit]]
   def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]]
 }
 
@@ -192,9 +192,9 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
           Left(DatabaseError)
       }
 
-  def delete(id: String): Future[RequestOutcome[Unit]] =
+  def delete(id: String, version: Int, reviewType: String): Future[RequestOutcome[Unit]] =
     collection
-      .deleteOne(equal("_id", id))
+      .deleteOne(and(equal("ocelotId", id), equal("version", version), equal("reviewType", reviewType)))
       .toFutureOption()
       .map {
         case Some(result: DeleteResult) if result.getDeletedCount > 0 => Right(())

@@ -205,10 +205,6 @@ class PublishedServiceSpec extends BaseSpec {
             .delete(validId)
             .returns(Future.successful(Right(())))
 
-          MockApprovalRepository
-            .delete(validId)
-            .returns(Future.successful(Right(())))
-
           whenReady(target.archive(validId, "userId")) { outcome =>
             if (outcome == expected) succeed else fail()
           }

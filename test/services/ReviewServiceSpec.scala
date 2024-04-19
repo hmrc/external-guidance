@@ -226,6 +226,10 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
             .deleteForApproval(validId, approvalProcessWithValidProcess.version, ReviewType2i)
             .returns(Future.successful(Right(())))
 
+          MockApprovalRepository
+            .delete(validId, approvalProcessWithValidProcess.version, ReviewType2i)
+            .returns(Future.successful(Right(())))
+
           whenReady(service.twoEyeReviewComplete(validId, statusChange2iReviewInfo)) { result =>
             result shouldBe expected
           }
