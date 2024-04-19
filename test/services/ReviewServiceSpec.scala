@@ -258,6 +258,10 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
             .deleteForApproval("validId", approvalProcessWithValidProcess.version, ReviewType2i)
             .returns(Future.successful(Right(())))
 
+          MockApprovalRepository
+            .delete("validId", approvalProcessWithValidProcess.version, ReviewType2i)
+            .returns(Future.successful(Right(())))
+
           MockPublishedService
             .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcessWithValidProcess.process)
             .returns(Future.successful(Right("validId")))
@@ -297,6 +301,10 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
           MockApprovalProcessReviewRepository
             .getByIdVersionAndType("validId", ReviewType2i, approvalProcessWithValidProcess.version)
             .returns(Future.successful(Left(DatabaseError)))
+
+          MockApprovalRepository
+            .delete("validId", approvalProcessWithValidProcess.version, ReviewType2i)
+            .returns(Future.successful(Right(())))
 
           whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
             result shouldBe expected
@@ -578,6 +586,10 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
 
         MockApprovalProcessReviewRepository
           .deleteForApproval("validId", approvalProcess.version, ReviewType2i)
+          .returns(Future.successful(Right(())))
+
+        MockApprovalRepository
+          .delete("validId", approvalProcessWithValidProcess.version, ReviewType2i)
           .returns(Future.successful(Right(())))
 
         MockPublishedService
