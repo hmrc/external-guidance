@@ -19,7 +19,7 @@ package testOnly.repositories
 import javax.inject.{Inject, Singleton}
 import core.models.errors.DatabaseError
 import core.models.RequestOutcome
-import models.ApprovalProcess
+import models.Approval
 import play.api.Logger
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
@@ -29,11 +29,11 @@ import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ApprovalRepository @Inject() (component: MongoComponent)(implicit ec: ExecutionContext)
-    extends PlayMongoRepository[ApprovalProcess](
-      collectionName = "approvalProcesses",
+class ApprovalsRepository @Inject() (component: MongoComponent)(implicit ec: ExecutionContext)
+    extends PlayMongoRepository[Approval](
+      collectionName = "approvals",
       mongoComponent = component,
-      domainFormat = ApprovalProcess.mongoFormat,
+      domainFormat = Approval.format,
       indexes = Seq.empty
     ) {
 

@@ -51,7 +51,7 @@ implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProc
       lazy val pageUpdateRequest = buildRequest(s"/external-guidance/approval/$id/2i-page-review$pageUrl")
       val content =
         ApprovalProcessPageReview("1", pageUrl, "Ask the customer if they have a tea bag",
-          Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), ZonedDateTime.now(), Some("user id"))
+          Some("Yes"), ReviewCompleteStatus, ZonedDateTime.now(), Some("user id"))
       AuditStub.audit()
       AuthStub.authorise()
       await(pageUpdateRequest.post(Json.toJson(content)))
@@ -214,7 +214,7 @@ implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProc
     val pageUrl = "/feeling-bad"
     lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-page-review$pageUrl")
     val content =
-      ApprovalProcessPageReview("1", pageUrl, pageUrl, Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), ZonedDateTime.now(), Some("user id"))
+      ApprovalProcessPageReview("1", pageUrl, pageUrl, Some("Yes"), ReviewCompleteStatus, ZonedDateTime.now(), Some("user id"))
 
     lazy val response: WSResponse = {
       AuditStub.audit()
@@ -243,7 +243,7 @@ implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProc
 
     lazy val request = buildRequest(s"/external-guidance/approval/unknownId/2i-page-review/pageUrl")
     val content =
-      ApprovalProcessPageReview("1", "pageUrl", "pageUrl", Some("Success"), ReviewCompleteStatus, Some("A basic comment"), ZonedDateTime.now(), Some("user id"))
+      ApprovalProcessPageReview("1", "pageUrl", "pageUrl", Some("Success"), ReviewCompleteStatus, ZonedDateTime.now(), Some("user id"))
 
     lazy val response: WSResponse = {
       AuditStub.audit()
@@ -267,7 +267,6 @@ implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProc
       pageUrl,
       Some("Yes"),
       ReviewCompleteStatus,
-      Some("A basic comment"),
       ZonedDateTime.now(),
       Some("user id"))
 
@@ -326,7 +325,7 @@ implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProc
       val id = (json \ "id").as[String]
       lazy val pageUpdateRequest = buildRequest(s"/external-guidance/approval/$id/fact-check-page-review$pageUrl")
       val content =
-        ApprovalProcessPageReview("1", pageUrl, pageUrl, Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), ZonedDateTime.now(), Some("user id"))
+        ApprovalProcessPageReview("1", pageUrl, pageUrl, Some("Yes"), ReviewCompleteStatus, ZonedDateTime.now(), Some("user id"))
       AuditStub.audit()
       AuthStub.authorise()
       await(pageUpdateRequest.post(Json.toJson(content)))
@@ -414,7 +413,7 @@ implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProc
       AuditStub.audit()
       AuthStub.unauthorised()
       val content =
-        ApprovalProcessPageReview("1", pageUrl, pageUrl, Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), ZonedDateTime.now(), Some("user id"))
+        ApprovalProcessPageReview("1", pageUrl, pageUrl, Some("Yes"), ReviewCompleteStatus, ZonedDateTime.now(), Some("user id"))
       await(request.post(Json.toJson(content)))
     }
 

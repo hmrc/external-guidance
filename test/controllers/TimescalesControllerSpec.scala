@@ -21,7 +21,7 @@ import core.models.errors.{InternalServerError, ValidationError}
 import mocks.{MockTimescalesRepository, MockTimescalesService}
 //import core.models.MongoDateTimeFormats
 import controllers.actions.FakeAllRolesAction
-import mocks.{MockApprovalService, MockPublishedService}
+import mocks.{MockApprovalReviewService, MockPublishedService}
 import models.{TimescalesResponse, TimescalesUpdate, UpdateDetails}
 import play.api.http.ContentTypes
 import play.api.libs.json.{JsObject, JsValue, Json}
@@ -34,11 +34,11 @@ import scala.concurrent.Future
 
 class TimescalesControllerSpec extends BaseSpec {
 
-  trait Test extends MockTimescalesService with MockTimescalesRepository with MockPublishedService with MockApprovalService {
+  trait Test extends MockTimescalesService with MockTimescalesRepository with MockPublishedService with MockApprovalReviewService {
     val timescaleJson: JsValue = Json.parse("""{"First": 1, "Second": 2, "Third": 3}""")
     lazy val target: TimescalesController = new TimescalesController(mockTimescalesService,
                                                                      mockPublishedService,
-                                                                     mockApprovalService,
+                                                                     mockApprovalReviewService,
                                                                      stubControllerComponents(),
                                                                      FakeAllRolesAction)
     val lastUpdateTime: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, ZoneId.of("UTC"))
@@ -64,7 +64,7 @@ class TimescalesControllerSpec extends BaseSpec {
 
       "return an Accepted response" in new ValidSaveTest {
         MockPublishedService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
-        MockApprovalService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
+        MockApprovalReviewService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
         private val result = target.save()(request)
         status(result) shouldBe ACCEPTED
       }
@@ -74,7 +74,7 @@ class TimescalesControllerSpec extends BaseSpec {
 
       "Identify the retained in-use timescales in response" in new Test {
         MockPublishedService.getTimescalesInUse().returns(Future.successful(Right(List("First"))))
-        MockApprovalService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
+        MockApprovalReviewService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
 
         MockTimescalesService.save(timescalesJsonWithDeletion, credId, user, email, List("First")).returns(Future.successful(Right(timescalesResponseWithRetention)))
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(timescalesJsonWithDeletion)
@@ -93,7 +93,7 @@ class TimescalesControllerSpec extends BaseSpec {
 
       "return Bad request response with invalid timescales" in new InvalidSaveTest {
         MockPublishedService.getTimescalesInUse().returns(Future.successful(Right(List("First"))))
-        MockApprovalService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
+        MockApprovalReviewService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
 
         private val result = target.save()(request)
         status(result) shouldBe BAD_REQUEST
@@ -101,7 +101,7 @@ class TimescalesControllerSpec extends BaseSpec {
 
       "return content as JSON with invalid timescales" in new InvalidSaveTest {
         MockPublishedService.getTimescalesInUse().returns(Future.successful(Right(List("First"))))
-        MockApprovalService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
+        MockApprovalReviewService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
 
         private val result = target.save()(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
@@ -109,7 +109,7 @@ class TimescalesControllerSpec extends BaseSpec {
 
       "return an error code of VALIDATION_ERROR with invalid timescales" in new InvalidSaveTest {
         MockPublishedService.getTimescalesInUse().returns(Future.successful(Right(List("First"))))
-        MockApprovalService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
+        MockApprovalReviewService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
         private val result = target.save()(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe "VALIDATION_ERROR"
@@ -128,7 +128,7 @@ class TimescalesControllerSpec extends BaseSpec {
 
       "return a internal server error response" in new ErrorSaveTest {
         MockPublishedService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
-        MockApprovalService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
+        MockApprovalReviewService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
 
         private val result = target.save()(request)
         status(result) shouldBe INTERNAL_SERVER_ERROR
@@ -136,14 +136,14 @@ class TimescalesControllerSpec extends BaseSpec {
 
       "return content as JSON" in new ErrorSaveTest {
         MockPublishedService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
-        MockApprovalService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
+        MockApprovalReviewService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
         private val result = target.save()(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return an error code of INTERNAL_SERVER_ERROR" in new ErrorSaveTest {
         MockPublishedService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
-        MockApprovalService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
+        MockApprovalReviewService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
         private val result = target.save()(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe expectedErrorCode
@@ -177,7 +177,7 @@ class TimescalesControllerSpec extends BaseSpec {
 
       "return a unsupportable entity response" in new InvalidSaveTest {
         MockPublishedService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
-        MockApprovalService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
+        MockApprovalReviewService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
 
         private val result = target.save()(request)
         status(result) shouldBe BAD_REQUEST
@@ -185,14 +185,14 @@ class TimescalesControllerSpec extends BaseSpec {
 
       "return content as JSON" in new InvalidSaveTest {
         MockPublishedService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
-        MockApprovalService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
+        MockApprovalReviewService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
         private val result = target.save()(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "return an error code of BAD_REQUEST" in new InvalidSaveTest {
         MockPublishedService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
-        MockApprovalService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
+        MockApprovalReviewService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
         private val result = target.save()(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe "VALIDATION_ERROR"

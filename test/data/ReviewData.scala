@@ -29,7 +29,7 @@ trait ReviewData {
 
   val processReviewInfo: ProcessReview =
     ProcessReview(
-      UUID.randomUUID(),
+      UUID.randomUUID().toString,
       validProcessIdForReview,
       1,
       ReviewType2i,

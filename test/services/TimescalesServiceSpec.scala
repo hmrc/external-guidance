@@ -26,7 +26,7 @@ import scala.concurrent.Future
 import core.models.ocelot.Process
 import java.time.ZonedDateTime
 import models.{TimescalesResponse, UpdateDetails, TimescalesUpdate}
-import mocks.MockApprovalService
+import mocks.MockApprovalReviewService
 import core.models.MongoDateTimeFormats.localZoneID
 
 class TimescalesServiceSpec extends BaseSpec {
@@ -217,7 +217,7 @@ class TimescalesServiceSpec extends BaseSpec {
 
   private trait Test extends MockTimescalesRepository
     with MockPublishedService
-    with MockApprovalService {
+    with MockApprovalReviewService {
 
     lazy val target: TimescalesService = new TimescalesService(mockTimescalesRepository, MockAppConfig)
     val lastUpdateTime: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, localZoneID)
@@ -254,7 +254,7 @@ class TimescalesServiceSpec extends BaseSpec {
           .getTimescalesInUse()
           .returns(Future.successful(Right(Nil)))
 
-        MockApprovalService
+        MockApprovalReviewService
           .getTimescalesInUse()
           .returns(Future.successful(Right(Nil)))
 
@@ -281,7 +281,7 @@ class TimescalesServiceSpec extends BaseSpec {
           .getTimescalesInUse()
           .returns(Future.successful(Right(List("First"))))
 
-        MockApprovalService
+        MockApprovalReviewService
           .getTimescalesInUse()
           .returns(Future.successful(Right(List("First"))))
 

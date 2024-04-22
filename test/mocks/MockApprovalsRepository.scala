@@ -17,52 +17,65 @@
 package mocks
 
 import core.models.RequestOutcome
-import models.{ApprovalProcess, ApprovalProcessSummary}
+import models.{Approval, ApprovalProcessPageReview, ApprovalProcessSummary}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
-import repositories.ApprovalRepository
+import repositories.ApprovalsRepository
 
 import scala.concurrent.Future
 
-trait MockApprovalRepository extends MockFactory {
+trait MockApprovalsRepository extends MockFactory {
 
-  val mockApprovalRepository: ApprovalRepository = mock[ApprovalRepository]
+  val mockApprovalsRepository: ApprovalsRepository = mock[ApprovalsRepository]
 
-  object MockApprovalRepository {
+  object MockApprovalsRepository {
 
-    def update(process: ApprovalProcess): CallHandler[Future[RequestOutcome[String]]] =
-      (mockApprovalRepository
-        .update(_: ApprovalProcess))
+    def createOrUpdate(process: Approval): CallHandler[Future[RequestOutcome[String]]] =
+      (mockApprovalsRepository
+        .createOrUpdate(_: Approval))
         .expects(*)
 
-    def getById(id: String): CallHandler[Future[RequestOutcome[ApprovalProcess]]] =
-      (mockApprovalRepository
+    def getById(id: String): CallHandler[Future[RequestOutcome[Approval]]] =
+      (mockApprovalsRepository
         .getById(_: String))
         .expects(*)
 
-    def getByProcessCode(processCode: String): CallHandler[Future[RequestOutcome[ApprovalProcess]]] =
-      (mockApprovalRepository
+    def getByProcessCode(processCode: String): CallHandler[Future[RequestOutcome[Approval]]] =
+      (mockApprovalsRepository
         .getByProcessCode(_: String))
         .expects(*)
 
     def approvalSummaryList(roles: List[String]): CallHandler[Future[RequestOutcome[List[ApprovalProcessSummary]]]] =
-      (mockApprovalRepository.approvalSummaryList (_: List[String]))
+      (mockApprovalsRepository.approvalSummaryList (_: List[String]))
         .expects(roles)
 
     def changeStatus(id: String, status: String, user: String): CallHandler[Future[RequestOutcome[Unit]]] =
-      (mockApprovalRepository
+      (mockApprovalsRepository
         .changeStatus(_: String, _: String, _: String))
         .expects(id, status, user)
 
     def delete(id: String): CallHandler[Future[RequestOutcome[Unit]]] =
-      (mockApprovalRepository
+      (mockApprovalsRepository
         .delete(_: String))
         .expects(id)
 
     def getTimescalesInUse(): CallHandler[Future[RequestOutcome[List[String]]]] =
-      (mockApprovalRepository
+      (mockApprovalsRepository
         .getTimescalesInUse _)
         .expects()
+
+    def updatePageReview(id: String, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): CallHandler[Future[RequestOutcome[Unit]]] =
+      (mockApprovalsRepository
+        .updatePageReview(_: String, _: String, _: String, _: ApprovalProcessPageReview))
+        .expects(id, pageUrl, reviewType, reviewInfo)
+
+    def updateReview(id: String, version: Int, reviewType: String, updateUser: String, result: String): CallHandler[Future[RequestOutcome[Unit]]] =
+      (mockApprovalsRepository
+        .updateReview(_: String, _: Int, _: String, _: String, _: String))
+        .expects(id, version, reviewType, updateUser, result)
+
+
+
   }
 
 }

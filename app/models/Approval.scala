@@ -19,28 +19,31 @@ package models
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
-case class ApprovalProcess(id: String, meta: ApprovalProcessMeta, process: JsObject, version: Int = 1)
+case class Approval(id: String, meta: ApprovalProcessMeta, review: ApprovalReview, process: JsObject, version: Int = 1)
 
-object ApprovalProcess {
+object Approval {
 
   implicit val metaFormat: Format[ApprovalProcessMeta] = ApprovalProcessMeta.mongoFormat
+  implicit val reviewFormat: Format[ApprovalReview] = ApprovalReview.format
 
-  def build(id: Option[String], meta: ApprovalProcessMeta, process: JsObject, version: Option[Int]): ApprovalProcess =
-    ApprovalProcess(id.getOrElse(meta.id), meta, process, version.getOrElse(1))
+  def build(id: Option[String], meta: ApprovalProcessMeta, review: ApprovalReview, process: JsObject, version: Option[Int]): Approval =
+    Approval(id.getOrElse(meta.id), meta, review, process, version.getOrElse(1))
 
-  val reads: Reads[ApprovalProcess] = (
+  val reads: Reads[Approval] = (
     (__ \ "_id").readNullable[String] and
       (__ \ "meta").read[ApprovalProcessMeta] and
+      (__ \ "review").read[ApprovalReview] and
       (__ \ "process").read[JsObject] and
       (__ \ "version").readNullable[Int]
-  )(ApprovalProcess.build _)
+  )(Approval.build _)
 
-  val writes: OWrites[ApprovalProcess] = (
+  val writes: OWrites[Approval] = (
     (__ \ "_id").write[String] and
       (__ \ "meta").write[ApprovalProcessMeta] and
+      (__ \ "review").write[ApprovalReview] and
       (__ \ "process").write[JsObject] and
       (__ \ "version").write[Int]
-  )(unlift(ApprovalProcess.unapply))
+  )(unlift(Approval.unapply))
 
-  implicit val mongoFormat: OFormat[ApprovalProcess] = OFormat(reads, writes)
+  implicit val format: OFormat[Approval] = OFormat(reads, writes)
 }

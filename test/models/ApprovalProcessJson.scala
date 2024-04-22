@@ -17,23 +17,25 @@
 package models
 
 import java.time.{LocalDate, ZonedDateTime}
-import java.util.UUID
-
 import data.ProcessData._
 import play.api.libs.json.{JsObject, Json}
 import models.Constants._
 
 trait ApprovalProcessJson {
 
-   val localZoneID = ZonedDateTime.now.getZone
-
+  val localZoneID = ZonedDateTime.now.getZone
+  val currentDateTime: ZonedDateTime = ZonedDateTime.of(2024,4,18,14,6,10,0, localZoneID)
+  val currentDateTimeInMillis: Long = currentDateTime.toInstant().toEpochMilli()
   val validId = "oct90001"
   val dateSubmitted: LocalDate = LocalDate.of(2020, 3, 3)
   val submittedDateInMilliseconds: Long = dateSubmitted.atStartOfDay(localZoneID).toInstant.toEpochMilli
 
   val approvalProcessMeta: ApprovalProcessMeta =
     ApprovalProcessMeta(validId, "This is the title", StatusSubmitted, dateSubmitted, dateSubmitted.atStartOfDay(localZoneID), processCode = "processCode")
-  val approvalProcess: ApprovalProcess = ApprovalProcess(validId, approvalProcessMeta, Json.obj())
+  val approvalProcessPageReview = ApprovalProcessPageReview("2", "/pageUrl2", "title", None, ReviewCompleteStatus, currentDateTime)
+  val incompletePageReview = ApprovalProcessPageReview("2", "/pageUrl2", "title", None, InitialPageReviewStatus, currentDateTime)
+  val approvalProcess: Approval = Approval(validId, approvalProcessMeta, ApprovalReview(List(approvalProcessPageReview), LocalDate.of(2020, 5, 10)), Json.obj())
+  val incompleteApprovalProcess: Approval = Approval(validId, approvalProcessMeta, ApprovalReview(List(incompletePageReview), LocalDate.of(2020, 5, 10)), Json.obj())
   val approvalProcessWithValidProcess = approvalProcess.copy(process = process90087Json)
 
   val approvalProcessSummary: ApprovalProcessSummary =
@@ -57,6 +59,18 @@ trait ApprovalProcessJson {
       |  },
       |  "process" : {
       |  },
+      |  "review" : {
+      |    "lastUpdated": {"$$date":{"$$numberLong":"1589068800000"}},
+      |    "pages": [
+      |        {
+      |            "id": "2",
+      |            "pageUrl": "/pageUrl2",
+      |            "pageTitle": "title",
+      |            "status": "$ReviewCompleteStatus",
+      |            "updateDate": {"$$date": {"$$numberLong":"$currentDateTimeInMillis"}}
+      |        }
+      |    ]
+      |  },
       |  "version" : 1
       |}
     """.stripMargin
@@ -66,88 +80,42 @@ trait ApprovalProcessJson {
   val validApprovalProcessWithoutAnIdJson: JsObject = Json
     .parse(
       s"""
-        |{
-        |  "meta" : {
-        |    "id" : "$validId",
-        |    "title" : "This is the title",
-        |    "status" : "$StatusSubmitted",
-        |    "dateSubmitted" : {"$$date": {"$$numberLong":"$submittedDateInMilliseconds"}},
-        |    "lastModified" : {"$$date": {"$$numberLong":"$submittedDateInMilliseconds"}},
-        |    "reviewType" : "$ReviewType2i",
-        |    "processCode" : "processCode"
-        |  },
-        |  "process" : {
-        |  },
-        |  "version" : 1
+      | {
+      |  "meta" : {
+      |    "id" : "$validId",
+      |    "title" : "This is the title",
+      |    "status" : "$StatusSubmitted",
+      |    "dateSubmitted" : {"$$date": {"$$numberLong":"$submittedDateInMilliseconds"}},
+      |    "lastModified" : {"$$date": {"$$numberLong":"$submittedDateInMilliseconds"}},
+      |    "ocelotDateSubmitted" : 1,
+      |    "ocelotVersion" : 1,
+      |    "reviewType" : "$ReviewType2i",
+      |    "processCode" : "processCode"
+      |  },
+      |  "process" : {
+      |  },
+      |  "review" : {
+      |    "lastUpdated": "2020-05-10",
+      |    "pages": [
+      |        {
+      |            "id": "2",
+      |            "pageUrl": "/pageUrl2",
+      |            "pageTitle": "title",
+      |            "status": "$ReviewCompleteStatus",
+      |            "updateDate": {"$$date": {"$$numberLong":"$currentDateTimeInMillis"}}
+      |        }
+      |    ]
+      |  },
+      |  "version" : 1
         |}
     """.stripMargin
     )
     .as[JsObject]
 
-  val process2iReviewSummary: String =
-    s"""
-      |{
-      |    "id": "$validId",
-      |    "title": "Telling HMRC about extra income",
-      |    "lastUpdated": "2020-05-10",
-      |    "status" : "$StatusSubmitted",
-      |    "pages": [
-      |        {
-      |            "id": "id1",
-      |            "title": "how-did-you-earn-extra-income",
-      |            "status": "$InitialPageReviewStatus",
-      |            "comment": ""
-      |        },
-      |        {
-      |            "id": "id2",
-      |            "title": "sold-goods-or-services/did-you-only-sell-personal-possessions",
-      |            "status": "$InitialPageReviewStatus",
-      |            "comment": ""
-      |        },
-      |        {
-      |            "id": "id3",
-      |            "title": "sold-goods-or-services/have-you-made-a-profit-of-6000-or-more",
-      |            "status": "$InitialPageReviewStatus",
-      |            "comment": ""
-      |        },
-      |        {
-      |            "id": "id4",
-      |            "title": "sold-goods-or-services/have-you-made-1000-or-more",
-      |            "status": "$InitialPageReviewStatus",
-      |            "comment": ""
-      |        },
-      |        {
-      |            "id": "id5",
-      |            "title": "sold-goods-or-services/you-do-not-need-to-tell-hmrc",
-      |            "status": "$InitialPageReviewStatus",
-      |            "comment": ""
-      |        },
-      |        {
-      |            "id": "id6",
-      |            "title": "rent-a-property/do-you-receive-any-income",
-      |            "status": "$InitialPageReviewStatus",
-      |            "comment": ""
-      |        },
-      |        {
-      |            "id": "id7",
-      |            "title": "rent-a-property/have-you-rented-out-a-room",
-      |            "status": "$InitialPageReviewStatus",
-      |            "comment": ""
-      |        }
-      |    ]
-      |}
-      |""".stripMargin
-
-  val process2iReviewSummaryJson: JsObject = Json.parse(process2iReviewSummary).as[JsObject]
-
   val validReviewId: String = "276cc289-a852-4af2-95ae-4bafa1c1835c"
 
   val reviewBody: String =
     s"""
-       |	"ocelotId" : "$validId",
-       |	"version" : 5,
-       |	"reviewType" : "$ReviewTypeFactCheck",
-       |	"title" : "Customer wants to make a cup of tea",
        |	"lastUpdated" : "2020-05-29",
        |	"result" : "",
        |	"completionDate" : null,
@@ -159,7 +127,6 @@ trait ApprovalProcessJson {
        |			"pageTitle" : "title",
        |			"result" : "",
        |			"status" : "$InitialPageReviewStatus",
-       |			"comment" : "",
        |			"updateDate" : {"$$date": {"$$numberLong":"1590760487000"}},
        |			"updateUser" : ""
        |		}
@@ -168,10 +135,6 @@ trait ApprovalProcessJson {
 
   val reviewBody2: String =
     s"""
-       |  "ocelotId" : "$validId",
-       |  "version" : 5,
-       |  "reviewType" : "$ReviewTypeFactCheck",
-       |  "title" : "Customer wants to make a cup of tea",
        |  "lastUpdated" : "2020-05-29",
        |  "pages" : [
        |    {
@@ -214,13 +177,8 @@ trait ApprovalProcessJson {
 
   val validApprovalProcessReviewWithNoIdJson: JsObject = Json.parse(reviewWithoutId).as[JsObject]
 
-  val approvalProcessReview: ApprovalProcessReview =
-    ApprovalProcessReview(
-      UUID.randomUUID(),
-      validId,
-      1,
-      ReviewType2i,
-      "Title",
+  val approvalProcessReview: ApprovalReview =
+    ApprovalReview(
       List(ApprovalProcessPageReview("id", "url", "pageUrl")),
       LocalDate.now(),
       Some(ReviewCompleteStatus),

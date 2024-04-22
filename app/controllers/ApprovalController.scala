@@ -22,7 +22,7 @@ import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
-import services.{ApprovalService, TimescalesService}
+import services.{ApprovalReviewService, TimescalesService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import models.Constants._
 import core.models.errors.{BadRequestError, DuplicateKeyError, Error}
@@ -34,7 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ApprovalController @Inject() (allRolesAction: AllRolesAction,
-                                    approvalService: ApprovalService,
+                                    approvalService: ApprovalReviewService,
                                     timescalesService: TimescalesService,
                                     cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) {
 

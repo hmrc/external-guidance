@@ -21,7 +21,7 @@ import core.models.errors.{ValidationError, InternalServerError => ServerError}
 import models.errors.OcelotError
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import services.{ApprovalService, PublishedService, TimescalesService}
+import services.{ApprovalReviewService, PublishedService, TimescalesService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.Logger
 import controllers.actions.AllRolesAction
@@ -32,7 +32,7 @@ import models.requests.IdentifierRequest
 @Singleton()
 class TimescalesController @Inject() (timescaleService: TimescalesService,
                                       publishService: PublishedService,
-                                      approvalService: ApprovalService,
+                                      approvalService: ApprovalReviewService,
                                       cc: ControllerComponents,
                                       allRolesAction: AllRolesAction)(implicit ec: ExecutionContext) extends BackendController(cc) {
 

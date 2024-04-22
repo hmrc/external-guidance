@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package models
+package migrate.models
 
 import java.time.{LocalDate, ZonedDateTime}
+import models.ApprovalProcessPageReview
 import java.util.UUID
 import play.api.libs.json._
 import play.api.libs.functional.syntax._

@@ -16,22 +16,19 @@
 
 package models
 
-import core.models.ocelot.Process
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json._
+import java.time.{LocalDate, ZonedDateTime}
+import core.models.MongoDateTimeFormats.Implicits._
 
-case class AuditInfo(
-    pid: String,
-    processId: String,
-    processTitle: String,
-    processVersion: Int,
-    ocelotAuthor: String,
-    ocelotLastUpdate: Long,
-    ocelotVersion: Int
+case class ApprovalReview(
+  pages: List[ApprovalProcessPageReview],
+  lastUpdated: LocalDate = LocalDate.now(),
+  result: Option[String] = None,
+  completionDate: Option[ZonedDateTime] = Option.empty[ZonedDateTime],
+  completionUser: Option[String] = Option.empty[String]
 )
 
-object AuditInfo {
-
-  def apply(pid: String, id: String, version: Int, title: String, p: Process): AuditInfo =
-    AuditInfo(pid, id, title, version, p.meta.lastAuthor, p.meta.lastUpdate, p.meta.version)
-  implicit val formats: OFormat[AuditInfo] = Json.format[AuditInfo]
+object ApprovalReview {
+  implicit val pageReviewMongoFormat: OFormat[ApprovalProcessPageReview]  = ApprovalProcessPageReview.mongoFormat
+  implicit val format: OFormat[ApprovalReview] = Json.format[ApprovalReview]
 }

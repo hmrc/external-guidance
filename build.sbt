@@ -30,9 +30,14 @@ lazy val microservice = Project(appName, file("."))
     ),
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test
   )
-  .settings(CodeCoverageSettings.settings: _*)
   .settings(resolvers += Resolver.jcenterRepo)
 
 lazy val it = project
   .enablePlugins(PlayScala)
   .dependsOn(microservice % "test->test") // the "test->test" allows reusing test code and test dependencies
+
+coverageExcludedPackages := "migrate.*;controllers\\.javascript.*;testOnly\\..*;controllers\\.Reverse.*;Routes.*;testOnlyDoNotUseInAppConf.*;prod;repositories;app"
+coverageHighlighting := true
+coverageFailOnMinimum := false
+coverageMinimumStmtTotal := 94.5
+coverageMinimumBranchTotal := 70
