@@ -148,7 +148,8 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoCompon
       .deleteOne(and(equal("ocelotId", id), equal("version", version), equal("reviewType", reviewType)))
       .toFutureOption()
       .map {
-        case Some(result: DeleteResult) if result.getDeletedCount > 0 => Right(())
+        case Some(result: DeleteResult) if result.getDeletedCount > 0 =>
+          Right(())
         case _ =>
           logger.error(s"Attempt to delete review with ($id, $version, $reviewType) from collection approvalProcessReviews failed")
           Left(DatabaseError)

@@ -32,6 +32,7 @@ import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import models.ApprovalProcessMeta
 import models.ApprovalProcessMeta.mongoFormat
 import core.models.ocelot.Process
+import repositories.PublishedRepository
 
 import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
@@ -52,7 +53,7 @@ trait ApprovalRepository {
 }
 
 @Singleton
-class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appConfig: AppConfig, ec: ExecutionContext) extends
+class ApprovalRepositoryImpl @Inject()(component: MongoComponent, published: PublishedRepository)(implicit appConfig: AppConfig, ec: ExecutionContext) extends
   PlayMongoRepository[ApprovalProcess](
       mongoComponent = component,
       collectionName = "approvalProcesses",
@@ -130,7 +131,7 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]] = {
     val TwoEyeRestriction = equal("meta.reviewType", Constants.ReviewType2i)
     val FactCheckRestriction = equal("meta.reviewType", Constants.ReviewTypeFactCheck)
-
+    val publishedList = published.publishedProcessList(roles)
     val restrictions  = roles.flatMap {
       case appConfig.twoEyeReviewerRole => List(TwoEyeRestriction)
       case appConfig.factCheckerRole => List(FactCheckRestriction)
@@ -153,6 +154,7 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
           logger.error(s"Attempt to retrieve list of processes from collection $collectionName failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
+    publishedList
   }
 
   def changeStatus(id: String, status: String, user: String): Future[RequestOutcome[Unit]] = {
