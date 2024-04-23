@@ -23,7 +23,7 @@ import javax.inject.{Inject, Singleton}
 import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
 import core.models.RequestOutcome
 import core.models.ocelot.Process
-import models.{ApprovalProcessSummary, ProcessSummary, PublishedProcess}
+import models.{ApprovalProcessSummary, Constants, ProcessSummary, PublishedProcess}
 import play.api.libs.json.JsObject
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -48,7 +48,7 @@ trait PublishedRepository {
   def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]]
   def delete(id: String): Future[RequestOutcome[Unit]]
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]]
-  def publishedProcessList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]]
+  def publishedProcessList(roles: List[String]): Future[RequestOutcome[List[PublishedProcess]]]
 }
 
 @Singleton
@@ -189,12 +189,12 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
           Left(DatabaseError)
       }
 
-  def publishedProcessList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]] = {
+  def publishedProcessList(roles: List[String]): Future[RequestOutcome[List[PublishedProcess]]] = {
 
     def convertUnixToDate(time: Long): LocalDate = Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).toLocalDate
-
+    val TwoEyeRestriction = equal("meta.reviewType", Constants.ReviewType2i)
     val restrictions  = roles.flatMap {
-      case appConfig.twoEyeReviewerRole => List()
+      case appConfig.twoEyeReviewerRole => List(TwoEyeRestriction)
       case _ => Nil
     }.distinct
 

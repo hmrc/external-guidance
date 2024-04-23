@@ -131,7 +131,6 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent, published: Pub
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]] = {
     val TwoEyeRestriction = equal("meta.reviewType", Constants.ReviewType2i)
     val FactCheckRestriction = equal("meta.reviewType", Constants.ReviewTypeFactCheck)
-    val publishedList = published.publishedProcessList(roles)
     val restrictions  = roles.flatMap {
       case appConfig.twoEyeReviewerRole => List(TwoEyeRestriction)
       case appConfig.factCheckerRole => List(FactCheckRestriction)
@@ -154,7 +153,6 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent, published: Pub
           logger.error(s"Attempt to retrieve list of processes from collection $collectionName failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
-    publishedList
   }
 
   def changeStatus(id: String, status: String, user: String): Future[RequestOutcome[Unit]] = {
