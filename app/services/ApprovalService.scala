@@ -113,8 +113,8 @@ class ApprovalService @Inject() (
     implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
 
     repository.approvalSummaryList(roles).flatMap {
-      case Left(_) => Left(InternalServerError)
-      case Right(success) => Right(publishedRepository.publishedProcessList(roles).map {
+      case Left(_) => Future.successful(Left(InternalServerError))
+      case Right(success) => publishedRepository.publishedProcessList(roles).map {
         case Left(_) => Left(InternalServerError)
         case Right(success) => Right(Json.toJson(success))
       }
