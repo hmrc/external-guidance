@@ -29,6 +29,8 @@ import models.ApprovalProcessMeta
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
+import org.mongodb.scala.model.Filters._
+
 
 trait ApprovalRepository {
   def list(): Future[RequestOutcome[List[ApprovalProcess]]]
@@ -58,7 +60,7 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit ec: E
   def list(): Future[RequestOutcome[List[ApprovalProcess]]] = 
     collection
       .withReadPreference(ReadPreference.primaryPreferred())
-      .find()
+      .find(nin("meta.status", List("Published", "Archived")))
       .collect()
       .toFutureOption()
       .map{

@@ -19,7 +19,6 @@ package controllers
 import base.BaseSpec
 import core.models.errors.{InternalServerError, ValidationError}
 import mocks.{MockTimescalesRepository, MockTimescalesService}
-//import core.models.MongoDateTimeFormats
 import controllers.actions.FakeAllRolesAction
 import mocks.{MockApprovalReviewService, MockPublishedService}
 import models.{TimescalesResponse, TimescalesUpdate, UpdateDetails}
