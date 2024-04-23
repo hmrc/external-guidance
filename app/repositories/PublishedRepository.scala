@@ -48,7 +48,7 @@ trait PublishedRepository {
   def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]]
   def delete(id: String): Future[RequestOutcome[Unit]]
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]]
-  def publishedProcessList(roles: List[String]): Future[RequestOutcome[List[PublishedProcess]]]
+  def publishedProcessList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]]
 }
 
 @Singleton
@@ -189,7 +189,7 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
           Left(DatabaseError)
       }
 
-  def publishedProcessList(roles: List[String]): Future[RequestOutcome[List[PublishedProcess]]] = {
+  def publishedProcessList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]] = {
 
     def convertUnixToDate(time: Long): LocalDate = Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).toLocalDate
     val TwoEyeRestriction = equal("meta.reviewType", Constants.ReviewType2i)
