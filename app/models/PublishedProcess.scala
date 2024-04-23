@@ -20,7 +20,7 @@ import java.time.ZonedDateTime
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
-case class PublishedProcess(id: String, version: Int, datePublished: ZonedDateTime, process: JsObject, publishedBy: String, processCode: String)
+case class PublishedProcess(id: String, meta: PublishedProcessMeta, version: Int, datePublished: ZonedDateTime, process: JsObject, publishedBy: String, processCode: String)
 
 trait PublishedProcessFormats {
   val standardformat: Format[PublishedProcess] = Json.format[PublishedProcess]
@@ -29,6 +29,7 @@ trait PublishedProcessFormats {
 
   val reads: Reads[PublishedProcess] = (
     (__ \ "_id").read[String] and
+      (__ \ "meta").read[PublishedProcessMeta] and
       (__ \ "version").read[Int] and
       (__ \ "datePublished").read[ZonedDateTime] and
       (__ \ "process").read[JsObject] and
@@ -38,6 +39,7 @@ trait PublishedProcessFormats {
 
   val writes: OWrites[PublishedProcess] = (
     (__ \ "_id").write[String] and
+      (__ \ "meta").write[PublishedProcessMeta] and
       (__ \ "version").write[Int] and
       (__ \ "datePublished").write[ZonedDateTime] and
       (__ \ "process").write[JsObject] and

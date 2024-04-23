@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,9 +112,12 @@ class ApprovalService @Inject() (
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[JsValue]] = {
     implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
 
-    repository.approvalSummaryList(roles).map {
+    repository.approvalSummaryList(roles).flatMap {
       case Left(_) => Left(InternalServerError)
-      case Right(success) => Right(Json.toJson(success))
+      case Right(success) => Right(publishedRepository.publishedProcessList(roles).map {
+        case Left(_) => Left(InternalServerError)
+        case Right(success) => Right(Json.toJson(success))
+      }
     }
   }
 

@@ -16,13 +16,16 @@
 
 package repositories
 
-import java.time.ZonedDateTime
+import config.AppConfig
+
+import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
 import javax.inject.{Inject, Singleton}
 import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
 import core.models.RequestOutcome
 import core.models.ocelot.Process
-import models.{ProcessSummary, PublishedProcess}
+import models.{ApprovalProcessSummary, ProcessSummary, PublishedProcess}
 import play.api.libs.json.JsObject
+
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.Logger
 import org.mongodb.scala._
@@ -35,6 +38,7 @@ import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
 import core.models.MongoDateTimeFormats.Implicits._
+import org.mongodb.scala.model.Projections.{excludeId, fields, include}
 
 //$COVERAGE-OFF$
 trait PublishedRepository {
@@ -44,10 +48,11 @@ trait PublishedRepository {
   def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]]
   def delete(id: String): Future[RequestOutcome[Unit]]
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]]
+  def publishedProcessList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]]
 }
 
 @Singleton
-class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec: ExecutionContext)
+class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec: ExecutionContext, appConfig: AppConfig)
     extends PlayMongoRepository[PublishedProcess](
       collectionName = "publishedProcesses",
       mongoComponent = component,
@@ -183,5 +188,31 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
           logger.error(s"Attempt to retrieve published process summaries failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
+
+  def publishedProcessList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]] = {
+
+    def convertUnixToDate(time: Long): LocalDate = Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).toLocalDate
+
+    val restrictions  = roles.flatMap {
+      case appConfig.twoEyeReviewerRole => List()
+      case _ => Nil
+    }.distinct
+
+    collection
+      .withReadPreference(ReadPreference.primaryPreferred())
+      .find(or(restrictions.toSeq: _*))
+      .projection(fields(include("meta", "process.meta.id"), excludeId()))
+      .collect().toFutureOption()
+      .map {
+        case None => Right(Nil)
+        case Some(published) =>
+          Right(published.map(doc => ApprovalProcessSummary(doc.meta.id, doc.meta.title, convertUnixToDate(doc.meta.lastUpdate), "Published", "2i-review")).toList)
+      }
+      .recover {
+        case error =>
+          logger.error(s"Attempt to retrieve list of processes from collection $collectionName failed with error : ${error.getMessage}")
+          Left(DatabaseError)
+      }
+  }
   //$COVERAGE-ON$
 }
