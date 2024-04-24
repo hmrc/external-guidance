@@ -5,7 +5,8 @@ object AppDependencies {
   val compile = Seq(
     "uk.gov.hmrc"       %% "bootstrap-backend-play-30" % "8.5.0",
     "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30"        % "1.8.0",
-    "uk.gov.hmrc"       %% "auth-client"               % "7.1.0"
+    "uk.gov.hmrc"       %% "auth-client"               % "7.1.0",
+    "org.typelevel"     %% "cats-core"                 % "2.10.0"
   )
 
   val test = Seq(

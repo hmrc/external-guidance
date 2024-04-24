@@ -16,6 +16,8 @@
 
 package migrate.services
 
+import cats.data.EitherT
+import cats.implicits._
 import java.time.ZonedDateTime
 import play.api.Logging
 import config.AppConfig
@@ -27,7 +29,6 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{Future, ExecutionContext}
 import models.Approval
 import core.models.RequestOutcome
-import core.models.errors._
 
 trait MigrateData
 
@@ -37,76 +38,72 @@ class DataMigrationService @Inject()(
   appConfig: AppConfig,
   approvalRespository: ApprovalRepository,
   approvalReviewRepository: ApprovalProcessReviewRepository,
-  approvals: ApprovalsRepository
+  approvalsRepository: ApprovalsRepository
 )(implicit ec: ExecutionContext) extends Logging with MigrateData {
 
-
   private def migrationRequired(): Future[RequestOutcome[Boolean]] =
-    approvals.processSummaries().map{
+    approvalsRepository.processSummaries().map{
       case Right(Nil) => Right(true)
       case Right(_) => Right(false)
       case Left(err) => Left(err)
     }
 
-  private def startupDataMigration(): Unit = {
-    logger.info(s"Startup data migration")
-    serviceLock.lock("DataMigration").map{lockOption =>
-      lockOption.map{lock =>
-        migrationRequired().flatMap{
-          case Right(true) => 
-            logger.warn(s"Data Migration: Started at ${ZonedDateTime.now}")
-            migrateData()
-          case Right(_) =>
-            logger.warn(s"Data Migration: Not required")
-            Future.successful(Right(()))
-          case Left(err) =>
-            logger.error(s"Unable to determine whether data migration is possible or necessary")
-            Future.successful(Left(err))
-        }.map{ _ =>
-          serviceLock.unlock(lock.owner).map(_ => logger.warn(s"Data Migration: Finished at ${ZonedDateTime.now}"))
-        }
-      }
-    }
+  private def createApproval(ap: ApprovalProcess, ar: ApprovalProcessReview): Future[RequestOutcome[String]] = {
+    val approval = Approval(ap.id, ap.meta, 
+                            ApprovalReview(ar.pages, ar.lastUpdated, ar.result, ar.completionDate, ar.completionUser), 
+                            ap.process, ap.version)
+    approvalsRepository.createOrUpdate(approval).map{
+      case Right(id) => Right(id)
+      case Left(err) =>
+        logger.error(s"Unable to create new approval for process ${ap.id}, error = $err")
+        Left(err)
+    } 
   }
 
-  private def createApproval(ap: ApprovalProcess, ar: ApprovalProcessReview): Approval = 
-    Approval(
-      ap.id,
-      ap.meta,
-      ApprovalReview(
-        ar.pages,
-        ar.lastUpdated,
-        ar.result,
-        ar.completionDate,
-        ar.completionUser
-      ),
-      ap.process,
-      ap.version
-    )
+  private def review(id: String, version: Int, reviewType: String): Future[RequestOutcome[ApprovalProcessReview]] =
+    approvalReviewRepository.getByIdVersionAndType(id, version, reviewType).map{
+      case Right(review) => Right(review)
+      case Left(err) =>
+        logger.error(s"No review found for process $id, version $version, reviewType $reviewType")
+        Left(err)
+     }
 
   private def migrateData(): Future[RequestOutcome[Unit]] =
     approvalRespository.list().flatMap{
-      case Left(err) => Future.successful(Left(err))
+      case Left(err) =>
+        logger.error(s"Unable to review list of AprovalProcess, error = $err")
+        Future.successful(Left(err))
       case Right(approvals) =>
-        logger.warn(s"Found ${approvals.length} ApprovalProcess records to migrate")
-        Future.sequence(approvals.map{approval =>
-          approvalReviewRepository.getByIdVersionAndType(approval.id, approval.version, approval.meta.reviewType).map{
-            case Left(err) => 
-              logger.error(s"Failed ($err) to find review for ${approval.id}, ${approval.version}, ${approval.meta.reviewType}")
-              Left(err)
-            case Right(review) => 
-              logger.warn(s"Found matching review for Approval with ${approval.id}, ${approval.version} and ${approval.meta.reviewType}")
-              Right(createApproval(approval, review))
-          }
-        }).map{
-          case results if results.forall(_.isRight) => 
-            logger.warn(s"Created ${results.length} Approvalrecords during migration")
-            Right(())
-          case results =>
-            logger.error(s"Failed to create all Approvalrecords during migration ${results.filter(_.isLeft)}")
-            Left(NotFoundError)
+        approvals.map{app =>
+          for{
+            review <- EitherT(review(app.id, app.version, app.meta.reviewType))
+            result <- EitherT(createApproval(app, review))
+          } yield result
+        }.traverse(_.value).map{outcomes => 
+          val successes: List[String] = outcomes.collect{case Right(id) => id}
+          val failureCount: Int = outcomes.collect{case Left(_) => 1}.toList.length
+          logger.warn(s"Following processes migrated sucessfully: ${successes.mkString(", ")}")
+          logger.warn(s"${failureCount} processes failed to migrate")
+          Right(())
         }
     }
 
-  startupDataMigration()
+  logger.info(s"Startup data migration")
+  serviceLock.lock("DataMigration").map{lockOption =>
+    lockOption.map{lock =>
+      migrationRequired().flatMap{
+        case Right(true) => 
+          logger.warn(s"Data Migration: Started at ${ZonedDateTime.now}")
+          migrateData()
+        case Right(_) =>
+          logger.warn(s"Data Migration: Not required")
+          Future.successful(Right(()))
+        case Left(err) =>
+          logger.error(s"Unable to determine whether data migration is possible or necessary")
+          Future.successful(Left(err))
+      }.map{ _ =>
+        serviceLock.unlock(lock.owner).map(_ => logger.warn(s"Data Migration: Finished at ${ZonedDateTime.now}"))
+      }
+    }
+  }
 }
