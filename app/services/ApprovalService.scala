@@ -22,11 +22,12 @@ import config.AppConfig
 import javax.inject.{Inject, Singleton}
 import models._
 import core.models._
+import core.models.ocelot.Process
 import core.models.errors.{DuplicateKeyError, InternalServerError, NotFoundError}
-import core.services.fromPageDetails
+import core.services.{fromPageDetails, validateProcessId}
 import play.api.Logger
 import play.api.libs.json._
-import repositories.{ApprovalProcessReviewRepository, ApprovalRepository, PublishedRepository}
+import repositories.{ApprovalProcessReviewRepository, ApprovalRepository, PublishedRepository, json}
 
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.libs.json.{Json, OFormat}
@@ -113,11 +114,14 @@ class ApprovalService @Inject() (
     implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
 
     repository.approvalSummaryList(roles).flatMap {
-      case Left(_) => Future.successful(Left(InternalServerError))
-      case Right(success) => publishedRepository.publishedProcessList(roles).map {
-        case Left(_) => Left(InternalServerError)
-        case Right(success) => Right(Json.toJson(success))
+      case Left(err) => Future.successful(Left(err))
+      case Right(approvals) if roles.contains("2iReviewer") => publishedRepository.list().map {
+        case Left(err) => Left(err)
+        case Right(published) => Right(Json.toJson(approvals ++ published.map { p =>
+          ApprovalProcessSummary(p.id, p.process.validate[Process].fold(_ => "", _.meta.title), p.datePublished.toLocalDate, "Published", "2i-review")
+        }))
       }
+      case Right(success) => Future.successful(Right(Json.toJson(success)))
     }
   }
 

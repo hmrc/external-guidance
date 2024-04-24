@@ -48,7 +48,7 @@ trait PublishedRepository {
   def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]]
   def delete(id: String): Future[RequestOutcome[Unit]]
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]]
-  def publishedProcessList(roles: List[String]): Future[RequestOutcome[List[PublishedProcess]]]
+  def list(): Future[RequestOutcome[List[PublishedProcess]]]
 }
 
 @Singleton
@@ -189,28 +189,21 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
           Left(DatabaseError)
       }
 
-  def publishedProcessList(roles: List[String]): Future[RequestOutcome[List[PublishedProcess]]] = {
-    val TwoEyeRestriction = equal("meta.reviewType", Constants.ReviewType2i)
-    val restrictions  = roles.flatMap {
-      case appConfig.twoEyeReviewerRole => List(TwoEyeRestriction)
-      case _ => Nil
-    }.distinct
+  def list(): Future[RequestOutcome[List[PublishedProcess]]] =
 
     collection
       .withReadPreference(ReadPreference.primaryPreferred())
-      .find(or(restrictions.toSeq: _*))
-      .projection(fields(include("meta", "process.meta.id"), excludeId()))
-      .collect().toFutureOption()
+      .find()
+      .collect()
+      .toFutureOption()
       .map {
         case None => Right(Nil)
-        case Some(published) =>
-          Right(published.map(doc => PublishedProcess(doc.id, doc.version, doc.datePublished, doc.process, doc.publishedBy, doc.processCode)).toList)
+        case Some(published) => Right(published.toList)
       }
       .recover {
         case error =>
           logger.error(s"Attempt to retrieve list of processes from collection $collectionName failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
-  }
   //$COVERAGE-ON$
 }
