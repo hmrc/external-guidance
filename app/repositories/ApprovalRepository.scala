@@ -194,12 +194,13 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent, published: Pub
 
   def delete(id: String, version: Int, reviewType: String): Future[RequestOutcome[Unit]] =
     collection
-      .deleteOne(and(equal("ocelotId", id), equal("version", version), equal("reviewType", reviewType)))
+      .deleteOne(and(equal("meta.id", id), equal("version", version), equal("meta.reviewType", reviewType)))
       .toFutureOption()
       .map {
         case Some(result: DeleteResult) if result.getDeletedCount > 0 => Right(())
         case _ =>
           logger.error(s"Attempt to delete process $id from collection approvalProcesses failed")
+          println(s"\n***\nID: $id, version: $version, review type: $reviewType")
           Left(DatabaseError)
       }
       .recover {

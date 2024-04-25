@@ -18,12 +18,12 @@ package repositories
 
 import config.AppConfig
 
-import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
+import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
 import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
 import core.models.RequestOutcome
 import core.models.ocelot.Process
-import models.{ApprovalProcessSummary, Constants, ProcessSummary, PublishedProcess}
+import models.{ProcessSummary, PublishedProcess}
 import play.api.libs.json.JsObject
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -38,7 +38,6 @@ import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
 import core.models.MongoDateTimeFormats.Implicits._
-import org.mongodb.scala.model.Projections.{excludeId, fields, include}
 
 //$COVERAGE-OFF$
 trait PublishedRepository {
@@ -52,7 +51,7 @@ trait PublishedRepository {
 }
 
 @Singleton
-class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec: ExecutionContext, appConfig: AppConfig)
+class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec: ExecutionContext)
     extends PlayMongoRepository[PublishedProcess](
       collectionName = "publishedProcesses",
       mongoComponent = component,

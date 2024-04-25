@@ -24,10 +24,10 @@ import models._
 import core.models._
 import core.models.ocelot.Process
 import core.models.errors.{DuplicateKeyError, InternalServerError, NotFoundError}
-import core.services.{fromPageDetails, validateProcessId}
+import core.services.fromPageDetails
 import play.api.Logger
 import play.api.libs.json._
-import repositories.{ApprovalProcessReviewRepository, ApprovalRepository, PublishedRepository, json}
+import repositories.{ApprovalProcessReviewRepository, ApprovalRepository, PublishedRepository}
 
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.libs.json.{Json, OFormat}
