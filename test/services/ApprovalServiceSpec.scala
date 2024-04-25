@@ -18,18 +18,19 @@ package services
 
 import java.time.ZonedDateTime
 import java.util.UUID
-import core.services.{Timescales, PageBuilder}
+import core.services.{PageBuilder, Timescales}
 import base.BaseSpec
 import mocks.{MockAppConfig, MockApprovalProcessReviewRepository, MockApprovalRepository, MockPublishedRepository}
 import models._
 import core.models.errors._
-import core.models.ocelot.ProcessJson
+import core.models.ocelot.{Process, ProcessJson}
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsArray, JsObject, Json, OFormat}
 import models.Constants._
 import core.models.RequestOutcome
+
 import scala.concurrent.Future
-import core.services.{EncrypterService, DefaultTodayProvider}
+import core.services.{DefaultTodayProvider, EncrypterService}
 import mocks.MockTimescalesService
 
 class ApprovalServiceSpec extends BaseSpec with MockFactory {
@@ -71,6 +72,11 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
       Right(PublishedProcess(validId, 1, ZonedDateTime.now(), JsObject.empty, "publishedBy", approvalProcess.meta.processCode))
     val publishedProcessFailureResponse: RequestOutcome[PublishedProcess] =
       Right(PublishedProcess("random-id", 1, ZonedDateTime.now(), JsObject.empty, "publishedBy", approvalProcess.meta.processCode))
+
+
+    val validPublishedId: String = "ext90005"
+    val publishedProcess: PublishedProcess =
+      PublishedProcess(validPublishedId, 1, ZonedDateTime.now(), validOnePageJson.as[JsObject], "user", processCode = "processCode")
 
   }
 
@@ -353,7 +359,7 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
   }
 
   "Calling the approvalSummaryList method" when {
-    "there are entries to return" should {
+    "there are entries to return and role is not 2iReviewer" should {
       "return a List of approval processes" in new Test {
         implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
 
@@ -372,6 +378,40 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
             entry.title shouldBe approvalProcessSummary.title
             entry.status shouldBe approvalProcessSummary.status
             entry.reviewType shouldBe approvalProcessSummary.reviewType
+          case _ => fail()
+        }
+      }
+    }
+
+    "there are entries to return and role is 2iReviewer" should {
+      "return a List of approval processes and published" in new Test {
+        implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
+
+        val expectedApproval: RequestOutcome[List[ApprovalProcessSummary]] = Right(List(approvalProcessSummary))
+        val expectedPublished: RequestOutcome[List[PublishedProcess]] = Right(List(publishedProcess))
+
+        MockApprovalRepository
+          .approvalSummaryList(List("2iReviewer"))
+          .returns(Future.successful(expectedApproval))
+
+        MockPublishedRepository
+          .list()
+          .returns(Future.successful(expectedPublished))
+
+        whenReady(service.approvalSummaryList(List("2iReviewer"))) {
+          case Right(jsonList) =>
+            val list: List[ApprovalProcessSummary] = jsonList.as[List[ApprovalProcessSummary]]
+            list.size shouldBe 2
+            val entry1 = list.head
+            val entry2 = list(1)
+            entry1.id shouldBe approvalProcessSummary.id
+            entry1.title shouldBe approvalProcessSummary.title
+            entry1.status shouldBe approvalProcessSummary.status
+            entry1.reviewType shouldBe approvalProcessSummary.reviewType
+            entry2.id shouldBe publishedProcess.id
+            entry2.title shouldBe publishedProcess.process.validate[Process].fold(_ => "", _.meta.title)
+            entry2.status shouldBe "Published"
+            entry2.reviewType shouldBe "2i-review"
           case _ => fail()
         }
       }
