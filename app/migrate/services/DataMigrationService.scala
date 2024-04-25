@@ -71,7 +71,7 @@ class DataMigrationService @Inject()(
   private def migrateData(): Future[RequestOutcome[Unit]] =
     approvalRespository.list().flatMap{
       case Left(err) =>
-        logger.error(s"Unable to review list of AprovalProcess, error = $err")
+        logger.error(s"Unable to retrieve list of AprovalProcess, error = $err")
         Future.successful(Left(err))
       case Right(approvals) =>
         approvals.map{app =>
@@ -83,27 +83,33 @@ class DataMigrationService @Inject()(
           val successes: List[String] = outcomes.collect{case Right(id) => id}
           val failureCount: Int = outcomes.collect{case Left(_) => 1}.toList.length
           logger.warn(s"Following processes migrated sucessfully: ${successes.mkString(", ")}")
-          logger.warn(s"${failureCount} processes failed to migrate")
+          logger.warn(s"${failureCount} processes failed to migrate (See log)")
           Right(())
         }
     }
 
-  logger.info(s"Startup data migration")
-  serviceLock.lock("DataMigration").map{lockOption =>
-    lockOption.map{lock =>
-      migrationRequired().flatMap{
-        case Right(true) => 
-          logger.warn(s"Data Migration: Started at ${ZonedDateTime.now}")
-          migrateData()
-        case Right(_) =>
-          logger.warn(s"Data Migration: Not required")
-          Future.successful(Right(()))
-        case Left(err) =>
-          logger.error(s"Unable to determine whether data migration is possible or necessary")
-          Future.successful(Left(err))
-      }.map{ _ =>
-        serviceLock.unlock(lock.owner).map(_ => logger.warn(s"Data Migration: Finished at ${ZonedDateTime.now}"))
+  if (appConfig.enableDataMigration) {
+    logger.warn(s"Data migration lock claim")
+    serviceLock.lock("DataMigration").map{lockOption =>
+      lockOption.fold{
+        logger.warn(s"Migration lock already taken")
+      }{lock =>
+        logger.warn(s"Starting Data migration check")
+        migrationRequired().flatMap{
+          case Right(true) => 
+            logger.warn(s"Data Migration: Started at ${ZonedDateTime.now}")
+            migrateData().map{_ =>
+              logger.warn(s"Data Migration: Finished at ${ZonedDateTime.now}")
+              Right(())
+            }
+          case Right(_) =>
+            logger.warn(s"Data Migration: Not required")
+            Future.successful(Right(()))
+          case Left(err) =>
+            logger.error(s"Unable to determine whether data migration is possible or necessary")
+            Future.successful(Left(err))
+        }.map(_ => serviceLock.unlock(lock.owner))
       }
-    }
+    }    
   }
 }

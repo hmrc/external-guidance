@@ -36,6 +36,7 @@ trait AppConfig {
   val fakeWelshInUnauthenticatedGuidance: Boolean
   val seedTimescales: Map[String, Int]
   val passphraseHashKey: String
+  val enableDataMigration: Boolean
   val serviceLockDuration: FiniteDuration
 }
 
@@ -61,5 +62,6 @@ class AppConfigImpl @Inject() (config: Configuration, servicesConfig: ServicesCo
   lazy val fakeWelshInUnauthenticatedGuidance: Boolean = config.getOptional[Boolean]("welsh-guidance-text.fake-when-unauthenticated").getOrElse(false)
   lazy val seedTimescales: Map[String, Int] = config.get[Map[String, Int]]("seed-timescales")
   lazy val passphraseHashKey: String = config.get[String]("passphrase-hashkey")
-  lazy val serviceLockDuration: FiniteDuration = getFiniteDuration(config, "mongodb.service-lock-duration")
+  lazy val serviceLockDuration: FiniteDuration = getFiniteDuration(config, "data-migration.lock-duration")
+  lazy val enableDataMigration: Boolean = config.get[Boolean]("data-migration.enable")
 }

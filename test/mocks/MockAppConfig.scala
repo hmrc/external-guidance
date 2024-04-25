@@ -17,6 +17,7 @@
 package mocks
 
 import config.AppConfig
+import scala.concurrent.duration.{MINUTES, FiniteDuration}
 
 object MockAppConfig extends AppConfig {
 
@@ -31,6 +32,8 @@ object MockAppConfig extends AppConfig {
   val fakeWelshInUnauthenticatedGuidance: Boolean = true
   val seedTimescales: Map[String,Int] = Map("First" -> 1, "Second" -> 2, "Third" -> 3)
   val passphraseHashKey: String = "gvBoGdgzqG1AarzF1LY0zQ=="
+  val enableDataMigration: Boolean = false
+  val serviceLockDuration: FiniteDuration = FiniteDuration(5, MINUTES)
 }
 
 case class MockAppConfigCopyable(scratchExpiryHour: Int,
@@ -42,6 +45,8 @@ case class MockAppConfigCopyable(scratchExpiryHour: Int,
                                  twoEyeReviewerRole: String,
                                  fakeWelshInUnauthenticatedGuidance: Boolean,
                                  seedTimescales: Map[String,Int],
-                                 passphraseHashKey: String) extends AppConfig
+                                 passphraseHashKey: String,
+                                 enableDataMigration: Boolean = false,
+                                 serviceLockDuration: FiniteDuration = FiniteDuration(5, MINUTES)) extends AppConfig
 
 
