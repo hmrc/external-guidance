@@ -394,10 +394,10 @@ class ApprovalServiceSpec extends BaseSpec with MockFactory {
     }
 
     "the repository reports a database error" should {
-      "return an internal server error" in new Test {
+      "return a database error" in new Test {
 
         val repositoryError: RequestOutcome[List[ApprovalProcessSummary]] = Left(DatabaseError)
-        val expected: RequestOutcome[List[ApprovalProcessSummary]] = Left(InternalServerError)
+        val expected: RequestOutcome[List[ApprovalProcessSummary]] = Left(DatabaseError)
 
         MockApprovalRepository
           .approvalSummaryList(List("FactChecker"))

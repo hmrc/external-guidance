@@ -16,8 +16,6 @@
 
 package repositories
 
-import config.AppConfig
-
 import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
 import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
