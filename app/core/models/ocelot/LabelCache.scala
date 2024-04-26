@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,7 +102,7 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label],
   def updatedLabels: Map[String, Label] = cache
   def labelMap:Map[String, Label] = labels
   def flush(): Labels = new LabelCacheImpl(labels ++ cache.toList, Map(), stack, pool, poolCache, timescales, messages, runMode, encrypter)
-  
+
   // Label ops
   private def label(name: String): Option[Label] = cache.get(name).fold(labels.get(name))(Some(_))
 
@@ -126,16 +126,18 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label],
       case Nil => (Some(continue), this)
       case x :: xs =>
         (Some(x.next),
-         x.labelValue.fold(new LabelCacheImpl(labels, cache, x :: xs ++ (Continuation(continue) :: stack), pool, poolCache ++ stanzas, timescales, messages, runMode, encrypter))
-                          (lv => new LabelCacheImpl(labels,
-                                                    updateOrAddScalarLabel(lv.name, lv.value.english, Some(lv.value.welsh)),
-                                                    x :: xs ++ (Continuation(continue) :: stack),
-                                                    pool,
-                                                    poolCache ++ stanzas,
-                                                    timescales,
-                                                    messages,
-                                                    runMode,
-                                                    encrypter))
+        x.labelValue.fold(
+          new LabelCacheImpl(labels, cache, x :: xs ++ (Continuation(continue) :: stack), pool, poolCache ++ stanzas, timescales, messages, runMode, encrypter)
+        )
+        (lv => new LabelCacheImpl(labels,
+                                  updateOrAddScalarLabel(lv.name, lv.value.english, Some(lv.value.welsh)),
+                                  x :: xs ++ (Continuation(continue) :: stack),
+                                  pool,
+                                  poolCache ++ stanzas,
+                                  timescales,
+                                  messages,
+                                  runMode,
+                                  encrypter))
         )
     }
 
@@ -178,11 +180,13 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label],
 }
 
 object LabelCache {
-  // TEST only 
+  // TEST only
   def apply(): Labels = new LabelCacheImpl(Map(),Map(), Nil,Map(),Map(),Map(),(_,_) => "", Published, IdentityEncrypter)
-  def apply(labels: List[Label]): Labels = new LabelCacheImpl(labels.map(l => (l.name -> l)).toMap,Map(), Nil,Map(),Map(),Map(),(_,_) => "", Published, IdentityEncrypter)
+  def apply(labels: List[Label]): Labels =
+    new LabelCacheImpl(labels.map(l => (l.name -> l)).toMap,Map(), Nil,Map(),Map(),Map(),(_,_) => "", Published, IdentityEncrypter)
   def apply(labels: Map[String, Label]): Labels = new LabelCacheImpl(labels,Map(), Nil,Map(),Map(),Map(),(_,_) => "", Published, IdentityEncrypter)
-  def apply(labels: Map[String, Label], cache: Map[String, Label]): Labels = new LabelCacheImpl(labels, cache,Nil, Map(),Map(),Map(), (_,_) => "", Published, IdentityEncrypter)
+  def apply(labels: Map[String, Label], cache: Map[String, Label]): Labels =
+    new LabelCacheImpl(labels, cache,Nil, Map(),Map(),Map(), (_,_) => "", Published, IdentityEncrypter)
 
   def apply(labels: Map[String, Label],
             cache: Map[String, Label],

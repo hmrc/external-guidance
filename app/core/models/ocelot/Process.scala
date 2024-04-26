@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase
       .collectFirst{case Value(_, PassPhraseLabelName, value) => value}
   lazy val passphraseValueStanza: Option[(String, ValueStanza)] = flow.collectFirst{
     case (k, v: ValueStanza) if v.values.exists(_.label == PassPhraseLabelName) => (k, v)
-  }  
+  }
   lazy val betaPhaseBanner: Boolean = flow.values
       .collect{case vs: ValueStanza => vs.values}.flatten
       .collectFirst{case Value(_, PhaseBannerPhase, value) => value}

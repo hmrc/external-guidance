@@ -181,5 +181,5 @@ class GetApprovalProcessISpec extends IntegrationSpec {
       response.status shouldBe Status.UNAUTHORIZED
     }
   }
-  
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,9 +43,9 @@ class PageBuilder @Inject() (val timescales: Timescales) extends ProcessPopulati
           (stanza(id, process), xs ) match {
             case (Right(_: PageStanza), _) if ids.nonEmpty => collectStanzas(xs, pageStanza, ids, stanzas, id +: next, endFound) // End, possibly more paths
             case (Right(s: PageStanza), _) => collectStanzas(xs ++ s.next, Some(s), ids :+ id, stanzas :+ s, next, endFound)     // Beginning of page
-            case (Right(EndStanza), _) => collectStanzas(xs, pageStanza, ids :+ id, stanzas :+ EndStanza, next, endFound = true)          // End, possibly more paths
-            case (Right(_: PopulatedStanza), _) if ids.isEmpty => Left(PageStanzaMissing(id))                                             // No PageStanza at start
-            case (Right(s: PopulatedStanza), _) => collectStanzas(xs ++ s.next, pageStanza, ids :+ id, stanzas :+ s, next, endFound)      // Within-page stanza
+            case (Right(EndStanza), _) => collectStanzas(xs, pageStanza, ids :+ id, stanzas :+ EndStanza, next, endFound = true) // End, possibly more paths
+            case (Right(_: PopulatedStanza), _) if ids.isEmpty => Left(PageStanzaMissing(id))                                    // No PageStanza at start
+            case (Right(s: PopulatedStanza), _) => collectStanzas(xs ++ s.next, pageStanza, ids :+ id, stanzas :+ s, next, endFound) // Within-page stanza
             case (Left(err), _) => Left(err)
           }
       }

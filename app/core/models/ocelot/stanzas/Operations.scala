@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,7 +103,6 @@ sealed trait Operation {
       case (None, None) => Left(UnsupportedOperationError(getClass.getSimpleName, None, None, left, right))
       case _ => Left(UnsupportedOperationError(getClass.getSimpleName, Some(l.toString), Some(r.toString), left, right))
     }
-    
   }
 }
 

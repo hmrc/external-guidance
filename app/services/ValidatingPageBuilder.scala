@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,9 @@ object PageVertex {
 class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
   val logger: Logger = Logger(getClass)
 
-  def pagesWithValidation(process: Process, start: String = Process.StartStanzaId, checkLevel: GuidanceCheckLevel = Strict): Either[List[GuidanceError], Seq[Page]] =
+  def pagesWithValidation(process: Process,
+                          start: String = Process.StartStanzaId,
+                          checkLevel: GuidanceCheckLevel = Strict): Either[List[GuidanceError], Seq[Page]] =
     pageBuilder.pages(process, start).fold[Either[List[GuidanceError], Seq[Page]]](Left(_),
       pages => {
         implicit val stanzaMap: Map[String, Stanza] = process.flow
@@ -89,10 +91,10 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
       }
     }
 
-    
+
   private def validPhrase(phrase: Phrase): Boolean =
     pageLinkIds(phrase.english).sorted == pageLinkIds(phrase.welsh).sorted
-    
+
   private def checkSequenceErrors(vertices: List[PageVertex], vertexMap: Map[String, PageVertex], mainFlow: List[String])
                             (implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] =
     checkForMinimumTwoPageFlows(vertices, vertexMap) match {

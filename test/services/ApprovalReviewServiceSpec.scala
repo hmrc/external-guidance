@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
 
     val invalidProcess: JsObject = Json.obj("idx" -> invalidId)
     val fsService = new ProcessFinalisationService(
-                          MockAppConfig, 
+                          MockAppConfig,
                           new ValidatingPageBuilder(
                             new PageBuilder(new Timescales(new DefaultTodayProvider))
                           ),

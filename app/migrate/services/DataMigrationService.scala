@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,15 +49,15 @@ class DataMigrationService @Inject()(
     }
 
   private def createApproval(ap: ApprovalProcess, ar: ApprovalProcessReview): Future[RequestOutcome[String]] = {
-    val approval = Approval(ap.id, ap.meta, 
-                            ApprovalReview(ar.pages, ar.lastUpdated, ar.result, ar.completionDate, ar.completionUser), 
+    val approval = Approval(ap.id, ap.meta,
+                            ApprovalReview(ar.pages, ar.lastUpdated, ar.result, ar.completionDate, ar.completionUser),
                             ap.process, ap.version)
     approvalsRepository.createOrUpdate(approval).map{
       case Right(id) => Right(id)
       case Left(err) =>
         logger.error(s"Unable to create new approval for process ${ap.id}, error = $err")
         Left(err)
-    } 
+    }
   }
 
   private def review(id: String, version: Int, reviewType: String): Future[RequestOutcome[ApprovalProcessReview]] =
@@ -79,7 +79,7 @@ class DataMigrationService @Inject()(
             review <- EitherT(review(app.id, app.version, app.meta.reviewType))
             result <- EitherT(createApproval(app, review))
           } yield result
-        }.traverse(_.value).map{outcomes => 
+        }.traverse(_.value).map{outcomes =>
           val successes: List[String] = outcomes.collect{case Right(id) => id}
           val failureCount: Int = outcomes.collect{case Left(_) => 1}.toList.length
           logger.warn(s"Following processes migrated sucessfully: ${successes.mkString(", ")}")
@@ -96,7 +96,7 @@ class DataMigrationService @Inject()(
       }{lock =>
         logger.warn(s"Starting Data migration check")
         migrationRequired().flatMap{
-          case Right(true) => 
+          case Right(true) =>
             logger.warn(s"Data Migration: Started at ${ZonedDateTime.now}")
             migrateData().map{_ =>
               logger.warn(s"Data Migration: Finished at ${ZonedDateTime.now}")
@@ -110,6 +110,6 @@ class DataMigrationService @Inject()(
             Future.successful(Left(err))
         }.map(_ => serviceLock.unlock(lock.owner))
       }
-    }    
+    }
   }
 }

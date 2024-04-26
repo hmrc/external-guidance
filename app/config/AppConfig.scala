@@ -50,7 +50,7 @@ class AppConfigImpl @Inject() (config: Configuration, servicesConfig: ServicesCo
         logger.error(s"Unable to read configuration for FiniteDuration key $key")
         FiniteDuration(5, MINUTES)
     }
-    
+
   lazy val scratchExpiryHour: Int = servicesConfig.getInt("mongodb.scratchExpiryHour")
   lazy val scratchExpiryMinutes: Int = servicesConfig.getInt("mongodb.scratchExpiryMinutes")
   lazy val scratchExpiryTZ: String = servicesConfig.getString("mongodb.scratchExpiryTZ")
