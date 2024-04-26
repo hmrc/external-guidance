@@ -28,13 +28,13 @@ import repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ReviewService @Inject() (publishedService: PublishedService, approvalRepository: ApprovalRepository, reviewRepository: ApprovalProcessReviewRepository)
+class ReviewService @Inject() (publishedService: PublishedService, repository: ApprovalRepository, reviewRepository: ApprovalProcessReviewRepository)
                               (implicit ec: ExecutionContext) {
 
   val logger: Logger = Logger(this.getClass)
 
   def approvalReviewInfo(id: String, reviewType: String): Future[RequestOutcome[ProcessReview]] =
-    approvalRepository.getById(id) flatMap {
+    repository.getById(id) flatMap {
       case Left(NotFoundError) => Future.successful(Left(NotFoundError))
       case Left(_) => Future.successful(Left(InternalServerError))
       case Right(process) =>
@@ -49,7 +49,7 @@ class ReviewService @Inject() (publishedService: PublishedService, approvalRepos
     }
 
   def approvalPageInfo(id: String, pageUrl: String, reviewType: String): Future[RequestOutcome[ApprovalProcessPageReview]] =
-    approvalRepository.getById(id) flatMap {
+    repository.getById(id) flatMap {
       case Left(NotFoundError) => Future.successful(Left(NotFoundError))
       case Left(_) => Future.successful(Left(InternalServerError))
       case Right(process) =>
@@ -85,7 +85,7 @@ class ReviewService @Inject() (publishedService: PublishedService, approvalRepos
           case Right(ap) =>
             changeStatus(id, info.status, info.userId, ReviewType2i) flatMap {
               case Right(_) => reviewRepository.deleteForApproval(id, ap.version, ReviewType2i).flatMap {
-                case Right(_) => approvalRepository.delete(id, ap.version, ReviewType2i).map {
+                case Right(_) => repository.delete(id, ap.version, ReviewType2i).map {
                   case Right(_) => validateProcess(ap, info)
                   case Left(error) => Left(error)
                 }
@@ -131,7 +131,7 @@ class ReviewService @Inject() (publishedService: PublishedService, approvalRepos
       )
 
   def approvalPageComplete(id: String, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] =
-    approvalRepository.getById(id) flatMap {
+    repository.getById(id) flatMap {
       case Left(NotFoundError) =>
         logger.warn(s"approvalPageComplete - process $id not found.")
         Future.successful(Left(NotFoundError))
@@ -157,7 +157,7 @@ class ReviewService @Inject() (publishedService: PublishedService, approvalRepos
     }
 
   private def changeStatus(id: String, status: String, userId: String, reviewType: String): Future[RequestOutcome[Unit]] =
-    approvalRepository.changeStatus(id, status, userId) map {
+    repository.changeStatus(id, status, userId) map {
       case Left(DatabaseError) =>
         logger.error(s"$reviewType - database error changing status")
         Left(InternalServerError)
@@ -170,7 +170,7 @@ class ReviewService @Inject() (publishedService: PublishedService, approvalRepos
       case Right(_) => Right(())
     }
 
-  private def getApprovalProcessToUpdate(id: String): Future[RequestOutcome[ApprovalProcess]] = approvalRepository.getById(id) map {
+  private def getApprovalProcessToUpdate(id: String): Future[RequestOutcome[ApprovalProcess]] = repository.getById(id) map {
     case Right(process) if StatusAllowedForReviewCompletion.contains(process.meta.status) => Right(process)
     case Right(process) =>
       logger.warn(

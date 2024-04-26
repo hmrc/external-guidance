@@ -53,7 +53,7 @@ trait ApprovalRepository {
 }
 
 @Singleton
-class ApprovalRepositoryImpl @Inject()(component: MongoComponent, published: PublishedRepository)(implicit appConfig: AppConfig, ec: ExecutionContext) extends
+class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appConfig: AppConfig, ec: ExecutionContext) extends
   PlayMongoRepository[ApprovalProcess](
       mongoComponent = component,
       collectionName = "approvalProcesses",
@@ -200,7 +200,6 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent, published: Pub
         case Some(result: DeleteResult) if result.getDeletedCount > 0 => Right(())
         case _ =>
           logger.error(s"Attempt to delete process $id from collection approvalProcesses failed")
-          println(s"\n***\nID: $id, version: $version, review type: $reviewType")
           Left(DatabaseError)
       }
       .recover {
