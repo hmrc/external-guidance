@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import play.api.libs.json._
 import play.api.i18n.Lang
 import play.api.inject.Injector
 import play.api.inject.guice.GuiceApplicationBuilder
-
 import scala.concurrent.ExecutionContext
+import migrate.services.DataMigrationService
 
 trait EnglishLanguage {
   implicit val lang: Lang = Lang("en")
@@ -109,8 +109,8 @@ trait TestConstants {
 }
 
 trait BaseSpec extends AnyWordSpec with Matchers with ScalaFutures with TestConstants with GuiceOneAppPerSuite {
-
   override lazy val app: Application = new GuiceApplicationBuilder()
+    .disable[DataMigrationService]
     .configure("metrics.enabled" -> "false")
     .build()
 

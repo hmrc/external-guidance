@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +85,7 @@ case class Calculation(override val next: Seq[String], calcs: Seq[Operation]) ex
       }
     }
 
-  def eval(labels: Labels): (String, Labels, Option[RuntimeError]) = 
+  def eval(labels: Labels): (String, Labels, Option[RuntimeError]) =
     evalOps(calcs.toList, labels) match {
       case (updatedLabels, err) => (next.last, updatedLabels, err)
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class PublishedController @Inject() (publishedRepo: PublishedRepository, testRepo: TestPublishedRepository, cc: ControllerComponents)(implicit ec: ExecutionContext)
-    extends BackendController(cc) {
+class PublishedController @Inject() (publishedRepo: PublishedRepository, testRepo: TestPublishedRepository, cc: ControllerComponents)
+  (implicit ec: ExecutionContext) extends BackendController(cc) {
 
   def post(): Action[JsValue] = Action.async(parse.json) { request =>
     def save(process: Process): Future[Result] = {

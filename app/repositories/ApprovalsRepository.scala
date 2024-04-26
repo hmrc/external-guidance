@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ import org.mongodb.scala.result.DeleteResult
 import models.ApprovalReview
 
  //$COVERAGE-OFF$
- 
+
 trait ApprovalsRepository {
   def createOrUpdate(process: Approval): Future[RequestOutcome[String]]
   def updateReview(id: String, version: Int, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]]
@@ -136,7 +136,7 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(implicit appC
       //$COVERAGE-OFF$
       .recover {
         case error =>
-          logger.error(s"Attempt to update page review on pageUrl $pageUrl of approval $id from collection $collectionName failed with error : ${error.getMessage}")
+          logger.error(s"Update page review on url $pageUrl of approval $id from $collectionName failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
   }

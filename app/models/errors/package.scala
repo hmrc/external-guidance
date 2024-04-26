@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,8 @@ package object errors {
       ErrorReport(s"UnknownCalcOperationType: Unsupported CalculationStanza operation type ${e.typeName} found at stanza id ${e.id}", e.id)
     case e: UnknownTestType => ErrorReport( s"UnknownTestType: Unsupported ChoiceStanza test type ${e.typeName} found at stanza id ${e.id}", e.id)
     case e: UnknownInputType => ErrorReport( s"UnknownInputType: Unsupported InputStanza type ${e.typeName} found at stanza id ${e.id}", e.id)
-    case e: IncompleteDateInputPage => ErrorReport(s"IncompleteDateInputPage: Incomplete Error callout group or missing TypeError callout associated with date input page ${e.id}", e.id)
+    case e: IncompleteDateInputPage =>
+      ErrorReport(s"IncompleteDateInputPage: Incomplete Error callout group or missing TypeError callout associated with date input page ${e.id}", e.id)
     case e: IncompleteInputPage => ErrorReport(s"IncompleteInputPage: Missing Error callout stanza from input page ${e.id}", e.id)
     case e: PageRedirectNotSupported => ErrorReport(s"PageRedirectNotSupported: Use of ChoiceStanza ${e.id} as a page redirect not supported", e.id)
     case e: MultipleExclusiveOptions => ErrorReport(s"MultipleExclusiveOptions: Sequence stanza ${e.id} defines multiple exclusive options", e.id)

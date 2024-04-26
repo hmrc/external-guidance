@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import models.ApprovalProcessMeta
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
+import org.mongodb.scala.model.Filters._
 
 trait ApprovalRepository {
   def list(): Future[RequestOutcome[List[ApprovalProcess]]]
@@ -55,10 +56,10 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit ec: E
 
       //$COVERAGE-OFF$
 
-  def list(): Future[RequestOutcome[List[ApprovalProcess]]] = 
+  def list(): Future[RequestOutcome[List[ApprovalProcess]]] =
     collection
       .withReadPreference(ReadPreference.primaryPreferred())
-      .find()
+      .find(nin("meta.status", List("Published", "Archived")))
       .collect()
       .toFutureOption()
       .map{

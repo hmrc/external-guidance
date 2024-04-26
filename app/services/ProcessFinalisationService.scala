@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,9 @@ import core.services.EncrypterService
 @Singleton
 class ProcessFinalisationService @Inject() (
     appConfig: AppConfig,
-    vpb: ValidatingPageBuilder, 
+    vpb: ValidatingPageBuilder,
     timescalesService: TimescalesService,
     encrypter: EncrypterService) extends Logging {
-
 
   def guidancePagesAndProcess(jsObject: JsObject, checkLevel: GuidanceCheckLevel = Strict)
                              (implicit c: AppConfig, ec: ExecutionContext): Future[RequestOutcome[(Process, Seq[Page], JsObject)]] =
@@ -80,7 +79,7 @@ class ProcessFinalisationService @Inject() (
       (securedProcess, None)
     }
 
-  private[services] def updateFlowPassPhrase(p: Process, encryptedPassPhrase: String): Map[String, Stanza] = 
+  private[services] def updateFlowPassPhrase(p: Process, encryptedPassPhrase: String): Map[String, Stanza] =
     p.passphraseValueStanza.fold(p.flow){
       case (id, valueStanza) =>
         val updatedValues = valueStanza.values.map{

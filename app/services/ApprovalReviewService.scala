@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -246,7 +246,7 @@ class ApprovalReviewService @Inject() (
       case Right(_) => Right(())
     }
 
-  private def getApprovalProcessToUpdate(id: String): Future[RequestOutcome[Approval]] = 
+  private def getApprovalProcessToUpdate(id: String): Future[RequestOutcome[Approval]] =
     repository.getById(id) map {
       case Right(process) if StatusAllowedForReviewCompletion.contains(process.meta.status) => Right(process)
       case Right(process) =>
