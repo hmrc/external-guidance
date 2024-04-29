@@ -32,7 +32,6 @@ import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import models.ApprovalProcessMeta
 import models.ApprovalProcessMeta.mongoFormat
 import core.models.ocelot.Process
-import repositories.PublishedRepository
 
 import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
@@ -48,7 +47,7 @@ trait ApprovalRepository {
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]]
   def changeStatus(id: String, status: String, user: String): Future[RequestOutcome[Unit]]
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]]
-  def delete(id:String, version: Int, reviewType: String): Future[RequestOutcome[Unit]]
+  def delete(id:String): Future[RequestOutcome[Unit]]
   def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]]
 }
 
@@ -192,9 +191,9 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit appCo
           Left(DatabaseError)
       }
 
-  def delete(id: String, version: Int, reviewType: String): Future[RequestOutcome[Unit]] =
+  def delete(id: String): Future[RequestOutcome[Unit]] =
     collection
-      .deleteOne(and(equal("meta.id", id), equal("version", version), equal("meta.reviewType", reviewType)))
+      .deleteOne(equal("_id", id))
       .toFutureOption()
       .map {
         case Some(result: DeleteResult) if result.getDeletedCount > 0 => Right(())

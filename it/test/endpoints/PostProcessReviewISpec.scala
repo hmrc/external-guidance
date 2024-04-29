@@ -41,12 +41,17 @@ class PostProcessReviewISpec extends IntegrationSpec {
     AuditStub.audit()
     AuthStub.authorise()
     await(request.delete())
+    lazy val request2 = buildRequest(s"/test-only/processes/published/oct90001")
+    await(request2.delete())
+
   }
   implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
 
-  val statusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusComplete)
+  val statusPublishedChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
+  val statusCompleteChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusComplete)
 
-  val statusChangeCompleteJson: JsValue = Json.toJson(statusChangeInfo)
+  val statusChangeCompleteJson: JsValue = Json.toJson(statusCompleteChangeInfo)
+  val statusChangePublishedJson: JsValue = Json.toJson(statusPublishedChangeInfo)
   val pageUrl: String = "/feeling-bad"
 
   "Calling the approval2iReviewComplete POST endpoint with a valid payload and all pages reviewed" when {
@@ -54,7 +59,9 @@ class PostProcessReviewISpec extends IntegrationSpec {
     def populateDatabase(processToSave: JsValue): String = {
       lazy val request = buildRequest("/external-guidance/approval/2i-review")
 
+      // Create approval process
       val result = await(request.post(processToSave))
+
       val json = result.body[JsValue].as[JsObject]
       val id = (json \ "id").as[String]
       lazy val pageUpdateRequest = buildRequest(s"/external-guidance/approval/$id/2i-page-review$pageUrl")
@@ -63,43 +70,13 @@ class PostProcessReviewISpec extends IntegrationSpec {
           Some("Yes"), ReviewCompleteStatus, Some("A basic comment"), ZonedDateTime.now(), Some("user id"))
       AuditStub.audit()
       AuthStub.authorise()
+      // Complete review single page of process
       await(pageUpdateRequest.post(Json.toJson(content)))
 
       id
     }
     val processToSave: JsValue = simpleValidProcess
 
-    "the requested status update is Complete" should {
-      lazy val id = populateDatabase(processToSave)
-      lazy val request = buildRequest(s"/external-guidance/approval/$id/2i-review")
-
-      "set the new status to Complete" should {
-
-        lazy val response: WSResponse = {
-          AuditStub.audit()
-          AuthStub.authorise()
-          await(request.post(statusChangeCompleteJson))
-        }
-
-        "return an OK status code" in {
-          response.status shouldBe OK
-        }
-
-        "set the status to Complete" in {
-          lazy val request = buildRequest(s"/external-guidance/approval")
-          lazy val response: WSResponse = {
-            AuditStub.audit()
-            AuthStub.authorise()
-            await(request.get())
-          }
-          val list: List[ApprovalProcessSummary] = response.body[JsValue].as[List[ApprovalProcessSummary]]
-          val updatedEntry = list.find(p => p.id == id)
-          updatedEntry shouldBe Symbol("defined")
-          updatedEntry.get.status shouldBe StatusComplete
-        }
-
-      }
-    }
     "the requested status update is Published" should {
       val processCode = "CupOfTea"
       lazy val id = populateDatabase(processToSave)

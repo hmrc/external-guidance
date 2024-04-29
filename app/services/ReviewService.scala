@@ -64,45 +64,34 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
         }
     }
 
-  def twoEyeReviewComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[AuditInfo]] = {
-
-    def publishIfRequired(approvalProcess: ApprovalProcess): Future[RequestOutcome[ApprovalProcess]] = info.status match {
-      case StatusPublished =>
-        publishedService.save(id, info.userId, approvalProcess.meta.processCode, approvalProcess.process) map {
-          case Right(_) =>
-            logger.warn(s"PUBLISH: Process $id with processCode ${approvalProcess.meta.processCode} successfully published by ${info.userName}(${info.userId})")
-            Right(approvalProcess)
-          case Left(DuplicateKeyError) => Left(DuplicateKeyError)
-          case Left(errors) =>
-            logger.error(s"Failed to publish $id - $errors")
-            Left(errors)
-        }
-      case _ => Future.successful(Right(approvalProcess))
+  private def deleteApproval(id: String, version: Int, reviewType: String): Future[RequestOutcome[Unit]] =
+    repository.delete(id).flatMap{
+      case Right(_) => reviewRepository.deleteForApproval(id, version, ReviewType2i)
+      case err => Future.successful(err)
     }
+
+  def twoEyeReviewComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[AuditInfo]] =
     checkProcessInCorrectStateForCompletion(id, ReviewType2i) flatMap {
-      case Right(ap) =>
-        publishIfRequired(ap).flatMap {
-          case Right(ap) =>
-            changeStatus(id, info.status, info.userId, ReviewType2i) flatMap {
-              case Right(_) => reviewRepository.deleteForApproval(id, ap.version, ReviewType2i).flatMap {
-                case Right(_) => repository.delete(id, ap.version, ReviewType2i).map {
-                  case Right(_) => validateProcess(ap, info)
-                  case Left(error) => Left(error)
-                }
-                case Left(err) => Future.successful(Left(err))
-              }
-              case Left(err) => Future.successful(Left(err))
+      case Right(ap) if info.status == StatusPublished =>
+        publishedService.save(id, info.userId, ap.meta.processCode, ap.process).flatMap {
+          case Right(_) =>
+            logger.warn(s"PUBLISH: Process $id with processCode ${ap.meta.processCode} successfully published by ${info.userName}(${info.userId})")
+            deleteApproval(id, ap.version, ReviewType2i).map{
+              case Right(_) => validateProcess(ap, info)
+              case Left(err) => Left(err)
             }
           case Left(errors) =>
+            logger.error(s"Failed to publish $id - $errors")
             logger.error(s"updateReviewOnCompletion: Could not change status of 2i review for process $id, $errors")
             Future.successful(Left(errors))
         }
+      case Right(ap) =>
+        logger.warn(s"2i Review Complete received out of place $info, process $ap")
+        Future.successful(validateProcess(ap, info))
       case Left(errors) =>
         logger.error(s"2i Complete - errors returned $errors")
         Future.successful(Left(errors))
     }
-
-  }
 
   def factCheckComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[AuditInfo]] =
     checkProcessInCorrectStateForCompletion(id, ReviewTypeFactCheck) flatMap {

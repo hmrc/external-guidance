@@ -117,7 +117,13 @@ class ApprovalService @Inject() (
       case Left(err) => Future.successful(Left(err))
       case Right(approvals) if roles.contains("2iReviewer") => publishedRepository.list().map {
         case Left(err) => Left(err)
-        case Right(published) => Right(Json.toJson(approvals ++ published.map { p =>
+        case Right(published) if appConfig.includeAllPublishedInReviewList => Right(Json.toJson(approvals ++ published.map { p =>
+          ApprovalProcessSummary(p.id, p.process.validate[Process].fold(_ => "", _.meta.title), p.datePublished.toLocalDate, "Published", "2i-review")
+        }))
+        case Right(published) =>
+          val approvalIds = approvals.map(_.id)
+          val publishedToInclude = published.filterNot(p => approvalIds.contains(p.id))
+          Right(Json.toJson(approvals ++ publishedToInclude.map { p =>
           ApprovalProcessSummary(p.id, p.process.validate[Process].fold(_ => "", _.meta.title), p.datePublished.toLocalDate, "Published", "2i-review")
         }))
       }
@@ -125,7 +131,7 @@ class ApprovalService @Inject() (
     }
   }
 
-  def list: Future[RequestOutcome[JsValue]] = {
+  def list(): Future[RequestOutcome[JsValue]] = {
     implicit val formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
     repository.processSummaries() map {
       case Left(_) => Left(InternalServerError)
