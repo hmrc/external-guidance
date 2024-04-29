@@ -115,7 +115,7 @@ class ApprovalService @Inject() (
 
     repository.approvalSummaryList(roles).flatMap {
       case Left(err) => Future.successful(Left(err))
-      case Right(approvals) if roles.contains("2iReviewer") => publishedRepository.list().map {
+      case Right(approvals) if roles.contains("2iReviewer") || roles.contains("Designer") => publishedRepository.list().map {
         case Left(err) => Left(err)
         case Right(published) if appConfig.includeAllPublishedInReviewList => Right(Json.toJson(approvals ++ published.map { p =>
           ApprovalProcessSummary(p.id, p.process.validate[Process].fold(_ => "", _.meta.title), p.datePublished.toLocalDate, "Published", "2i-review")
