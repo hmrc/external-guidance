@@ -25,6 +25,7 @@ package object mocks {
     MockAppConfig.twoEyeReviewerRole,
     MockAppConfig.fakeWelshInUnauthenticatedGuidance,
     MockAppConfig.seedTimescales,
-    MockAppConfig.passphraseHashKey
+    MockAppConfig.passphraseHashKey,
+    MockAppConfig.includeAllPublishedInReviewList
   )
  }

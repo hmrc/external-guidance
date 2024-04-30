@@ -110,26 +110,21 @@ class ApprovalService @Inject() (
       case Right(result) => Right(result.process)
     }
 
-  def approvalSummaryList(roles: List[String]): Future[RequestOutcome[JsValue]] = {
-    implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
-
+  def approvalSummaryList(roles: List[String]): Future[RequestOutcome[JsValue]] =
     repository.approvalSummaryList(roles).flatMap {
       case Left(err) => Future.successful(Left(err))
-      case Right(approvals) if roles.contains("2iReviewer") || roles.contains("Designer") => publishedRepository.list().map {
-        case Left(err) => Left(err)
-        case Right(published) if appConfig.includeAllPublishedInReviewList => Right(Json.toJson(approvals ++ published.map { p =>
-          ApprovalProcessSummary(p.id, p.process.validate[Process].fold(_ => "", _.meta.title), p.datePublished.toLocalDate, "Published", "2i-review")
-        }))
-        case Right(published) =>
-          val approvalIds = approvals.map(_.id)
-          val publishedToInclude = published.filterNot(p => approvalIds.contains(p.id))
-          Right(Json.toJson(approvals ++ publishedToInclude.map { p =>
-          ApprovalProcessSummary(p.id, p.process.validate[Process].fold(_ => "", _.meta.title), p.datePublished.toLocalDate, "Published", "2i-review")
-        }))
-      }
-      case Right(success) => Future.successful(Right(Json.toJson(success)))
+      case Right(approvals) if roles.contains("2iReviewer") || roles.contains("Designer") =>
+        publishedRepository.list().map {
+          case Left(err) => Left(err)
+          case Right(published) =>
+            val approvalIds = approvals.map(_.id)
+            val publishedToInclude = published.filter(p => appConfig.includeAllPublishedInReviewList || !approvalIds.contains(p.id)).map { p =>
+              ApprovalProcessSummary(p.id, p.process.validate[Process].fold(_ => "", _.meta.title), p.datePublished.toLocalDate, "Published", "2i-review")
+            }
+            Right(Json.toJson(approvals ++ publishedToInclude))
+          }
+      case Right(approvals) => Future.successful(Right(Json.toJson(approvals)))
     }
-  }
 
   def list(): Future[RequestOutcome[JsValue]] = {
     implicit val formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]

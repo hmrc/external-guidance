@@ -31,6 +31,7 @@ object MockAppConfig extends AppConfig {
   val fakeWelshInUnauthenticatedGuidance: Boolean = true
   val seedTimescales: Map[String,Int] = Map("First" -> 1, "Second" -> 2, "Third" -> 3)
   val passphraseHashKey: String = "gvBoGdgzqG1AarzF1LY0zQ=="
+  val includeAllPublishedInReviewList: Boolean = false
 }
 
 case class MockAppConfigCopyable(scratchExpiryHour: Int,
@@ -42,6 +43,7 @@ case class MockAppConfigCopyable(scratchExpiryHour: Int,
                                  twoEyeReviewerRole: String,
                                  fakeWelshInUnauthenticatedGuidance: Boolean,
                                  seedTimescales: Map[String,Int],
-                                 passphraseHashKey: String) extends AppConfig
+                                 passphraseHashKey: String,
+                                 includeAllPublishedInReviewList: Boolean) extends AppConfig
 
 

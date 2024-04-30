@@ -17,5 +17,10 @@
 package models
 
 import java.time.LocalDate
+import play.api.libs.json._
 
 case class ApprovalProcessSummary(id: String, title: String, lastUpdated: LocalDate, status: String, reviewType: String)
+
+object ApprovalProcessSummary {
+  implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
+}

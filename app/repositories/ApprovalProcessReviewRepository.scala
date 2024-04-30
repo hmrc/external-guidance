@@ -75,7 +75,7 @@ class ApprovalProcessReviewRepositoryImpl @Inject() (implicit mongo: MongoCompon
       //$COVERAGE-OFF$
       .recover {
         case error =>
-          logger.error(s"Attempt to persist process ${review.id} to collection published failed with error : ${error.getMessage}")
+          logger.error(s"Attempt to persist process ${review.id} to collection $collectionName failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
     //$COVERAGE-ON$

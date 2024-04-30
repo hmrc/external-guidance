@@ -383,6 +383,34 @@ class ReviewServiceSpec extends BaseSpec with MockFactory with ReviewData with A
           }
         }
       }
+
+      "the changeStatus fails to find the process" should {
+        "return a not found response" in new ReviewCompleteTest {
+
+          val expected: RequestOutcome[ApprovalProcess] = Left(NotFoundError)
+
+          MockApprovalRepository
+            .getById("validId")
+            .returns(Future.successful(Right(approvalProcess)))
+
+          MockApprovalProcessReviewRepository
+            .updateReview("validId", approvalProcess.version, ReviewType2i, statusChange2iReviewInfo.userId, statusChange2iReviewInfo.status)
+            .returns(Future.successful(Right(())))
+
+          MockApprovalProcessReviewRepository
+            .getByIdVersionAndType("validId", ReviewType2i, approvalProcess.version)
+            .returns(Future.successful(Right(approvalProcessReviewComplete)))
+
+          MockApprovalRepository
+            .changeStatus("validId", StatusWithDesignerForUpdate, "user id")
+            .returns(Future.successful(Left(NotFoundError)))
+
+          whenReady(service.twoEyeReviewComplete("validId", statusChange2iReviewInfo)) { result =>
+            result shouldBe expected
+          }
+        }
+      }
+
     }
 
     "the approval repository reports a database error" should {

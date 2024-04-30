@@ -23,7 +23,6 @@ import core.models.RequestOutcome
 import core.models.ocelot.Process
 import models.{ProcessSummary, PublishedProcess}
 import play.api.libs.json.JsObject
-
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.Logger
 import org.mongodb.scala._

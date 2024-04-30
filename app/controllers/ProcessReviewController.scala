@@ -72,7 +72,6 @@ class ProcessReviewController @Inject() (
 
   def approval2iReviewComplete(id: String): Action[JsValue] = twoEyeReviewerAction.async(parse.json) { request =>
     def save(statusChangeInfo: ApprovalProcessStatusChange): Future[Result] = {
-      logger.warn(s"Actioning 2i state change with $statusChangeInfo")
       reviewService.twoEyeReviewComplete(id, statusChangeInfo).map {
         case Right(auditInfo) =>
           logger.warn(s"2i review of $id complete")

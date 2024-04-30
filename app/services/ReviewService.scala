@@ -86,8 +86,10 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
             Future.successful(Left(errors))
         }
       case Right(ap) =>
-        logger.warn(s"2i Review Complete received out of place $info, process $ap")
-        Future.successful(validateProcess(ap, info))
+        changeStatus(id, info.status, info.userId, ReviewType2i) map {
+          case Right(_) => validateProcess(ap, info)
+          case Left(error) => Left(error)
+        }
       case Left(errors) =>
         logger.error(s"2i Complete - errors returned $errors")
         Future.successful(Left(errors))
@@ -114,8 +116,7 @@ class ReviewService @Inject() (publishedService: PublishedService, repository: A
   private def validateProcess(ap: ApprovalProcess, info: ApprovalProcessStatusChange): RequestOutcome[AuditInfo] =
     ap.process
       .validate[Process]
-      .fold(
-        _ => Left(BadRequestError),
+      .fold(_ => Left(BadRequestError),
         process => Right(AuditInfo(info.userId, ap, process))
       )
 
