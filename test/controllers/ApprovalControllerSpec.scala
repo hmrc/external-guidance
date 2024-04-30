@@ -23,7 +23,7 @@ import core.models.ocelot.errors.DuplicatePageUrl
 import mocks.{MockApprovalReviewService, MockTimescalesService}
 import models.Constants._
 import models.errors._
-import models.{Approval, ApprovalProcessJson, ApprovalProcessSummary}
+import models.{Approval, ApprovalProcessJson, ApprovalProcessSummary, ProcessSummary}
 import play.api.http.ContentTypes
 import play.api.http.Status.UNPROCESSABLE_ENTITY
 import play.api.libs.json._
@@ -612,6 +612,59 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalReviewService wit
 
       "return an error code of INTERNAL_SERVER_ERROR" in new ErrorGetTest {
         private val result = controller.approvalSummaryList()(request)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe expectedErrorCode
+      }
+    }
+  }
+
+  "Calling the list action" when {
+
+    "the request is valid" should {
+
+      trait ValidListTest extends Test {
+        implicit val formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
+        MockApprovalReviewService
+          .list()
+          .returns(Future.successful(Right(Json.toJson(List(processSummary)).as[JsArray])))
+
+        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
+      }
+
+      "return an OK response" in new ValidListTest {
+        private val result = controller.list()(request)
+        status(result) shouldBe OK
+      }
+
+      "return content as JSON" in new ValidListTest {
+        private val result = controller.list()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+    }
+
+    "a downstream error occurs" should {
+
+      trait ErrorGetTest extends Test {
+        val expectedErrorCode = "INTERNAL_SERVER_ERROR"
+        MockApprovalReviewService
+          .list()
+          .returns(Future.successful(Left(InternalServerError)))
+
+        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "")
+      }
+
+      "return a internal server error response" in new ErrorGetTest {
+        private val result = controller.list()(request)
+        status(result) shouldBe INTERNAL_SERVER_ERROR
+      }
+
+      "return content as JSON" in new ErrorGetTest {
+        private val result = controller.list()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return an error code of INTERNAL_SERVER_ERROR" in new ErrorGetTest {
+        private val result = controller.list()(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe expectedErrorCode
       }

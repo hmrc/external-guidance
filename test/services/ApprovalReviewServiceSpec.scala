@@ -23,7 +23,7 @@ import data.ReviewData
 import mocks.{MockAppConfig, MockApprovalsRepository, MockPublishedRepository, MockPublishedService}
 import models._
 import core.models.errors._
-import core.models.ocelot.ProcessJson
+import core.models.ocelot.{Process, ProcessJson}
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsArray, JsObject, Json, OFormat}
 import models.Constants._
@@ -61,6 +61,10 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
       Right(PublishedProcess(validId, 1, ZonedDateTime.now(), JsObject.empty, "publishedBy", approvalProcess.meta.processCode))
     val publishedProcessFailureResponse: RequestOutcome[PublishedProcess] =
       Right(PublishedProcess("random-id", 1, ZonedDateTime.now(), JsObject.empty, "publishedBy", approvalProcess.meta.processCode))
+
+    val validPublishedId: String = "ext90005"
+    val publishedProcess: PublishedProcess =
+      PublishedProcess(validPublishedId, 1, ZonedDateTime.now(), validOnePageJson.as[JsObject], "user", processCode = "processCode")
 
   }
 
@@ -281,7 +285,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
   }
 
   "Calling the approvalSummaryList method" when {
-    "there are entries to return" should {
+    "there are entries to return and role is not 2iReviewer" should {
       "return a List of approval processes" in new Test {
         implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
 
@@ -305,6 +309,42 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
       }
     }
 
+
+    "there are entries to return and role is 2iReviewer" should {
+      "return a List of approval processes and published" in new Test {
+        implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
+
+        val expectedApproval: RequestOutcome[List[ApprovalProcessSummary]] = Right(List(approvalProcessSummary))
+        val expectedPublished: RequestOutcome[List[PublishedProcess]] = Right(List(publishedProcess))
+
+        MockApprovalsRepository
+          .approvalSummaryList(List("2iReviewer"))
+          .returns(Future.successful(expectedApproval))
+
+        MockPublishedRepository
+          .list()
+          .returns(Future.successful(expectedPublished))
+
+        whenReady(service.approvalSummaryList(List("2iReviewer"))) {
+          case Right(jsonList) =>
+            val list: List[ApprovalProcessSummary] = jsonList.as[List[ApprovalProcessSummary]]
+            list.size shouldBe 2
+            val entry1 = list.head
+            val entry2 = list(1)
+            entry1.id shouldBe approvalProcessSummary.id
+            entry1.title shouldBe approvalProcessSummary.title
+            entry1.status shouldBe approvalProcessSummary.status
+            entry1.reviewType shouldBe approvalProcessSummary.reviewType
+            entry2.id shouldBe publishedProcess.id
+            entry2.title shouldBe publishedProcess.process.validate[Process].fold(_ => "", _.meta.title)
+            entry2.status shouldBe "Published"
+            entry2.reviewType shouldBe "2i-review"
+          case _ => fail()
+        }
+      }
+    }
+
+
     "there are no processes in the database" should {
       "return an empty list" in new Test {
 
@@ -322,10 +362,11 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
     }
 
     "the repository reports a database error" should {
-      "return an internal server error" in new Test {
+      "return an database error" in new Test {
 
         val repositoryError: RequestOutcome[List[ApprovalProcessSummary]] = Left(DatabaseError)
-        val expected: RequestOutcome[List[ApprovalProcessSummary]] = Left(InternalServerError)
+        val expected: RequestOutcome[List[ApprovalProcessSummary]] = Left(DatabaseError)
+
 
         MockApprovalsRepository
           .approvalSummaryList(List("FactChecker"))
@@ -449,13 +490,13 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
             .getById("validId")
             .returns(Future.successful(Right(approvalProcessWithValidProcess)))
 
-          MockApprovalsRepository
-            .changeStatus("validId", StatusPublished, "user id")
-            .returns(Future.successful(Right(())))
-
           MockPublishedService
-            .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcessWithValidProcess.process)
+            .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcessWithValidProcess.process, 1)
             .returns(Future.successful(Right("validId")))
+
+          MockApprovalsRepository
+            .delete("validId")
+            .returns(Future.successful(Right(())))
 
           whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
             result shouldBe expected
@@ -473,13 +514,13 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
             .getById("validId")
             .returns(Future.successful(Right(approvalProcessWithValidProcess)))
 
-          MockApprovalsRepository
-            .changeStatus("validId", StatusPublished, "user id")
-            .returns(Future.successful(Right(())))
-
           MockPublishedService
-            .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcessWithValidProcess.process)
+            .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcessWithValidProcess.process, 1)
             .returns(Future.successful(Right("validId")))
+
+          MockApprovalsRepository
+            .delete("validId")
+            .returns(Future.successful(Right(())))
 
           whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
             result shouldBe expected
@@ -556,20 +597,20 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
       "return an internal server error" in new ReviewCompleteTest {
 
         val repositoryError: RequestOutcome[Unit] = Left(DatabaseError)
-        val expected: RequestOutcome[Approval] = Left(InternalServerError)
+        val expected: RequestOutcome[Approval] = Left(DatabaseError)
         val publishedStatusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
 
         MockApprovalsRepository
           .getById("validId")
           .returns(Future.successful(Right(approvalProcess)))
 
-        MockApprovalsRepository
-          .changeStatus("validId", StatusPublished, "user id")
-          .returns(Future.successful(repositoryError))
-
         MockPublishedService
-          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process)
+          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process, 1)
           .returns(Future.successful(Right("validId")))
+
+          MockApprovalsRepository
+            .delete("validId")
+            .returns(Future.successful(repositoryError))
 
         whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
           result shouldBe expected
@@ -587,13 +628,13 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
           .getById("validId")
           .returns(Future.successful(Right(approvalProcess)))
 
-        MockApprovalsRepository
-          .changeStatus("validId", StatusPublished, "user id")
-          .returns(Future.successful(repositoryError))
-
         MockPublishedService
-          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process)
+          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process, 1)
           .returns(Future.successful(Right("validId")))
+
+        MockApprovalsRepository
+          .delete("validId")
+          .returns(Future.successful(repositoryError))
 
         whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
           result shouldBe expected
@@ -612,7 +653,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
           .returns(Future.successful(Right(approvalProcess)))
 
         MockPublishedService
-          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process)
+          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process, 1)
           .returns(Future.successful(Left(InternalServerError)))
 
         whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
@@ -630,7 +671,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
           .returns(Future.successful(Right(approvalProcess)))
 
         MockPublishedService
-          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process)
+          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process, 1)
           .returns(Future.successful(Left(InternalServerError)))
 
         whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
@@ -655,7 +696,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
           .returns(Future.successful(expectedChangeStatusResponse))
 
         MockPublishedService
-          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process)
+          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process, 1)
           .returns(Future.successful(Left(DuplicateKeyError)))
 
         whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
@@ -667,7 +708,6 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
     "the saved process fails to be validate" should {
       "indicate a bad request" in new ReviewCompleteTest {
 
-        val expectedChangeStatusResponse: RequestOutcome[Unit] = Right(())
         val expected: RequestOutcome[Approval] = Left(BadRequestError)
         val publishedStatusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusPublished)
 
@@ -677,13 +717,13 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
           .getById("validId")
           .returns(Future.successful(Right(invalidApprovalProcess)))
 
-        MockApprovalsRepository
-          .changeStatus("validId", StatusPublished, "user id")
-          .returns(Future.successful(expectedChangeStatusResponse))
-
         MockPublishedService
-          .save("validId", publishedStatusChangeInfo.userId, "processCode", invalidApprovalProcess.process)
+          .save("validId", publishedStatusChangeInfo.userId, "processCode", invalidApprovalProcess.process, 1)
           .returns(Future.successful(Right("validId")))
+
+        MockApprovalsRepository
+          .delete("validId")
+          .returns(Future.successful(Right(())))
 
         whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
           result shouldBe expected

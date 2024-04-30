@@ -38,6 +38,7 @@ trait AppConfig {
   val passphraseHashKey: String
   val enableDataMigration: Boolean
   val serviceLockDuration: FiniteDuration
+  val includeAllPublishedInReviewList: Boolean
 }
 
 @Singleton
@@ -64,4 +65,6 @@ class AppConfigImpl @Inject() (config: Configuration, servicesConfig: ServicesCo
   lazy val passphraseHashKey: String = config.get[String]("passphrase-hashkey")
   lazy val serviceLockDuration: FiniteDuration = getFiniteDuration(config, "data-migration.lock-duration")
   lazy val enableDataMigration: Boolean = config.get[Boolean]("data-migration.enable")
+  lazy val includeAllPublishedInReviewList: Boolean =
+    config.getOptional[Boolean]("approvals-list.include-all-published").getOrElse(false)
 }

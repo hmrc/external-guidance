@@ -157,10 +157,10 @@ class PublishedServiceSpec extends BaseSpec {
         val expected: RequestOutcome[String] = Right(validId)
 
         MockPublishedRepository
-          .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
+          .save(validId, "userId", "processCode", validOnePageJson.as[JsObject], 1)
           .returns(Future.successful(expected))
 
-        whenReady(target.save(validId, "userId", "processCode", validOnePageJson.as[JsObject])) {
+        whenReady(target.save(validId, "userId", "processCode", validOnePageJson.as[JsObject], 1)) {
           case Right(id) => id shouldBe validId
           case _ => fail()
         }
@@ -173,10 +173,10 @@ class PublishedServiceSpec extends BaseSpec {
         val expected: RequestOutcome[String] = Left(DuplicateKeyError)
 
         MockPublishedRepository
-          .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
+          .save(validId, "userId", "processCode", validOnePageJson.as[JsObject], 1)
           .returns(Future.successful(expected))
 
-        whenReady(target.save(validId, "userId", "processCode", validOnePageJson.as[JsObject])) {
+        whenReady(target.save(validId, "userId", "processCode", validOnePageJson.as[JsObject], 1)) {
           case Left(DuplicateKeyError) => succeed
           case _ => fail()
         }
@@ -234,16 +234,16 @@ class PublishedServiceSpec extends BaseSpec {
         "not call the repository" in new Test {
 
           MockPublishedRepository
-            .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
+            .save(validId, "userId", "processCode", validOnePageJson.as[JsObject], 1)
             .never()
 
-          target.save(validId, "userId", "processCode", invalidProcess)
+          target.save(validId, "userId", "processCode", invalidProcess, 1)
         }
 
         "return a bad request error" in new Test {
           val expected: RequestOutcome[String] = Left(BadRequestError)
 
-          whenReady(target.save(validId, "userId", "processCode", invalidProcess)) {
+          whenReady(target.save(validId, "userId", "processCode", invalidProcess, 1)) {
             case result@Left(_) => result shouldBe expected
             case _ => fail()
           }
@@ -256,10 +256,10 @@ class PublishedServiceSpec extends BaseSpec {
           val expected: RequestOutcome[String] = Left(InternalServerError)
 
           MockPublishedRepository
-            .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
+            .save(validId, "userId", "processCode", validOnePageJson.as[JsObject], 1)
             .returns(Future.successful(repositoryResponse))
 
-          whenReady(target.save(validId, "userId", "processCode", validOnePageJson.as[JsObject])) {
+          whenReady(target.save(validId, "userId", "processCode", validOnePageJson.as[JsObject], 1)) {
             case result@Left(_) => result shouldBe expected
             case _ => fail()
           }

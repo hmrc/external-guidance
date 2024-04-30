@@ -40,10 +40,10 @@ trait MockPublishedRepository extends MockFactory {
         .getByProcessCode(_: String))
         .expects(processCode)
 
-    def save(id: String, user: String, processCode: String, process: JsObject): CallHandler[Future[RequestOutcome[String]]] =
+    def save(id: String, user: String, processCode: String, process: JsObject, version: Int): CallHandler[Future[RequestOutcome[String]]] =
       (mockPublishedRepository
-        .save(_: String, _: String, _: String, _: JsObject))
-        .expects(id, user, processCode, process)
+        .save(_: String, _: String, _: String, _: JsObject, _: Int))
+        .expects(id, user, processCode, process, version)
 
     def delete(id: String): CallHandler[Future[RequestOutcome[Unit]]] =
       (mockPublishedRepository
@@ -53,6 +53,11 @@ trait MockPublishedRepository extends MockFactory {
     def getTimescalesInUse(): CallHandler[Future[RequestOutcome[List[String]]]] =
       (mockPublishedRepository
         .getTimescalesInUse _)
+        .expects()
+
+    def list(): CallHandler[Future[RequestOutcome[List[PublishedProcess]]]] =
+      (mockPublishedRepository
+        .list _)
         .expects()
   }
 }

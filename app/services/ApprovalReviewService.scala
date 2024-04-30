@@ -88,16 +88,23 @@ class ApprovalReviewService @Inject() (
       case Right(result) => Right(result.process)
     }
 
-  def approvalSummaryList(roles: List[String]): Future[RequestOutcome[JsValue]] = {
-    implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
-
-    repository.approvalSummaryList(roles).map {
-      case Left(_) => Left(InternalServerError)
-      case Right(success) => Right(Json.toJson(success))
+  def approvalSummaryList(roles: List[String]): Future[RequestOutcome[JsValue]] =
+    repository.approvalSummaryList(roles).flatMap {
+      case Left(err) => Future.successful(Left(err))
+      case Right(approvals) if roles.contains("2iReviewer") || roles.contains("Designer") =>
+        publishedRepository.list().map {
+          case Left(err) => Left(err)
+          case Right(published) =>
+            val approvalIds = approvals.map(_.id)
+            val publishedToInclude = published.filter(p => appConfig.includeAllPublishedInReviewList || !approvalIds.contains(p.id)).map { p =>
+              ApprovalProcessSummary(p.id, p.process.validate[Process].fold(_ => "", _.meta.title), p.datePublished.toLocalDate, "Published", "2i-review")
+            }
+            Right(Json.toJson(approvals ++ publishedToInclude))
+          }
+      case Right(approvals) => Future.successful(Right(Json.toJson(approvals)))
     }
-  }
 
-  def list: Future[RequestOutcome[JsValue]] = {
+  def list(): Future[RequestOutcome[JsValue]] = {
     implicit val formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
     repository.processSummaries() map {
       case Left(_) => Left(InternalServerError)
@@ -106,7 +113,6 @@ class ApprovalReviewService @Inject() (
   }
 
   // ReviewService
-
   def approvalReviewInfo(id: String, reviewType: String): Future[RequestOutcome[ProcessReview]] =
     repository.getById(id) flatMap {
       case Left(NotFoundError) => Future.successful(Left(NotFoundError))
@@ -134,40 +140,30 @@ class ApprovalReviewService @Inject() (
         }
     }
 
-  def twoEyeReviewComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[AuditInfo]] = {
-
-    def publishIfRequired(approvalProcess: Approval): Future[RequestOutcome[Approval]] = info.status match {
-      case StatusPublished =>
-        publishedService.save(id, info.userId, approvalProcess.meta.processCode, approvalProcess.process) map {
-          case Right(_) =>
-            logger.warn(s"PUBLISH: Process $id with processCode ${approvalProcess.meta.processCode} successfully published by ${info.userName}(${info.userId})")
-            Right(approvalProcess)
-          case Left(DuplicateKeyError) => Left(DuplicateKeyError)
-          case Left(errors) =>
-            logger.error(s"Failed to publish $id - $errors")
-            Left(errors)
-        }
-      case _ => Future.successful(Right(approvalProcess))
-    }
-
+  def twoEyeReviewComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[AuditInfo]] =
     checkProcessInCorrectStateForCompletion(id, ReviewType2i) flatMap {
-      case Right(ap) =>
-        publishIfRequired(ap).flatMap {
-          case Right(ap) =>
-            changeStatus(id, info.status, info.userId, ReviewType2i) map {
+      case Right(ap) if info.status == StatusPublished =>
+        publishedService.save(id, info.userId, ap.meta.processCode, ap.process, ap.version).flatMap {
+          case Right(_) =>
+            logger.warn(s"PUBLISH: Process $id with processCode ${ap.meta.processCode} successfully published by ${info.userName}(${info.userId})")
+            repository.delete(id).map{
               case Right(_) => validateProcess(ap, info)
-              case Left(error) => Left(error)
+              case Left(err) => Left(err)
             }
           case Left(errors) =>
+            logger.error(s"Failed to publish $id - $errors")
             logger.error(s"updateReviewOnCompletion: Could not change status of 2i review for process $id, $errors")
             Future.successful(Left(errors))
+        }
+      case Right(ap) =>
+        changeStatus(id, info.status, info.userId, ReviewType2i) map {
+          case Right(_) => validateProcess(ap, info)
+          case Left(error) => Left(error)
         }
       case Left(errors) =>
         logger.error(s"2i Complete - errors returned $errors")
         Future.successful(Left(errors))
     }
-
-  }
 
   def factCheckComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[AuditInfo]] =
     checkProcessInCorrectStateForCompletion(id, ReviewTypeFactCheck) flatMap {

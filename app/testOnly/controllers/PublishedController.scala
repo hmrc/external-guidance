@@ -24,6 +24,7 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import repositories.PublishedRepository
 import testOnly.repositories.{PublishedRepository => TestPublishedRepository}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import java.time.ZonedDateTime
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -33,9 +34,13 @@ class PublishedController @Inject() (publishedRepo: PublishedRepository, testRep
 
   def post(): Action[JsValue] = Action.async(parse.json) { request =>
     def save(process: Process): Future[Result] = {
-      publishedRepo.save(process.meta.id, "system", process.meta.processCode, Json.toJson(process).as[JsObject]).map {
-        case Right(id) => Created(id)
-        case Left(err) => InternalServerError(Json.toJson(OcelotError(err)))
+      publishedRepo.save(process.meta.id, "system", process.meta.processCode, Json.toJson(process).as[JsObject], 1).flatMap {
+        case Right(id) =>
+          testRepo.setPublishedDate(id, ZonedDateTime.now.minusYears(3L)).map{
+            case Right(_) => Created(id)
+            case Left(err) => InternalServerError(Json.toJson(OcelotError(err)))
+          }
+        case Left(err) => Future.successful(InternalServerError(Json.toJson(OcelotError(err))))
       }
     }
 

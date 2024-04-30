@@ -28,6 +28,7 @@ trait ApprovalProcessJson {
   val currentDateTimeInMillis: Long = currentDateTime.toInstant().toEpochMilli()
   val validId = "oct90001"
   val dateSubmitted: LocalDate = LocalDate.of(2020, 3, 3)
+  val dateTimeSubmitted: ZonedDateTime = ZonedDateTime.of(2020, 3, 3, 10, 30, 0, 0, localZoneID)
   val submittedDateInMilliseconds: Long = dateSubmitted.atStartOfDay(localZoneID).toInstant.toEpochMilli
 
   val approvalProcessMeta: ApprovalProcessMeta =
@@ -40,6 +41,8 @@ trait ApprovalProcessJson {
 
   val approvalProcessSummary: ApprovalProcessSummary =
     ApprovalProcessSummary(validId, "This is the title", dateSubmitted, StatusSubmittedFor2iReview, ReviewType2i)
+
+  val processSummary: ProcessSummary = ProcessSummary(validId, "process-code", 1, "Author", None, dateTimeSubmitted, "Blah", "InProgress")
 
   val validApprovalProcessJson: JsObject = Json
     .parse(
