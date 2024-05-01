@@ -103,7 +103,8 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(implicit appC
     val modifier = combine(
       set("review.result", result),
       set("review.completionUser", updateUser),
-      set("review.completionDate", Codecs.toBson(ZonedDateTime.now))
+      set("review.completionDate", Codecs.toBson(ZonedDateTime.now)),
+      set("meta.lastModified", Codecs.toBson(ZonedDateTime.now))
     )
 
     collection
@@ -123,7 +124,7 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(implicit appC
                        equal("meta.reviewType", reviewType),
                        equal("review.pages.pageUrl", pageUrl))
     val modifier = combine(
-      Vector(set("review.pages.$.status",reviewInfo.status), set("review.pages.$.updateDate", Codecs.toBson(ZonedDateTime.now))) ++
+      Vector(set("meta.lastModified", Codecs.toBson(ZonedDateTime.now)), set("review.pages.$.status",reviewInfo.status), set("review.pages.$.updateDate", Codecs.toBson(ZonedDateTime.now))) ++
       reviewInfo.result.fold[Vector[Bson]](Vector())(r => Vector(set("review.pages.$.result", r))) ++
       reviewInfo.updateUser.fold[Vector[Bson]](Vector())(u => Vector(set("review.pages.$.updateUser", u))): _*
     )
@@ -190,7 +191,7 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(implicit appC
       .map {
         case None => Right(Nil)
         case Some(approvals) =>
-          Right(approvals.map(doc => ApprovalProcessSummary(doc.meta.id, doc.meta.title, doc.meta.dateSubmitted, doc.meta.status, doc.meta.reviewType)).toList)
+          Right(approvals.map(doc => ApprovalProcessSummary(doc.meta.id, doc.meta.title, doc.meta.lastModified.toLocalDate, doc.meta.status, doc.meta.reviewType)).toList)
       }
       .recover {
         case error =>
