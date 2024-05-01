@@ -70,7 +70,7 @@ class PublishedService @Inject() (published: PublishedRepository,
         logger.error(s"Publish process $id has failed - invalid process passed in")
         Future.successful(Left(BadRequestError))
       }, process =>
-        published.save(id, user, processCode, jsonProcess).map{
+        published.save(id, user, processCode, jsonProcess, process.meta.version).map{
           case Left(DuplicateKeyError) => Left(DuplicateKeyError)
           case Left(_) =>
             logger.error(s"Request to publish $id has failed")
@@ -97,7 +97,6 @@ class PublishedService @Inject() (published: PublishedRepository,
             logger.warn(s"ARCHIVE: Process $id archived by $user")
             for {
               _ <- published.delete(id)
-              _ <- approval.delete(id)
             } yield Right(())
         }
     }

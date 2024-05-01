@@ -40,8 +40,8 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
     val auditInfo = AuditInfo("ID",
                               approvalProcessCompleted.id,
                               approvalProcessCompleted.meta.title,
-                              approvalProcessCompleted.version,
-                              "author", 111111, approvalProcessCompleted.version)
+                              approvalProcessCompleted.meta.ocelotVersion,
+                              "author", 111111, approvalProcessCompleted.meta.ocelotVersion)
     val approvalProcessContainingInvalidOcelotProcess: Approval = approvalProcess.copy()
     val reviewUpdate: ApprovalProcessPageReview = ApprovalProcessPageReview("id", "/pageUrl", "Title", None, "status")
 

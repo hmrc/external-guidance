@@ -157,7 +157,7 @@ class PublishedServiceSpec extends BaseSpec {
         val expected: RequestOutcome[String] = Right(validId)
 
         MockPublishedRepository
-          .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
+          .save(validId, "userId", "processCode", validOnePageJson.as[JsObject], 4)
           .returns(Future.successful(expected))
 
         whenReady(target.save(validId, "userId", "processCode", validOnePageJson.as[JsObject])) {
@@ -173,7 +173,7 @@ class PublishedServiceSpec extends BaseSpec {
         val expected: RequestOutcome[String] = Left(DuplicateKeyError)
 
         MockPublishedRepository
-          .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
+          .save(validId, "userId", "processCode", validOnePageJson.as[JsObject], 4)
           .returns(Future.successful(expected))
 
         whenReady(target.save(validId, "userId", "processCode", validOnePageJson.as[JsObject])) {
@@ -234,7 +234,7 @@ class PublishedServiceSpec extends BaseSpec {
         "not call the repository" in new Test {
 
           MockPublishedRepository
-            .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
+            .save(validId, "userId", "processCode", validOnePageJson.as[JsObject], 4)
             .never()
 
           target.save(validId, "userId", "processCode", invalidProcess)
@@ -256,7 +256,7 @@ class PublishedServiceSpec extends BaseSpec {
           val expected: RequestOutcome[String] = Left(InternalServerError)
 
           MockPublishedRepository
-            .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
+            .save(validId, "userId", "processCode", validOnePageJson.as[JsObject], 4)
             .returns(Future.successful(repositoryResponse))
 
           whenReady(target.save(validId, "userId", "processCode", validOnePageJson.as[JsObject])) {

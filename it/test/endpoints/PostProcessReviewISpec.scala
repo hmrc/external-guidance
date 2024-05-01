@@ -33,7 +33,21 @@ import play.api.libs.json.{Json, OFormat}
 import play.api.http.{ContentTypes, Status}
 
 class PostProcessReviewISpec extends IntegrationSpec {
-implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
+
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+
+    lazy val request = buildRequest(s"/test-only/processes/approval/oct90001")
+    AuditStub.audit()
+    AuthStub.authorise()
+    await(request.delete())
+    lazy val request2 = buildRequest(s"/test-only/processes/published/oct90001")
+    await(request2.delete())
+
+  }
+
+
+  implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
 
   val statusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusComplete)
 

@@ -31,7 +31,6 @@ trait ReviewData {
     ProcessReview(
       UUID.randomUUID().toString,
       validProcessIdForReview,
-      1,
       ReviewType2i,
       "Telling HMRC about extra income",
       LocalDate.of(2020, 5, 10),

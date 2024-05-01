@@ -44,7 +44,7 @@ import models.ApprovalReview
 
 trait ApprovalsRepository {
   def createOrUpdate(process: Approval): Future[RequestOutcome[String]]
-  def updateReview(id: String, version: Int, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]]
+  def updateReview(id: String, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]]
   def updatePageReview(id: String, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]]
   def getById(id: String): Future[RequestOutcome[Approval]]
   def getByProcessCode(processCode: String): Future[RequestOutcome[Approval]]
@@ -78,8 +78,7 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(implicit appC
   def createOrUpdate(approvalProcess: Approval): Future[RequestOutcome[String]] = {
     logger.warn(s"Saving process ${approvalProcess.id} to collection $collectionName")
     val selector = equal("_id", approvalProcess.id)
-    val modifier = combine(Updates.inc("version",1),
-                           Updates.set("meta", Codecs.toBson(approvalProcess.meta)),
+    val modifier = combine(Updates.set("meta", Codecs.toBson(approvalProcess.meta)),
                            Updates.set("review", Codecs.toBson(approvalProcess.review)),
                            Updates.set("process", Codecs.toBson(approvalProcess.process)))
 
@@ -100,11 +99,12 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(implicit appC
     //$COVERAGE-ON$
   }
 
-  def updateReview(id: String, version: Int, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]] = {
+  def updateReview(id: String, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]] = {
     val modifier = combine(
       set("review.result", result),
       set("review.completionUser", updateUser),
-      set("review.completionDate", Codecs.toBson(ZonedDateTime.now))
+      set("review.completionDate", Codecs.toBson(ZonedDateTime.now)),
+      set("meta.lastModified", Codecs.toBson(ZonedDateTime.now))
     )
 
     collection
@@ -124,7 +124,7 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(implicit appC
                        equal("meta.reviewType", reviewType),
                        equal("review.pages.pageUrl", pageUrl))
     val modifier = combine(
-      Vector(set("review.pages.$.status",reviewInfo.status), set("review.pages.$.updateDate", Codecs.toBson(ZonedDateTime.now))) ++
+      Vector(set("meta.lastModified", Codecs.toBson(ZonedDateTime.now)), set("review.pages.$.status",reviewInfo.status), set("review.pages.$.updateDate", Codecs.toBson(ZonedDateTime.now))) ++
       reviewInfo.result.fold[Vector[Bson]](Vector())(r => Vector(set("review.pages.$.result", r))) ++
       reviewInfo.updateUser.fold[Vector[Bson]](Vector())(u => Vector(set("review.pages.$.updateUser", u))): _*
     )
@@ -191,7 +191,7 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(implicit appC
       .map {
         case None => Right(Nil)
         case Some(approvals) =>
-          Right(approvals.map(doc => ApprovalProcessSummary(doc.meta.id, doc.meta.title, doc.meta.dateSubmitted, doc.meta.status, doc.meta.reviewType)).toList)
+          Right(approvals.map(doc => ApprovalProcessSummary(doc.meta.id, doc.meta.title, doc.meta.lastModified.toLocalDate, doc.meta.status, doc.meta.reviewType)).toList)
       }
       .recover {
         case error =>

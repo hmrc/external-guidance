@@ -34,7 +34,7 @@ class ArchiveISpec extends IntegrationSpec {
 
     val published: PublishedRepository = app.injector.instanceOf[PublishedRepository]
 
-    published.save(testId, "user", processCode, processToSave)
+    published.save(testId, "user", processCode, processToSave, 1)
 
     lazy val setup = buildRequest("/external-guidance/approval/2i-review")
     lazy val _: WSResponse = {

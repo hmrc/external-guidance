@@ -23,10 +23,13 @@ import models.PublishedProcess
 import play.api.Logger
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
+import org.mongodb.scala.model.Updates._
+import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+import core.models.MongoDateTimeFormats.zonedDateTimeFormat
 import scala.concurrent.{ExecutionContext, Future}
+import java.time.ZonedDateTime
 
 @Singleton
 class PublishedRepository @Inject() (component: MongoComponent)(implicit ec: ExecutionContext)
@@ -34,6 +37,7 @@ class PublishedRepository @Inject() (component: MongoComponent)(implicit ec: Exe
       collectionName = "publishedProcesses",
       mongoComponent = component,
       domainFormat = PublishedProcess.mongoFormat,
+      extraCodecs = Seq(Codecs.playFormatCodec(zonedDateTimeFormat)),
       indexes = Seq.empty
     ) {
 
@@ -55,5 +59,18 @@ class PublishedRepository @Inject() (component: MongoComponent)(implicit ec: Exe
           Left(DatabaseError)
       }
   }
+
+  def setPublishedDate(id: String, dateTime: ZonedDateTime): Future[RequestOutcome[Unit]] =
+    collection
+      .findOneAndUpdate(equal("_id", id), set("datePublished", dateTime), FindOneAndUpdateOptions().upsert(true))
+      .toFutureOption()
+      .map { _ =>
+        Right(())
+      }
+      .recover {
+        case error =>
+          logger.error(s"Attempt to update published process $id failed with error : ${error.getMessage}")
+          Left(DatabaseError)
+      }
 
 }

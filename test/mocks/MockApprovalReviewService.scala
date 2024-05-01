@@ -86,6 +86,10 @@ trait MockApprovalReviewService extends MockFactory {
         .expects(id, statusInfo)
     }
 
+    def list(): CallHandler[Future[RequestOutcome[JsValue]]] =
+      (mockApprovalReviewService.list _)
+        .expects()
+
     def approvalPageComplete(id: String,
                              pageUrl: String,
                              reviewType: String,

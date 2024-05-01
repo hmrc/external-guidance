@@ -30,6 +30,7 @@ import repositories.{ApprovalsRepository, PublishedRepository}
 import core.models.ocelot.Process
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.libs.json.{Json, OFormat}
+import java.time.{LocalDate, ZonedDateTime}
 
 @Singleton
 class ApprovalReviewService @Inject() (
@@ -50,6 +51,10 @@ class ApprovalReviewService @Inject() (
             process.meta.id,
             process.meta.title,
             initialStatus,
+            LocalDate.now(),
+            ZonedDateTime.now(),
+            process.meta.lastUpdate,
+            process.meta.version,
             reviewType = reviewType,
             processCode = process.meta.processCode)
 
@@ -88,16 +93,23 @@ class ApprovalReviewService @Inject() (
       case Right(result) => Right(result.process)
     }
 
-  def approvalSummaryList(roles: List[String]): Future[RequestOutcome[JsValue]] = {
-    implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
-
-    repository.approvalSummaryList(roles).map {
-      case Left(_) => Left(InternalServerError)
-      case Right(success) => Right(Json.toJson(success))
+  def approvalSummaryList(roles: List[String]): Future[RequestOutcome[JsValue]] =
+    repository.approvalSummaryList(roles).flatMap {
+      case Left(err) => Future.successful(Left(err))
+      case Right(approvals) if roles.contains("2iReviewer") || roles.contains("Designer") =>
+        publishedRepository.list().map {
+          case Left(err) => Left(err)
+          case Right(published) =>
+            val approvalIds = approvals.map(_.id)
+            val publishedToInclude = published.filter(p => appConfig.includeAllPublishedInReviewList || !approvalIds.contains(p.id)).map { p =>
+              ApprovalProcessSummary(p.id, p.process.validate[Process].fold(_ => "", _.meta.title), p.datePublished.toLocalDate, "Published", "2i-review")
+            }
+            Right(Json.toJson(approvals ++ publishedToInclude))
+          }
+      case Right(approvals) => Future.successful(Right(Json.toJson(approvals)))
     }
-  }
 
-  def list: Future[RequestOutcome[JsValue]] = {
+  def list(): Future[RequestOutcome[JsValue]] = {
     implicit val formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
     repository.processSummaries() map {
       case Left(_) => Left(InternalServerError)
@@ -106,7 +118,6 @@ class ApprovalReviewService @Inject() (
   }
 
   // ReviewService
-
   def approvalReviewInfo(id: String, reviewType: String): Future[RequestOutcome[ProcessReview]] =
     repository.getById(id) flatMap {
       case Left(NotFoundError) => Future.successful(Left(NotFoundError))
@@ -119,7 +130,7 @@ class ApprovalReviewService @Inject() (
             Left(DuplicateKeyError)
           case _ =>
             val pages: List[PageReview] = process.review.pages.map(p => PageReview(p.id, p.pageTitle, p.pageUrl, p.status, p.result))
-            Right(ProcessReview(process.id, process.id, process.version, process.meta.reviewType, process.meta.title, process.review.lastUpdated, pages))
+            Right(ProcessReview(process.id, process.id, process.meta.reviewType, process.meta.title, process.review.lastUpdated, pages))
         }
     }
 
@@ -134,45 +145,35 @@ class ApprovalReviewService @Inject() (
         }
     }
 
-  def twoEyeReviewComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[AuditInfo]] = {
-
-    def publishIfRequired(approvalProcess: Approval): Future[RequestOutcome[Approval]] = info.status match {
-      case StatusPublished =>
-        publishedService.save(id, info.userId, approvalProcess.meta.processCode, approvalProcess.process) map {
-          case Right(_) =>
-            logger.warn(s"PUBLISH: Process $id with processCode ${approvalProcess.meta.processCode} successfully published by ${info.userName}(${info.userId})")
-            Right(approvalProcess)
-          case Left(DuplicateKeyError) => Left(DuplicateKeyError)
-          case Left(errors) =>
-            logger.error(s"Failed to publish $id - $errors")
-            Left(errors)
-        }
-      case _ => Future.successful(Right(approvalProcess))
-    }
-
+  def twoEyeReviewComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[AuditInfo]] =
     checkProcessInCorrectStateForCompletion(id, ReviewType2i) flatMap {
-      case Right(ap) =>
-        publishIfRequired(ap).flatMap {
-          case Right(ap) =>
-            changeStatus(id, info.status, info.userId, ReviewType2i) map {
+      case Right(ap) if info.status == StatusPublished =>
+        publishedService.save(id, info.userId, ap.meta.processCode, ap.process).flatMap {
+          case Right(_) =>
+            logger.warn(s"PUBLISH: Process $id with processCode ${ap.meta.processCode} successfully published by ${info.userName}(${info.userId})")
+            repository.delete(id).map{
               case Right(_) => validateProcess(ap, info)
-              case Left(error) => Left(error)
+              case Left(err) => Left(err)
             }
           case Left(errors) =>
+            logger.error(s"Failed to publish $id - $errors")
             logger.error(s"updateReviewOnCompletion: Could not change status of 2i review for process $id, $errors")
             Future.successful(Left(errors))
+        }
+      case Right(ap) =>
+        changeStatus(id, info.status, info.userId, ReviewType2i) map {
+          case Right(_) => validateProcess(ap, info)
+          case Left(error) => Left(error)
         }
       case Left(errors) =>
         logger.error(s"2i Complete - errors returned $errors")
         Future.successful(Left(errors))
     }
 
-  }
-
   def factCheckComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[AuditInfo]] =
     checkProcessInCorrectStateForCompletion(id, ReviewTypeFactCheck) flatMap {
       case Right(ap) =>
-        repository.updateReview(id, ap.version, ReviewTypeFactCheck, info.userId, info.status) flatMap {
+        repository.updateReview(id, ReviewTypeFactCheck, info.userId, info.status) flatMap {
           case Right(_) =>
             changeStatus(id, info.status, info.userId, ReviewTypeFactCheck) map {
               case Right(_) => validateProcess(ap, info)
@@ -192,7 +193,7 @@ class ApprovalReviewService @Inject() (
       .validate[Process]
       .fold(
         _ => Left(BadRequestError),
-        process => Right(AuditInfo(info.userId, ap.id,  ap.version, ap.meta.title, process))
+        process => Right(AuditInfo(info.userId, ap.id,  ap.meta.ocelotVersion, ap.meta.title, process))
       )
 
   def approvalPageComplete(id: String, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] =
@@ -204,16 +205,16 @@ class ApprovalReviewService @Inject() (
       case Right(process) =>
         repository.updatePageReview(process.id, pageUrl, reviewType, reviewInfo) flatMap {
           case Left(NotFoundError) =>
-            logger.warn(s"updatePageReview failed for process $id, version ${process.version}, reviewType $reviewType and pageUrl $pageUrl not found.")
+            logger.warn(s"updatePageReview failed for process $id, version ${process.meta.ocelotVersion}, reviewType $reviewType and pageUrl $pageUrl not found.")
             Future.successful(Left(NotFoundError))
           case Left(err) =>
-            logger.warn(s"updatePageReview failed with err $err for process $id, version ${process.version}, reviewType $reviewType " +
+            logger.warn(s"updatePageReview failed with err $err for process $id, version ${process.meta.ocelotVersion}, reviewType $reviewType " +
               s"and pageUrl $pageUrl not found.")
             Future.successful(Left(InternalServerError))
           case Right(_) =>
             changeStatus(id, "InProgress", reviewInfo.updateUser.getOrElse("System"), reviewType).map{
               case Left(err) =>
-                logger.error(s"changeStatus failed with err $err for process $id, version ${process.version}, reviewType $reviewType " +
+                logger.error(s"changeStatus failed with err $err for process $id, version ${process.meta.ocelotVersion}, reviewType $reviewType " +
                   s"and pageUrl $pageUrl not found. Continuing")
                 Right(())
               case ok @ Right(_) => ok

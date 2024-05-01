@@ -29,6 +29,8 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{Future, ExecutionContext}
 import models.Approval
 import core.models.RequestOutcome
+import core.models.ocelot.Process
+import play.api.libs.json.JsSuccess
 
 trait MigrateData
 
@@ -48,11 +50,23 @@ class DataMigrationService @Inject()(
       case Left(err) => Left(err)
     }
 
+  private def repairApproval(ap: Approval): Approval = {
+    ap.process.validate[Process] match {
+      case JsSuccess(process, _) =>
+        val newMeta = ap.meta.copy(
+                        ocelotDateSubmitted = process.meta.lastUpdate,
+                        ocelotVersion = process.meta.version
+                      )
+        ap.copy(meta = newMeta)
+      case _ => ap
+    }
+  }
+
   private def createApproval(ap: ApprovalProcess, ar: ApprovalProcessReview): Future[RequestOutcome[String]] = {
     val approval = Approval(ap.id, ap.meta,
                             ApprovalReview(ar.pages, ar.lastUpdated, ar.result, ar.completionDate, ar.completionUser),
-                            ap.process, ap.version)
-    approvalsRepository.createOrUpdate(approval).map{
+                            ap.process)
+    approvalsRepository.createOrUpdate(repairApproval(approval)).map{
       case Right(id) => Right(id)
       case Left(err) =>
         logger.error(s"Unable to create new approval for process ${ap.id}, error = $err")
