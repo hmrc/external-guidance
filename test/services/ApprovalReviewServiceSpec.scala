@@ -491,7 +491,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
             .returns(Future.successful(Right(approvalProcessWithValidProcess)))
 
           MockPublishedService
-            .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcessWithValidProcess.process, 1)
+            .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcessWithValidProcess.process)
             .returns(Future.successful(Right("validId")))
 
           MockApprovalsRepository
@@ -515,7 +515,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
             .returns(Future.successful(Right(approvalProcessWithValidProcess)))
 
           MockPublishedService
-            .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcessWithValidProcess.process, 1)
+            .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcessWithValidProcess.process)
             .returns(Future.successful(Right("validId")))
 
           MockApprovalsRepository
@@ -605,7 +605,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
           .returns(Future.successful(Right(approvalProcess)))
 
         MockPublishedService
-          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process, 1)
+          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process)
           .returns(Future.successful(Right("validId")))
 
           MockApprovalsRepository
@@ -629,7 +629,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
           .returns(Future.successful(Right(approvalProcess)))
 
         MockPublishedService
-          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process, 1)
+          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process)
           .returns(Future.successful(Right("validId")))
 
         MockApprovalsRepository
@@ -653,7 +653,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
           .returns(Future.successful(Right(approvalProcess)))
 
         MockPublishedService
-          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process, 1)
+          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process)
           .returns(Future.successful(Left(InternalServerError)))
 
         whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
@@ -671,7 +671,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
           .returns(Future.successful(Right(approvalProcess)))
 
         MockPublishedService
-          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process, 1)
+          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process)
           .returns(Future.successful(Left(InternalServerError)))
 
         whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
@@ -696,7 +696,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
           .returns(Future.successful(expectedChangeStatusResponse))
 
         MockPublishedService
-          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process, 1)
+          .save("validId", publishedStatusChangeInfo.userId, "processCode", approvalProcess.process)
           .returns(Future.successful(Left(DuplicateKeyError)))
 
         whenReady(service.twoEyeReviewComplete("validId", publishedStatusChangeInfo)) { result =>
@@ -718,7 +718,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
           .returns(Future.successful(Right(invalidApprovalProcess)))
 
         MockPublishedService
-          .save("validId", publishedStatusChangeInfo.userId, "processCode", invalidApprovalProcess.process, 1)
+          .save("validId", publishedStatusChangeInfo.userId, "processCode", invalidApprovalProcess.process)
           .returns(Future.successful(Right("validId")))
 
         MockApprovalsRepository
@@ -977,7 +977,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
             .returns(Future.successful(Right(factCheckProcess)))
 
           MockApprovalsRepository
-            .updateReview("validId", 1, ReviewTypeFactCheck, "user id", StatusWithDesignerForUpdate)
+            .updateReview("validId", ReviewTypeFactCheck, "user id", StatusWithDesignerForUpdate)
             .returns(Future.successful(Right(())))
 
           MockApprovalsRepository
@@ -1000,7 +1000,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
             .returns(Future.successful(Right(incompleteFactCheckProcess)))
 
           MockApprovalsRepository
-            .updateReview("validId", 1, ReviewTypeFactCheck, "user id", StatusWithDesignerForUpdate)
+            .updateReview("validId", ReviewTypeFactCheck, "user id", StatusWithDesignerForUpdate)
             .returns(Future.successful(Right(())))
 
           MockApprovalsRepository
@@ -1053,7 +1053,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
             .returns(Future.successful(Right(factCheckProcess)))
 
           MockApprovalsRepository
-            .updateReview("validId", 1, ReviewTypeFactCheck, "user id", StatusWithDesignerForUpdate)
+            .updateReview("validId", ReviewTypeFactCheck, "user id", StatusWithDesignerForUpdate)
             .returns(Future.successful(Left(NotFoundError)))
 
           whenReady(service.factCheckComplete("validId", statusChange2iReviewInfo)) { result =>
@@ -1071,7 +1071,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
             .returns(Future.successful(Right(factCheckProcess)))
 
           MockApprovalsRepository
-            .updateReview("validId", 1, ReviewTypeFactCheck, "user id", StatusWithDesignerForUpdate)
+            .updateReview("validId", ReviewTypeFactCheck, "user id", StatusWithDesignerForUpdate)
             .returns(Future.successful(Right(())))
 
           MockApprovalsRepository
@@ -1097,7 +1097,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
           .returns(Future.successful(Right(factCheckProcess)))
 
         MockApprovalsRepository
-          .updateReview("validId", 1, ReviewTypeFactCheck, "user id", StatusWithDesignerForUpdate)
+          .updateReview("validId", ReviewTypeFactCheck, "user id", StatusWithDesignerForUpdate)
           .returns(Future.successful(Right(())))
 
         MockApprovalsRepository

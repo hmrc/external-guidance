@@ -19,7 +19,7 @@ package models
 import java.time.LocalDate
 import play.api.libs.json.{Json, OFormat}
 
-case class ProcessReview(id: String, ocelotId: String, version: Int, reviewType: String, title: String, lastUpdated: LocalDate, pages: List[PageReview])
+case class ProcessReview(id: String, ocelotId: String, reviewType: String, title: String, lastUpdated: LocalDate, pages: List[PageReview])
 
 object ProcessReview {
   implicit val formats: OFormat[ProcessReview] = Json.format[ProcessReview]

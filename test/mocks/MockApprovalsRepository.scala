@@ -69,10 +69,10 @@ trait MockApprovalsRepository extends MockFactory {
         .updatePageReview(_: String, _: String, _: String, _: ApprovalProcessPageReview))
         .expects(id, pageUrl, reviewType, reviewInfo)
 
-    def updateReview(id: String, version: Int, reviewType: String, updateUser: String, result: String): CallHandler[Future[RequestOutcome[Unit]]] =
+    def updateReview(id: String, reviewType: String, updateUser: String, result: String): CallHandler[Future[RequestOutcome[Unit]]] =
       (mockApprovalsRepository
-        .updateReview(_: String, _: Int, _: String, _: String, _: String))
-        .expects(id, version, reviewType, updateUser, result)
+        .updateReview(_: String, _: String, _: String, _: String))
+        .expects(id, reviewType, updateUser, result)
 
 
 

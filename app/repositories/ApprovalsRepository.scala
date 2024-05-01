@@ -44,7 +44,7 @@ import models.ApprovalReview
 
 trait ApprovalsRepository {
   def createOrUpdate(process: Approval): Future[RequestOutcome[String]]
-  def updateReview(id: String, version: Int, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]]
+  def updateReview(id: String, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]]
   def updatePageReview(id: String, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]]
   def getById(id: String): Future[RequestOutcome[Approval]]
   def getByProcessCode(processCode: String): Future[RequestOutcome[Approval]]
@@ -78,8 +78,7 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(implicit appC
   def createOrUpdate(approvalProcess: Approval): Future[RequestOutcome[String]] = {
     logger.warn(s"Saving process ${approvalProcess.id} to collection $collectionName")
     val selector = equal("_id", approvalProcess.id)
-    val modifier = combine(Updates.inc("version",1),
-                           Updates.set("meta", Codecs.toBson(approvalProcess.meta)),
+    val modifier = combine(Updates.set("meta", Codecs.toBson(approvalProcess.meta)),
                            Updates.set("review", Codecs.toBson(approvalProcess.review)),
                            Updates.set("process", Codecs.toBson(approvalProcess.process)))
 
@@ -100,7 +99,7 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(implicit appC
     //$COVERAGE-ON$
   }
 
-  def updateReview(id: String, version: Int, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]] = {
+  def updateReview(id: String, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]] = {
     val modifier = combine(
       set("review.result", result),
       set("review.completionUser", updateUser),

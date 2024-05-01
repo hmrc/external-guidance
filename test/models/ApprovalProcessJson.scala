@@ -73,8 +73,7 @@ trait ApprovalProcessJson {
       |            "updateDate": {"$$date": {"$$numberLong":"$currentDateTimeInMillis"}}
       |        }
       |    ]
-      |  },
-      |  "version" : 1
+      |  }
       |}
     """.stripMargin
     )
@@ -108,8 +107,7 @@ trait ApprovalProcessJson {
       |            "updateDate": {"$$date": {"$$numberLong":"$currentDateTimeInMillis"}}
       |        }
       |    ]
-      |  },
-      |  "version" : 1
+      |  }
         |}
     """.stripMargin
     )

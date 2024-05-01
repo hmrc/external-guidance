@@ -30,6 +30,7 @@ import repositories.{ApprovalsRepository, PublishedRepository}
 import core.models.ocelot.Process
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.libs.json.{Json, OFormat}
+import java.time.{LocalDate, ZonedDateTime}
 
 @Singleton
 class ApprovalReviewService @Inject() (
@@ -50,6 +51,10 @@ class ApprovalReviewService @Inject() (
             process.meta.id,
             process.meta.title,
             initialStatus,
+            LocalDate.now(),
+            ZonedDateTime.now(),
+            process.meta.lastUpdate,
+            process.meta.version,
             reviewType = reviewType,
             processCode = process.meta.processCode)
 
@@ -125,7 +130,7 @@ class ApprovalReviewService @Inject() (
             Left(DuplicateKeyError)
           case _ =>
             val pages: List[PageReview] = process.review.pages.map(p => PageReview(p.id, p.pageTitle, p.pageUrl, p.status, p.result))
-            Right(ProcessReview(process.id, process.id, process.version, process.meta.reviewType, process.meta.title, process.review.lastUpdated, pages))
+            Right(ProcessReview(process.id, process.id, process.meta.reviewType, process.meta.title, process.review.lastUpdated, pages))
         }
     }
 
@@ -143,7 +148,7 @@ class ApprovalReviewService @Inject() (
   def twoEyeReviewComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[AuditInfo]] =
     checkProcessInCorrectStateForCompletion(id, ReviewType2i) flatMap {
       case Right(ap) if info.status == StatusPublished =>
-        publishedService.save(id, info.userId, ap.meta.processCode, ap.process, ap.version).flatMap {
+        publishedService.save(id, info.userId, ap.meta.processCode, ap.process).flatMap {
           case Right(_) =>
             logger.warn(s"PUBLISH: Process $id with processCode ${ap.meta.processCode} successfully published by ${info.userName}(${info.userId})")
             repository.delete(id).map{
@@ -168,7 +173,7 @@ class ApprovalReviewService @Inject() (
   def factCheckComplete(id: String, info: ApprovalProcessStatusChange): Future[RequestOutcome[AuditInfo]] =
     checkProcessInCorrectStateForCompletion(id, ReviewTypeFactCheck) flatMap {
       case Right(ap) =>
-        repository.updateReview(id, ap.version, ReviewTypeFactCheck, info.userId, info.status) flatMap {
+        repository.updateReview(id, ReviewTypeFactCheck, info.userId, info.status) flatMap {
           case Right(_) =>
             changeStatus(id, info.status, info.userId, ReviewTypeFactCheck) map {
               case Right(_) => validateProcess(ap, info)
@@ -188,7 +193,7 @@ class ApprovalReviewService @Inject() (
       .validate[Process]
       .fold(
         _ => Left(BadRequestError),
-        process => Right(AuditInfo(info.userId, ap.id,  ap.version, ap.meta.title, process))
+        process => Right(AuditInfo(info.userId, ap.id,  ap.meta.ocelotVersion, ap.meta.title, process))
       )
 
   def approvalPageComplete(id: String, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): Future[RequestOutcome[Unit]] =
@@ -200,16 +205,16 @@ class ApprovalReviewService @Inject() (
       case Right(process) =>
         repository.updatePageReview(process.id, pageUrl, reviewType, reviewInfo) flatMap {
           case Left(NotFoundError) =>
-            logger.warn(s"updatePageReview failed for process $id, version ${process.version}, reviewType $reviewType and pageUrl $pageUrl not found.")
+            logger.warn(s"updatePageReview failed for process $id, version ${process.meta.ocelotVersion}, reviewType $reviewType and pageUrl $pageUrl not found.")
             Future.successful(Left(NotFoundError))
           case Left(err) =>
-            logger.warn(s"updatePageReview failed with err $err for process $id, version ${process.version}, reviewType $reviewType " +
+            logger.warn(s"updatePageReview failed with err $err for process $id, version ${process.meta.ocelotVersion}, reviewType $reviewType " +
               s"and pageUrl $pageUrl not found.")
             Future.successful(Left(InternalServerError))
           case Right(_) =>
             changeStatus(id, "InProgress", reviewInfo.updateUser.getOrElse("System"), reviewType).map{
               case Left(err) =>
-                logger.error(s"changeStatus failed with err $err for process $id, version ${process.version}, reviewType $reviewType " +
+                logger.error(s"changeStatus failed with err $err for process $id, version ${process.meta.ocelotVersion}, reviewType $reviewType " +
                   s"and pageUrl $pageUrl not found. Continuing")
                 Right(())
               case ok @ Right(_) => ok

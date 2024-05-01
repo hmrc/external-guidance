@@ -34,7 +34,7 @@ class PublishedController @Inject() (publishedRepo: PublishedRepository, testRep
 
   def post(): Action[JsValue] = Action.async(parse.json) { request =>
     def save(process: Process): Future[Result] = {
-      publishedRepo.save(process.meta.id, "system", process.meta.processCode, Json.toJson(process).as[JsObject], 1).flatMap {
+      publishedRepo.save(process.meta.id, "system", process.meta.processCode, Json.toJson(process).as[JsObject], process.meta.version).flatMap {
         case Right(id) =>
           testRepo.setPublishedDate(id, ZonedDateTime.now.minusYears(3L)).map{
             case Right(_) => Created(id)

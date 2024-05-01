@@ -63,14 +63,14 @@ class PublishedService @Inject() (published: PublishedRepository,
       case result => result
     }
 
-  def save(id: String, user: String, processCode: String, jsonProcess: JsObject, version: Int): Future[RequestOutcome[String]] =
+  def save(id: String, user: String, processCode: String, jsonProcess: JsObject): Future[RequestOutcome[String]] =
     jsonProcess
       .validate[Process]
       .fold( _ => {
         logger.error(s"Publish process $id has failed - invalid process passed in")
         Future.successful(Left(BadRequestError))
       }, process =>
-        published.save(id, user, processCode, jsonProcess, version).map{
+        published.save(id, user, processCode, jsonProcess, process.meta.version).map{
           case Left(DuplicateKeyError) => Left(DuplicateKeyError)
           case Left(_) =>
             logger.error(s"Request to publish $id has failed")
