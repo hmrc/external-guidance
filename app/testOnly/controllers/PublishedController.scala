@@ -24,23 +24,46 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import repositories.PublishedRepository
 import testOnly.repositories.{PublishedRepository => TestPublishedRepository}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import java.time.ZonedDateTime
-
+import java.time.{LocalDate, ZoneId}
+import scala.util.{Try, Success}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class PublishedController @Inject() (publishedRepo: PublishedRepository, testRepo: TestPublishedRepository, cc: ControllerComponents)
   (implicit ec: ExecutionContext) extends BackendController(cc) {
 
-  def post(): Action[JsValue] = Action.async(parse.json) { request =>
-    def save(process: Process): Future[Result] = {
+  def postAtDate(day: String, month: String, year: String): Action[JsValue] = Action.async(parse.json) { request =>
+    def save(process: Process, when: LocalDate): Future[Result] = {
       publishedRepo.save(process.meta.id, "system", process.meta.processCode, Json.toJson(process).as[JsObject], process.meta.version).flatMap {
         case Right(id) =>
-          testRepo.setPublishedDate(id, ZonedDateTime.now.minusYears(3L)).map{
+          testRepo.setPublishedDate(id, when.atStartOfDay(ZoneId.of("UTC"))).map{
             case Right(_) => Created(id)
             case Left(err) => InternalServerError(Json.toJson(OcelotError(err)))
           }
         case Left(err) => Future.successful(InternalServerError(Json.toJson(OcelotError(err))))
+      }
+    }
+
+    Try{
+      LocalDate.of(year.toInt, month.toInt, day.toInt)
+    } match {
+      case Success(when) =>
+        request.body.validate[Process] match {
+          case JsSuccess(p, _) =>
+            p.valueStanzaPassPhrase.fold(save(p, when)){passPhrase =>
+              save(p.copy(meta = p.meta.copy(passPhrase = Some(passPhrase))), when)
+            }
+          case errors: JsError => Future.successful(BadRequest(JsError.toJson(errors)))
+        }
+      case _ => Future.successful(InternalServerError(Json.toJson(OcelotError("Invalid date"))))
+    }
+  }
+
+  def post(): Action[JsValue] = Action.async(parse.json) { request =>
+    def save(process: Process): Future[Result] = {
+      publishedRepo.save(process.meta.id, "system", process.meta.processCode, Json.toJson(process).as[JsObject], process.meta.version).map {
+        case Right(id) => Created(id)
+        case Left(err) => InternalServerError(Json.toJson(OcelotError(err)))
       }
     }
 
