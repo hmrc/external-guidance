@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,9 @@
 package models
 
 import java.time.LocalDate
-import java.util.UUID
 import play.api.libs.json.{Json, OFormat}
 
-case class ProcessReview(id: UUID, ocelotId: String, version: Int, reviewType: String, title: String, lastUpdated: LocalDate, pages: List[PageReview])
+case class ProcessReview(id: String, ocelotId: String, reviewType: String, title: String, lastUpdated: LocalDate, pages: List[PageReview])
 
 object ProcessReview {
   implicit val formats: OFormat[ProcessReview] = Json.format[ProcessReview]

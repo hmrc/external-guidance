@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,29 +24,24 @@ import play.api.Logger
 import play.api.libs.json.Json.toJson
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
-import services.ApprovalService
-import testOnly.repositories.{ApprovalProcessReviewRepository, ApprovalRepository}
+import services.ApprovalReviewService
+import testOnly.repositories.ApprovalsRepository
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ApprovalController @Inject() (approvalService: ApprovalService,
-                                    testRepo: ApprovalRepository,
-                                    testReviewRepo: ApprovalProcessReviewRepository,
+class ApprovalController @Inject() (approvalService: ApprovalReviewService,
+                                    testRepo: ApprovalsRepository,
                                     cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass)
 
   def delete(id: String): Action[AnyContent] = Action.async { _ =>
-    testRepo.delete(id).flatMap {
-      case Right(_) =>
-        testReviewRepo.delete(id).map {
-          case Right(_) => NoContent
-          case Left(_) => InternalServerError(Json.toJson(OcelotError(ServerError)))
-        }
-      case Left(_) => Future.successful(InternalServerError(Json.toJson(OcelotError(ServerError))))
+    testRepo.delete(id).map {
+      case Right(_) => NoContent
+      case Left(_) => InternalServerError(Json.toJson(OcelotError(ServerError)))
     }
   }
 

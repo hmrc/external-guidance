@@ -11,8 +11,9 @@
 
 # Add all the application routes to the prod.routes file
 ->          /                                    prod.Routes
-POST        /test-only/processes/published       testOnly.controllers.PublishedController.post()
-DELETE      /test-only/processes/published/:id   testOnly.controllers.PublishedController.delete(id)
+POST        /test-only/processes/published/:d/:m/:y       testOnly.controllers.PublishedController.postAtDate(d, m, y)
+POST        /test-only/processes/published                testOnly.controllers.PublishedController.post()
+DELETE      /test-only/processes/published/:id            testOnly.controllers.PublishedController.delete(id)
 
 DELETE      /test-only/processes/approval/:id    testOnly.controllers.ApprovalController.delete(id)
 DELETE      /test-only/scratch/:id               testOnly.controllers.ScratchController.delete(id)

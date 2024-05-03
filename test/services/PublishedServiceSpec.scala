@@ -18,7 +18,7 @@ package services
 
 import java.time.ZonedDateTime
 import base.BaseSpec
-import mocks.{MockApprovalRepository, MockArchiveRepository, MockPublishedRepository}
+import mocks.{MockApprovalsRepository, MockArchiveRepository, MockPublishedRepository}
 import core.models.errors._
 import core.models.ocelot.ProcessJson
 import core.models.RequestOutcome
@@ -29,7 +29,7 @@ import scala.concurrent.Future
 
 class PublishedServiceSpec extends BaseSpec {
 
-  private trait Test extends MockPublishedRepository with MockArchiveRepository with MockApprovalRepository with ProcessJson {
+  private trait Test extends MockPublishedRepository with MockArchiveRepository with MockApprovalsRepository with ProcessJson {
 
     val validId: String = "ext90005"
     val invalidId: String = "ext9005"
@@ -37,7 +37,7 @@ class PublishedServiceSpec extends BaseSpec {
     val publishedProcess: PublishedProcess =
       PublishedProcess(validId, 1, ZonedDateTime.now(), validOnePageJson.as[JsObject], "user", processCode = "processCode")
 
-    lazy val target: PublishedService = new PublishedService(mockPublishedRepository, mockArchiveRepository, mockApprovalRepository)
+    lazy val target: PublishedService = new PublishedService(mockPublishedRepository, mockArchiveRepository, mockApprovalsRepository)
   }
 
   "The method getById of class PublishedService" should {
@@ -157,7 +157,7 @@ class PublishedServiceSpec extends BaseSpec {
         val expected: RequestOutcome[String] = Right(validId)
 
         MockPublishedRepository
-          .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
+          .save(validId, "userId", "processCode", validOnePageJson.as[JsObject], 4)
           .returns(Future.successful(expected))
 
         whenReady(target.save(validId, "userId", "processCode", validOnePageJson.as[JsObject])) {
@@ -173,7 +173,7 @@ class PublishedServiceSpec extends BaseSpec {
         val expected: RequestOutcome[String] = Left(DuplicateKeyError)
 
         MockPublishedRepository
-          .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
+          .save(validId, "userId", "processCode", validOnePageJson.as[JsObject], 4)
           .returns(Future.successful(expected))
 
         whenReady(target.save(validId, "userId", "processCode", validOnePageJson.as[JsObject])) {
@@ -197,7 +197,7 @@ class PublishedServiceSpec extends BaseSpec {
             .archive(validId, "userId", "processCode", publishedProcess)
             .returns(Future.successful(Right(validId)))
 
-          MockApprovalRepository
+          MockApprovalsRepository
             .changeStatus(validId, "Archived", "userId")
             .returns(Future.successful(Right(())))
 
@@ -205,7 +205,7 @@ class PublishedServiceSpec extends BaseSpec {
             .delete(validId)
             .returns(Future.successful(Right(())))
 
-          MockApprovalRepository
+          MockApprovalsRepository
             .delete(validId)
             .returns(Future.successful(Right(())))
 
@@ -221,7 +221,7 @@ class PublishedServiceSpec extends BaseSpec {
             .getById(validId)
             .returns(Future.successful(Left(NotFoundError)))
 
-          whenReady(target.archive(validId, "userId")) { 
+          whenReady(target.archive(validId, "userId")) {
             case Left(err) if err == BadRequestError => succeed
             case _ => fail()
           }
@@ -234,7 +234,7 @@ class PublishedServiceSpec extends BaseSpec {
         "not call the repository" in new Test {
 
           MockPublishedRepository
-            .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
+            .save(validId, "userId", "processCode", validOnePageJson.as[JsObject], 4)
             .never()
 
           target.save(validId, "userId", "processCode", invalidProcess)
@@ -256,7 +256,7 @@ class PublishedServiceSpec extends BaseSpec {
           val expected: RequestOutcome[String] = Left(InternalServerError)
 
           MockPublishedRepository
-            .save(validId, "userId", "processCode", validOnePageJson.as[JsObject])
+            .save(validId, "userId", "processCode", validOnePageJson.as[JsObject], 4)
             .returns(Future.successful(repositoryResponse))
 
           whenReady(target.save(validId, "userId", "processCode", validOnePageJson.as[JsObject])) {

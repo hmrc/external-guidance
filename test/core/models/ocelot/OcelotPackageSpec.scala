@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -367,7 +367,7 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
       val labels = LabelCache().updateList("L", List("6", "7", "8"))
                                .update("Idx", "3")
       operandValue("[list:L:[label:Idx]]")(labels) shouldBe Some("8")
-    }    
+    }
   }
 
   "Timescale functions" must {

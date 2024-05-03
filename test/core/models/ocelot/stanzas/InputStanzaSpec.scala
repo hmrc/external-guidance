@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -205,13 +205,13 @@ class InputStanzaSpec extends BaseSpec {
     "update the passphrase response labels" in {
       val encrypter = new Encrypter{ def encrypt(p: String): String = p.reverse }
       val labels: Labels = LabelCache(
-        Map[String, Label](), 
-        Map[String, Label](), 
-        Nil, 
-        Map[String, Stanza](), 
-        Map[String, Int](), 
-        message(Lang("en")) _, 
-        Published, 
+        Map[String, Label](),
+        Map[String, Label](),
+        Nil,
+        Map[String, Stanza](),
+        Map[String, Int](),
+        message(Lang("en")) _,
+        Published,
         encrypter)
       //val labels = LabelCache()
       val inputText = "Hello"

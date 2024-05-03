@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ case class AuditInfo(
 
 object AuditInfo {
 
-  def apply(pid: String, ap: ApprovalProcess, p: Process): AuditInfo =
-    AuditInfo(pid, ap.id, ap.meta.title, ap.version, p.meta.lastAuthor, p.meta.lastUpdate, p.meta.version)
+  def apply(pid: String, id: String, version: Int, title: String, p: Process): AuditInfo =
+    AuditInfo(pid, id, title, version, p.meta.lastAuthor, p.meta.lastUpdate, p.meta.version)
   implicit val formats: OFormat[AuditInfo] = Json.format[AuditInfo]
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ class ArchiveISpec extends IntegrationSpec {
 
     val published: PublishedRepository = app.injector.instanceOf[PublishedRepository]
 
-    published.save(testId, "user", processCode, processToSave)
+    published.save(testId, "user", processCode, processToSave, 1)
 
     lazy val setup = buildRequest("/external-guidance/approval/2i-review")
     lazy val _: WSResponse = {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,10 @@ import base.BaseSpec
 import controllers.actions.FakeAllRolesAction
 import core.models.errors.{BadRequestError, DuplicateKeyError, Error, InternalServerError, NotFoundError, ValidationError}
 import core.models.ocelot.errors.DuplicatePageUrl
-import mocks.{MockApprovalService, MockTimescalesService}
+import mocks.{MockApprovalReviewService, MockTimescalesService}
 import models.Constants._
 import models.errors._
-import models.{ApprovalProcess, ApprovalProcessJson, ApprovalProcessSummary}
+import models.{Approval, ApprovalProcessJson, ApprovalProcessSummary, ProcessSummary}
 import play.api.http.ContentTypes
 import play.api.http.Status.UNPROCESSABLE_ENTITY
 import play.api.libs.json._
@@ -33,13 +33,13 @@ import play.api.test.Helpers._
 
 import scala.concurrent.Future
 
-class ApprovalControllerSpec extends BaseSpec with MockApprovalService with MockTimescalesService with ApprovalProcessJson {
+class ApprovalControllerSpec extends BaseSpec with MockApprovalReviewService with MockTimescalesService with ApprovalProcessJson {
 
-  private trait Test extends MockApprovalService {
+  private trait Test extends MockApprovalReviewService {
     val invalidId: String = "ext95"
     val invalidProcess: JsObject = Json.obj("id" -> "ext0093")
 
-    lazy val controller: ApprovalController = new ApprovalController(FakeAllRolesAction, mockApprovalService, mockTimescalesService, stubControllerComponents())
+    lazy val controller: ApprovalController = new ApprovalController(FakeAllRolesAction, mockApprovalReviewService, mockTimescalesService, stubControllerComponents())
   }
 
   "Calling the saveFor2iReview action" when {
@@ -48,7 +48,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
 
       trait Valid2iSaveTest extends Test {
         val expectedId: String = validId
-        MockApprovalService
+        MockApprovalReviewService
           .save(validApprovalProcessJson)
           .returns(Future.successful(Right(expectedId)))
 
@@ -76,7 +76,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
 
       trait InvalidSaveTest extends Test {
         val expectedErrorCode = "BAD_REQUEST"
-        MockApprovalService
+        MockApprovalReviewService
           .save(invalidProcess)
           .returns(Future.successful(Left(BadRequestError)))
 
@@ -104,7 +104,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
 
       trait InvalidSaveTest extends Test {
         val expectedErrorCode = "BAD_REQUEST"
-        MockApprovalService
+        MockApprovalReviewService
           .save(validApprovalProcessJson)
           .returns(Future.successful(Left(ValidationError)))
 
@@ -132,7 +132,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
 
       trait InvalidSaveTest extends Test {
         val expectedError: Error = Error(List(DuplicatePageUrl("4", "/feeling-bad")))
-        MockApprovalService
+        MockApprovalReviewService
           .save(validApprovalProcessJson)
           .returns(Future.successful(Left(expectedError)))
 
@@ -159,7 +159,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
     "the request is invalid with a DuplicateKeyError" should {
 
       trait InvalidSaveTest extends Test {
-        MockApprovalService
+        MockApprovalReviewService
           .save(validApprovalProcessJson)
           .returns(Future.successful(Left(DuplicateKeyError)))
 
@@ -188,7 +188,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
 
       trait ErrorSaveTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
-        MockApprovalService
+        MockApprovalReviewService
           .save(invalidProcess)
           .returns(Future.successful(Left(InternalServerError)))
 
@@ -219,7 +219,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
 
       trait ValidFactCheckSaveTest extends Test {
         val expectedId: String = validId
-        MockApprovalService
+        MockApprovalReviewService
           .save(validApprovalProcessJson, ReviewTypeFactCheck)
           .returns(Future.successful(Right(expectedId)))
 
@@ -247,7 +247,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
 
       trait InvalidSaveTest extends Test {
         val expectedErrorCode = "BAD_REQUEST"
-        MockApprovalService
+        MockApprovalReviewService
           .save(invalidProcess, ReviewTypeFactCheck)
           .returns(Future.successful(Left(BadRequestError)))
 
@@ -275,7 +275,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
 
       trait ErrorSaveTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
-        MockApprovalService
+        MockApprovalReviewService
           .save(invalidProcess, ReviewTypeFactCheck)
           .returns(Future.successful(Left(InternalServerError)))
 
@@ -302,7 +302,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
     "the request is invalid with a DuplicateKeyError" should {
 
       trait InvalidSaveTest extends Test {
-        MockApprovalService
+        MockApprovalReviewService
           .save(validApprovalProcessJson, ReviewTypeFactCheck)
           .returns(Future.successful(Left(DuplicateKeyError)))
 
@@ -338,7 +338,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
           .updateProcessTimescaleTable(validApprovalProcessJson)
           .returns(Future.successful(Right(validApprovalProcessJson)))
 
-        MockApprovalService
+        MockApprovalReviewService
           .getById(validId)
           .returns(Future.successful(Right(validApprovalProcessJson)))
 
@@ -357,7 +357,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
 
       "confirm returned content is a JSON object" in new ValidGetTest {
         private val result = controller.get(validId)(request)
-        val processReturned: ApprovalProcess = contentAsJson(result).as[ApprovalProcess](ApprovalProcess.mongoFormat)
+        val processReturned: Approval = contentAsJson(result).as[Approval](Approval.format)
         processReturned.id shouldBe approvalProcess.id
       }
     }
@@ -366,7 +366,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
 
       trait InvalidGetTest extends Test {
         val expectedErrorCode = "BAD_REQUEST"
-        MockApprovalService
+        MockApprovalReviewService
           .getById(invalidId)
           .returns(Future.successful(Left(BadRequestError)))
 
@@ -394,7 +394,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
 
       trait NotFoundGetTest extends Test {
         val expectedErrorCode = "NOT_FOUND"
-        MockApprovalService
+        MockApprovalReviewService
           .getById(validId)
           .returns(Future.successful(Left(NotFoundError)))
 
@@ -422,7 +422,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
 
       trait ErrorGetTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
-        MockApprovalService
+        MockApprovalReviewService
           .getById(validId)
           .returns(Future.successful(Left(InternalServerError)))
 
@@ -456,7 +456,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
           .updateProcessTimescaleTable(validApprovalProcessJson)
           .returns(Future.successful(Right(validApprovalProcessJson)))
 
-        MockApprovalService
+        MockApprovalReviewService
           .getByProcessCode(validId)
           .returns(Future.successful(Right(validApprovalProcessJson)))
 
@@ -475,7 +475,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
 
       "confirm returned content is a JSON object" in new ValidGetTest {
         private val result = controller.getByProcessCode(validId)(request)
-        val processReturned: ApprovalProcess = contentAsJson(result).as[ApprovalProcess](ApprovalProcess.mongoFormat)
+        val processReturned: Approval = contentAsJson(result).as[Approval](Approval.format)
         processReturned shouldBe approvalProcess
       }
     }
@@ -484,7 +484,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
 
       trait InvalidGetTest extends Test {
         val expectedErrorCode = "BAD_REQUEST"
-        MockApprovalService
+        MockApprovalReviewService
           .getByProcessCode(invalidId)
           .returns(Future.successful(Left(BadRequestError)))
 
@@ -512,7 +512,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
 
       trait NotFoundGetTest extends Test {
         val expectedErrorCode = "NOT_FOUND"
-        MockApprovalService
+        MockApprovalReviewService
           .getByProcessCode(validId)
           .returns(Future.successful(Left(NotFoundError)))
 
@@ -540,7 +540,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
 
       trait ErrorGetTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
-        MockApprovalService
+        MockApprovalReviewService
           .getByProcessCode(validId)
           .returns(Future.successful(Left(InternalServerError)))
 
@@ -571,7 +571,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
 
       trait ValidListTest extends Test {
         implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
-        MockApprovalService
+        MockApprovalReviewService
           .approvalSummaryList(List("FactChecker", "2iReviewer"))
           .returns(Future.successful(Right(Json.toJson(List(approvalProcessSummary)).as[JsArray])))
 
@@ -593,7 +593,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
 
       trait ErrorGetTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
-        MockApprovalService
+        MockApprovalReviewService
           .approvalSummaryList(List("FactChecker", "2iReviewer"))
           .returns(Future.successful(Left(InternalServerError)))
 
@@ -612,6 +612,59 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalService with Mock
 
       "return an error code of INTERNAL_SERVER_ERROR" in new ErrorGetTest {
         private val result = controller.approvalSummaryList()(request)
+        private val data = contentAsJson(result).as[JsObject]
+        (data \ "code").as[String] shouldBe expectedErrorCode
+      }
+    }
+  }
+
+  "Calling the list action" when {
+
+    "the request is valid" should {
+
+      trait ValidListTest extends Test {
+        implicit val formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
+        MockApprovalReviewService
+          .list()
+          .returns(Future.successful(Right(Json.toJson(List(processSummary)).as[JsArray])))
+
+        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
+      }
+
+      "return an OK response" in new ValidListTest {
+        private val result = controller.list()(request)
+        status(result) shouldBe OK
+      }
+
+      "return content as JSON" in new ValidListTest {
+        private val result = controller.list()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+    }
+
+    "a downstream error occurs" should {
+
+      trait ErrorGetTest extends Test {
+        val expectedErrorCode = "INTERNAL_SERVER_ERROR"
+        MockApprovalReviewService
+          .list()
+          .returns(Future.successful(Left(InternalServerError)))
+
+        lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "")
+      }
+
+      "return a internal server error response" in new ErrorGetTest {
+        private val result = controller.list()(request)
+        status(result) shouldBe INTERNAL_SERVER_ERROR
+      }
+
+      "return content as JSON" in new ErrorGetTest {
+        private val result = controller.list()(request)
+        contentType(result) shouldBe Some(ContentTypes.JSON)
+      }
+
+      "return an error code of INTERNAL_SERVER_ERROR" in new ErrorGetTest {
+        private val result = controller.list()(request)
         private val data = contentAsJson(result).as[JsObject]
         (data \ "code").as[String] shouldBe expectedErrorCode
       }

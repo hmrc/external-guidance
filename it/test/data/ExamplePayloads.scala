@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -155,9 +155,8 @@ object ExamplePayloads {
 
   val processReviewInfo: ProcessReview =
     ProcessReview(
-      UUID.randomUUID(),
+      UUID.randomUUID().toString,
       validId,
-      1,
       ReviewType2i,
       "Telling HMRC about extra income",
       LocalDate.of(2020, 5, 10),

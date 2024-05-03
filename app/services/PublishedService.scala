@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import core.models.RequestOutcome
 import models.{ProcessSummary, PublishedProcess}
 import play.api.Logger
 import play.api.libs.json.JsObject
-import repositories.{ApprovalRepository, ArchiveRepository, PublishedRepository}
+import repositories.{ApprovalsRepository, ArchiveRepository, PublishedRepository}
 import core.services.validateProcessId
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,7 +32,7 @@ import play.api.libs.json.{JsValue, Json, OFormat}
 @Singleton
 class PublishedService @Inject() (published: PublishedRepository,
                                   archive: ArchiveRepository,
-                                  approval: ApprovalRepository)(implicit ec: ExecutionContext) {
+                                  approval: ApprovalsRepository)(implicit ec: ExecutionContext) {
 
   val logger: Logger = Logger(this.getClass)
 
@@ -70,7 +70,7 @@ class PublishedService @Inject() (published: PublishedRepository,
         logger.error(s"Publish process $id has failed - invalid process passed in")
         Future.successful(Left(BadRequestError))
       }, process =>
-        published.save(id, user, processCode, jsonProcess).map{
+        published.save(id, user, processCode, jsonProcess, process.meta.version).map{
           case Left(DuplicateKeyError) => Left(DuplicateKeyError)
           case Left(_) =>
             logger.error(s"Request to publish $id has failed")
@@ -97,7 +97,6 @@ class PublishedService @Inject() (published: PublishedRepository,
             logger.warn(s"ARCHIVE: Process $id archived by $user")
             for {
               _ <- published.delete(id)
-              _ <- approval.delete(id)
             } yield Right(())
         }
     }

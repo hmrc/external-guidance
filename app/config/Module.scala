@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,12 @@
 package config
 
 import core.services.{DefaultTodayProvider, TodayProvider}
+import migrate.services.{MigrateData,  DataMigrationService}
 import com.google.inject.AbstractModule
 import controllers.actions._
 import repositories._
+import migrate.repositories._
+import migrate.services.{ServiceLock, ServiceLockImpl}
 
 class Module extends AbstractModule {
 
@@ -28,6 +31,7 @@ class Module extends AbstractModule {
     bind(classOf[PublishedRepository]).to(classOf[PublishedRepositoryImpl])
     bind(classOf[ScratchRepository]).to(classOf[ScratchRepositoryImpl])
     bind(classOf[ApprovalRepository]).to(classOf[ApprovalRepositoryImpl])
+    bind(classOf[ApprovalsRepository]).to(classOf[ApprovalsRepositoryImpl])
     bind(classOf[ArchiveRepository]).to(classOf[ArchiveRepositoryImpl])
     bind(classOf[TimescalesRepository]).to(classOf[TimescalesRepositoryImpl])
     bind(classOf[ApprovalProcessReviewRepository]).to(classOf[ApprovalProcessReviewRepositoryImpl])
@@ -35,6 +39,8 @@ class Module extends AbstractModule {
     bind(classOf[FactCheckerAction]).to(classOf[FactCheckerAuthenticatedAction])
     bind(classOf[TwoEyeReviewerAction]).to(classOf[TwoEyeReviewerAuthenticatedAction])
     bind(classOf[TodayProvider]).to(classOf[DefaultTodayProvider])
+    bind(classOf[MigrateData]).to(classOf[DataMigrationService]).asEagerSingleton()
+    bind(classOf[ServiceLock]).to(classOf[ServiceLockImpl])
   }
 }
 

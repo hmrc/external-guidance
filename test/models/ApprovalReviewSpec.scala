@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,28 @@
 
 package models
 
-import java.util.UUID
-
 import base.BaseSpec
 import play.api.libs.json._
-import models.ApprovalProcessReview.mongoFormat
+import models.ApprovalReview.format
+import Constants.ReviewCompleteStatus
 
-class ApprovalProcessReviewSpec extends BaseSpec with ApprovalProcessJson {
+class ApprovalReviewSpec extends BaseSpec with ApprovalProcessJson {
 
   private val invalidJson = Json.parse("{}")
 
-  "Deserializing a JSON payload into an instance of ApprovalProcessReview" should {
+  "Deserializing a JSON payload into an instance of ApprovalReview" should {
 
     "Result in a successful conversion for valid JSON with nulls" in {
-      validApprovalProcessReviewJson.validate[ApprovalProcessReview] match {
-        case JsSuccess(result, _) if result.id == UUID.fromString(validReviewId) => succeed
+      validApprovalProcessReviewJson.validate[ApprovalReview] match {
+        case JsSuccess(result, _) if result.pages(0).id == "1" => succeed
         case JsSuccess(_, _) => fail("Deserializing valid JSON did not create correct process")
         case JsError(err) => fail(s"Unable to parse valid Json: $err")
       }
     }
 
     "Result in a successful conversion for valid JSON without nulls" in {
-      validApprovalProcessReviewJson2.validate[ApprovalProcessReview] match {
-        case JsSuccess(result, _) if result.id == UUID.fromString(validReviewId) => succeed
+      validApprovalProcessReviewJson2.validate[ApprovalReview] match {
+        case JsSuccess(result, _) if result.pages(0).id == "1" => succeed
         case JsSuccess(_, _) => fail("Deserializing valid JSON did not create correct process")
         case JsError(err) => fail(s"Unable to parse valid Json: $err")
       }
@@ -46,7 +45,7 @@ class ApprovalProcessReviewSpec extends BaseSpec with ApprovalProcessJson {
 
     "Result in a failure when for invalid JSON" in {
 
-      invalidJson.validate[ApprovalProcessReview] match {
+      invalidJson.validate[ApprovalReview] match {
         case e: JsError => succeed
         case _ => fail("Invalid JSON payload should not have been successfully deserialized")
       }
@@ -58,7 +57,7 @@ class ApprovalProcessReviewSpec extends BaseSpec with ApprovalProcessJson {
 
     "Generate the expected JSON" in {
       val result: JsObject = Json.toJson(approvalProcessReview).as[JsObject]
-      result("ocelotId") shouldBe JsString(validId)
+      result("result") shouldBe JsString(ReviewCompleteStatus)
     }
   }
 

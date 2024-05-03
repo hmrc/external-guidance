@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ object InputType {
     case Date => Json.toJson("Date")
     case Number => Json.toJson("Number")
     case Txt => Json.toJson("Text")
-    case PassphraseText => Json.toJson("PassphraseText")  
+    case PassphraseText => Json.toJson("PassphraseText")
   }
 
 }

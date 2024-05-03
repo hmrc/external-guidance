@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import base.BaseSpec
 import controllers.actions.{FakeFactCheckerAction, FakeTwoEyeReviewerAction}
 import core.models.errors._
 import data.ReviewData
-import mocks.MockReviewService
+import mocks.MockApprovalReviewService
 import models.Constants._
 import models._
 import org.scalamock.scalatest.MockFactory
@@ -34,21 +34,21 @@ import scala.concurrent.Future
 
 class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewData with ApprovalProcessJson {
 
-  private trait Test extends MockReviewService {
+  private trait Test extends MockApprovalReviewService {
     val invalidId: String = "ext95"
-    val approvalProcessCompleted: ApprovalProcess = approvalProcess.copy(process = createProcess)
+    val approvalProcessCompleted: Approval = approvalProcess.copy(process = createProcess)
     val auditInfo = AuditInfo("ID",
                               approvalProcessCompleted.id,
                               approvalProcessCompleted.meta.title,
-                              approvalProcessCompleted.version,
-                              "author", 111111, approvalProcessCompleted.version)
-    val approvalProcessContainingInvalidOcelotProcess: ApprovalProcess = approvalProcess.copy()
+                              approvalProcessCompleted.meta.ocelotVersion,
+                              "author", 111111, approvalProcessCompleted.meta.ocelotVersion)
+    val approvalProcessContainingInvalidOcelotProcess: Approval = approvalProcess.copy()
     val reviewUpdate: ApprovalProcessPageReview = ApprovalProcessPageReview("id", "/pageUrl", "Title", None, "status")
 
     lazy val controller: ProcessReviewController = new ProcessReviewController(
       FakeFactCheckerAction,
       FakeTwoEyeReviewerAction,
-      mockReviewService,
+      mockApprovalReviewService,
       stubControllerComponents())
   }
   "Calling the approval2iReviewInfo action" when {
@@ -56,7 +56,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
     "the request is valid" should {
 
       trait ValidTest extends Test {
-        MockReviewService
+        MockApprovalReviewService
           .approvalReviewInfo(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Right(processReviewInfo)))
 
@@ -84,7 +84,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       trait ValidTest extends Test {
         val expectedErrorCode = "DUPLICATE_KEY_ERROR"
-        MockReviewService
+        MockApprovalReviewService
           .approvalReviewInfo(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Left(DuplicateKeyError)))
 
@@ -110,7 +110,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       trait InvalidTest extends Test {
         val expectedErrorCode = "BAD_REQUEST"
-        MockReviewService
+        MockApprovalReviewService
           .approvalReviewInfo(invalidId, ReviewType2i)
           .returns(Future.successful(Left(BadRequestError)))
 
@@ -138,7 +138,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       trait NotFoundTest extends Test {
         val expectedErrorCode = "NOT_FOUND"
-        MockReviewService
+        MockApprovalReviewService
           .approvalReviewInfo(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Left(NotFoundError)))
 
@@ -166,7 +166,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       trait StaleDataTest extends Test {
         val expectedErrorCode = "STALE_DATA_ERROR"
-        MockReviewService
+        MockApprovalReviewService
           .approvalReviewInfo(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Left(StaleDataError)))
 
@@ -194,7 +194,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       trait ErrorTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
-        MockReviewService
+        MockApprovalReviewService
           .approvalReviewInfo(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Left(InternalServerError)))
 
@@ -225,7 +225,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       "return an OK response" in new Test {
 
-        MockReviewService
+        MockApprovalReviewService
           .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Right(auditInfo)))
 
@@ -241,7 +241,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
     "the request is invalid" should {
 
       trait InvalidTest extends Test {
-        MockReviewService
+        MockApprovalReviewService
           .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Right(auditInfo)))
           .never()
@@ -261,7 +261,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       trait NotFoundTest extends Test {
         val expectedErrorCode = "NOT_FOUND"
-        MockReviewService
+        MockApprovalReviewService
           .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(NotFoundError)))
 
@@ -281,7 +281,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       trait DuplicateKeyTest extends Test {
         val expectedErrorCode = "DUPLICATE_KEY_ERROR"
-        MockReviewService
+        MockApprovalReviewService
           .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(DuplicateKeyError)))
 
@@ -301,7 +301,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       trait ErrorTest extends Test {
         val expectedErrorCode = "STALE_DATA_ERROR"
-        MockReviewService
+        MockApprovalReviewService
           .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(StaleDataError)))
 
@@ -321,7 +321,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       trait ErrorTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
-        MockReviewService
+        MockApprovalReviewService
           .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(InternalServerError)))
 
@@ -340,7 +340,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       trait ErrorTest extends Test {
         val expectedErrorCode = "BAD_REQUEST"
-        MockReviewService
+        MockApprovalReviewService
           .twoEyeReviewComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(BadRequestError)))
 
@@ -362,10 +362,11 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
     "the request is valid" should {
 
       trait ValidTest extends Test {
-        val approvalProcess: ApprovalProcess =
-          ApprovalProcess(validProcessIdForReview, ApprovalProcessMeta(validProcessIdForReview, "title", processCode = "processCode"), Json.obj())
+        val review = ApprovalReview(Nil)
+        val approvalProcess: Approval =
+          Approval(validProcessIdForReview, ApprovalProcessMeta(validProcessIdForReview, "title", processCode = "processCode"), review, Json.obj())
 
-        MockReviewService
+        MockApprovalReviewService
           .checkProcessInCorrectStateForCompletion(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Right(approvalProcess)))
 
@@ -388,7 +389,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       trait NotFoundTest extends Test {
 
-        MockReviewService
+        MockApprovalReviewService
           .checkProcessInCorrectStateForCompletion(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Left(IncompleteDataError)))
 
@@ -411,7 +412,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       trait NotFoundTest extends Test {
 
-        MockReviewService
+        MockApprovalReviewService
           .checkProcessInCorrectStateForCompletion(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Left(NotFoundError)))
 
@@ -434,7 +435,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       trait NotFoundTest extends Test {
 
-        MockReviewService
+        MockApprovalReviewService
           .checkProcessInCorrectStateForCompletion(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Left(StaleDataError)))
 
@@ -457,7 +458,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       trait ErrorTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
-        MockReviewService
+        MockApprovalReviewService
           .checkProcessInCorrectStateForCompletion(validProcessIdForReview, ReviewType2i)
           .returns(Future.successful(Left(InternalServerError)))
 
@@ -491,7 +492,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
         val pageUrl: String = "/pageUrl"
         val pageReview: ApprovalProcessPageReview = ApprovalProcessPageReview("id", pageUrl, "Title", None, "status")
 
-        MockReviewService
+        MockApprovalReviewService
           .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewType2i)
           .returns(Future.successful(Right(pageReview)))
 
@@ -513,7 +514,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
       trait InvalidTest extends Test {
         val expectedErrorCode = "BAD_REQUEST"
         val pageUrl: String = "/pageUrl"
-        MockReviewService
+        MockApprovalReviewService
           .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewType2i)
           .returns(Future.successful(Left(BadRequestError)))
 
@@ -534,7 +535,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
       trait NotFoundTest extends Test {
         val expectedErrorCode = "NOT_FOUND"
         val pageUrl: String = "/pageUrl"
-        MockReviewService
+        MockApprovalReviewService
           .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewType2i)
           .returns(Future.successful(Left(NotFoundError)))
 
@@ -555,7 +556,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
       trait StaleDataTest extends Test {
         val expectedErrorCode = "STALE_DATA_ERROR"
         val pageUrl: String = "/pageUrl"
-        MockReviewService
+        MockApprovalReviewService
           .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewType2i)
           .returns(Future.successful(Left(StaleDataError)))
 
@@ -576,7 +577,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
       trait ErrorTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         val pageUrl: String = "/pageUrl"
-        MockReviewService
+        MockApprovalReviewService
           .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewType2i)
           .returns(Future.successful(Left(InternalServerError)))
 
@@ -600,7 +601,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       trait ValidTest extends Test {
 
-        MockReviewService
+        MockApprovalReviewService
           .approvalPageComplete("id", "/pageUrl", ReviewType2i, reviewUpdate)
           .returns(Future.successful(Right(())))
 
@@ -622,7 +623,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
     "the request is invalid" should {
 
       trait InvalidTest extends Test {
-        MockReviewService
+        MockApprovalReviewService
           .approvalPageComplete("id", "/pageUrl", ReviewType2i, reviewUpdate)
           .never()
 
@@ -645,7 +646,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       trait NotFoundTest extends Test {
         val expectedErrorCode = "NOT_FOUND"
-        MockReviewService
+        MockApprovalReviewService
           .approvalPageComplete("id", "/pageUrl", ReviewType2i, reviewUpdate)
           .returns(Future.successful(Left(NotFoundError)))
 
@@ -671,7 +672,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       trait ErrorTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
-        MockReviewService
+        MockApprovalReviewService
           .approvalPageComplete("id", "/pageUrl", ReviewType2i, reviewUpdate)
           .returns(Future.successful(Left(InternalServerError)))
 
@@ -701,7 +702,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
     "the request is valid" should {
 
       trait ValidTest extends Test {
-        MockReviewService
+        MockApprovalReviewService
           .approvalReviewInfo(validProcessIdForReview, ReviewTypeFactCheck)
           .returns(Future.successful(Right(processReviewInfo.copy(reviewType = ReviewTypeFactCheck))))
 
@@ -732,7 +733,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       "correctly return an OK response" in new Test {
 
-        MockReviewService
+        MockApprovalReviewService
           .factCheckComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Right(auditInfo)))
 
@@ -744,7 +745,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       "correctly return a BAD_REQUEST if the response contains an invalid process" in new Test {
 
-        MockReviewService
+        MockApprovalReviewService
           .factCheckComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(BadRequestError)))
 
@@ -758,7 +759,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
     "the request is invalid" should {
 
       "corectly return a bad request response" in new Test {
-        MockReviewService
+        MockApprovalReviewService
           .factCheckComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(BadRequestError)))
           .never()
@@ -775,7 +776,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       "return an not found response" in new Test {
         val expectedErrorCode = "NOT_FOUND"
-        MockReviewService
+        MockApprovalReviewService
           .factCheckComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(NotFoundError)))
 
@@ -792,7 +793,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       "return a stale data error response" in new Test {
         val expectedErrorCode = "STALE_DATA_ERROR"
-        MockReviewService
+        MockApprovalReviewService
           .factCheckComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(StaleDataError)))
 
@@ -810,7 +811,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       "return a internal server error response" in new Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
-        MockReviewService
+        MockApprovalReviewService
           .factCheckComplete(validProcessIdForReview, statusChangeInfo)
           .returns(Future.successful(Left(InternalServerError)))
 
@@ -832,7 +833,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
         val pageUrl: String = "/pageUrl"
         val pageReview: ApprovalProcessPageReview = ApprovalProcessPageReview("2", pageUrl, "title", Some("result2"))
 
-        MockReviewService
+        MockApprovalReviewService
           .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewTypeFactCheck)
           .returns(Future.successful(Right(pageReview)))
 
@@ -850,7 +851,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
       "return an not found response" in new Test {
         val expectedErrorCode = "STALE_DATA_ERROR"
         val pageUrl: String = "/pageUrl"
-        MockReviewService
+        MockApprovalReviewService
           .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewTypeFactCheck)
           .returns(Future.successful(Left(StaleDataError)))
 
@@ -870,7 +871,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
     "the request is valid" should {
 
       "return a NO_CONTENT response" in new Test {
-        MockReviewService
+        MockApprovalReviewService
           .approvalPageComplete("id", "/pageUrl", ReviewTypeFactCheck, reviewUpdate)
           .returns(Future.successful(Right(())))
 

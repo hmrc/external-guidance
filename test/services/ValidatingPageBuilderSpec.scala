@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -268,7 +268,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
         "end" -> EndStanza
       )
       val process = processWithLinks.copy(flow = flow)
-      
+
       pageBuilder.pagesWithValidation(process) match {
         case Right(pages) => fail(s"Attempt to parse page with unsupported page redirect succeeded")
         case Left(List(AllFlowsMustContainMultiplePages("5"), PageOccursInMultiplSequenceFlows("5"))) => succeed

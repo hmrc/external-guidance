@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import models.errors.OcelotError
 import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
-import services.ReviewService
+import services.ApprovalReviewService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import models.Constants._
 import play.api.Logger
@@ -35,7 +35,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class ProcessReviewController @Inject() (
   factCheckerAction: FactCheckerAction,
   twoEyeReviewerAction: TwoEyeReviewerAction,
-  reviewService: ReviewService,
+  reviewService: ApprovalReviewService,
   cc: ControllerComponents
 )(implicit ec: ExecutionContext) extends BackendController(cc) {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,12 +38,13 @@ import core.models.MongoDateTimeFormats.Implicits._
 
 //$COVERAGE-OFF$
 trait PublishedRepository {
-  def save(id: String, user: String, processCode: String, process: JsObject): Future[RequestOutcome[String]]
+  def save(id: String, user: String, processCode: String, process: JsObject, version: Int): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[PublishedProcess]]
   def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]]
   def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]]
   def delete(id: String): Future[RequestOutcome[Unit]]
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]]
+  def list(): Future[RequestOutcome[List[PublishedProcess]]]
 }
 
 @Singleton
@@ -64,13 +65,13 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
   val logger: Logger = Logger(getClass)
   override lazy val requiresTtlIndex = false
 
-  def save(id: String, user: String, processCode: String, process: JsObject): Future[RequestOutcome[String]] = {
+  def save(id: String, user: String, processCode: String, process: JsObject, version: Int): Future[RequestOutcome[String]] = {
 
     logger.warn(s"Saving process $id to collection published")
 
     val selector = equal("_id", id)
     val modifier = combine(
-      inc("version",1),
+      set("version", version),
       set("process", Codecs.toBson(process)),
       set("publishedBy", user),
       set("processCode", processCode),
@@ -181,6 +182,21 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
       .recover {
         case error =>
           logger.error(s"Attempt to retrieve published process summaries failed with error : ${error.getMessage}")
+          Left(DatabaseError)
+      }
+  def list(): Future[RequestOutcome[List[PublishedProcess]]] =
+    collection
+      .withReadPreference(ReadPreference.primaryPreferred())
+      .find()
+      .collect()
+      .toFutureOption()
+      .map {
+        case None => Right(Nil)
+        case Some(published) => Right(published.toList)
+      }
+      .recover {
+        case error =>
+          logger.error(s"Attempt to retrieve list of processes from collection $collectionName failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
   //$COVERAGE-ON$
