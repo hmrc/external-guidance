@@ -20,8 +20,6 @@ import javax.inject.{Inject, Singleton}
 import play.api.Configuration
 import play.api.Logging
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import scala.util.{Try, Success}
-import scala.concurrent.duration.{Duration, MINUTES, FiniteDuration}
 
 trait AppConfig {
 
@@ -36,22 +34,11 @@ trait AppConfig {
   val fakeWelshInUnauthenticatedGuidance: Boolean
   val seedTimescales: Map[String, Int]
   val passphraseHashKey: String
-  val enableDataMigration: Boolean
-  val serviceLockDuration: FiniteDuration
   val includeAllPublishedInReviewList: Boolean
 }
 
 @Singleton
 class AppConfigImpl @Inject() (config: Configuration, servicesConfig: ServicesConfig) extends Logging with AppConfig {
-
-  private final def getFiniteDuration(config: Configuration, key: String): FiniteDuration =
-    Try(Duration.create(config.get[String](key))) match {
-      case Success(fd: FiniteDuration) => fd
-      case _ =>
-        logger.error(s"Unable to read configuration for FiniteDuration key $key")
-        FiniteDuration(5, MINUTES)
-    }
-
   lazy val scratchExpiryHour: Int = servicesConfig.getInt("mongodb.scratchExpiryHour")
   lazy val scratchExpiryMinutes: Int = servicesConfig.getInt("mongodb.scratchExpiryMinutes")
   lazy val scratchExpiryTZ: String = servicesConfig.getString("mongodb.scratchExpiryTZ")
@@ -63,8 +50,6 @@ class AppConfigImpl @Inject() (config: Configuration, servicesConfig: ServicesCo
   lazy val fakeWelshInUnauthenticatedGuidance: Boolean = config.getOptional[Boolean]("welsh-guidance-text.fake-when-unauthenticated").getOrElse(false)
   lazy val seedTimescales: Map[String, Int] = config.get[Map[String, Int]]("seed-timescales")
   lazy val passphraseHashKey: String = config.get[String]("passphrase-hashkey")
-  lazy val serviceLockDuration: FiniteDuration = getFiniteDuration(config, "data-migration.lock-duration")
-  lazy val enableDataMigration: Boolean = config.get[Boolean]("data-migration.enable")
   lazy val includeAllPublishedInReviewList: Boolean =
     config.getOptional[Boolean]("approvals-list.include-all-published").getOrElse(false)
 }

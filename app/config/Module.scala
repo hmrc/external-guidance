@@ -17,12 +17,9 @@
 package config
 
 import core.services.{DefaultTodayProvider, TodayProvider}
-import migrate.services.{MigrateData,  DataMigrationService}
 import com.google.inject.AbstractModule
 import controllers.actions._
 import repositories._
-import migrate.repositories._
-import migrate.services.{ServiceLock, ServiceLockImpl}
 
 class Module extends AbstractModule {
 
@@ -30,17 +27,13 @@ class Module extends AbstractModule {
     bind(classOf[AppConfig]).to(classOf[AppConfigImpl])
     bind(classOf[PublishedRepository]).to(classOf[PublishedRepositoryImpl])
     bind(classOf[ScratchRepository]).to(classOf[ScratchRepositoryImpl])
-    bind(classOf[ApprovalRepository]).to(classOf[ApprovalRepositoryImpl])
     bind(classOf[ApprovalsRepository]).to(classOf[ApprovalsRepositoryImpl])
     bind(classOf[ArchiveRepository]).to(classOf[ArchiveRepositoryImpl])
     bind(classOf[TimescalesRepository]).to(classOf[TimescalesRepositoryImpl])
-    bind(classOf[ApprovalProcessReviewRepository]).to(classOf[ApprovalProcessReviewRepositoryImpl])
     bind(classOf[AllRolesAction]).to(classOf[AllRolesAuthenticatedAction])
     bind(classOf[FactCheckerAction]).to(classOf[FactCheckerAuthenticatedAction])
     bind(classOf[TwoEyeReviewerAction]).to(classOf[TwoEyeReviewerAuthenticatedAction])
     bind(classOf[TodayProvider]).to(classOf[DefaultTodayProvider])
-    bind(classOf[MigrateData]).to(classOf[DataMigrationService]).asEagerSingleton()
-    bind(classOf[ServiceLock]).to(classOf[ServiceLockImpl])
   }
 }
 
