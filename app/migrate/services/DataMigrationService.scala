@@ -16,21 +16,18 @@
 
 package migrate.services
 
-import cats.data.EitherT
-import cats.implicits._
-import java.time.ZonedDateTime
 import play.api.Logging
 import config.AppConfig
 import models._
 import migrate.models._
 import migrate.repositories._
+import play.api.libs.json._
 import repositories._
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{Future, ExecutionContext}
-import models.Approval
 import core.models.RequestOutcome
 import core.models.ocelot.Process
-import play.api.libs.json.JsSuccess
+import core.models.errors.{InvalidProcessError, NotFoundError}
 
 trait MigrateData
 
@@ -39,90 +36,72 @@ class DataMigrationService @Inject()(
   serviceLock: ServiceLock,
   appConfig: AppConfig,
   approvalRespository: ApprovalRepository,
-  approvalReviewRepository: ApprovalProcessReviewRepository,
+  publishedRepository: PublishedRepository,
   approvalsRepository: ApprovalsRepository
 )(implicit ec: ExecutionContext) extends Logging with MigrateData {
+  val processIds: List[String] =
+    List(
+      "ext90193",
+      "ext90195",
+      "ext90228",
+      "ext90209",
+      "ext90184",
+      "ext90179",
+      "ext90203",
+      "ext90107",
+      "ext90064",
+      "ext90005",
+      "ext90111",
+      "ext90224"
+    )
 
-  private def migrationRequired(): Future[RequestOutcome[Boolean]] =
-    approvalsRepository.processSummaries().map{
-      case Right(Nil) => Right(true)
-      case Right(_) => Right(false)
-      case Left(err) => Left(err)
-    }
+  private def approval(pid: String): Future[RequestOutcome[ApprovalProcess]] =
+    approvalRespository.byId(pid)
 
-  private def repairApproval(ap: Approval): Approval = {
-    ap.process.validate[Process] match {
-      case JsSuccess(process, _) =>
-        val newMeta = ap.meta.copy(
-                        ocelotDateSubmitted = process.meta.lastUpdate,
-                        ocelotVersion = process.meta.version
-                      )
-        ap.copy(meta = newMeta)
-      case _ => ap
-    }
-  }
+  private def published(pid: String): Future[RequestOutcome[PublishedProcess]] =
+    publishedRepository.getById(pid)
 
-  private def createApproval(ap: ApprovalProcess, ar: ApprovalProcessReview): Future[RequestOutcome[String]] = {
-    val approval = Approval(ap.id, ap.meta,
-                            ApprovalReview(ar.pages, ar.lastUpdated, ar.result, ar.completionDate, ar.completionUser),
-                            ap.process)
-    approvalsRepository.createOrUpdate(repairApproval(approval)).map{
-      case Right(id) => Right(id)
-      case Left(err) =>
-        logger.error(s"Unable to create new approval for process ${ap.id}, error = $err")
-        Left(err)
-    }
-  }
+  private def toProcess(jsObj: JsObject): Option[Process] =
+    jsObj.validate[Process].fold(_ => None, process => Some(process))
 
-  private def review(id: String, version: Int, reviewType: String): Future[RequestOutcome[ApprovalProcessReview]] =
-    approvalReviewRepository.getByIdVersionAndType(id, version, reviewType).map{
-      case Right(review) => Right(review)
-      case Left(err) =>
-        logger.error(s"No review found for process $id, version $version, reviewType $reviewType")
-        Left(err)
-     }
-
-  private def migrateData(): Future[RequestOutcome[Unit]] =
-    approvalRespository.list().flatMap{
-      case Left(err) =>
-        logger.error(s"Unable to retrieve list of AprovalProcess, error = $err")
-        Future.successful(Left(err))
-      case Right(approvals) =>
-        approvals.map{app =>
-          for{
-            review <- EitherT(review(app.id, app.version, app.meta.reviewType))
-            result <- EitherT(createApproval(app, review))
-          } yield result
-        }.traverse(_.value).map{outcomes =>
-          val successes: List[String] = outcomes.collect{case Right(id) => id}
-          val failureCount: Int = outcomes.collect{case Left(_) => 1}.toList.length
-          logger.warn(s"Following processes migrated sucessfully: ${successes.mkString(", ")}")
-          logger.warn(s"${failureCount} processes failed to migrate (See log)")
-          Right(())
-        }
-    }
+  def dataCheck2(): Future[List[RequestOutcome[Unit]]] =
+    Future.sequence(processIds.map{ pid =>
+      approval(pid).flatMap{
+        case Right(app) =>
+          toProcess(app.process).fold[Future[RequestOutcome[Unit]]](Future.successful(Left(NotFoundError))){appProcess =>
+            published(pid).flatMap{
+              case Right(pub) =>
+                toProcess(pub.process).fold[Future[RequestOutcome[Unit]]]{
+                  logger.warn(s"Unable to parse published process $pid")
+                  Future.successful(Left(InvalidProcessError))
+                }{ pubProcess =>
+                  logger.warn(s"Process $pid, App version:${appProcess.meta.version}, stat:${app.meta.status}, sub:${app.meta.dateSubmitted}" +
+                              s" mod:${app.meta.lastModified}, Pub version ${pubProcess.meta.version}, pub:${pub.datePublished}")
+                  Future.successful(Right(()))
+                }
+              case Left(err) =>
+                logger.warn(s"Process $pid, App version:${appProcess.meta.version}, stat:${app.meta.status}, mod:${app.meta.lastModified}")
+                logger.warn(s"Unable to find published process $pid")
+                Future.successful(Left(NotFoundError))
+            }
+          }
+        case Left(err) => Future.successful(Left(err))
+      }
+    })
 
   if (appConfig.enableDataMigration) {
-    logger.warn(s"Data migration lock claim")
-    serviceLock.lock("DataMigration").map{lockOption =>
+    logger.warn(s"Start-up lock claim")
+    serviceLock.lock("Start-up").map{lockOption =>
       lockOption.fold{
-        logger.warn(s"Migration lock already taken")
-      }{lock =>
-        logger.warn(s"Starting Data migration check")
-        migrationRequired().flatMap{
-          case Right(true) =>
-            logger.warn(s"Data Migration: Started at ${ZonedDateTime.now}")
-            migrateData().map{_ =>
-              logger.warn(s"Data Migration: Finished at ${ZonedDateTime.now}")
-              Right(())
-            }
-          case Right(_) =>
-            logger.warn(s"Data Migration: Not required")
-            Future.successful(Right(()))
-          case Left(err) =>
-            logger.error(s"Unable to determine whether data migration is possible or necessary")
-            Future.successful(Left(err))
-        }.map(_ => serviceLock.unlock(lock.owner))
+        logger.warn(s"Start-up lock already taken")
+      }{lock => {
+        logger.warn(s"Starting Data check")
+        dataCheck2()
+        }.map(_ => {
+          logger.warn(s"Data check complete")
+          serviceLock.unlock(lock.owner)
+        }
+        )
       }
     }
   }

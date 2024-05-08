@@ -17,7 +17,7 @@
 package migrate.repositories
 
 import core.models.RequestOutcome
-import core.models.errors.DatabaseError
+import core.models.errors.{NotFoundError, DatabaseError}
 import migrate.models._
 import play.api.Logger
 import org.mongodb.scala._
@@ -33,6 +33,7 @@ import org.mongodb.scala.model.Filters._
 
 trait ApprovalRepository {
   def list(): Future[RequestOutcome[List[ApprovalProcess]]]
+  def byId(pid: String): Future[RequestOutcome[ApprovalProcess]]
 }
 
 @Singleton
@@ -72,6 +73,20 @@ class ApprovalRepositoryImpl @Inject()(component: MongoComponent)(implicit ec: E
           Left(DatabaseError)
       }
 
+  def byId(pid: String): Future[RequestOutcome[ApprovalProcess]] =
+    collection
+      .withReadPreference(ReadPreference.primaryPreferred())
+      .find(equal("_id", pid))
+      .headOption()
+      .map {
+        case None => Left(NotFoundError)
+        case Some(approvalProcess) => Right(approvalProcess)
+      }
+      .recover {
+        case error =>
+          logger.error(s"Attempt to retrieve process $pid from collection $collectionName failed with error : ${error.getMessage}")
+          Left(DatabaseError)
+      }
 
  //$COVERAGE-ON$
 }
