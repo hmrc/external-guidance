@@ -16,7 +16,6 @@
 
 package migrate.services
 
-import config.AppConfig
 import javax.inject.{Inject, Singleton}
 import play.api.Logging
 import uk.gov.hmrc.mongo._
@@ -25,7 +24,8 @@ import cats.data.OptionT
 import cats.implicits._
 
 @Singleton
-class DatabaseCleanupService @Inject() (component: MongoComponent)(implicit ec: ExecutionContext, val appConfig: AppConfig) extends Logging {
+class DatabaseCleanupService @Inject() (component: MongoComponent)(implicit ec: ExecutionContext) extends Logging {
+
   private def dropCollection(name: String): Future[Option[Unit]] =
     component.database.getCollection(name).drop().headOption().map{outcome =>
       outcome.fold(logger.warn(s"Collection $name either does not exist or could not be dropped"))(_ => logger.warn(s"Collection $name sucessfully dropped"))
