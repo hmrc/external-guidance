@@ -40,7 +40,7 @@ trait ApprovalProcessJson {
   val approvalProcessWithValidProcess = approvalProcess.copy(process = process90087Json)
 
   val approvalProcessSummary: ApprovalProcessSummary =
-    ApprovalProcessSummary(validId, "This is the title", dateSubmitted, StatusSubmittedFor2iReview, ReviewType2i)
+    ApprovalProcessSummary(validId, "This is the title", dateSubmitted, StatusSubmittedFor2iReview, ReviewType2i, 1)
 
   val processSummary: ProcessSummary = ProcessSummary(validId, "process-code", 1, "Author", None, dateTimeSubmitted, "Blah", "InProgress")
 

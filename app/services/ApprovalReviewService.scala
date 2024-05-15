@@ -100,9 +100,8 @@ class ApprovalReviewService @Inject() (
         publishedRepository.list().map {
           case Left(err) => Left(err)
           case Right(published) =>
-            val approvalIds = approvals.map(_.id)
-            val publishedToInclude = published.filter(p => appConfig.includeAllPublishedInReviewList || !approvalIds.contains(p.id)).map { p =>
-              ApprovalProcessSummary(p.id, p.process.validate[Process].fold(_ => "", _.meta.title), p.datePublished.toLocalDate, "Published", "2i-review")
+            val publishedToInclude = published.map { p =>
+              ApprovalProcessSummary(p.id, p.process.validate[Process].fold(_ => "", _.meta.title), p.datePublished.toLocalDate, "Published", "2i-review", p.version)
             }
             Right(Json.toJson(approvals ++ publishedToInclude))
           }
