@@ -191,7 +191,7 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(implicit appC
       .map {
         case None => Right(Nil)
         case Some(approvals) =>
-          Right(approvals.map(doc => ApprovalProcessSummary(doc.meta.id, doc.meta.title, doc.meta.lastModified.toLocalDate, doc.meta.status, doc.meta.reviewType)).toList)
+          Right(approvals.map(doc => ApprovalProcessSummary(doc.meta.id, doc.meta.title, doc.meta.lastModified.toLocalDate, doc.meta.status, doc.meta.reviewType, doc.meta.ocelotVersion)).toList)
       }
       .recover {
         case error =>
