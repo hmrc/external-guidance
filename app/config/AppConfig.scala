@@ -34,7 +34,6 @@ trait AppConfig {
   val fakeWelshInUnauthenticatedGuidance: Boolean
   val seedTimescales: Map[String, Int]
   val passphraseHashKey: String
-  val includeAllPublishedInReviewList: Boolean
 }
 
 @Singleton
@@ -50,6 +49,4 @@ class AppConfigImpl @Inject() (config: Configuration, servicesConfig: ServicesCo
   lazy val fakeWelshInUnauthenticatedGuidance: Boolean = config.getOptional[Boolean]("welsh-guidance-text.fake-when-unauthenticated").getOrElse(false)
   lazy val seedTimescales: Map[String, Int] = config.get[Map[String, Int]]("seed-timescales")
   lazy val passphraseHashKey: String = config.get[String]("passphrase-hashkey")
-  lazy val includeAllPublishedInReviewList: Boolean =
-    config.getOptional[Boolean]("approvals-list.include-all-published").getOrElse(false)
 }
