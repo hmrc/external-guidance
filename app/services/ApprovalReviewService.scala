@@ -96,7 +96,7 @@ class ApprovalReviewService @Inject() (
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[JsValue]] =
     repository.approvalSummaryList(roles).flatMap {
       case Left(err) => Future.successful(Left(err))
-      case Right(approvals) if roles.contains("2iReviewer") || roles.contains("Designer") =>
+      case Right(approvals) if roles.contains(appConfig.twoEyeReviewerRole) || roles.contains(appConfig.designerRole) =>
         publishedRepository.list().map {
           case Left(err) => Left(err)
           case Right(published) =>
