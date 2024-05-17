@@ -20,7 +20,6 @@ import core.services.{DefaultTodayProvider, TodayProvider}
 import com.google.inject.AbstractModule
 import controllers.actions._
 import repositories._
-import migrate.services.DatabaseCleanupService
 
 class Module extends AbstractModule {
 
@@ -35,7 +34,6 @@ class Module extends AbstractModule {
     bind(classOf[FactCheckerAction]).to(classOf[FactCheckerAuthenticatedAction])
     bind(classOf[TwoEyeReviewerAction]).to(classOf[TwoEyeReviewerAuthenticatedAction])
     bind(classOf[TodayProvider]).to(classOf[DefaultTodayProvider])
-    bind(classOf[DatabaseCleanupService]).asEagerSingleton()
   }
 }
 
