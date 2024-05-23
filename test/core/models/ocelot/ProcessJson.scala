@@ -85,7 +85,8 @@ trait ProcessJson {
       |    ["Customer wants to make a cup of tea", "Welsh: Customer wants to make a cup of tea"]
       |  ],
       |  "links": [],
-      |  "timescales": {}
+      |  "timescales": {},
+      |  "rates": {}
       |}
     """.stripMargin
   )
