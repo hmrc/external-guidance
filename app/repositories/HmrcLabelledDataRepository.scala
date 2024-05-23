@@ -70,13 +70,13 @@ class HmrcLabelledDataRepositoryImpl @Inject() (component: MongoComponent, appCo
       .toFutureOption()
       .map{
         case None =>
-          logger.error(s"Failed to find and update/insert LabelledData")
+          logger.error(s"Failed to update/insert LabelledData")
           Left(DatabaseError)
-        case Some(tsUpdate) => Right(tsUpdate)
+        case Some(labelledData) => Right(labelledData)
       }
       .recover {
         case e =>
-          logger.warn(s"Failed to save LabelledData due to error, ${e.getMessage}")
+          logger.warn(s"Failed to update/insert LabelledData due to error, ${e.getMessage}")
           Left(DatabaseError)
       }
 
@@ -86,7 +86,7 @@ class HmrcLabelledDataRepositoryImpl @Inject() (component: MongoComponent, appCo
       .headOption()
       .map {
         case None => Left(NotFoundError)
-        case Some(tsUpdate) => Right(tsUpdate)
+        case Some(labelledData) => Right(labelledData)
       }
       .recover {
         case e =>
