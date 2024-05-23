@@ -22,22 +22,22 @@ import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.JsValue
 import java.time.Instant
 import models.{LabelledData, LabelledDataId}
-import repositories.HmrcLabelledDataRepository
+import repositories.LabelledDataRepository
 
 import scala.concurrent.Future
 
-trait MockHmrcLabelledRepository extends MockFactory {
-  val mockHmrcLabelledRepository: HmrcLabelledDataRepository = mock[HmrcLabelledDataRepository]
+trait MockLabelledDataRepository extends MockFactory {
+  val mockLabelledDataRepository: LabelledDataRepository = mock[LabelledDataRepository]
 
-  object MockHmrcLabelledRepository {
+  object MockLabelledDataRepository {
 
     def save(id: LabelledDataId, data: JsValue, when: Instant, credId: String, user: String, email: String): CallHandler[Future[RequestOutcome[LabelledData]]] =
-      (mockHmrcLabelledRepository
+      (mockLabelledDataRepository
         .save(_: LabelledDataId, _: JsValue, _: Instant, _: String, _: String, _: String))
         .expects(id, data, *, credId, user, email)
 
     def get(id: LabelledDataId): CallHandler[Future[RequestOutcome[LabelledData]]] =
-      (mockHmrcLabelledRepository
+      (mockLabelledDataRepository
         .get(_: LabelledDataId))
         .expects(id)
     }

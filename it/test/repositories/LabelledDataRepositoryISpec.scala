@@ -21,11 +21,11 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest._
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits, Injecting}
-import data.ExampleHmrcLabelledData
+import data.ExampleLabelledData
 import java.time.Instant
 import models._
 
-class HmrcLabelledDataRepositoryISpec
+class LabelledDataRepositoryISpec
     extends AnyWordSpec
     with Matchers
     with FutureAwaits
@@ -38,9 +38,9 @@ class HmrcLabelledDataRepositoryISpec
   val credId: String = "12345566"
   val user: String = "Someone"
   val email: String = s"$user@blah.com"
-  val rates: LabelledData = LabelledData(Rates, ExampleHmrcLabelledData.rates, now, credId, user, email)
-  val timescales: LabelledData = LabelledData(Timescales, ExampleHmrcLabelledData.timescales, now, credId, user, email)
-  lazy val repository: HmrcLabelledDataRepositoryImpl = inject[HmrcLabelledDataRepositoryImpl]
+  val rates: LabelledData = LabelledData(Rates, ExampleLabelledData.rates, now, credId, user, email)
+  val timescales: LabelledData = LabelledData(Timescales, ExampleLabelledData.timescales, now, credId, user, email)
+  lazy val repository: LabelledDataRepositoryImpl = inject[LabelledDataRepositoryImpl]
 
   override def beforeAll(): Unit = {
     super.beforeAll()
@@ -48,7 +48,7 @@ class HmrcLabelledDataRepositoryISpec
     await(repository.save(timescales.id, timescales.data, timescales.when, timescales.credId, timescales.user, timescales.email))
   }
 
-  "HmrcLabelledRepository" when {
+  "LabelledDataRepository" when {
     "Rates and Timescales records exist" when {
 
       "get Rates" must {

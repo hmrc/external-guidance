@@ -34,13 +34,13 @@ import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import core.models.MongoDateTimeFormats.Implicits._
 
 //$COVERAGE-OFF$
-trait HmrcLabelledDataRepository {
+trait LabelledDataRepository {
   def save(id: LabelledDataId, data: JsValue, when: Instant, credId: String, user: String, email: String): Future[RequestOutcome[LabelledData]]
   def get(id: LabelledDataId): Future[RequestOutcome[LabelledData]]
 }
 
 @Singleton
-class HmrcLabelledDataRepositoryImpl @Inject() (component: MongoComponent, appConfig: AppConfig)(implicit ec: ExecutionContext)
+class LabelledDataRepositoryImpl @Inject() (component: MongoComponent, appConfig: AppConfig)(implicit ec: ExecutionContext)
     extends PlayMongoRepository[LabelledData](
       collectionName = "labelledData",
       mongoComponent = component,
@@ -48,7 +48,7 @@ class HmrcLabelledDataRepositoryImpl @Inject() (component: MongoComponent, appCo
       extraCodecs = Seq(Codecs.playFormatCodec(mdInstantFormat)),
       indexes = Seq.empty
     )
-    with HmrcLabelledDataRepository {
+    with LabelledDataRepository {
   val logger: Logger = Logger(getClass)
   override lazy val requiresTtlIndex: Boolean = false
 
