@@ -20,8 +20,8 @@ import core.models.RequestOutcome
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.JsValue
-import java.time.ZonedDateTime
-import models.LabelledData
+import java.time.Instant
+import models.{LabelledData, LabelledDataId}
 import repositories.HmrcLabelledDataRepository
 
 import scala.concurrent.Future
@@ -31,14 +31,14 @@ trait MockHmrcLabelledRepository extends MockFactory {
 
   object MockHmrcLabelledRepository {
 
-    def save(id: String, data: JsValue, when: ZonedDateTime, credId: String, user: String, email: String): CallHandler[Future[RequestOutcome[LabelledData]]] =
+    def save(id: LabelledDataId, data: JsValue, when: Instant, credId: String, user: String, email: String): CallHandler[Future[RequestOutcome[LabelledData]]] =
       (mockHmrcLabelledRepository
-        .save(_: String, _: JsValue, _: ZonedDateTime, _: String, _: String, _: String))
+        .save(_: LabelledDataId, _: JsValue, _: Instant, _: String, _: String, _: String))
         .expects(id, data, *, credId, user, email)
 
-    def get(id: String): CallHandler[Future[RequestOutcome[LabelledData]]] =
+    def get(id: LabelledDataId): CallHandler[Future[RequestOutcome[LabelledData]]] =
       (mockHmrcLabelledRepository
-        .get(_: String))
+        .get(_: LabelledDataId))
         .expects(id)
     }
 }

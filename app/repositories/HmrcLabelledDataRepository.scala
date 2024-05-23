@@ -17,28 +17,26 @@
 package repositories
 
 import javax.inject.{Inject, Singleton}
-import java.time.ZonedDateTime
+import java.time.Instant
 import core.models.errors.{DatabaseError, NotFoundError}
 import core.models.RequestOutcome
 import play.api.libs.json.JsValue
 import play.api.Logger
 import config.AppConfig
-
 import scala.concurrent.{ExecutionContext, Future}
-import models.LabelledData
+import models.{LabelledDataId, LabelledData}
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import core.models.MongoDateTimeFormats.zonedDateTimeFormat
 import core.models.MongoDateTimeFormats.Implicits._
 
 //$COVERAGE-OFF$
 trait HmrcLabelledDataRepository {
-  def save(id: String, data: JsValue, when: ZonedDateTime, credId: String, user: String, email: String): Future[RequestOutcome[LabelledData]]
-  def get(id: String): Future[RequestOutcome[LabelledData]]
+  def save(id: LabelledDataId, data: JsValue, when: Instant, credId: String, user: String, email: String): Future[RequestOutcome[LabelledData]]
+  def get(id: LabelledDataId): Future[RequestOutcome[LabelledData]]
 }
 
 @Singleton
@@ -47,20 +45,20 @@ class HmrcLabelledDataRepositoryImpl @Inject() (component: MongoComponent, appCo
       collectionName = "labelledData",
       mongoComponent = component,
       domainFormat = LabelledData.format,
-      extraCodecs = Seq(Codecs.playFormatCodec(zonedDateTimeFormat)),
+      extraCodecs = Seq(Codecs.playFormatCodec(mdInstantFormat)),
       indexes = Seq.empty
     )
     with HmrcLabelledDataRepository {
   val logger: Logger = Logger(getClass)
   override lazy val requiresTtlIndex: Boolean = false
 
-  def save(id: String, data: JsValue, when: ZonedDateTime, credId: String, user: String, email: String): Future[RequestOutcome[LabelledData]] =
+  def save(id: LabelledDataId, data: JsValue, when: Instant, credId: String, user: String, email: String): Future[RequestOutcome[LabelledData]] =
     collection
       .findOneAndUpdate(
-        equal("_id", id),
+        equal("_id", id.toString()),
         combine(
           set("data", Codecs.toBson(data)),
-          set("when", Codecs.toBson(when.toInstant)),
+          set("when", Codecs.toBson(when)),
           set("credId", credId),
           set("user", user),
           set("email", email)
@@ -82,9 +80,9 @@ class HmrcLabelledDataRepositoryImpl @Inject() (component: MongoComponent, appCo
           Left(DatabaseError)
       }
 
-  def get(id: String): Future[RequestOutcome[LabelledData]] =
+  def get(id: LabelledDataId): Future[RequestOutcome[LabelledData]] =
     collection
-      .find(equal("_id", id))
+      .find(equal("_id", id.toString()))
       .headOption()
       .map {
         case None => Left(NotFoundError)

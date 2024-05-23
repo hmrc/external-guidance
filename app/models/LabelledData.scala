@@ -16,25 +16,48 @@
 
 package models
 
-import java.time.ZonedDateTime
+import java.time.Instant
 import play.api.libs.json.{__, _}
 import play.api.libs.functional.syntax._
+
 import core.models.MongoDateTimeFormats.Implicits._
 
-case class LabelledData(labelledData: JsValue, when: ZonedDateTime, credId: String, user: String, email: String)
+sealed trait LabelledDataId
+
+case object Timescales extends LabelledDataId
+case object Rates extends LabelledDataId
+
+object LabelledDataId {
+  val reads: Reads[LabelledDataId] = {
+    case JsString("Timescales") => JsSuccess(Timescales, __)
+    case JsString("Rates") => JsSuccess(Rates, __)
+    case unknown => JsError(JsonValidationError(Seq("LabelledDataId"), unknown.toString))
+  }
+
+  val writes: Writes[LabelledDataId] = {
+    case Timescales => Json.toJson("Timescales")
+    case Rates => Json.toJson("Rates")
+  }
+
+  implicit val formats: Format[LabelledDataId] = Format(reads, writes)
+}
+
+case class LabelledData(id: LabelledDataId, data: JsValue, when: Instant, credId: String, user: String, email: String)
 
 object LabelledData {
 
   implicit val reads: Reads[LabelledData] =
-    ((__ \ "timescales").read[JsValue] and
-      (__ \ "when").read[ZonedDateTime] and
+    ((__ \ "_id").read[LabelledDataId] and
+      (__ \ "data").read[JsValue] and
+      (__ \ "when").read[Instant] and
       (__ \ "credId").read[String] and
       (__ \ "user").read[String] and
       (__ \ "email").read[String])(LabelledData.apply _)
 
   implicit val writes: OWrites[LabelledData] =
-    ((__ \ "timescales").write[JsValue] and
-        (__ \ "when").write[ZonedDateTime] and
+    ((__ \ "_id").write[LabelledDataId] and
+        (__ \ "data").write[JsValue] and
+        (__ \ "when").write[Instant] and
         (__ \ "credId").write[String] and
         (__ \ "user").write[String] and
         (__ \ "email").write[String]
