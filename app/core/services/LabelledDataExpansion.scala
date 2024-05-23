@@ -18,6 +18,6 @@ package core.services
 
 import core.models.ocelot.Process
 
-trait HmrcLabelledDataExpansion{
+trait LabelledDataExpansion{
   def expand(text: String, process: Process): String
 }
