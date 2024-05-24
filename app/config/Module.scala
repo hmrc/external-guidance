@@ -30,6 +30,7 @@ class Module extends AbstractModule {
     bind(classOf[ApprovalsRepository]).to(classOf[ApprovalsRepositoryImpl])
     bind(classOf[ArchiveRepository]).to(classOf[ArchiveRepositoryImpl])
     bind(classOf[TimescalesRepository]).to(classOf[TimescalesRepositoryImpl])
+    bind(classOf[LabelledDataRepository]).to(classOf[LabelledDataRepositoryImpl])
     bind(classOf[AllRolesAction]).to(classOf[AllRolesAuthenticatedAction])
     bind(classOf[FactCheckerAction]).to(classOf[FactCheckerAuthenticatedAction])
     bind(classOf[TwoEyeReviewerAction]).to(classOf[TwoEyeReviewerAuthenticatedAction])
