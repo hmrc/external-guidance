@@ -22,10 +22,10 @@ import core.models.ocelot.errors._
 import play.api.Logger
 import scala.annotation.tailrec
 
-abstract class ProcessPopulation(timescaleExpansion: TimescaleExpansion) {
+abstract class ProcessPopulation(labelledDataExpansion: LabelledDataExpansion) {
   val logger: Logger
 
-  import timescaleExpansion._
+  import labelledDataExpansion._
 
   def stanza(id: String, process: Process): Either[GuidanceError, PopulatedStanza] =
     process.flow.get(id) match {
@@ -89,13 +89,13 @@ abstract class ProcessPopulation(timescaleExpansion: TimescaleExpansion) {
       case i: InputStanza => populateInput(i)
       case c: CalloutStanza => phrase(c.text, id, process).fold(Left(_), text => Right(Callout(c, text)))
       case c: ChoiceStanza =>
-        Right(Choice(c.copy(tests = c.tests.map(t => t.copy(left = expand(t.left, process.timescales),
-                                                            right = expand(t.right, process.timescales))))))
+        Right(Choice(c.copy(tests = c.tests.map(t => t.copy(left = expand(t.left, process),
+                                                            right = expand(t.right, process))))))
       case c: CalculationStanza =>
-        Right(Calculation(c.copy(calcs = c.calcs.map(op => op.copy(left = expand(op.left, process.timescales),
-                                                                   right = expand(op.right, process.timescales))))))
+        Right(Calculation(c.copy(calcs = c.calcs.map(op => op.copy(left = expand(op.left, process),
+                                                                   right = expand(op.right, process))))))
       case s: SequenceStanza => populateSequence(s)
-      case vs: ValueStanza => Right(vs.copy(values = vs.values.map(v => v.copy(value = expand(v.value, process.timescales)))))
+      case vs: ValueStanza => Right(vs.copy(values = vs.values.map(v => v.copy(value = expand(v.value, process)))))
       case s: PopulatedStanza => Right(s)
       case u => Left(UnknownStanza(id, u.toString))
     }
@@ -110,9 +110,9 @@ abstract class ProcessPopulation(timescaleExpansion: TimescaleExpansion) {
       case Phrase(english, welsh) if welsh.trim.startsWith("Welsh,") =>
         logger.debug(s"Found obsolete faked Welsh prefix on phrase $english -- $welsh")
         val updatedWelsh = s"Welsh: ${welsh.trim.drop("Welsh, ".length)}"
-        Right(Phrase(expand(english, process.timescales), expand(updatedWelsh, process.timescales)))
+        Right(Phrase(expand(english, process), expand(updatedWelsh, process)))
       case p: Phrase =>
-        Right(Phrase(expand(p.english, process.timescales), expand(p.welsh, process.timescales)))
+        Right(Phrase(expand(p.english, process), expand(p.welsh, process)))
     }
 
   @tailrec
