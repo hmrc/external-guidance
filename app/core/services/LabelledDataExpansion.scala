@@ -21,10 +21,10 @@ import core.models.ocelot.{Phrase, Process}
 
 trait LabelledDataExpansion{
   def expand(text: String, process: Process): String
-  def referencedIds(s: String): List[String]
 
-  def referencedIds(p: Seq[Phrase]): List[String] = p.toList.flatMap(referencedIds)
-  def referencedNonPhraseIds(flow: Map[String, Stanza]): List[String] =
+  private[services] def referencedIds(s: String): List[String]
+  private[services] def referencedIds(p: Seq[Phrase]): List[String] = p.toList.flatMap(referencedIds)
+  private[services] def referencedNonPhraseIds(flow: Map[String, Stanza]): List[String] =
     flow.values.toList.flatMap{
       case s: CalculationStanza => referencedIds(s.calcs.toList.flatMap(c => List(c.left, c .right)))
       case s: ValueStanza => referencedIds(s.values.toList.flatMap(c => List(c.value)))

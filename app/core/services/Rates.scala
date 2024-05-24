@@ -29,11 +29,14 @@ class Rates @Inject() (tp: TodayProvider) extends LabelledDataExpansion {
   private val YearId: Int = 3
   private val RateRegex: Regex = "\\[rate:([^:]+):([^:]+)(?::(\\d\\d\\d\\d))?\\]".r
 
-  def referencedIds(s: String): List[String] = ??? // TimescaleIdUsageRegex.findAllMatchIn(s).toList.flatMap{m =>
-  //   Option(m.group(DateAddTimescaleId)).fold{
-  //     Option(m.group(TimescaleId)).fold(List.empty[String]){id => List(id)}
-  //   }(id => List(id))
-  // }
+  private[services] def referencedIds(s: String): List[String] =
+    RateRegex.findAllMatchIn(s).toList.flatMap{m =>
+      (Option(m.group(SectionId)), Option(m.group(RateId)), Option(m.group(YearId))) match {
+        case (Some(s), Some(r), None) => List(rateId(s, r, tp.now.getYear.toString))
+        case (Some(s), Some(r), Some(y)) => List(rateId(s, r, y))
+        case _ => Nil
+      }
+    }
 
   def expand(str: String, process: Process): String =
     RateRegex.replaceAllIn(str, m => {
