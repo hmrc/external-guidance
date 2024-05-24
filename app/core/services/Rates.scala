@@ -22,8 +22,6 @@ import scala.util.matching.Regex
 
 @Singleton
 class Rates @Inject() (tp: TodayProvider) extends LabelledDataExpansion {
-
-  // Page Analysis
   private val SectionId: Int = 1
   private val RateId: Int = 2
   private val YearId: Int = 3
@@ -32,8 +30,8 @@ class Rates @Inject() (tp: TodayProvider) extends LabelledDataExpansion {
   private[services] def referencedIds(s: String): List[String] =
     RateRegex.findAllMatchIn(s).toList.flatMap{m =>
       (Option(m.group(SectionId)), Option(m.group(RateId)), Option(m.group(YearId))) match {
-        case (Some(s), Some(r), None) => List(rateId(s, r, tp.now.getYear.toString))
-        case (Some(s), Some(r), Some(y)) => List(rateId(s, r, y))
+        case (Some(s), Some(r), None) => List(rateId(s, r))
+        case (Some(s), Some(r), Some(y)) => List(rateId(s, r, Some(y)))
         case _ => Nil
       }
     }
@@ -41,11 +39,11 @@ class Rates @Inject() (tp: TodayProvider) extends LabelledDataExpansion {
   def expand(str: String, process: Process): String =
     RateRegex.replaceAllIn(str, m => {
       (Option(m.group(SectionId)), Option(m.group(RateId)), Option(m.group(YearId))) match {
-        case (Some(s), Some(r), None) => process.rates.get(rateId(s, r, tp.now.getYear.toString)).fold(m.group(0))(_.bigDecimal.toPlainString)
-        case (Some(s), Some(r), Some(y)) => process.rates.get(rateId(s, r, y)).fold(m.group(0))(_.bigDecimal.toPlainString)
+        case (Some(s), Some(r), None)    => process.rates.get(rateId(s, r, Some(tp.now.getYear.toString))).fold(m.group(0))(_.bigDecimal.toPlainString)
+        case (Some(s), Some(r), Some(y)) => process.rates.get(rateId(s, r, Some(y))).fold(m.group(0))(_.bigDecimal.toPlainString)
         case _ => m.group(0)
       }
     })
 
-  private def rateId(s: String, r: String, y: String): String = s"$s-$r-$y"
+  private def rateId(s: String, r: String, y: Option[String] = None): String = y.fold(s"$s-$r")(year => s"$s-$r-$year")
 }
