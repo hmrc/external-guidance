@@ -31,11 +31,12 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService with ProcessJson {
   val encrypter: EncrypterService = new EncrypterService(mockAppConfig)
+  val timescales: Timescales = new Timescales(new DefaultTodayProvider)
+  var rates: Rates = new Rates()
+  val pageBuilder = new PageBuilder(new LabelledData(timescales, rates))
   val service = new ProcessFinalisationService(
                   mockAppConfig,
-                  new ValidatingPageBuilder(
-                            new PageBuilder(new Timescales(new DefaultTodayProvider))
-                          ),
+                  new ValidatingPageBuilder(pageBuilder),
                   mockTimescalesService,
                   encrypter
                 )
@@ -105,8 +106,10 @@ class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService
 
   trait Test extends MockTimescalesService {
     implicit val ec: ExecutionContext = ExecutionContext.global
-    val timescales = new Timescales(new DefaultTodayProvider)
-    val validatingPageBuilder = new ValidatingPageBuilder(new PageBuilder(timescales))
+    val timescales: Timescales = new Timescales(new DefaultTodayProvider)
+    var rates: Rates = new Rates()
+    val pageBuilder = new PageBuilder(new LabelledData(timescales, rates))
+    val validatingPageBuilder = new ValidatingPageBuilder(pageBuilder)
     val processFinalisationService = new ProcessFinalisationService(
                     mockAppConfig,
                     validatingPageBuilder,
