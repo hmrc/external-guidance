@@ -21,7 +21,7 @@ import core.models.ocelot._
 import scala.util.matching.Regex
 
 @Singleton
-class Rates @Inject() (tp: TodayProvider) extends LabelledDataExpansion {
+class Rates @Inject() () extends LabelledDataExpansion {
   private val SectionId: Int = 1
   private val RateId: Int = 2
   private val YearId: Int = 3
@@ -39,8 +39,7 @@ class Rates @Inject() (tp: TodayProvider) extends LabelledDataExpansion {
   def expand(str: String, process: Process): String =
     RateRegex.replaceAllIn(str, m => {
       (Option(m.group(SectionId)), Option(m.group(RateId)), Option(m.group(YearId))) match {
-        case (Some(s), Some(r), None)    => process.rates.get(rateId(s, r, Some(tp.now.getYear.toString))).fold(m.group(0))(_.bigDecimal.toPlainString)
-        case (Some(s), Some(r), Some(y)) => process.rates.get(rateId(s, r, Some(y))).fold(m.group(0))(_.bigDecimal.toPlainString)
+        case (Some(s), Some(r), year) => process.rates.get(rateId(s, r, year)).fold(m.group(0))(_.bigDecimal.toPlainString)
         case _ => m.group(0)
       }
     })
