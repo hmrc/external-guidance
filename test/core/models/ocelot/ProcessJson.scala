@@ -300,6 +300,11 @@ trait ProcessJson {
       |        {
       |          "type": "scalar",
       |          "label": "_GuidancePassPhrase",
+      |          "value": "password"
+      |        },
+      |        {
+      |          "type": "scalar",
+      |          "label": "Blah",
       |          "value": "[timescale:CHBFLCertabroad:days]"
       |        }
       |      ],
