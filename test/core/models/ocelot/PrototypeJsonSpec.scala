@@ -19,14 +19,16 @@ package core.models.ocelot
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{Json, JsObject}
-import core.services.{DefaultTodayProvider, Timescales, PageBuilder}
+import core.services.{DefaultTodayProvider, Timescales, PageBuilder, LabelledData, Rates}
 
 class PrototypeJsonSpec extends AnyWordSpec with Matchers {
 
   trait Test {
     val jsObject: JsObject = Json.parse(PrototypeJson.json).as[JsObject]
     val process: Process = jsObject.as[Process]
-    val pageBuilder = new PageBuilder(new Timescales(new DefaultTodayProvider))
+    val timescales: Timescales = new Timescales(new DefaultTodayProvider)
+    var rates: Rates = new Rates()
+    val pageBuilder = new PageBuilder(new LabelledData(timescales, rates))
   }
 
   "Prototype Json" must {
