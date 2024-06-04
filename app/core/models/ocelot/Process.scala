@@ -30,7 +30,7 @@ object SecuredProcess {
   val EncryptedPassphraseResponseLabelName = "_GuidancePassPhraseResponse_encrypted"
 }
 
-case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase], links: Vector[Link], timescales: Map[String, Int] = Map()) {
+case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase], links: Vector[Link], timescales: Map[String, Int] = Map(), rates: Map[String, BigDecimal] = Map()) {
   import SecuredProcess._
   import Process._
   lazy val phraseOption: Int => Option[Phrase] = phrases.lift
@@ -61,15 +61,16 @@ object Process {
   val SessionRestartUrl = "session-restart"
   val ReservedUrls: List[String] = List(s"/$EndSessionUrl", s"/$SessionTimeoutUrl", s"/$SessionRestartUrl", s"/${SecuredProcess.SecuredProcessStartUrl}")
 
-  def buildProcess(m: Meta, f: Map[String, Stanza], p: Vector[Phrase], l: Vector[Link], t: Option[Map[String, Int]]): Process =
-    Process(m, f, p, l, t.getOrElse(Map()))
+  def buildProcess(m: Meta, f: Map[String, Stanza], p: Vector[Phrase], l: Vector[Link], t: Option[Map[String, Int]], r: Option[Map[String, BigDecimal]]): Process =
+    Process(m, f, p, l, t.getOrElse(Map()), r.getOrElse(Map()))
 
   implicit val reads: Reads[Process] = (
     (__ \ "meta").read[Meta] and
       (__ \ "flow").read[Map[String, Stanza]] and
       (__ \ "phrases").read[Vector[Phrase]] and
       (__ \ "links").read[Vector[Link]] and
-      (__ \ "timescales").readNullable[Map[String, Int]]
+      (__ \ "timescales").readNullable[Map[String, Int]] and
+      (__ \ "rates").readNullable[Map[String, BigDecimal]]
   )(buildProcess _)
 
   implicit val writes: OWrites[Process] = (
@@ -77,6 +78,7 @@ object Process {
       (__ \ "flow").write[Map[String, Stanza]] and
       (__ \ "phrases").write[Vector[Phrase]] and
       (__ \ "links").write[Vector[Link]] and
-      (__ \ "timescales").write[Map[String, Int]]
+      (__ \ "timescales").write[Map[String, Int]] and
+      (__ \ "rates").write[Map[String, BigDecimal]]
   )(unlift(Process.unapply))
 }

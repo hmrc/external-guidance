@@ -45,8 +45,8 @@ class ProcessFinalisationService @Inject() (
           errs => Future.successful(Left(Error(errs))),
           pages => {
             // If valid process, collect list of timescale ids from process flow and phrases
-            val timescaleIds = (vpb.pageBuilder.timescales.referencedNonPhraseIds(incomingProcess.flow) ++
-              vpb.pageBuilder.timescales.referencedIds(incomingProcess.phrases)).distinct
+            val timescaleIds = (vpb.pageBuilder.labelledData.referencedNonPhraseIds(incomingProcess.flow) ++
+              vpb.pageBuilder.labelledData.referencedIds(incomingProcess.phrases)).distinct
             timescaleIds match {
               case Nil => Future.successful(Right((p, pages, js.fold(Json.toJsObject(p))(json => json))))
               case _ =>
