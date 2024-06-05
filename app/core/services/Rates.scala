@@ -22,10 +22,13 @@ import scala.util.matching.Regex
 
 @Singleton
 class Rates @Inject() () extends LabelledDataExpansion with LabelledDataReferencing{
+  val KeySeparator: String = ">"
   private val SectionId: Int = 1
   private val RateId: Int = 2
   private val YearId: Int = 3
   private val RateRegex: Regex = "\\[rate:([^:]+):([^:]+)(?::(\\d\\d\\d\\d))?\\]".r
+  private val RateIdRegex: Regex = s"^([^$KeySeparator]+)$KeySeparator([^$KeySeparator]+)(?:$KeySeparator([^$KeySeparator]+))?$$".r
+  private val RateIdFixedYearRegex: Regex = s"^([^$KeySeparator]+)$KeySeparator([^$KeySeparator]+)$KeySeparator([^$KeySeparator]+)$$".r
 
   private[services] def referencedIds(s: String): List[String] =
     RateRegex.findAllMatchIn(s).toList.flatMap{m =>
@@ -44,5 +47,7 @@ class Rates @Inject() () extends LabelledDataExpansion with LabelledDataReferenc
       }
     })
 
-  private def rateId(s: String, r: String, y: Option[String] = None): String = y.fold(s"$s-$r")(year => s"$s-$r-$year")
+  def rateId(s: String, r: String, y: Option[String] = None): String = y.fold(s"$s$KeySeparator$r")(year => s"$s$KeySeparator$r$KeySeparator$year")
+  def reverseRateId(id: String): Option[(String, String, Option[String])] = RateIdRegex.findFirstMatchIn(id).map(m => (m.group(1), m.group(2), Option(m.group(3))))
+  def reverseRateFixedYearId(id: String): Option[(String, String, String)] = RateIdFixedYearRegex.findFirstMatchIn(id).map(m => (m.group(1), m.group(2), m.group(3)))
 }

@@ -33,6 +33,7 @@ trait AppConfig {
   val twoEyeReviewerRole: String
   val fakeWelshInUnauthenticatedGuidance: Boolean
   val seedTimescales: Map[String, Int]
+  //val seedRates: Map[String, Map[String, Map[String, BigDecimal]]]
   val passphraseHashKey: String
 }
 
@@ -48,5 +49,6 @@ class AppConfigImpl @Inject() (config: Configuration, servicesConfig: ServicesCo
   lazy val twoEyeReviewerRole: String = servicesConfig.getString("strideAuth.roles.twoEyeReviewer")
   lazy val fakeWelshInUnauthenticatedGuidance: Boolean = config.getOptional[Boolean]("welsh-guidance-text.fake-when-unauthenticated").getOrElse(false)
   lazy val seedTimescales: Map[String, Int] = config.get[Map[String, Int]]("seed-timescales")
+  //lazy val seedRates: JsObject = config.get[JsObject]("seed-rates")
   lazy val passphraseHashKey: String = config.get[String]("passphrase-hashkey")
 }
