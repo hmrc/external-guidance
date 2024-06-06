@@ -48,6 +48,6 @@ class Rates @Inject() () extends LabelledDataExpansion with LabelledDataReferenc
     })
 
   def rateId(s: String, r: String, y: Option[String] = None): String = y.fold(s"$s$KeySeparator$r")(year => s"$s$KeySeparator$r$KeySeparator$year")
-  def reverseRateId(id: String): Option[(String, String, Option[String])] = RateIdRegex.findFirstMatchIn(id).map(m => (m.group(1), m.group(2), Option(m.group(3))))
-  def reverseRateFixedYearId(id: String): Option[(String, String, String)] = RateIdFixedYearRegex.findFirstMatchIn(id).map(m => (m.group(1), m.group(2), m.group(3)))
+  def reverseRateId(id: String): Option[(String, String, Option[String])] = RateIdRegex.findFirstMatchIn(id).map(m => (m.group(SectionId), m.group(RateId), Option(m.group(YearId))))
+  def reverseRateFixedYearId(id: String): Option[(String, String, String)] = RateIdFixedYearRegex.findFirstMatchIn(id).map(m => (m.group(SectionId), m.group(RateId), m.group(YearId)))
 }
