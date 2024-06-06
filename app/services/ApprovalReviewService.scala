@@ -73,17 +73,9 @@ class ApprovalReviewService @Inject() (
         }
     }
 
-  def getTimescalesInUse(): Future[RequestOutcome[List[String]]] =
-    repository.getTimescalesInUse().map{
-      case Right(timescalesInUse) => Right(timescalesInUse)
-      case err => err
-    }
+  def getTimescalesInUse(): Future[RequestOutcome[List[String]]] = repository.getTimescalesInUse()
 
-  def getRatesInUse(): Future[RequestOutcome[List[String]]] =
-    repository.getRatesInUse().map{
-      case Right(ratesInUse) => Right(ratesInUse)
-      case err => err
-    }
+  def getRatesInUse(): Future[RequestOutcome[List[String]]] = repository.getRatesInUse()
 
   def getById(id: String): Future[RequestOutcome[JsObject]] =
     repository.getById(id) map {

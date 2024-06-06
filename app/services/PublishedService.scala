@@ -79,17 +79,9 @@ class PublishedService @Inject() (published: PublishedRepository,
         }
       )
 
-  def getTimescalesInUse(): Future[RequestOutcome[List[String]]] =
-    published.getTimescalesInUse().map{
-      case Right(timescalesInUse) => Right(timescalesInUse)
-      case err => err
-    }
+  def getTimescalesInUse(): Future[RequestOutcome[List[String]]] = published.getTimescalesInUse()
 
-  def getRatesInUse(): Future[RequestOutcome[List[String]]] =
-    published.getRatesInUse().map{
-      case Right(ratesInUse) => Right(ratesInUse)
-      case err => err
-    }
+  def getRatesInUse(): Future[RequestOutcome[List[String]]] = published.getRatesInUse()
 
   def archive(id: String, user: String): Future[RequestOutcome[Unit]] =
     published.getById(id).flatMap {

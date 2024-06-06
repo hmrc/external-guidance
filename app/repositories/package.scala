@@ -29,7 +29,7 @@ package object repositories {
                               )).toString
   val TimescalesInUseQuery = nor(jsonSchema(Document(timescaleQueryJson)))
   val ratesQueryJson: String = Json.obj("properties" -> Json.obj(
-                                "process.timescales" -> Json.obj(
+                                "process.rates" -> Json.obj(
                                   "type" -> "object",
                                   "properties" -> Json.obj(),
                                   "additionalProperties" -> false
