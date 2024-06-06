@@ -56,6 +56,11 @@ trait MockPublishedService extends MockFactory {
         .getTimescalesInUse _)
         .expects()
 
+    def getRatesInUse(): CallHandler[Future[RequestOutcome[List[String]]]] =
+      (mockPublishedService
+        .getRatesInUse _)
+        .expects()
+
     def list: CallHandler[Future[RequestOutcome[JsValue]]] =
       (() => mockPublishedService
         .list)

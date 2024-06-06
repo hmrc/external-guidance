@@ -16,12 +16,8 @@
 
 package base
 
-import play.api.mvc.BodyParsers
-import play.api.{Configuration, Environment}
-
-trait ControllerBaseSpec extends BaseSpec with UserCredentials {
-
-  lazy val config = injector.instanceOf[Configuration]
-  lazy val env = injector.instanceOf[Environment]
-  lazy val bodyParser = injector.instanceOf[BodyParsers.Default]
+trait UserCredentials {
+  val credential: String = "7010010"
+  val name: String = "George Hudson"
+  val email: String = "ghudson@emailworld.com"
 }

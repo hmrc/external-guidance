@@ -60,6 +60,11 @@ trait MockApprovalReviewService extends MockFactory {
         .getTimescalesInUse _)
         .expects()
 
+    def getRatesInUse(): CallHandler[Future[RequestOutcome[List[String]]]] =
+      (mockApprovalReviewService
+        .getRatesInUse _)
+        .expects()
+
     // Review service
 
     def approvalReviewInfo(id: String, reviewType: String): CallHandler[Future[RequestOutcome[ProcessReview]]] = {

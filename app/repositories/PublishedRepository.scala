@@ -44,6 +44,7 @@ trait PublishedRepository {
   def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]]
   def delete(id: String): Future[RequestOutcome[Unit]]
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]]
+  def getRatesInUse(): Future[RequestOutcome[List[String]]]
   def list(): Future[RequestOutcome[List[PublishedProcess]]]
 }
 
@@ -124,6 +125,21 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
           Left(DatabaseError)
       }
 
+  def getRatesInUse(): Future[RequestOutcome[List[String]]] =
+    collection
+      .withReadPreference(ReadPreference.primaryPreferred())
+      .find(RatesInUseQuery)
+      .collect()
+      .toFutureOption()
+      .map{
+        case None => Right(Nil)
+        case Some(ids) => Right(ids.flatMap(pps => pps.process.validate[Process].fold(_ => Nil, p => p.rates.keys.toList)).distinct.toList)
+      }
+      .recover{
+        case error =>
+          logger.error(s"Listing rates used in the published processes failed with error : ${error.getMessage}")
+          Left(DatabaseError)
+      }
 
   def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]] =
     collection

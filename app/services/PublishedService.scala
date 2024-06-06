@@ -85,6 +85,12 @@ class PublishedService @Inject() (published: PublishedRepository,
       case err => err
     }
 
+  def getRatesInUse(): Future[RequestOutcome[List[String]]] =
+    published.getRatesInUse().map{
+      case Right(ratesInUse) => Right(ratesInUse)
+      case err => err
+    }
+
   def archive(id: String, user: String): Future[RequestOutcome[Unit]] =
     published.getById(id).flatMap {
       case Left(_) =>

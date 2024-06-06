@@ -51,6 +51,7 @@ trait ApprovalsRepository {
   def approvalSummaryList(roles: List[String]): Future[RequestOutcome[List[ApprovalProcessSummary]]]
   def changeStatus(id: String, status: String, user: String): Future[RequestOutcome[Unit]]
   def getTimescalesInUse(): Future[RequestOutcome[List[String]]]
+  def getRatesInUse(): Future[RequestOutcome[List[String]]]
   def delete(id: String): Future[RequestOutcome[Unit]]
   def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]]
 }
@@ -234,6 +235,21 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(implicit appC
       .recover{
         case error =>
           logger.error(s"Listing timescales used in the approval processes failed with error : ${error.getMessage}")
+          Left(DatabaseError)
+      }
+
+  def getRatesInUse(): Future[RequestOutcome[List[String]]] =
+    collection
+      .withReadPreference(ReadPreference.primaryPreferred())
+      .find(RatesInUseQuery)
+      .collect().toFutureOption()
+      .map{
+        case None => Right(Nil)
+        case Some(ids) => Right(ids.flatMap(pps => pps.process.validate[Process].fold(_ => Nil, p => p.rates.keys.toList)).distinct.toList)
+      }
+      .recover{
+        case error =>
+          logger.error(s"Listing rates used in the approval processes failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
 
