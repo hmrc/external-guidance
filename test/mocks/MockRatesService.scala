@@ -40,7 +40,7 @@ trait MockRatesService extends MockFactory {
           .updateProcessRatesTableAndDetails(_: JsObject))
           .expects(js)
 
-    def get(): CallHandler[Future[RequestOutcome[(Map[String, BigDecimal], Long)]]] =
+    def get(): CallHandler[Future[RequestOutcome[(Map[String, Map[String, Map[String, BigDecimal]]], Long)]]] =
       (mockRatesService
         .get _)
         .expects()

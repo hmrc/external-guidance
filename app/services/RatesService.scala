@@ -65,22 +65,23 @@ class RatesService @Inject() (
       process =>
         if (process.rates.isEmpty) Future.successful(Right(js))
         else get().map{
-          case Right((ts, version)) =>
-            val ratesTable: Map[String, BigDecimal] = process.rates.keys.toList.map(k => (k, ts(k))).toMap
+          case Right((rts, version)) =>
+            val rates = twoDimMapFromFour(rts)
+            val ratesTable: Map[String, BigDecimal] = process.rates.keys.toList.map(k => (k, rates(k))).toMap
             val updatedProcess: Process = process.copy(meta = process.meta.copy(ratesVersion = Some(version)), rates = ratesTable)
             Json.toJson(updatedProcess).validate[JsObject].fold(_ => Left(ValidationError), jsObj => Right(jsObj))
           case Left(err) => Left(err)
         }
     )
 
-  def get(): Future[RequestOutcome[(Map[String, BigDecimal], Long)]] =
+  def get(): Future[RequestOutcome[(Map[String, Map[String, Map[String, BigDecimal]]], Long)]] =
     repository.get(Rates).map{
       case Right(update) => update.data.validate[Map[String, Map[String, Map[String, BigDecimal]]]].fold(_ => Left(InternalServerError), mp =>
-        Right((twoDimMapFromFour(mp), update.when.toEpochMilli)))
+        Right((mp, update.when.toEpochMilli)))
       case Left(NotFoundError) =>
         logger.warn(s"No rates found returning seed rates details")
         seedRates()
-          .fold[RequestOutcome[(Map[String, BigDecimal], Long)]](Left(InternalServerError))(mp => Right((twoDimMapFromFour(mp), 0L)))
+          .fold[RequestOutcome[(Map[String, Map[String, Map[String, BigDecimal]]], Long)]](Left(InternalServerError))(mp => Right((mp, 0L)))
       case Left(err) =>
         logger.error(s"Unable to retrieve rates table due error, $err")
         Left(InternalServerError)
@@ -90,7 +91,8 @@ class RatesService @Inject() (
     json.validate[Map[String, Map[String, Map[String, BigDecimal]]]].fold(_ => Future.successful(Left(ValidationError)), mp => {
       val update2dMap = twoDimMapFromFour(mp) // Convert incoming map to 2d map
       get().flatMap{                          // Get the current rates definitions as 2d map
-        case Right((current2dMap, _)) =>
+        case Right((fourDimMap, _)) =>
+          val current2dMap = twoDimMapFromFour(fourDimMap)
           // Check for deletions from the existing list
           current2dMap.keys.toList.diff(update2dMap.keys.toList) match {
             case Nil => saveRates(update2dMap, credId, user, email)

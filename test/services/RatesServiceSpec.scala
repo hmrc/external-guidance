@@ -40,8 +40,8 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
     val seedRatesJson = target.seedRatesAsJson().getOrElse(fail())
 
     val labelledSeedData = LabelledData(Rates, seedRatesJson, lastUpdateTime.toInstant(), credId, user, email)
-    val ratesWithVersion = (ratesTwoDimMap, lastUpdateInstant.toEpochMilli)
-    val ratesWithZeroVersion = (seedRatesTwoDimMap, 0L)
+    val ratesWithVersion = (ratesFourDimMap, lastUpdateInstant.toEpochMilli)
+    val ratesWithZeroVersion = (seedRates, 0L)
   }
 
   "Calling seedRates" when {

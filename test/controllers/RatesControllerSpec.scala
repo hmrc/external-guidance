@@ -234,7 +234,7 @@ class RatesControllerSpec extends BaseSpec with RatesTestData {
     "the request is valid" should {
 
       trait ValidGetTest extends Test {
-        val ts: Map[String, BigDecimal] = Map("blah" -> 32, "another" -> 56)
+        val ts: Map[String, Map[String, Map[String, BigDecimal]]] = Map("blah" -> Map("again" -> Map("2010" -> 2.3)))
         MockRatesService.get().returns(Future.successful(Right((ts, 0L))))
         lazy val request: FakeRequest[AnyContent] = FakeRequest()
       }
