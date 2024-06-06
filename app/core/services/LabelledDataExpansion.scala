@@ -31,7 +31,7 @@ trait LabelledDataReferencing {
       case s: ValueStanza => referencedIds(s.values.toList.flatMap(c => List(c.value)))
       case s: ChoiceStanza => referencedIds(s.tests.toList.flatMap(c => List(c.left, c .right)))
       case _ => Nil
-    }
+    }.distinct
 
   private[services] def referencedIds(s: String): List[String]
 

@@ -49,12 +49,12 @@ class RatesService @Inject() (
           _ => Left(InternalServerError),
           mp => {
             val updateDetails = UpdateDetails(ZonedDateTime.ofInstant(update.when, ZoneId.of("UTC")), update.credId, update.user, update.email)
-            Right(LabelledDataUpdateStatus(mp.size, Some(updateDetails)))
+            Right(LabelledDataUpdateStatus(twoDimMapFromFour(mp).size, Some(updateDetails)))
         })
       case Left(NotFoundError) =>
         logger.warn(s"No rates found returning seed rates details")
         seedRates()
-          .fold[RequestOutcome[LabelledDataUpdateStatus]](Left(InternalServerError))(mp => Right(LabelledDataUpdateStatus(toMap(mp).size, None)))
+          .fold[RequestOutcome[LabelledDataUpdateStatus]](Left(InternalServerError))(mp => Right(LabelledDataUpdateStatus(twoDimMapFromFour(mp).size, None)))
       case Left(err) =>
         logger.error(s"Unbale to retrieve rates update details due to error, $err")
         Left(InternalServerError)
@@ -76,11 +76,11 @@ class RatesService @Inject() (
   def get(): Future[RequestOutcome[(Map[String, BigDecimal], Long)]] =
     repository.get(Rates).map{
       case Right(update) => update.data.validate[Map[String, Map[String, Map[String, BigDecimal]]]].fold(_ => Left(InternalServerError), mp =>
-        Right((toMap(mp), update.when.toEpochMilli)))
+        Right((twoDimMapFromFour(mp), update.when.toEpochMilli)))
       case Left(NotFoundError) =>
         logger.warn(s"No rates found returning seed rates details")
         seedRates()
-          .fold[RequestOutcome[(Map[String, BigDecimal], Long)]](Left(InternalServerError))(mp => Right((toMap(mp), 0L)))
+          .fold[RequestOutcome[(Map[String, BigDecimal], Long)]](Left(InternalServerError))(mp => Right((twoDimMapFromFour(mp), 0L)))
       case Left(err) =>
         logger.error(s"Unable to retrieve rates table due error, $err")
         Left(InternalServerError)
@@ -88,14 +88,14 @@ class RatesService @Inject() (
 
   def save(json: JsValue, credId: String, user: String, email: String, inUse: List[String]): Future[RequestOutcome[LabelledDataUpdateStatus]] =
     json.validate[Map[String, Map[String, Map[String, BigDecimal]]]].fold(_ => Future.successful(Left(ValidationError)), mp => {
-      val update2dMap = toMap(mp) // Convert incoming map to 2d map
-      get().flatMap{              // Get the current rates definitions as 2d map
+      val update2dMap = twoDimMapFromFour(mp) // Convert incoming map to 2d map
+      get().flatMap{                          // Get the current rates definitions as 2d map
         case Right((current2dMap, _)) =>
           // Check for deletions from the existing list
           current2dMap.keys.toList.diff(update2dMap.keys.toList) match {
             case Nil => saveRates(update2dMap, credId, user, email)
             case deletions =>
-              logger.warn(s"Rates update contains the following deletions: ${deletions.mkString(",")}")
+              logger.warn(s"Rates update contains the following deletions: ${deletions.mkString(",")}, in-use: $inUse")
               // Check if any of the deletions are currently in use
               deletions.intersect(inUse) match {
                 case Nil => saveRates(update2dMap, credId, user, email)
@@ -117,7 +117,7 @@ class RatesService @Inject() (
                         user: String,
                         email: String,
                         retained: List[String] = Nil): Future[RequestOutcome[LabelledDataUpdateStatus]] =
-    unMap(rates).fold[Future[RequestOutcome[LabelledDataUpdateStatus]]](Future.successful(Left(ValidationError))){map4d =>
+    fourDimMapFromTwo(rates).fold[Future[RequestOutcome[LabelledDataUpdateStatus]]](Future.successful(Left(ValidationError))){map4d =>
       repository.save(Rates, Json.toJson(map4d), Instant.now, credId, user, email).map{
         case Left(err) =>
           logger.error(s"Unable to save rate definitions due error, $err")
@@ -128,7 +128,7 @@ class RatesService @Inject() (
       }
     }
 
-  private[services] def unMap(rates: Map[String, BigDecimal]): Option[Map[String, Map[String, Map[String, BigDecimal]]]] = {
+  private[services] def fourDimMapFromTwo(rates: Map[String, BigDecimal]): Option[Map[String, Map[String, Map[String, BigDecimal]]]] = {
     @tailrec
     def expand(rates: List[(String, BigDecimal)], acc: Map[String, Map[String, Map[String, BigDecimal]]] = Map.empty): Option[Map[String, Map[String, Map[String, BigDecimal]]]] =
       rates match {
@@ -154,7 +154,7 @@ class RatesService @Inject() (
     expand(rates.toList)
   }
 
-  private[services] def toMap(rates: Map[String, Map[String, Map[String, BigDecimal]]]): Map[String, BigDecimal] =
+  private[services] def twoDimMapFromFour(rates: Map[String, Map[String, Map[String, BigDecimal]]]): Map[String, BigDecimal] =
     rates.flatMap{
       case (s: String, sv: Map[String, Map[String, BigDecimal]]) =>
         sv.flatMap{
