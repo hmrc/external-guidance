@@ -94,8 +94,7 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
 
     "the JSON is valid" should {
       "return LabelledDataUpdateStatus" in new Test{
-        val json = data.ExampleLabelledData.rates
-        val labelledData = LabelledData(Rates, json, lastUpdateTime.toInstant(), credId, user, email)
+        val labelledData = LabelledData(Rates, ratesJson, lastUpdateTime.toInstant(), credId, user, email)
         val expected: RequestOutcome[LabelledData] = Right(labelledData)
 
         val expectedStatus = LabelledDataUpdateStatus(1, Some(UpdateDetails(lastUpdateTime, credId, user, email, Nil)))
@@ -105,10 +104,10 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
           .returns(Future.successful(expected))
 
         MockLabelledDataRepository
-          .save(Rates, json, lastUpdateInstant, credId, user, email)
+          .save(Rates, ratesJson, lastUpdateInstant, credId, user, email)
           .returns(Future.successful(expected))
 
-        whenReady(target.save(json, credId, user, email, Nil)) {
+        whenReady(target.save(ratesJson, credId, user, email, Nil)) {
           case Right(response) =>
             if (response == expectedStatus) succeed
           case _ => fail()
