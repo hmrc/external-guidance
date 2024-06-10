@@ -20,14 +20,22 @@ import core.models.ocelot.Process
 import play.api.libs.json.Json
 
 package object repositories {
-  val json: String = Json.obj("properties" -> Json.obj(
+  val timescaleQueryJson: String = Json.obj("properties" -> Json.obj(
                                 "process.timescales" -> Json.obj(
                                   "type" -> "object",
                                   "properties" -> Json.obj(),
                                   "additionalProperties" -> false
                                 )
                               )).toString
-  val TimescalesInUseQuery = nor(jsonSchema(Document(json)))
+  val TimescalesInUseQuery = nor(jsonSchema(Document(timescaleQueryJson)))
+  val ratesQueryJson: String = Json.obj("properties" -> Json.obj(
+                                "process.rates" -> Json.obj(
+                                  "type" -> "object",
+                                  "properties" -> Json.obj(),
+                                  "additionalProperties" -> false
+                                )
+                              )).toString
+  val RatesInUseQuery = nor(jsonSchema(Document(ratesQueryJson)))
   def passphraseStatus(p: Process): Option[String] =
     p.meta.encryptedPassPhrase.fold(p.meta.passPhrase.map(_ => "Plaintext"))(_ => Some("Encrypted"))
 }

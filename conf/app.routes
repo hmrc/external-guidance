@@ -7,6 +7,10 @@ GET         /timescales                                 controllers.TimescalesCo
 POST        /timescales                                 controllers.TimescalesController.save
 GET         /timescales/data                            controllers.TimescalesController.get
 
+GET         /rates                                      controllers.RatesController.details
+POST        /rates                                      controllers.RatesController.save
+GET         /rates/data                                 controllers.RatesController.get
+
 GET         /published                                  controllers.PublishedController.list
 GET         /published/:processCode                     controllers.PublishedController.getByProcessCode(processCode)
 GET         /published-process/:id                      controllers.PublishedController.get(id)

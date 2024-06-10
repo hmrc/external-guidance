@@ -16,7 +16,7 @@
 
 package core.models.ocelot
 
-import base.BaseSpec
+import base.{EnglishLanguage, WelshLanguage, BaseSpec}
 import core.models._
 import org.scalatest.Inspectors.forAll
 import play.api.i18n.Lang
@@ -213,36 +213,43 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
   }
 
   "listOp" must {
+    val labels = LabelCache().updateList("Blah", List("Monday", "Tuesday", "Wednesday"), List("Llun", "Mawrth", "Mercher"))
 
-    "return the number of elements in a list label" in {
-      val labels = LabelCache().updateList("Blah", List("one", "two", "five"))
-
-      listOp("Blah", Some("length"), labels) shouldBe Some("3")
+    "return the number of elements in a list label" in new EnglishLanguage{
+      listOp("Blah", Some("length"), labels.displayListValue) shouldBe Some("3")
     }
 
-    "return None if list does not exit" in {
-      listOp("NonExistent", Some("1"), LabelCache()) shouldBe None
+    "return None if list does not exit" in new EnglishLanguage{
+      listOp("NonExistent", Some("1"), labels.displayListValue) shouldBe None
     }
 
-    "return None if list element does not exit" in {
-      val labels = LabelCache().updateList("Blah", List("one", "two", "five"))
-      listOp("Blah", Some("5"), labels) shouldBe None
+    "return None if list element does not exit" in new EnglishLanguage{
+      listOp("Blah", Some("5"), labels.displayListValue) shouldBe None
     }
 
-    "return first element of a list" in {
-      val labels = LabelCache().updateList("Blah", List("one", "two", "five"))
-      listOp("Blah", Some("first"), labels) shouldBe Some("one")
+    "return first element of a list" in new EnglishLanguage{
+      listOp("Blah", Some("first"), labels.displayListValue) shouldBe Some("Monday")
     }
 
-    "return last element of a list" in {
-      val labels = LabelCache().updateList("Blah", List("one", "two", "five"))
-      listOp("Blah", Some("last"), labels) shouldBe Some("five")
+    "return last element of a list" in new EnglishLanguage{
+      listOp("Blah", Some("last"), labels.displayListValue) shouldBe Some("Wednesday")
     }
 
-    "return indexed element of a list label" in {
-      val labels = LabelCache().updateList("Blah", List("one", "two", "five"))
+    "return indexed element of a list label" in new EnglishLanguage{
 
-      listOp("Blah", Some("2"), labels) shouldBe Some("two")
+      listOp("Blah", Some("2"), labels.displayListValue) shouldBe Some("Tuesday")
+    }
+
+    "return first welsh element of a list" in new WelshLanguage{
+      listOp("Blah", Some("first"), labels.displayListValue) shouldBe Some("Llun")
+    }
+
+    "return last welsh element of a list" in new WelshLanguage{
+      listOp("Blah", Some("last"), labels.displayListValue) shouldBe Some("Mercher")
+    }
+
+    "return indexed welsh element of a list label" in new WelshLanguage{
+      listOp("Blah", Some("2"), labels.displayListValue) shouldBe Some("Mawrth")
     }
   }
 

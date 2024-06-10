@@ -101,7 +101,7 @@ package object ocelot {
 
   def matchGroup(m: Match)(grp: Int): Option[String] = Option(m.group(grp))
   def operandValue(str: String)(implicit labels: Labels): Option[String] =
-    OperandRegex.findFirstMatchIn(str).fold[Option[String]](Some(str)){m => scalarMatch(matchGroup(m), labels.value)}
+    OperandRegex.findFirstMatchIn(str).fold[Option[String]](Some(str)){m => scalarMatch(matchGroup(m), labels.value, labels.valueAsList)}
   val LabelNameGroup: Int = 1
   val LabelOutputFormatGroup: Int = 2
   val ListLabelNameGroup: Int = 3
@@ -115,7 +115,7 @@ package object ocelot {
   val DatePlaceholderLabelNameGroup: Int = 11
   val DatePlaceholderFnGroup: Int = 13
 
-  def scalarMatch(capture: Int => Option[String], lbl: String => Option[String])(implicit labels: Labels): Option[String] =
+  def scalarMatch(capture: Int => Option[String], lbl: String => Option[String], listLbl: String => Option[List[String]])(implicit labels: Labels): Option[String] =
     capture(LabelNameGroup).fold{
       capture(ListLabelNameGroup).fold{
         capture(DateAddTimescaleIdGroup).fold[Option[String]]{
@@ -125,7 +125,7 @@ package object ocelot {
             }{label => datePlaceholder(lbl(label), fn)}
           }
         }{tsId => capture(DateAddLabelNameGroup).fold(dateAdd(capture(DateAddLiteralGroup), tsId, labels)){daLabel => dateAdd(lbl(daLabel), tsId, labels)}}
-      }{list => capture(ListIndexLabelNameGroup).fold(listOp(list, capture(ListLabelIdxGroup), labels)){lblName => listOp(list, lbl(lblName), labels)}
+      }{list => capture(ListIndexLabelNameGroup).fold(listOp(list, capture(ListLabelIdxGroup), listLbl)){lblName => listOp(list, lbl(lblName), listLbl)}
       }
     }{label => lbl(label)}
 
@@ -141,14 +141,15 @@ package object ocelot {
   def labelReferences(str: String): List[String] = plSingleGroupCaptures(labelRefRegex, str)
   def labelReference(str: String): Option[String] = plSingleGroupCaptures(labelRefRegex, str).headOption
   def listLength(listName: String, labels: Labels): Option[String] = labels.valueAsList(listName).fold[Option[String]](None){l => Some(l.length.toString)}
-  def listOp(listName: String, op: Option[String], labels: Labels): Option[String] = labels.valueAsList(listName).fold[Option[String]](None){l =>
-    op match {
-      case Some("length")| None => Some(l.length.toString)
-      case Some("first") => l.headOption
-      case Some("last") => l.reverse.headOption
-      case Some(x) => matchedInt(x, positiveIntRegex).flatMap{idx => if (idx > 0 && idx <= l.length) Some(l(idx-1)) else None}
+  def listOp(listName: String, op: Option[String], lbl: String => Option[List[String]]): Option[String] =
+    lbl(listName).fold[Option[String]](None){l =>
+      op match {
+        case Some("length")| None => Some(l.length.toString)
+        case Some("first") => l.headOption
+        case Some("last") => l.reverse.headOption
+        case Some(x) => matchedInt(x, positiveIntRegex).flatMap{idx => if (idx > 0 && idx <= l.length) Some(l(idx-1)) else None}
+      }
     }
-  }
   def stringFromDate(when: LocalDate): String = when.format(dateFormatter)
   def stripHintPlaceholder(p: Phrase): Phrase = Phrase(hintRegex.replaceAllIn(p.english, ""), hintRegex.replaceAllIn(p.welsh, ""))
   def trimTrailing(s: String): String = s.reverse.dropWhile(_.equals(' ')).reverse

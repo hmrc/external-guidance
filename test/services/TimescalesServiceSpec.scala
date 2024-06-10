@@ -17,7 +17,7 @@
 package services
 
 import base.BaseSpec
-import mocks.{MockTimescalesRepository, MockPublishedService}
+import mocks.MockTimescalesRepository
 import core.models.RequestOutcome
 import core.models.errors._
 import play.api.libs.json.{JsValue, Json, JsObject}
@@ -26,7 +26,6 @@ import scala.concurrent.Future
 import core.models.ocelot.Process
 import java.time.ZonedDateTime
 import models.{TimescalesResponse, UpdateDetails, TimescalesUpdate}
-import mocks.MockApprovalReviewService
 import core.models.MongoDateTimeFormats.localZoneID
 
 class TimescalesServiceSpec extends BaseSpec {
@@ -215,9 +214,7 @@ class TimescalesServiceSpec extends BaseSpec {
   """.stripMargin
   ).as[JsObject]
 
-  private trait Test extends MockTimescalesRepository
-    with MockPublishedService
-    with MockApprovalReviewService {
+  private trait Test extends MockTimescalesRepository {
 
     lazy val target: TimescalesService = new TimescalesService(mockTimescalesRepository, MockAppConfig)
     val lastUpdateTime: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, localZoneID)
@@ -250,14 +247,6 @@ class TimescalesServiceSpec extends BaseSpec {
           .save(timescalesJson, lastUpdateTime, credId, user, email)
           .returns(Future.successful(expected))
 
-        MockPublishedService
-          .getTimescalesInUse()
-          .returns(Future.successful(Right(Nil)))
-
-        MockApprovalReviewService
-          .getTimescalesInUse()
-          .returns(Future.successful(Right(Nil)))
-
         whenReady(target.save(timescalesJson, credId, user, email, Nil)) {
           case Right(response) if response == timescalesResponse => succeed
           case _ => fail()
@@ -276,14 +265,6 @@ class TimescalesServiceSpec extends BaseSpec {
         MockTimescalesRepository
           .save(timescalesWithRetainedDefn, lastUpdateTime, credId, user, email)
           .returns(Future.successful(expected))
-
-        MockPublishedService
-          .getTimescalesInUse()
-          .returns(Future.successful(Right(List("First"))))
-
-        MockApprovalReviewService
-          .getTimescalesInUse()
-          .returns(Future.successful(Right(List("First"))))
 
         whenReady(target.save(timescalesJsonWithDeletion, credId, user, email, List("First"))) {
           case Right(response) if response.lastUpdate.map(_.retainedDeletions).contains(List("First")) => succeed
@@ -336,10 +317,6 @@ class TimescalesServiceSpec extends BaseSpec {
         MockTimescalesRepository
           .get(mockTimescalesRepository.CurrentTimescalesID)
           .returns(Future.successful(expected))
-
-        MockPublishedService
-          .getTimescalesInUse()
-          .returns(Future.successful(Right(Nil)))
 
         MockTimescalesRepository
           .save(timescalesJson, lastUpdateTime, credId, user, email)
