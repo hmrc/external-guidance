@@ -32,7 +32,7 @@ class DefaultTodayProvider extends TodayProvider {
 }
 
 @Singleton
-class Timescales @Inject() (tp: TodayProvider) extends LabelledDataExpansion {
+class Timescales @Inject() (tp: TodayProvider) extends LabelledDataExpansion with LabelledDataReferencing{
   private val DateAddTimescaleId: Int = 3
   private val TimescaleId: Int = 4
 

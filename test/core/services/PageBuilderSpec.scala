@@ -160,7 +160,9 @@ trait PageDefns extends TestConstants {
 }
 
 class PageBuilderSpec extends BaseSpec with ProcessJson with PageDefns {
-  val pageBuilder: PageBuilder = new PageBuilder(new Timescales(new DefaultTodayProvider))
+  val timescales: Timescales = new Timescales(new DefaultTodayProvider)
+  var rates: Rates = new Rates()
+  val pageBuilder = new PageBuilder(new LabelledData(timescales, rates))
   val meta: Meta = Json.parse(prototypeMetaSection).as[Meta]
 
   trait Test {

@@ -20,6 +20,10 @@ import core.models.ocelot.stanzas.{Stanza, CalculationStanza, ValueStanza, Choic
 import core.models.ocelot.{Phrase, Process}
 
 trait LabelledDataExpansion{
+  def expand(text: String, process: Process): String
+}
+
+trait LabelledDataReferencing {
   def referencedIds(p: Seq[Phrase]): List[String] = p.toList.flatMap(referencedIds)
   def referencedNonPhraseIds(flow: Map[String, Stanza]): List[String] =
     flow.values.toList.flatMap{
@@ -29,7 +33,6 @@ trait LabelledDataExpansion{
       case _ => Nil
     }
 
-  def expand(text: String, process: Process): String
   private[services] def referencedIds(s: String): List[String]
 
   private[services] def referencedIds(p: Phrase): List[String] = (referencedIds(p.english) ++ referencedIds(p.welsh)).distinct

@@ -33,7 +33,9 @@ class ScratchServiceSpec extends BaseSpec {
 
   private trait Test extends MockScratchRepository with MockTimescalesService {
     implicit def executionContext: ExecutionContext = ExecutionContext.global
-    val pageBuilder = new ValidatingPageBuilder(new PageBuilder(new Timescales(new DefaultTodayProvider)))
+    val timescales: Timescales = new Timescales(new DefaultTodayProvider)
+    var rates: Rates = new Rates()
+    val pageBuilder = new ValidatingPageBuilder(new PageBuilder(new LabelledData(timescales, rates)))
 
     val fsService = new ProcessFinalisationService(
                     MockAppConfig,

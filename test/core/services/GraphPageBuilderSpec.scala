@@ -25,7 +25,9 @@ import play.api.libs.json._
 class GraphPageBuilderSpec extends BaseSpec with ProcessJson {
 
   // Define instance of class used in testing
-  val pageBuilder: PageBuilder = new PageBuilder(new Timescales(new DefaultTodayProvider))
+  val timescales: Timescales = new Timescales(new DefaultTodayProvider)
+  var rates: Rates = new Rates()
+  val pageBuilder = new PageBuilder(new LabelledData(timescales, rates))
 
   val meta: Meta = Json.parse(prototypeMetaSection).as[Meta]
 

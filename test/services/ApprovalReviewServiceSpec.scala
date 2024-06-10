@@ -29,7 +29,7 @@ import play.api.libs.json.{JsArray, JsObject, Json, OFormat}
 import models.Constants._
 import core.models.RequestOutcome
 import scala.concurrent.Future
-import core.services.{EncrypterService, DefaultTodayProvider}
+import core.services.{EncrypterService, DefaultTodayProvider, LabelledData, Rates}
 import mocks.MockTimescalesService
 
 class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactory with ApprovalProcessJson {
@@ -42,13 +42,14 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
     with ProcessJson {
 
     val invalidId: String = "ext9005"
+    val timescales: Timescales = new Timescales(new DefaultTodayProvider)
+    var rates: Rates = new Rates()
+    val pageBuilder = new PageBuilder(new LabelledData(timescales, rates))
 
     val invalidProcess: JsObject = Json.obj("idx" -> invalidId)
     val fsService = new ProcessFinalisationService(
                           MockAppConfig,
-                          new ValidatingPageBuilder(
-                            new PageBuilder(new Timescales(new DefaultTodayProvider))
-                          ),
+                          new ValidatingPageBuilder(pageBuilder),
                           mockTimescalesService,
                           new EncrypterService(MockAppConfig))
     val service = new ApprovalReviewService(mockApprovalsRepository,
