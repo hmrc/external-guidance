@@ -17,7 +17,7 @@
 val appName = "external-guidance"
 
 ThisBuild / majorVersion := 0
-ThisBuild / scalaVersion := "2.13.13"
+ThisBuild / scalaVersion := "2.13.14"
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)

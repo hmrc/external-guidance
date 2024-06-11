@@ -55,6 +55,7 @@ trait Labels extends Flows with TimescaleDefns with Messages with Mode with Encr
   def value(name: String): Option[String]
   def valueAsList(name: String): Option[List[String]]
   def displayValue(name: String)(implicit lang: Lang): Option[String]
+  def displayListValue(name: String)(implicit lang: Lang): Option[List[String]]
   def update(name: String, english: String): Labels
   def update(name: String, english: String, welsh: String): Labels
   def updateList(name: String, english: List[String]): Labels
@@ -87,6 +88,12 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label],
     lang.code match {
       case "cy" if lbl.welsh.nonEmpty => lbl.welsh.mkString(",")
       case _ => lbl.english.mkString(",")
+    }
+  }
+  def displayListValue(name: String)(implicit lang: Lang): Option[List[String]] = label(name).map{lbl =>
+    lang.code match {
+      case "cy" if lbl.welsh.nonEmpty => lbl.welsh
+      case _ => lbl.english
     }
   }
   def update(name: String, english: String): Labels =

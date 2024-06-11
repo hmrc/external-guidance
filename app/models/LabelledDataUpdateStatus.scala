@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package base
+package models
 
-import play.api.mvc.BodyParsers
-import play.api.{Configuration, Environment}
+import play.api.libs.json._
 
-trait ControllerBaseSpec extends BaseSpec with UserCredentials {
+case class LabelledDataUpdateStatus(count: Int, lastUpdate: Option[UpdateDetails])
 
-  lazy val config = injector.instanceOf[Configuration]
-  lazy val env = injector.instanceOf[Environment]
-  lazy val bodyParser = injector.instanceOf[BodyParsers.Default]
+object LabelledDataUpdateStatus {
+  implicit val format: OFormat[LabelledDataUpdateStatus] = Json.format[LabelledDataUpdateStatus]
 }

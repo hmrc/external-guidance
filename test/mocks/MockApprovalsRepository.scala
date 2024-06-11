@@ -64,6 +64,11 @@ trait MockApprovalsRepository extends MockFactory {
         .getTimescalesInUse _)
         .expects()
 
+    def getRatesInUse(): CallHandler[Future[RequestOutcome[List[String]]]] =
+      (mockApprovalsRepository
+        .getRatesInUse _)
+        .expects()
+
     def updatePageReview(id: String, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): CallHandler[Future[RequestOutcome[Unit]]] =
       (mockApprovalsRepository
         .updatePageReview(_: String, _: String, _: String, _: ApprovalProcessPageReview))

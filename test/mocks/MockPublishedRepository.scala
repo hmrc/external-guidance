@@ -55,6 +55,11 @@ trait MockPublishedRepository extends MockFactory {
         .getTimescalesInUse _)
         .expects()
 
+    def getRatesInUse(): CallHandler[Future[RequestOutcome[List[String]]]] =
+      (mockPublishedRepository
+        .getRatesInUse _)
+        .expects()
+
     def list(): CallHandler[Future[RequestOutcome[List[PublishedProcess]]]] =
       (mockPublishedRepository
         .list _)
