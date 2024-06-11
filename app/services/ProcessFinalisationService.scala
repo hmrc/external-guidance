@@ -22,7 +22,6 @@ import core.models.ocelot.errors._
 import core.models._
 import core.models.ocelot.{Phrase, SecuredProcess, Process, Page}
 import core.models.ocelot.stanzas.{Value, Stanza}
-import core.services.LabelledDataReferencing
 import play.api.libs.json._
 import scala.concurrent.{Future, ExecutionContext}
 import config.AppConfig
@@ -33,7 +32,7 @@ import core.services.EncrypterService
 class ProcessFinalisationService @Inject() (
     appConfig: AppConfig,
     vpb: ValidatingPageBuilder,
-    timescalesService: TimescalesService,
+    labelledDataService: LabelledDataService,
     encrypter: EncrypterService) extends Logging {
 
   def guidancePagesAndProcess(jsObject: JsObject, checkLevel: GuidanceCheckLevel = Strict)
@@ -44,45 +43,10 @@ class ProcessFinalisationService @Inject() (
         val (p, js) = fakeWelshTextIfRequired _ tupled securedProcessIfRequired(incomingProcess, Some(jsObject))
         vpb.pagesWithValidation(p, p.startPageId, checkLevel).fold(
           errs => Future.successful(Left(Error(errs))),
-          pages => buildTimescalesTable(vpb.pageBuilder.labelledData.timescales, pages, p, js)
+          pages => labelledDataService.buildLabelledDataTables(pages, p, js)
         )
       }
     )
-
-  private def buildTimescalesTable(dataRef: LabelledDataReferencing, pages: Seq[Page], process: Process, js: Option[JsObject])
-                                  (implicit ec: ExecutionContext): Future[RequestOutcome[(Process, Seq[Page], JsObject)]] =
-    // If valid process, collect list of timescale ids from process flow and phrases
-    (dataRef.referencedNonPhraseIds(process.flow) ++ dataRef.referencedIds(process.phrases)).distinct match {
-      case Nil => Future.successful(Right((process, pages, js.fold(Json.toJsObject(process))(json => json))))
-      case ids =>
-        timescalesService.get().flatMap{
-          case Left(err) => Future.successful(Left(err))
-          case Right(timescales) if ids.forall(id => timescales._1.contains(id)) =>
-            // All timescales used in process are currently available from the timescales service
-            val updatedProcess = process.copy(timescales = ids.map(id => (id, 0)).toMap)
-            Future.successful(Right((updatedProcess, pages, Json.toJsObject(updatedProcess))))
-          case Right(timescales) =>
-            Future.successful(Left(Error(ids.filterNot(timescales._1.contains).map(MissingTimescaleDefinition))))
-        }
-    }
-
-  // PROTOTYPE RATES FUNCTION TO BE INTEGRATED INTO guidancePagesAndProcess() WHEN services.RatesService COMPLETE
-  // private def buildRatesTable(dataRef: LabelledDataReferencing, pages: Seq[Page], process: Process, js: Option[JsObject])
-  //                            (implicit ec: ExecutionContext): Future[RequestOutcome[(Process, Seq[Page], JsObject)]] =
-  //   // If valid process, collect list of rate ids from process flow and phrases
-  //   (dataRef.referencedNonPhraseIds(process.flow) ++ dataRef.referencedIds(process.phrases)).distinct match {
-  //     case Nil => Future.successful(Right((process, pages, js.fold(Json.toJsObject(process))(json => json))))
-  //     case ids =>
-  //       ratesService.get().flatMap{
-  //         case Left(err) => Future.successful(Left(err))
-  //         case Right(rates) if ids.forall(id => rates._1.contains(id)) =>
-  //           // All timescales used in process are currently available from the timescales service
-  //           val updatedProcess = process.copy(rates = ids.map(id => (id, 0)).toMap)
-  //           Future.successful(Right((updatedProcess, pages, Json.toJsObject(updatedProcess))))
-  //         case Right(rates) =>
-  //           Future.successful(Left(Error(ids.filterNot(rates._1.contains).map(MissingRatesDefinition))))
-  //       }
-  //   }
 
   private[services] def fakeWelshTextIfRequired(process: Process, jsObject: Option[JsObject])(implicit c: AppConfig): (Process,  Option[JsObject]) =
     if (process.passPhrase.isDefined || process.encryptedPassPhrase.isDefined || c.fakeWelshInUnauthenticatedGuidance) {

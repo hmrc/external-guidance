@@ -132,6 +132,10 @@ class ProcessErrorSpec extends BaseSpec {
       val details: ErrorReport = fromGuidanceError(MissingTimescaleDefinition("tsId"))
       details shouldBe ErrorReport("MissingTimescaleDefinition: Process references unknown timescale ID \'tsId\'", "")
     }
+    "from MissingRateDefinition" in {
+      val details: ErrorReport = fromGuidanceError(MissingRateDefinition("tsId"))
+      details shouldBe ErrorReport("MissingRateDefinition: Process references unknown rate ID \'tsId\'", "")
+    }
 
   }
 }

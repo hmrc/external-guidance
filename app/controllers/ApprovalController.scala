@@ -22,7 +22,7 @@ import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
-import services.{ApprovalReviewService, TimescalesService}
+import services.{ApprovalReviewService, LabelledDataService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import models.Constants._
 import core.models.errors.{BadRequestError, DuplicateKeyError, Error}
@@ -35,7 +35,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class ApprovalController @Inject() (allRolesAction: AllRolesAction,
                                     approvalService: ApprovalReviewService,
-                                    timescalesService: TimescalesService,
+                                    labelledDataService: LabelledDataService,
                                     cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass)
@@ -76,7 +76,7 @@ class ApprovalController @Inject() (allRolesAction: AllRolesAction,
   def get(id: String): Action[AnyContent] = Action.async { _ =>
     approvalService.getById(id).flatMap {
       case Right(approvalProcess) =>
-        timescalesService.updateProcessTimescaleTableAndDetails(approvalProcess).map{
+        labelledDataService.updateProcessLabelledDataTablesAndVersions(approvalProcess).map{
           case Right(result) => Ok(result)
           case Left(_) => InternalServerError(toJson(OcelotError(ServerError)))
         }
@@ -89,7 +89,7 @@ class ApprovalController @Inject() (allRolesAction: AllRolesAction,
   def getByProcessCode(processCode: String): Action[AnyContent] = Action.async { _ =>
     approvalService.getByProcessCode(processCode).flatMap {
       case Right(approvalProcess) =>
-        timescalesService.updateProcessTimescaleTableAndDetails(approvalProcess).map{
+        labelledDataService.updateProcessLabelledDataTablesAndVersions(approvalProcess).map{
           case Right(result) => Ok(result)
           case Left(_) => InternalServerError(toJson(OcelotError(ServerError)))
         }

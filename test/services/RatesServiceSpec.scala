@@ -18,12 +18,12 @@ package services
 
 import base.BaseSpec
 import mocks.MockLabelledDataRepository
-import core.services.Rates
+import core.services.DefaultTodayProvider
 import core.models.errors._
 import core.models.ocelot.Process
 import models.{LabelledData, Rates, LabelledDataUpdateStatus}
 import core.models.RequestOutcome
-import play.api.libs.json.{JsValue, Json, JsObject}
+import play.api.libs.json.{JsValue, Json}
 import mocks.MockAppConfig
 import models.UpdateDetails
 import scala.concurrent.Future
@@ -33,15 +33,17 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
 
   private trait Test extends MockLabelledDataRepository {
 
-    lazy val target: RatesService = new RatesService(mockLabelledDataRepository, new Rates(), MockAppConfig)
+    lazy val target: RatesService = new RatesService(mockLabelledDataRepository, new core.services.Rates(), new DefaultTodayProvider, MockAppConfig)
 
     val seedRates =  target.seedRates().getOrElse(fail())
     val seedRatesTwoDimMap = target.twoDimMapFromFour(seedRates)
     val seedRatesJson = target.seedRatesAsJson().getOrElse(fail())
 
     val labelledSeedData = LabelledData(Rates, seedRatesJson, lastUpdateTime.toInstant(), credId, user, email)
-    val ratesWithVersion = (ratesFourDimMap, lastUpdateInstant.toEpochMilli)
-    val ratesWithZeroVersion = (seedRates, 0L)
+    val ratesWithVersion = (ratesTwoDimMap, lastUpdateInstant.toEpochMilli)
+    val nativeRatesWithVersion = (ratesFourDimMap, lastUpdateInstant.toEpochMilli)
+    val ratesWithZeroVersion = (seedRatesTwoDimMap, 0L)
+    val nativeRatesWithZeroVersion = (seedRates, 0L)
   }
 
   "Calling seedRates" when {
@@ -223,6 +225,39 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
     }
   }
 
+  "Calling getNative method" should {
+
+    "return the rates" in new Test {
+      MockLabelledDataRepository
+        .get(Rates)
+        .returns(Future.successful(Right(labelledData)))
+
+      whenReady(target.getNative()) { result =>
+        result shouldBe Right(nativeRatesWithVersion)
+      }
+    }
+
+    "return Seed defnitions if no DB data found" in new Test {
+      MockLabelledDataRepository
+        .get(Rates)
+        .returns(Future.successful(Left(NotFoundError)))
+
+      whenReady(target.getNative()) { result =>
+        result shouldBe Right(nativeRatesWithZeroVersion)
+      }
+    }
+
+    "return an internal error when a database error occurs" in new Test {
+      MockLabelledDataRepository
+        .get(Rates)
+        .returns(Future.successful(Left(DatabaseError)))
+
+      whenReady(target.getNative()) { result =>
+        result shouldBe Left(InternalServerError)
+      }
+    }
+  }
+
   "Calling details method" should {
     "Return complete details if rates exist" in new Test {
       MockLabelledDataRepository
@@ -257,51 +292,45 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
 
   }
 
-  "Calling updateProcessRatesTableAndDetails method" should {
+  "Calling updateProcessRatesTable method" should {
 
     "Update table using mongo rates defns" in new Test {
+      val process: Process = jsonWithBlankRatesTable.as[Process]
+
       MockLabelledDataRepository
         .get(Rates)
         .returns(Future.successful(Right(labelledData)))
 
-      whenReady(target.updateProcessRatesTableAndDetails(jsonWithBlankRatesTable)) { result =>
+      whenReady(target.updateProcessRatesTable(jsonWithBlankRatesTable, process)) { result =>
         result match {
-          case Right(json) =>
-            val process = json.as[Process]
-            process.meta.ratesVersion shouldBe Some(labelledData.when.toEpochMilli())
-            process.rates shouldBe rates
+          case Right((json, p)) =>
+            p.meta.ratesVersion shouldBe Some(labelledData.when.toEpochMilli())
+            p.rates shouldBe rates
           case _ => fail()
         }
       }
     }
 
     "Update table using mongo rates defns where json contains no rates table" in new Test {
-      whenReady(target.updateProcessRatesTableAndDetails(jsonWithNoRatesTable)) { result =>
+      val process: Process = jsonWithNoRatesTable.as[Process]
+
+      whenReady(target.updateProcessRatesTable(jsonWithNoRatesTable, process)) { result =>
         result match {
-          case Right(json) => (json.as[Process]).rates shouldBe Map()
+          case Right((json, p)) => p.rates shouldBe Map()
           case _ => fail()
         }
       }
     }
 
-    "Update table using mongo rates defns where json is not a valid Process" in new Test {
-      val update = Json.parse("{}").as[JsObject]
-      whenReady(target.updateProcessRatesTableAndDetails(update)) { result =>
-        result match {
-          case Right(_) => fail()
-          case Left(err) => err shouldBe ValidationError
-        }
-      }
-    }
-
     "Update table using seed rates defns when no DB data found" in new Test {
+      val process: Process = jsonWithBlankRatesTable.as[Process]
       MockLabelledDataRepository
         .get(Rates)
         .returns(Future.successful(Left(NotFoundError)))
 
-      whenReady(target.updateProcessRatesTableAndDetails(jsonWithBlankRatesTable)) { result =>
+      whenReady(target.updateProcessRatesTable(jsonWithBlankRatesTable, process)) { result =>
         result match {
-          case Right(json) => (json.as[Process]).rates shouldBe rates
+          case Right((json, p)) => p.rates shouldBe rates
           case _ => fail()
         }
       }
@@ -309,11 +338,12 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
 
 
     "return an internal error if a database error occurs" in new Test {
+      val process: Process = jsonWithBlankRatesTable.as[Process]
       MockLabelledDataRepository
         .get(Rates)
         .returns(Future.successful(Left(DatabaseError)))
 
-      whenReady(target.updateProcessRatesTableAndDetails(jsonWithBlankRatesTable)) { result =>
+      whenReady(target.updateProcessRatesTable(jsonWithBlankRatesTable, process)) { result =>
         result shouldBe Left(InternalServerError)
       }
     }

@@ -234,22 +234,22 @@ class RatesControllerSpec extends BaseSpec with RatesTestData {
     "the request is valid" should {
 
       trait ValidGetTest extends Test {
-        val ts: Map[String, Map[String, Map[String, BigDecimal]]] = Map("blah" -> Map("again" -> Map("2010" -> 2.3)))
-        MockRatesService.get().returns(Future.successful(Right((ts, 0L))))
+        val rates: Map[String, Map[String, Map[String, BigDecimal]]] = Map("blah" -> Map("again" -> Map("2010" -> 2.3)))
+        MockRatesService.getNative().returns(Future.successful(Right((rates, 0L))))
         lazy val request: FakeRequest[AnyContent] = FakeRequest()
       }
 
       "return a valid response" in new ValidGetTest {
         private val result = target.get(request)
         status(result) shouldBe OK
-        contentAsJson(result) shouldBe Json.toJson((ts, 0L))
+        contentAsJson(result) shouldBe Json.toJson((rates, 0L))
       }
     }
 
     "the request is invalid" should {
 
       trait InValidGetTest extends Test {
-        MockRatesService.get().returns(Future.successful(Left(NotFoundError)))
+        MockRatesService.getNative().returns(Future.successful(Left(NotFoundError)))
         lazy val request: FakeRequest[AnyContent] = FakeRequest()
       }
 

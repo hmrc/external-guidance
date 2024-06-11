@@ -332,6 +332,181 @@ trait ProcessJson {
     """.stripMargin
   )
 
+    val rawOcelotTimescalesNoPasswdJson: JsValue = Json.parse(
+    """
+      |{
+      |  "meta": {
+      |    "title": "Customer wants to make a cup of tea",
+      |    "id": "oct90001",
+      |    "ocelot": 1,
+      |    "lastAuthor": "000000",
+      |    "lastUpdate": 1500298931016,
+      |    "version": 4,
+      |    "filename": "oct90001.js",
+      |    "titlePhrase": 8,
+      |    "processCode": "cup-of-tea"
+      |  },
+      |  "howto": [],
+      |  "contacts": [],
+      |  "links": [],
+      |  "flow": {
+      |    "start": {
+      |      "type": "PageStanza",
+      |      "url": "/feeling-bad",
+      |      "next": ["333"],
+      |      "stack": true
+      |    },
+      |    "333": {
+      |      "next": [
+      |        "3"
+      |      ],
+      |      "noteType": "Title",
+      |      "stack": false,
+      |      "text": 1,
+      |      "type": "CalloutStanza"
+      |    },
+      |    "3": {
+      |      "type": "InstructionStanza",
+      |      "text": 1,
+      |      "next": [
+      |        "2"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "2": {
+      |      "type": "InstructionStanza",
+      |      "text": 0,
+      |      "next": [
+      |        "33"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "33": {
+      |      "type": "ValueStanza",
+      |      "values": [
+      |        {
+      |          "type": "scalar",
+      |          "label": "SomeLabel",
+      |          "value": "[timescale:JRSProgChaseCB:days]"
+      |        },
+      |        {
+      |          "type": "scalar",
+      |          "label": "Blah",
+      |          "value": "[timescale:CHBFLCertabroad:days]"
+      |        }
+      |      ],
+      |      "next": [
+      |        "end"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "end": {
+      |      "type": "EndStanza"
+      |    }
+      |  },
+      |  "phrases": [
+      |    ["Ask the customer if they have a tea bag", "Welsh: Ask the customer if they have a tea bag"],
+      |    ["Do you have a tea bag [timescale:JRSRefCB:days]?", "Welsh: Do you have a tea bag [timescale:JRSRefCB:days]?"],
+      |    ["Yes - they do have a tea bag", "Welsh: Yes - they do have a tea bag"],
+      |    ["No - they do not have a tea bag", "Welsh: No - they do not have a tea bag"],
+      |    ["Ask the customer if they have a cup", "Welsh: Ask the customer if they have a cup"],
+      |    ["Do you have a cup?", "Welsh: Do you have a cup?"],
+      |    ["yes - they do have a cup ", "Welsh: yes - they do have a cup "],
+      |    ["no - they don’t have a cup", "Welsh: no - they don’t have a cup"],
+      |    ["Customer wants to make a cup of tea", "Welsh: Customer wants to make a cup of tea"]
+      |  ]
+      |}
+    """.stripMargin
+  )
+
+
+    val validOnePageWithRatesJson: JsValue = Json.parse(
+    """
+      |{
+      |  "meta": {
+      |    "title": "Customer wants to make a cup of tea",
+      |    "id": "oct90001",
+      |    "ocelot": 1,
+      |    "lastAuthor": "000000",
+      |    "lastUpdate": 1500298931016,
+      |    "version": 4,
+      |    "filename": "oct90001.js",
+      |    "titlePhrase": 8,
+      |    "processCode": "cup-of-tea"
+      |  },
+      |  "howto": [],
+      |  "contacts": [],
+      |  "links": [],
+      |  "flow": {
+      |    "start": {
+      |      "type": "PageStanza",
+      |      "url": "/feeling-bad",
+      |      "next": ["333"],
+      |      "stack": true
+      |    },
+      |    "333": {
+      |      "next": [
+      |        "3"
+      |      ],
+      |      "noteType": "Title",
+      |      "stack": false,
+      |      "text": 1,
+      |      "type": "CalloutStanza"
+      |    },
+      |    "3": {
+      |      "type": "InstructionStanza",
+      |      "text": 1,
+      |      "next": [
+      |        "2"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "2": {
+      |      "type": "InstructionStanza",
+      |      "text": 0,
+      |      "next": [
+      |        "33"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "33": {
+      |      "type": "ValueStanza",
+      |      "values": [
+      |        {
+      |          "type": "scalar",
+      |          "label": "SomeLabel",
+      |          "value": "[rate:Legacy:higherrate:2022]"
+      |        },
+      |        {
+      |          "type": "scalar",
+      |          "label": "Blah",
+      |          "value": "[rate:Legacy:higherrate:2022]"
+      |        }
+      |      ],
+      |      "next": [
+      |        "end"
+      |      ],
+      |      "stack": true
+      |    },
+      |    "end": {
+      |      "type": "EndStanza"
+      |    }
+      |  },
+      |  "phrases": [
+      |    ["Ask the customer if they have a tea bag", "Welsh: Ask the customer if they have a tea bag"],
+      |    ["Do you have a tea bag [rate:Legacy:basicrate:2022]?", "Welsh: Do you have a tea bag [rate:Legacy:basicrate:2022]?"],
+      |    ["Yes - they do have a tea bag", "Welsh: Yes - they do have a tea bag"],
+      |    ["No - they do not have a tea bag", "Welsh: No - they do not have a tea bag"],
+      |    ["Ask the customer if they have a cup", "Welsh: Ask the customer if they have a cup"],
+      |    ["Do you have a cup?", "Welsh: Do you have a cup?"],
+      |    ["yes - they do have a cup ", "Welsh: yes - they do have a cup "],
+      |    ["no - they don’t have a cup", "Welsh: no - they don’t have a cup"],
+      |    ["Customer wants to make a cup of tea", "Welsh: Customer wants to make a cup of tea"]
+      |  ]
+      |}
+    """.stripMargin
+  )
+
     val rawOcelotRatesJson: JsValue = Json.parse(
     """
       |{

@@ -21,7 +21,7 @@ import controllers.actions.FakeAllRolesAction
 import controllers.actions.FakeAllRolesAction.credential
 import core.models.errors.{BadRequestError, InternalServerError, NotFoundError}
 import core.models.ocelot.ProcessJson
-import mocks.{MockPublishedService, MockTimescalesService}
+import mocks.{MockPublishedService, MockLabelledDataService}
 import models.PublishedProcess
 import play.api.http.ContentTypes
 import play.api.libs.json.{JsObject, Json}
@@ -34,13 +34,13 @@ import scala.concurrent.Future
 
 class PublishedControllerSpec extends BaseSpec with ProcessJson {
 
-  private trait Test extends MockPublishedService with MockTimescalesService  {
+  private trait Test extends MockPublishedService with MockLabelledDataService  {
 
     val validId: String = "oct90005"
 
     lazy val target: PublishedController = new PublishedController(
       mockPublishedService,
-      mockTimescalesService,
+      mockLabelledDataService,
       stubControllerComponents(),
       FakeAllRolesAction
     )
@@ -190,8 +190,8 @@ class PublishedControllerSpec extends BaseSpec with ProcessJson {
         val returnedPublishedProcess: PublishedProcess =
           PublishedProcess(validId, 1, ZonedDateTime.now(), validOnePageJson.as[JsObject], "user", processCode = "processCode")
 
-        MockTimescalesService
-          .updateProcessTimescaleTable(expectedProcess)
+        MockLabelledDataService
+          .updateProcessLabelledDataTablesAndVersions(expectedProcess)
           .returns(Future.successful(Right(expectedProcess)))
 
         MockPublishedService

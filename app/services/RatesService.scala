@@ -20,11 +20,12 @@ import java.io.InputStream
 import java.nio.file.{Paths, Files}
 import javax.inject.{Inject, Singleton}
 import core.models.RequestOutcome
-import core.models.ocelot.Process
+import core.models.ocelot.{Process, asPositiveInt}
+import core.models.ocelot.errors.{GuidanceError, MissingRateDefinition}
 import core.models.errors.{InternalServerError, NotFoundError, ValidationError}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import repositories.LabelledDataRepository
-import core.services.Rates
+import core.services.TodayProvider
 import scala.concurrent.{ExecutionContext, Future}
 import config.AppConfig
 import play.api.Logger
@@ -37,9 +38,11 @@ import scala.annotation.tailrec
 @Singleton
 class RatesService @Inject() (
     repository: LabelledDataRepository,
-    coreRatesService: Rates,
-    appConfig: AppConfig)(implicit ec: ExecutionContext) {
+    coreRatesService: core.services.Rates,
+    tp: TodayProvider,
+    appConfig: AppConfig)(implicit ec: ExecutionContext) extends LabelledDataServiceProvider[BigDecimal] {
 
+  val YearStringLength: Int = 4
   val logger: Logger = Logger(getClass)
 
   def details(): Future[RequestOutcome[LabelledDataUpdateStatus]] =
@@ -60,21 +63,42 @@ class RatesService @Inject() (
         Left(InternalServerError)
     }
 
-  def updateProcessRatesTableAndDetails(js: JsObject): Future[RequestOutcome[JsObject]] =
-    js.validate[Process].fold(_ => Future.successful(Left(ValidationError)),
-      process =>
-        if (process.rates.isEmpty) Future.successful(Right(js))
-        else get().map{
-          case Right((rts, version)) =>
-            val rates = twoDimMapFromFour(rts)
-            val ratesTable: Map[String, BigDecimal] = process.rates.keys.toList.map(k => (k, rates(k))).toMap
-            val updatedProcess: Process = process.copy(meta = process.meta.copy(ratesVersion = Some(version)), rates = ratesTable)
-            Json.toJson(updatedProcess).validate[JsObject].fold(_ => Left(ValidationError), jsObj => Right(jsObj))
-          case Left(err) => Left(err)
-        }
-    )
+  def finaliseIds(ids: List[String]): List[String] =
+    ids.map{
+      case fullId if fullId.length > YearStringLength && asPositiveInt(fullId.reverse.take(YearStringLength)).isDefined => fullId
+      case shortId => s"$shortId${core.services.Rates.KeySeparator}${tp.year}"
+    }
 
-  def get(): Future[RequestOutcome[(Map[String, Map[String, Map[String, BigDecimal]]], Long)]] =
+  def updateProcessRatesTable(js: JsObject, process: Process): Future[RequestOutcome[(JsObject, Process)]] =
+    process.rates.isEmpty match {
+      case true => Future.successful(Right((js, process)))
+      case _ => get().map{
+        case Right((rates, version)) =>
+          val ratesTable: Map[String, BigDecimal] = process.rates.keys.toList.map(k => (k, rates(k))).toMap
+          val updatedProcess: Process = process.copy(meta = process.meta.copy(ratesVersion = Some(version)), rates = ratesTable)
+          Json.toJson(updatedProcess).validate[JsObject].fold(_ => Left(ValidationError), jsObj => Right((jsObj, updatedProcess)))
+        case Left(err) => Left(err)
+      }
+    }
+
+  def addProcessZeroDataTable(ids: List[String], process: Process): Process = process.copy(rates = ids.map((_, BigDecimal(0))).toMap)
+
+  def missingIdError(id: String): GuidanceError = MissingRateDefinition(id)
+
+  def get(): Future[RequestOutcome[(Map[String, BigDecimal], Long)]] =
+    repository.get(Rates).map{
+      case Right(update) => update.data.validate[Map[String, Map[String, Map[String, BigDecimal]]]].fold(_ => Left(InternalServerError), mp =>
+        Right((twoDimMapFromFour(mp), update.when.toEpochMilli)))
+      case Left(NotFoundError) =>
+        logger.warn(s"No rates found returning seed rates details")
+        seedRates()
+          .fold[RequestOutcome[(Map[String, BigDecimal], Long)]](Left(InternalServerError))(mp => Right((twoDimMapFromFour(mp), 0L)))
+      case Left(err) =>
+        logger.error(s"Unable to retrieve rates table due error, $err")
+        Left(InternalServerError)
+    }
+
+  def getNative(): Future[RequestOutcome[(Map[String, Map[String, Map[String, BigDecimal]]], Long)]] =
     repository.get(Rates).map{
       case Right(update) => update.data.validate[Map[String, Map[String, Map[String, BigDecimal]]]].fold(_ => Left(InternalServerError), mp =>
         Right((mp, update.when.toEpochMilli)))
@@ -90,7 +114,7 @@ class RatesService @Inject() (
   def save(json: JsValue, credId: String, user: String, email: String, inUse: List[String]): Future[RequestOutcome[LabelledDataUpdateStatus]] =
     json.validate[Map[String, Map[String, Map[String, BigDecimal]]]].fold(_ => Future.successful(Left(ValidationError)), mp => {
       val update2dMap = twoDimMapFromFour(mp) // Convert incoming map to 2d map
-      get().flatMap{                          // Get the current rates definitions as 2d map
+      getNative().flatMap{                          // Get the current rates definitions as 2d map
         case Right((fourDimMap, _)) =>
           val current2dMap = twoDimMapFromFour(fourDimMap)
           // Check for deletions from the existing list

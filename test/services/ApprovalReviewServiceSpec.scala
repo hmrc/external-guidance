@@ -20,7 +20,7 @@ import java.time.ZonedDateTime
 import core.services.{Timescales, PageBuilder}
 import base.BaseSpec
 import data.ReviewData
-import mocks.{MockAppConfig, MockApprovalsRepository, MockPublishedRepository, MockPublishedService}
+import mocks.{MockAppConfig, MockApprovalsRepository, MockPublishedRepository, MockPublishedService, MockLabelledDataService}
 import models._
 import core.models.errors._
 import core.models.ocelot.{Process, ProcessJson}
@@ -30,14 +30,13 @@ import models.Constants._
 import core.models.RequestOutcome
 import scala.concurrent.Future
 import core.services.{EncrypterService, DefaultTodayProvider, LabelledData, Rates}
-import mocks.MockTimescalesService
 
 class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactory with ApprovalProcessJson {
 
   private trait Test extends MockApprovalsRepository
     with MockPublishedRepository
     with MockPublishedService
-    with MockTimescalesService
+    with MockLabelledDataService
     with ApprovalProcessJson
     with ProcessJson {
 
@@ -50,7 +49,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
     val fsService = new ProcessFinalisationService(
                           MockAppConfig,
                           new ValidatingPageBuilder(pageBuilder),
-                          mockTimescalesService,
+                          mockLabelledDataService,
                           new EncrypterService(MockAppConfig))
     val service = new ApprovalReviewService(mockApprovalsRepository,
                           mockPublishedRepository,
@@ -67,6 +66,8 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
     val publishedProcess: PublishedProcess =
       PublishedProcess(validPublishedId, 1, ZonedDateTime.now(), validOnePageJson.as[JsObject], "user", processCode = "processCode")
 
+    val process = validOnePageJson.as[Process]
+    val pages = pageBuilder.pages(process, "start").fold(err => fail(), p => p)
   }
 
   "Calling the getById method" when {
@@ -171,8 +172,12 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
 
     "the id and JSON are valid" should {
       "return valid Id" in new Test {
-
         val expected: RequestOutcome[String] = Right(validId)
+
+        MockLabelledDataService
+          .buildLabelledDataTables(pages, process, None)
+          .returns(Future.successful(Right((process, pages, validOnePageJson.as[JsObject]))))
+
         MockPublishedRepository
           .getByProcessCode("cup-of-tea")
           .returns(Future.successful(publishedProcessSuccessResponse))
@@ -195,6 +200,10 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
     "the processCode exists for another process in the publishedCollection" should {
       "return a DuplicateKeyException" in new Test {
 
+        MockLabelledDataService
+          .buildLabelledDataTables(pages, process, None)
+          .returns(Future.successful(Right((process, pages, validOnePageJson.as[JsObject]))))
+
         MockPublishedRepository
           .getByProcessCode("cup-of-tea")
           .returns(Future.successful(publishedProcessFailureResponse))
@@ -208,8 +217,12 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
 
     "the processCode exists for another process in the approvedCollection" should {
       "return a DuplicateKeyException" in new Test {
-
         val expected: RequestOutcome[String] = Left(DuplicateKeyError)
+
+        MockLabelledDataService
+          .buildLabelledDataTables(pages, process, None)
+          .returns(Future.successful(Right((process, pages, validOnePageJson.as[JsObject]))))
+
         MockPublishedRepository
           .getByProcessCode("cup-of-tea")
           .returns(Future.successful(publishedProcessSuccessResponse))
@@ -228,8 +241,11 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
     "the process is saved" when {
       "the save of review data fails" should {
         "return an internal error" in new Test {
-
           val expected: RequestOutcome[String] = Left(InternalServerError)
+
+          MockLabelledDataService
+            .buildLabelledDataTables(pages, process, None)
+            .returns(Future.successful(Right((process, pages, validOnePageJson.as[JsObject]))))
 
           MockPublishedRepository
             .getByProcessCode("cup-of-tea")
@@ -268,6 +284,10 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
       "return an internal error" in new Test {
         val repositoryResponse: RequestOutcome[String] = Left(DatabaseError)
         val expected: RequestOutcome[String] = Left(InternalServerError)
+
+        MockLabelledDataService
+          .buildLabelledDataTables(pages, process, None)
+          .returns(Future.successful(Right((process, pages, validOnePageJson.as[JsObject]))))
 
         MockPublishedRepository
           .getByProcessCode("cup-of-tea")

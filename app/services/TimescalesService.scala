@@ -19,21 +19,20 @@ package services
 import javax.inject.{Inject, Singleton}
 import core.models.RequestOutcome
 import core.models.ocelot.Process
+import core.models.ocelot.errors.{GuidanceError, MissingTimescaleDefinition}
 import core.models.errors.{InternalServerError, NotFoundError, ValidationError}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import repositories.TimescalesRepository
-
 import scala.concurrent.{ExecutionContext, Future}
 import config.AppConfig
 import play.api.Logger
-
 import java.time.ZonedDateTime
 import models.{TimescalesResponse, UpdateDetails}
 
 @Singleton
 class TimescalesService @Inject() (
     repository: TimescalesRepository,
-    appConfig: AppConfig)(implicit ec: ExecutionContext) {
+    appConfig: AppConfig)(implicit ec: ExecutionContext) extends LabelledDataServiceProvider[Int] {
 
   val logger: Logger = Logger(getClass)
 
@@ -51,18 +50,23 @@ class TimescalesService @Inject() (
         Left(InternalServerError)
     }
 
-  def updateProcessTimescaleTableAndDetails(js: JsObject): Future[RequestOutcome[JsObject]] =
-    js.validate[Process].fold(_ => Future.successful(Left(ValidationError)),
-      process =>
-        if (process.timescales.isEmpty) Future.successful(Right(js))
-        else get().map{
-          case Right((ts, version)) =>
-            val timescalesTable: Map[String, Int] = process.timescales.keys.toList.map(k => (k, ts(k))).toMap
-            val updatedProcess: Process = process.copy(meta = process.meta.copy(timescalesVersion = Some(version)), timescales = timescalesTable)
-            Json.toJson(updatedProcess).validate[JsObject].fold(_ => Left(ValidationError), jsObj => Right(jsObj))
-          case Left(err) => Left(err)
-        }
-    )
+  def finaliseIds(ids: List[String]): List[String] = ids
+
+  def updateProcessTimescalesTable(js: JsObject, process: Process): Future[RequestOutcome[(JsObject, Process)]] =
+    process.timescales.isEmpty match {
+      case true => Future.successful(Right((js, process)))
+      case _ => get().map{
+        case Right((ts, version)) =>
+          val timescalesTable: Map[String, Int] = process.timescales.keys.toList.map(k => (k, ts(k))).toMap
+          val updatedProcess: Process = process.copy(meta = process.meta.copy(timescalesVersion = Some(version)), timescales = timescalesTable)
+          Json.toJson(updatedProcess).validate[JsObject].fold(_ => Left(ValidationError), jsObj => Right((jsObj, updatedProcess)))
+        case Left(err) => Left(err)
+      }
+    }
+
+  def addProcessZeroDataTable(ids: List[String], process: Process): Process = process.copy(timescales = ids.map((_, 0)).toMap)
+
+  def missingIdError(id: String): GuidanceError = MissingTimescaleDefinition(id)
 
   def get(): Future[RequestOutcome[(Map[String, Int], Long)]] =
     repository.get(repository.CurrentTimescalesID) map {

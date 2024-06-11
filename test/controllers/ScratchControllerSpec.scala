@@ -19,7 +19,7 @@ package controllers
 import base.BaseSpec
 import core.models.errors.{BadRequestError, Error, InternalServerError, NotFoundError, ValidationError}
 import core.models.ocelot.errors._
-import mocks.{MockScratchService, MockTimescalesService}
+import mocks.{MockScratchService, MockLabelledDataService}
 import models.errors._
 import play.api.http.ContentTypes
 import play.api.libs.json.{JsObject, JsValue, Json}
@@ -32,9 +32,9 @@ import scala.concurrent.Future
 
 class ScratchControllerSpec extends BaseSpec {
 
-  private trait Test extends MockScratchService with MockTimescalesService {
+  private trait Test extends MockScratchService with MockLabelledDataService {
     val id: String = "7a2f7eb3-6f0d-4d7f-a9b9-44a7137820ad"
-    lazy val target: ScratchController = new ScratchController(mockScratchService, mockTimescalesService, stubControllerComponents())
+    lazy val target: ScratchController = new ScratchController(mockScratchService, mockLabelledDataService, stubControllerComponents())
   }
 
   "Calling the save action" when {
@@ -185,19 +185,19 @@ class ScratchControllerSpec extends BaseSpec {
       }
 
       "return an OK response" in new ValidGetTest {
-        MockTimescalesService.updateProcessTimescaleTable(expectedProcess).returns(Future.successful(Right(expectedProcess)))
+        MockLabelledDataService.updateProcessLabelledDataTablesAndVersions(expectedProcess).returns(Future.successful(Right(expectedProcess)))
         private val result = target.get(id)(request)
         status(result) shouldBe OK
       }
 
       "return content as JSON" in new ValidGetTest {
-        MockTimescalesService.updateProcessTimescaleTable(expectedProcess).returns(Future.successful(Right(expectedProcess)))
+        MockLabelledDataService.updateProcessLabelledDataTablesAndVersions(expectedProcess).returns(Future.successful(Right(expectedProcess)))
         private val result = target.get(id)(request)
         contentType(result) shouldBe Some(ContentTypes.JSON)
       }
 
       "confirm returned content is a JSON object" in new ValidGetTest {
-        MockTimescalesService.updateProcessTimescaleTable(expectedProcess).returns(Future.successful(Right(expectedProcess)))
+        MockLabelledDataService.updateProcessLabelledDataTablesAndVersions(expectedProcess).returns(Future.successful(Right(expectedProcess)))
         private val result = target.get(id)(request)
         contentAsJson(result).as[JsObject] shouldBe expectedProcess
       }

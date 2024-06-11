@@ -21,14 +21,14 @@ import core.models.errors.{BadRequestError, Error, NotFoundError, ValidationErro
 import models.errors.OcelotError
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import services.{ScratchService, TimescalesService}
+import services.{ScratchService, LabelledDataService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.Logger
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
 class ScratchController @Inject() (scratchService: ScratchService,
-                                   timescalesService: TimescalesService,
+                                   labelledDataService: LabelledDataService,
                                    cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass)
@@ -55,7 +55,7 @@ class ScratchController @Inject() (scratchService: ScratchService,
 
   def get(id: String): Action[AnyContent] = Action.async { _ =>
     scratchService.getById(id).flatMap {
-      case Right(process) => timescalesService.updateProcessTimescaleTableAndDetails(process).map {
+      case Right(process) => labelledDataService.updateProcessLabelledDataTablesAndVersions(process).map {
         case Right(result) => Ok(result)
         case Left(_) => InternalServerError(toJson(OcelotError(ServerError)))
       }
