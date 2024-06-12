@@ -43,7 +43,7 @@ class ProcessFinalisationService @Inject() (
         val (p, js) = fakeWelshTextIfRequired _ tupled securedProcessIfRequired(incomingProcess, Some(jsObject))
         vpb.pagesWithValidation(p, p.startPageId, checkLevel).fold(
           errs => Future.successful(Left(Error(errs))),
-          pages => labelledDataService.buildLabelledDataTables(pages, p, js)
+          pages => labelledDataService.addLabelledDataTables(pages, p, js) // Add zeroed datatables to process
         )
       }
     )

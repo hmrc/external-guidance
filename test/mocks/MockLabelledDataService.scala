@@ -37,9 +37,9 @@ trait MockLabelledDataService extends MockFactory {
           .updateProcessLabelledDataTablesAndVersions(_: JsObject))
           .expects(js)
 
-    def buildLabelledDataTables(pages: Seq[Page], process: Process, js: Option[JsObject]): CallHandler[Future[RequestOutcome[(Process, Seq[Page], JsObject)]]] =
+    def addLabelledDataTables(pages: Seq[Page], process: Process, js: Option[JsObject]): CallHandler[Future[RequestOutcome[(Process, Seq[Page], JsObject)]]] =
       (mockLabelledDataService
-        .buildLabelledDataTables(_: Seq[Page], _: Process, _: Option[JsObject])(_: ExecutionContext))
+        .addLabelledDataTables(_: Seq[Page], _: Process, _: Option[JsObject])(_: ExecutionContext))
         .expects(pages, process, js, *)
   }
 }

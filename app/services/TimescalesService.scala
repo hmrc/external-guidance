@@ -52,7 +52,7 @@ class TimescalesService @Inject() (
 
   def finaliseIds(ids: List[String]): List[String] = ids
 
-  def updateProcessTimescalesTable(js: JsObject, process: Process): Future[RequestOutcome[(JsObject, Process)]] =
+  def updateProcessTable(js: JsObject, process: Process): Future[RequestOutcome[(JsObject, Process)]] =
     process.timescales.isEmpty match {
       case true => Future.successful(Right((js, process)))
       case _ => get().map{
@@ -64,7 +64,7 @@ class TimescalesService @Inject() (
       }
     }
 
-  def addProcessZeroDataTable(ids: List[String], process: Process): Process = process.copy(timescales = ids.map((_, 0)).toMap)
+  def addProcessDataTable(ids: List[String], process: Process): Process = process.copy(timescales = ids.map((_, 0)).toMap)
 
   def missingIdError(id: String): GuidanceError = MissingTimescaleDefinition(id)
 

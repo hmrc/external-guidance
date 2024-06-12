@@ -36,9 +36,9 @@ trait MockRatesService extends MockFactory {
         .save(_: JsValue, _: String, _: String, _: String, _: List[String]))
         .expects(rates, credId, user, email, inUse)
 
-    def updateProcessRatesTable(js: JsObject, p: Process): CallHandler[Future[RequestOutcome[(JsObject, Process)]]] =
+    def updateProcessTable(js: JsObject, p: Process): CallHandler[Future[RequestOutcome[(JsObject, Process)]]] =
         (mockRatesService
-          .updateProcessRatesTable(_: JsObject, _: Process))
+          .updateProcessTable(_: JsObject, _: Process))
           .expects(js, p)
 
     def get(): CallHandler[Future[RequestOutcome[(Map[String, BigDecimal], Long)]]] =

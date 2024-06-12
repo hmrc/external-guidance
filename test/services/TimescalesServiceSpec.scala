@@ -405,7 +405,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .get("1")
         .returns(Future.successful(Right(timescalesUpdate)))
 
-      whenReady(target.updateProcessTimescalesTable(jsonWithBlankTsTable, process)) { result =>
+      whenReady(target.updateProcessTable(jsonWithBlankTsTable, process)) { result =>
         result match {
           case Right((json, p)) =>
             p.meta.timescalesVersion shouldBe Some(timescalesUpdate.when.toInstant().toEpochMilli())
@@ -417,7 +417,7 @@ class TimescalesServiceSpec extends BaseSpec {
 
     "Update table using mongo timescale defns where json contains no timescale table" in new Test {
       val process: Process = jsonWithNoTsTable.as[Process]
-      whenReady(target.updateProcessTimescalesTable(jsonWithNoTsTable, process)) { result =>
+      whenReady(target.updateProcessTable(jsonWithNoTsTable, process)) { result =>
         result match {
           case Right((json, p)) => p.timescales shouldBe Map()
           case _ => fail()
@@ -431,7 +431,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .get("1")
         .returns(Future.successful(Left(NotFoundError)))
 
-      whenReady(target.updateProcessTimescalesTable(jsonWithBlankTsTable, process)) { result =>
+      whenReady(target.updateProcessTable(jsonWithBlankTsTable, process)) { result =>
         result match {
           case Right((json, p)) => p.timescales shouldBe timescales
           case _ => fail()
@@ -446,7 +446,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .get("1")
         .returns(Future.successful(Left(DatabaseError)))
 
-      whenReady(target.updateProcessTimescalesTable(jsonWithBlankTsTable, process)) { result =>
+      whenReady(target.updateProcessTable(jsonWithBlankTsTable, process)) { result =>
         result shouldBe Left(InternalServerError)
       }
     }

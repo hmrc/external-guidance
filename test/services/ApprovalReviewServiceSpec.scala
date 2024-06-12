@@ -175,7 +175,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
         val expected: RequestOutcome[String] = Right(validId)
 
         MockLabelledDataService
-          .buildLabelledDataTables(pages, process, None)
+          .addLabelledDataTables(pages, process, None)
           .returns(Future.successful(Right((process, pages, validOnePageJson.as[JsObject]))))
 
         MockPublishedRepository
@@ -201,7 +201,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
       "return a DuplicateKeyException" in new Test {
 
         MockLabelledDataService
-          .buildLabelledDataTables(pages, process, None)
+          .addLabelledDataTables(pages, process, None)
           .returns(Future.successful(Right((process, pages, validOnePageJson.as[JsObject]))))
 
         MockPublishedRepository
@@ -220,7 +220,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
         val expected: RequestOutcome[String] = Left(DuplicateKeyError)
 
         MockLabelledDataService
-          .buildLabelledDataTables(pages, process, None)
+          .addLabelledDataTables(pages, process, None)
           .returns(Future.successful(Right((process, pages, validOnePageJson.as[JsObject]))))
 
         MockPublishedRepository
@@ -244,7 +244,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
           val expected: RequestOutcome[String] = Left(InternalServerError)
 
           MockLabelledDataService
-            .buildLabelledDataTables(pages, process, None)
+            .addLabelledDataTables(pages, process, None)
             .returns(Future.successful(Right((process, pages, validOnePageJson.as[JsObject]))))
 
           MockPublishedRepository
@@ -286,7 +286,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
         val expected: RequestOutcome[String] = Left(InternalServerError)
 
         MockLabelledDataService
-          .buildLabelledDataTables(pages, process, None)
+          .addLabelledDataTables(pages, process, None)
           .returns(Future.successful(Right((process, pages, validOnePageJson.as[JsObject]))))
 
         MockPublishedRepository

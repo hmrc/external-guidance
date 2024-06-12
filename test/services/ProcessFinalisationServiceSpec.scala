@@ -263,7 +263,7 @@ class ProcessFinalisationServiceSpec extends BaseSpec
       val jsonWithTimescales = Json.toJson(processWithTimescales)
 
       MockLabelledDataService
-        .buildLabelledDataTables(pages, process, None)
+        .addLabelledDataTables(pages, process, None)
         .returns(Future.successful(Right((processWithTimescales, pages, jsonWithTimescales.as[JsObject]))))
 
       whenReady(service.guidancePagesAndProcess(rawOcelotTimescalesNoPasswdJson.as[JsObject])(MockAppConfig, ec)){
@@ -289,7 +289,7 @@ class ProcessFinalisationServiceSpec extends BaseSpec
       val pages = pageBuilder.pages(process, "start").fold(_ => fail(), p => p)
 
       MockLabelledDataService
-        .buildLabelledDataTables(pages, process, None)
+        .addLabelledDataTables(pages, process, None)
         .returns(Future.successful(Right((process, pages, jsonWithDiffLangIdsInUnusedPhrase.as[JsObject]))))
 
       whenReady(service.guidancePagesAndProcess(jsonWithDiffLangIdsInUnusedPhrase.as[JsObject])(MockAppConfig, ec)){

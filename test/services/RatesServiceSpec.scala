@@ -17,8 +17,9 @@
 package services
 
 import base.BaseSpec
+import java.time.LocalDate
 import mocks.MockLabelledDataRepository
-import core.services.DefaultTodayProvider
+import core.services.{TodayProvider, DefaultTodayProvider}
 import core.models.errors._
 import core.models.ocelot.Process
 import models.{LabelledData, Rates, LabelledDataUpdateStatus}
@@ -28,12 +29,22 @@ import mocks.MockAppConfig
 import models.UpdateDetails
 import scala.concurrent.Future
 import data.RatesTestData
+import java.time.ZonedDateTime
 
 class RatesServiceSpec extends BaseSpec with RatesTestData {
 
   private trait Test extends MockLabelledDataRepository {
+    val today: LocalDate = LocalDate.of(2020, 6, 24)
+    val earlyYearToday: LocalDate = LocalDate.of(2018, 2, 12)
+    val taxStartForNow = LocalDate.of(2020, 4, 6)
+    val taxYearForNow = taxStartForNow.getYear
+    val earlyTodayProvider: TodayProvider = new TodayProvider{
+                              def now = earlyYearToday
+                              def year: String = now.getYear().toString
+                            }
 
     lazy val target: RatesService = new RatesService(mockLabelledDataRepository, new core.services.Rates(), new DefaultTodayProvider, MockAppConfig)
+    lazy val earlyRatesService: RatesService = new RatesService(mockLabelledDataRepository, new core.services.Rates(), earlyTodayProvider, MockAppConfig)
 
     val seedRates =  target.seedRates().getOrElse(fail())
     val seedRatesTwoDimMap = target.twoDimMapFromFour(seedRates)
@@ -44,6 +55,7 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
     val nativeRatesWithVersion = (ratesFourDimMap, lastUpdateInstant.toEpochMilli)
     val ratesWithZeroVersion = (seedRatesTwoDimMap, 0L)
     val nativeRatesWithZeroVersion = (seedRates, 0L)
+
   }
 
   "Calling seedRates" when {
@@ -289,9 +301,18 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
       }
     }
 
+    "return an internal error when a json returned from db is invalid" in new Test {
+      MockLabelledDataRepository
+        .get(Rates)
+        .returns(Future.successful(Right(LabelledData(Rates, Json.parse("""{"Hello": "World"}"""), ZonedDateTime.now.toInstant(), "","",""))))
+
+      whenReady(target.details()) { result =>
+        result shouldBe Left(InternalServerError)
+      }
+    }
   }
 
-  "Calling updateProcessRatesTable method" should {
+  "Calling updateProcessTable method" should {
 
     "Update table using mongo rates defns" in new Test {
       val process: Process = jsonWithBlankRatesTable.as[Process]
@@ -300,7 +321,7 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
         .get(Rates)
         .returns(Future.successful(Right(labelledData)))
 
-      whenReady(target.updateProcessRatesTable(jsonWithBlankRatesTable, process)) { result =>
+      whenReady(target.updateProcessTable(jsonWithBlankRatesTable, process)) { result =>
         result match {
           case Right((json, p)) =>
             p.meta.ratesVersion shouldBe Some(labelledData.when.toEpochMilli())
@@ -313,7 +334,7 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
     "Update table using mongo rates defns where json contains no rates table" in new Test {
       val process: Process = jsonWithNoRatesTable.as[Process]
 
-      whenReady(target.updateProcessRatesTable(jsonWithNoRatesTable, process)) { result =>
+      whenReady(target.updateProcessTable(jsonWithNoRatesTable, process)) { result =>
         result match {
           case Right((json, p)) => p.rates shouldBe Map()
           case _ => fail()
@@ -327,7 +348,7 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
         .get(Rates)
         .returns(Future.successful(Left(NotFoundError)))
 
-      whenReady(target.updateProcessRatesTable(jsonWithBlankRatesTable, process)) { result =>
+      whenReady(target.updateProcessTable(jsonWithBlankRatesTable, process)) { result =>
         result match {
           case Right((json, p)) => p.rates shouldBe rates
           case _ => fail()
@@ -342,9 +363,24 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
         .get(Rates)
         .returns(Future.successful(Left(DatabaseError)))
 
-      whenReady(target.updateProcessRatesTable(jsonWithBlankRatesTable, process)) { result =>
+      whenReady(target.updateProcessTable(jsonWithBlankRatesTable, process)) { result =>
         result shouldBe Left(InternalServerError)
       }
     }
+  }
+
+  "Calling finaliseIds method" should {
+    "Return empty string if passed empty string" in new Test {
+      target.finaliseIds(Nil) shouldBe Nil
+    }
+
+    "Return ids unchanged if they terminate in a 4 digit value (year)" in new Test {
+      target.finaliseIds(List("Legacy!higherrate!2024", "Legacy!basicrate!2020")) shouldBe List("Legacy!higherrate!2024", "Legacy!basicrate!2020")
+    }
+
+    "Replace shortIds (do not terminate in a 4 digit value (year)) with fully qualified ids" in new Test {
+      earlyRatesService.finaliseIds(List("Legacy!higherrate", "Legacy!basicrate!2020")) shouldBe List("Legacy!higherrate!2018", "Legacy!basicrate!2020")
+    }
+
   }
 }

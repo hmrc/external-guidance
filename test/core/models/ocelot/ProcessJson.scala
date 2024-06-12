@@ -544,9 +544,32 @@ trait ProcessJson {
       |      "type": "InstructionStanza",
       |      "text": 1,
       |      "next": [
-      |        "2"
+      |        "737"
       |      ],
       |      "stack": true
+      |    },
+      |    "737": {
+      |    "type": "CalculationStanza",
+      |    "calcs":
+      |    [
+      |        {
+      |            "left": "[label:inputC]",
+      |            "op": "ceiling",
+      |            "right": "0",
+      |            "label": "outputC"
+      |        },
+      |        {
+      |            "left": "[label:inputE]",
+      |            "op": "floor",
+      |            "right": "-1",
+      |            "label": "outputD"
+      |        }
+      |    ],
+      |    "next":
+      |    [
+      |        "2"
+      |    ],
+      |    "stack": true
       |    },
       |    "2": {
       |      "type": "InstructionStanza",
@@ -555,8 +578,8 @@ trait ProcessJson {
       |        "10099"
       |      ],
       |      "stack": true
-      |    },
-      | "10099": {
+      |   },
+      |   "10099": {
       |   "type": "ChoiceStanza",
       |   "tests": [
       |     {

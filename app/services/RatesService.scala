@@ -69,7 +69,7 @@ class RatesService @Inject() (
       case shortId => s"$shortId${core.services.Rates.KeySeparator}${tp.year}"
     }
 
-  def updateProcessRatesTable(js: JsObject, process: Process): Future[RequestOutcome[(JsObject, Process)]] =
+  def updateProcessTable(js: JsObject, process: Process): Future[RequestOutcome[(JsObject, Process)]] =
     process.rates.isEmpty match {
       case true => Future.successful(Right((js, process)))
       case _ => get().map{
@@ -81,7 +81,7 @@ class RatesService @Inject() (
       }
     }
 
-  def addProcessZeroDataTable(ids: List[String], process: Process): Process = process.copy(rates = ids.map((_, BigDecimal(0))).toMap)
+  def addProcessDataTable(ids: List[String], process: Process): Process = process.copy(rates = ids.map((_, BigDecimal(0))).toMap)
 
   def missingIdError(id: String): GuidanceError = MissingRateDefinition(id)
 

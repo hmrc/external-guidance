@@ -38,7 +38,6 @@ class RatesSpec extends BaseSpec with ProcessJson {
     )
   )
 
-
   "Rates.expand" must {
     "expand valid rate placeholder" in {
       rates.expand("Rate: [rate:section1:rate2:2021]", process) shouldBe s"Rate: 35.4"

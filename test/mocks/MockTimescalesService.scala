@@ -36,9 +36,9 @@ trait MockTimescalesService extends MockFactory {
         .save(_: JsValue, _: String, _: String, _: String, _: List[String]))
         .expects(timescales, credId, user, email, inUse)
 
-    def updateProcessTimescalesTable(js: JsObject, p: Process): CallHandler[Future[RequestOutcome[(JsObject, Process)]]] =
+    def updateProcessTable(js: JsObject, p: Process): CallHandler[Future[RequestOutcome[(JsObject, Process)]]] =
         (mockTimescalesService
-          .updateProcessTimescalesTable(_: JsObject, _: Process))
+          .updateProcessTable(_: JsObject, _: Process))
           .expects(js, p)
 
     def get(): CallHandler[Future[RequestOutcome[(Map[String, Int], Long)]]] =
