@@ -24,11 +24,13 @@ import Regex._
 
 trait TodayProvider {
   def now: LocalDate
+  def year: String
 }
 
 @Singleton
 class DefaultTodayProvider extends TodayProvider {
   def now: LocalDate = LocalDate.now
+  def year: String = now.getYear().toString
 }
 
 @Singleton

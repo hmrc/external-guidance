@@ -25,7 +25,10 @@ class TimescalesSpec extends BaseSpec with ProcessJson with TestTimescaleDefnsDB
   val earlyYearToday: LocalDate = LocalDate.of(2018, 2, 12)
   val taxStartForNow = LocalDate.of(2020, 4, 6)
   val taxYearForNow = taxStartForNow.getYear
-  val pls: Timescales = new Timescales(new TodayProvider{ def now = today})
+  val pls: Timescales = new Timescales(new TodayProvider{
+                                            def now = today
+                                            def year: String = now.getYear().toString
+                                          })
   val process: Process = prototypeJson.as[Process].copy(timescales = timescaleMap)
 
   "Timescales" must {
@@ -99,7 +102,10 @@ class TimescalesSpec extends BaseSpec with ProcessJson with TestTimescaleDefnsDB
   }
 
   "Timescales with overridden TodayProvider" must {
-    val pls: Timescales = new Timescales(new TodayProvider {def now: LocalDate = earlyYearToday})
+    val pls: Timescales = new Timescales(new TodayProvider{
+                                            def now = earlyYearToday
+                                            def year: String = now.getYear().toString
+                                          })
 
     "expand today" in {
       pls.expand("Today is [timescale:today]", process) shouldBe s"Today is 12/2/2018"

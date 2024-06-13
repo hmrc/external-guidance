@@ -400,48 +400,40 @@ class TimescalesServiceSpec extends BaseSpec {
   "Calling updateProcessTimescaleTable method" should {
 
     "Update table using mongo timescale defns" in new Test {
+      val process: Process = jsonWithBlankTsTable.as[Process]
       MockTimescalesRepository
         .get("1")
         .returns(Future.successful(Right(timescalesUpdate)))
 
-      whenReady(target.updateProcessTimescaleTableAndDetails(jsonWithBlankTsTable)) { result =>
+      whenReady(target.updateProcessTable(jsonWithBlankTsTable, process)) { result =>
         result match {
-          case Right(json) =>
-            val process = json.as[Process]
-            process.meta.timescalesVersion shouldBe Some(timescalesUpdate.when.toInstant().toEpochMilli())
-            process.timescales shouldBe timescales
+          case Right((json, p)) =>
+            p.meta.timescalesVersion shouldBe Some(timescalesUpdate.when.toInstant().toEpochMilli())
+            p.timescales shouldBe timescales
           case _ => fail()
         }
       }
     }
 
     "Update table using mongo timescale defns where json contains no timescale table" in new Test {
-      whenReady(target.updateProcessTimescaleTableAndDetails(jsonWithNoTsTable)) { result =>
+      val process: Process = jsonWithNoTsTable.as[Process]
+      whenReady(target.updateProcessTable(jsonWithNoTsTable, process)) { result =>
         result match {
-          case Right(json) => (json.as[Process]).timescales shouldBe Map()
+          case Right((json, p)) => p.timescales shouldBe Map()
           case _ => fail()
         }
       }
     }
 
-    "Update table using mongo timescale defns where json is not a valid Process" in new Test {
-      val update = Json.parse("{}").as[JsObject]
-      whenReady(target.updateProcessTimescaleTableAndDetails(update)) { result =>
-        result match {
-          case Right(_) => fail()
-          case Left(err) => err shouldBe ValidationError
-        }
-      }
-    }
-
     "Update table using seed timescale defns when no DB data found" in new Test {
+      val process: Process = jsonWithBlankTsTable.as[Process]
       MockTimescalesRepository
         .get("1")
         .returns(Future.successful(Left(NotFoundError)))
 
-      whenReady(target.updateProcessTimescaleTableAndDetails(jsonWithBlankTsTable)) { result =>
+      whenReady(target.updateProcessTable(jsonWithBlankTsTable, process)) { result =>
         result match {
-          case Right(json) => (json.as[Process]).timescales shouldBe timescales
+          case Right((json, p)) => p.timescales shouldBe timescales
           case _ => fail()
         }
       }
@@ -449,11 +441,12 @@ class TimescalesServiceSpec extends BaseSpec {
 
 
     "return an internal error if a database error occurs" in new Test {
+      val process: Process = jsonWithBlankTsTable.as[Process]
       MockTimescalesRepository
         .get("1")
         .returns(Future.successful(Left(DatabaseError)))
 
-      whenReady(target.updateProcessTimescaleTableAndDetails(jsonWithBlankTsTable)) { result =>
+      whenReady(target.updateProcessTable(jsonWithBlankTsTable, process)) { result =>
         result shouldBe Left(InternalServerError)
       }
     }

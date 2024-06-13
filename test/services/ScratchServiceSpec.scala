@@ -26,21 +26,27 @@ import core.models.RequestOutcome
 import core.models.ocelot.ProcessJson
 import play.api.libs.json.{Json, JsObject}
 import mocks.MockAppConfig
-import scala.concurrent.{ExecutionContext, Future}
-import mocks.MockTimescalesService
+import scala.concurrent.Future
+import mocks.{MockTimescalesService, MockRatesService}
 
 class ScratchServiceSpec extends BaseSpec {
 
-  private trait Test extends MockScratchRepository with MockTimescalesService {
-    implicit def executionContext: ExecutionContext = ExecutionContext.global
+  private trait Test extends MockScratchRepository with MockTimescalesService with MockRatesService {
+    //implicit def executionContext: ExecutionContext = ExecutionContext.global
     val timescales: Timescales = new Timescales(new DefaultTodayProvider)
     var rates: Rates = new Rates()
     val pageBuilder = new ValidatingPageBuilder(new PageBuilder(new LabelledData(timescales, rates)))
-
+    val labelledDataService: LabelledDataService = new LabelledDataService(
+                                mockTimescalesService,
+                                timescales,
+                                mockRatesService,
+                                rates,
+                                MockAppConfig
+                              )
     val fsService = new ProcessFinalisationService(
                     MockAppConfig,
                     pageBuilder,
-                    mockTimescalesService,
+                    labelledDataService,
                     new EncrypterService(MockAppConfig)
                   )
 
@@ -48,22 +54,37 @@ class ScratchServiceSpec extends BaseSpec {
   }
 
     "Calling save" should {
-      "Detect missing timescale defn Error" in new Test with ProcessJson {
+      "Detect missing labelled data defn Errors" in new Test with ProcessJson {
 
-        val id: UUID = UUID.fromString("bf8bf6bb-0894-4df6-8209-2467bc9af6ae")
-        val expected: RequestOutcome[UUID] = Right(id)
         val json: JsObject = validOnePageWithTimescalesJson.as[JsObject]
 
-        MockScratchRepository
-          .save(json)
-          .returns(Future.successful(expected))
-
+        MockTimescalesService.missingIdError("RepayReimb").returns(MissingTimescaleDefinition("RepayReimb"))
+        MockTimescalesService.finaliseIds(List("RepayReimb")).returns(List("RepayReimb"))
         MockTimescalesService.get().returns(Future.successful(Right((Map(), 0L))))
+
+        MockRatesService.finaliseIds(List("Legacy!higherrate!2022", "Legacy!basicrate!2022")).returns(List("Legacy!higherrate!2022", "Legacy!basicrate!2022"))
+        MockRatesService.missingIdError("Legacy!higherrate!2022").returns(MissingRateDefinition("Legacy!higherrate!2022"))
+        MockRatesService.missingIdError("Legacy!basicrate!2022").returns(MissingRateDefinition("Legacy!basicrate!2022"))
 
         whenReady(target.save(json)) { result =>
           result shouldBe Left(Error(Error.UnprocessableEntity, List(MissingTimescaleDefinition("RepayReimb")), None))
         }
       }
+
+      "Detect missing rate defn Error" in new Test with ProcessJson {
+
+        val json: JsObject = validOnePageWithRatesJson.as[JsObject]
+
+        MockRatesService.finaliseIds(List("Legacy!higherrate!2022", "Legacy!basicrate!2022")).returns(List("Legacy!higherrate!2022", "Legacy!basicrate!2022"))
+        MockRatesService.get().returns(Future.successful(Right((Map(), 0L))))
+        MockRatesService.missingIdError("Legacy!higherrate!2022").returns(MissingRateDefinition("Legacy!higherrate!2022"))
+        MockRatesService.missingIdError("Legacy!basicrate!2022").returns(MissingRateDefinition("Legacy!basicrate!2022"))
+
+        whenReady(target.save(json)) { result =>
+          result shouldBe Left(Error(Error.UnprocessableEntity, List(MissingRateDefinition("Legacy!higherrate!2022"), MissingRateDefinition("Legacy!basicrate!2022")), None))
+        }
+      }
+
     }
 
     "return valid UUID when the JSON is valid" in new Test with ProcessJson {

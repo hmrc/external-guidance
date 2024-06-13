@@ -16,13 +16,14 @@
 
 package mocks
 
+import core.models.ocelot.errors.GuidanceError
 import core.models.RequestOutcome
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsObject, JsValue}
 import services.TimescalesService
 import models.TimescalesResponse
-
+import core.models.ocelot.Process
 import scala.concurrent.Future
 
 trait MockTimescalesService extends MockFactory {
@@ -35,10 +36,10 @@ trait MockTimescalesService extends MockFactory {
         .save(_: JsValue, _: String, _: String, _: String, _: List[String]))
         .expects(timescales, credId, user, email, inUse)
 
-    def updateProcessTimescaleTable(js: JsObject): CallHandler[Future[RequestOutcome[JsObject]]] =
+    def updateProcessTable(js: JsObject, p: Process): CallHandler[Future[RequestOutcome[(JsObject, Process)]]] =
         (mockTimescalesService
-          .updateProcessTimescaleTableAndDetails(_: JsObject))
-          .expects(js)
+          .updateProcessTable(_: JsObject, _: Process))
+          .expects(js, p)
 
     def get(): CallHandler[Future[RequestOutcome[(Map[String, Int], Long)]]] =
       (mockTimescalesService
@@ -49,5 +50,16 @@ trait MockTimescalesService extends MockFactory {
       (mockTimescalesService
         .details _)
         .expects()
-    }
+
+    def finaliseIds(ids: List[String]): CallHandler[List[String]] =
+      (mockTimescalesService
+        .finaliseIds(_: List[String]))
+        .expects(ids)
+
+    def missingIdError(id: String): CallHandler[GuidanceError] =
+      (mockTimescalesService
+        .missingIdError(_: String))
+        .expects(id)
+
+  }
 }

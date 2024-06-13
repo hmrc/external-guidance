@@ -59,6 +59,8 @@ package object errors {
       ErrorReport(s"InvalidFieldWidth: Input stanza (${e.id}) name field includes an unsupported field width", e.id)
     case e: MissingTimescaleDefinition =>
       ErrorReport(s"MissingTimescaleDefinition: Process references unknown timescale ID \'${e.timescaleId}\'", "")
+    case e: MissingRateDefinition =>
+      ErrorReport(s"MissingRateDefinition: Process references unknown rate ID \'${e.rateId}\'", "")
     case e: MissingTitle =>
       ErrorReport(s"MissingTitle: Non input page \'${e.id}\' does not contain a Callout of type Title", e.id)
     case e: LanguageLinkIdsDiffer =>
@@ -71,6 +73,7 @@ package object errors {
     case e: PhrasesParseError => ErrorReport(s"PhrasesParseError: Process Phrases section parse error, reason: ${e.msg}, index: ${e.id}", "")
     case e: LinksParseError => ErrorReport(s"LinksParseError: Process Links section parse error, reason: ${e.msg}, index: ${e.id}", "")
     case e: TimescalesParseError => ErrorReport(s"TimescalesParseError: Process timescales section parse error, reason: ${e.msg}, index: ${e.id}", "")
+    case e: RatesParseError => ErrorReport(s"RatesParseError: Process rates section parse error, reason: ${e.msg}, index: ${e.id}", "")
   }
 
   def fromGuidanceErrors(errs: List[GuidanceError]): List[ErrorReport] = errs.map(fromGuidanceError)

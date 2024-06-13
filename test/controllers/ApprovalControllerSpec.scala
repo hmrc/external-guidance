@@ -20,7 +20,7 @@ import base.BaseSpec
 import controllers.actions.FakeAllRolesAction
 import core.models.errors.{BadRequestError, DuplicateKeyError, Error, InternalServerError, NotFoundError, ValidationError}
 import core.models.ocelot.errors.DuplicatePageUrl
-import mocks.{MockApprovalReviewService, MockTimescalesService}
+import mocks.{MockApprovalReviewService, MockLabelledDataService}
 import models.Constants._
 import models.errors._
 import models.{Approval, ApprovalProcessJson, ApprovalProcessSummary, ProcessSummary}
@@ -33,13 +33,13 @@ import play.api.test.Helpers._
 
 import scala.concurrent.Future
 
-class ApprovalControllerSpec extends BaseSpec with MockApprovalReviewService with MockTimescalesService with ApprovalProcessJson {
+class ApprovalControllerSpec extends BaseSpec with MockApprovalReviewService with MockLabelledDataService with ApprovalProcessJson {
 
   private trait Test extends MockApprovalReviewService {
     val invalidId: String = "ext95"
     val invalidProcess: JsObject = Json.obj("id" -> "ext0093")
 
-    lazy val controller: ApprovalController = new ApprovalController(FakeAllRolesAction, mockApprovalReviewService, mockTimescalesService, stubControllerComponents())
+    lazy val controller: ApprovalController = new ApprovalController(FakeAllRolesAction, mockApprovalReviewService, mockLabelledDataService, stubControllerComponents())
   }
 
   "Calling the saveFor2iReview action" when {
@@ -334,8 +334,8 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalReviewService wit
     "the request is valid" should {
 
       trait ValidGetTest extends Test {
-        MockTimescalesService
-          .updateProcessTimescaleTable(validApprovalProcessJson)
+        MockLabelledDataService
+          .updateProcessLabelledDataTablesAndVersions(validApprovalProcessJson)
           .returns(Future.successful(Right(validApprovalProcessJson)))
 
         MockApprovalReviewService
@@ -452,8 +452,8 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalReviewService wit
     "the request is valid" should {
 
       trait ValidGetTest extends Test {
-        MockTimescalesService
-          .updateProcessTimescaleTable(validApprovalProcessJson)
+        MockLabelledDataService
+          .updateProcessLabelledDataTablesAndVersions(validApprovalProcessJson)
           .returns(Future.successful(Right(validApprovalProcessJson)))
 
         MockApprovalReviewService

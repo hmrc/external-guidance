@@ -23,13 +23,13 @@ import javax.inject.{Inject, Singleton}
 import core.models.errors.{BadRequestError, NotFoundError, InternalServerError => ServerError}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import services.{PublishedService, TimescalesService}
+import services.{PublishedService, LabelledDataService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class PublishedController @Inject() (publishedService: PublishedService,
-                                     timescalesService: TimescalesService,
+                                     labelledDataService: LabelledDataService,
                                      cc: ControllerComponents,
                                      identify: AllRolesAction)(implicit ec: ExecutionContext) extends BackendController(cc) {
   import Json._
@@ -46,7 +46,7 @@ class PublishedController @Inject() (publishedService: PublishedService,
 
   def getByProcessCode(processCode: String): Action[AnyContent] = Action.async {
     publishedService.getByProcessCode(processCode).flatMap {
-      case Right(pp) => timescalesService.updateProcessTimescaleTableAndDetails(pp.process).map {
+      case Right(pp) => labelledDataService.updateProcessLabelledDataTablesAndVersions(pp.process).map {
         case Right(result) => Ok(result)
         case Left(_) => InternalServerError(toJson(OcelotError(ServerError)))
       }

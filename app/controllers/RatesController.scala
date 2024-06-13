@@ -71,7 +71,7 @@ class RatesController @Inject() (ratesService: RatesService,
   }
 
   def get: Action[AnyContent] = Action.async { _ =>
-    ratesService.get().map {
+    ratesService.getNative().map {
       case Right(response) => Ok(Json.toJson(response))
       case Left(_) => InternalServerError(Json.toJson(OcelotError(ServerError)))
     }

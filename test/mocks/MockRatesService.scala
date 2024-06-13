@@ -16,13 +16,14 @@
 
 package mocks
 
+import core.models.ocelot.errors.GuidanceError
 import core.models.RequestOutcome
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsObject, JsValue}
 import services.RatesService
 import models.LabelledDataUpdateStatus
-
+import core.models.ocelot.Process
 import scala.concurrent.Future
 
 trait MockRatesService extends MockFactory {
@@ -35,19 +36,34 @@ trait MockRatesService extends MockFactory {
         .save(_: JsValue, _: String, _: String, _: String, _: List[String]))
         .expects(rates, credId, user, email, inUse)
 
-    def updateProcessRatesTableAndDetails(js: JsObject): CallHandler[Future[RequestOutcome[JsObject]]] =
+    def updateProcessTable(js: JsObject, p: Process): CallHandler[Future[RequestOutcome[(JsObject, Process)]]] =
         (mockRatesService
-          .updateProcessRatesTableAndDetails(_: JsObject))
-          .expects(js)
+          .updateProcessTable(_: JsObject, _: Process))
+          .expects(js, p)
 
-    def get(): CallHandler[Future[RequestOutcome[(Map[String, Map[String, Map[String, BigDecimal]]], Long)]]] =
+    def get(): CallHandler[Future[RequestOutcome[(Map[String, BigDecimal], Long)]]] =
       (mockRatesService
         .get _)
+        .expects()
+
+    def getNative(): CallHandler[Future[RequestOutcome[(Map[String, Map[String, Map[String, BigDecimal]]], Long)]]] =
+      (mockRatesService
+        .getNative _)
         .expects()
 
     def details(): CallHandler[Future[RequestOutcome[LabelledDataUpdateStatus]]] =
       (mockRatesService
         .details _)
         .expects()
-    }
+
+    def finaliseIds(ids: List[String]): CallHandler[List[String]] =
+      (mockRatesService
+        .finaliseIds(_: List[String]))
+        .expects(ids)
+
+    def missingIdError(id: String): CallHandler[GuidanceError] =
+      (mockRatesService
+        .missingIdError(_: String))
+        .expects(id)
+  }
 }

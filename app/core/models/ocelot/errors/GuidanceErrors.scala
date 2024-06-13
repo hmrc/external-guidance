@@ -25,6 +25,7 @@ sealed trait FlowError extends GuidanceError
 sealed trait PhrasesError extends GuidanceError
 sealed trait LinksError extends GuidanceError
 sealed trait TimescalesError extends GuidanceError
+sealed trait RatesError extends GuidanceError
 sealed trait RuntimeError extends EGError
 
 case class UnsupportedOperationError(op: String, lvalue: Option[String], rvalue: Option[String], left: String, right: String) extends RuntimeError
@@ -40,6 +41,7 @@ case class MetaParseError(id: String, msg: String, arg: String) extends MetaErro
 case class PhrasesParseError(id: String, msg: String, arg: String) extends PhrasesError
 case class LinksParseError(id: String, msg: String, arg: String) extends LinksError
 case class TimescalesParseError(id: String, msg: String, arg: String) extends TimescalesError
+case class RatesParseError(id: String, msg: String, arg: String) extends RatesError
 // Guidance Flow errors
 case class UnknownStanza(id: String, typeName: String) extends FlowError
 case class UnknownCalloutType(id: String, typeName: String) extends FlowError
@@ -66,6 +68,7 @@ case class ErrorRedirectToFirstNonPageStanzaOnly(id: String) extends FlowError
 case class InvalidLabelName(id: String) extends FlowError
 case class InvalidFieldWidth(id: String) extends FlowError
 case class MissingTimescaleDefinition(timescaleId: String) extends TimescalesError
+case class MissingRateDefinition(rateId: String) extends RatesError
 case class IncompleteInputPage(id: String) extends FlowError
 case class MissingTitle(id: String) extends FlowError
 case class AllFlowsMustContainMultiplePages(id: String) extends FlowError
@@ -98,6 +101,7 @@ object GuidanceError {
       case "/phrases" => PhrasesParseError(id.dropRight(1), mainError.message, arg)
       case "/links" => LinksParseError(id.dropRight(1), mainError.message, arg)
       case "/timescales" => TimescalesParseError(id.dropRight(1), mainError.message, arg)
+      case "/rates" => RatesParseError(id.dropRight(1), mainError.message, arg)
     }
   }
 

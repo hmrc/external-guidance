@@ -25,19 +25,24 @@ import core.models.ocelot.errors.LanguageLinkIdsDiffer
 import play.api.libs.json._
 import core.services._
 import mocks.MockAppConfig
-import mocks.MockTimescalesService
+import mocks.MockLabelledDataService
+import scala.concurrent.Future
 
-import scala.concurrent.{ExecutionContext, Future}
-
-class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService with ProcessJson {
+class ProcessFinalisationServiceSpec extends BaseSpec
+                                     with MockLabelledDataService
+                                     with MockTimescalesService
+                                     with MockRatesService
+                                     with ProcessJson {
+  //implicit val ec: ExecutionContext = ExecutionContext.global
   val encrypter: EncrypterService = new EncrypterService(mockAppConfig)
   val timescales: Timescales = new Timescales(new DefaultTodayProvider)
   var rates: Rates = new Rates()
   val pageBuilder = new PageBuilder(new LabelledData(timescales, rates))
+  val validatingPageBuilder = new ValidatingPageBuilder(pageBuilder)
   val service = new ProcessFinalisationService(
                   mockAppConfig,
-                  new ValidatingPageBuilder(pageBuilder),
-                  mockTimescalesService,
+                  validatingPageBuilder,
+                  mockLabelledDataService,
                   encrypter
                 )
 
@@ -102,20 +107,6 @@ class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService
       fakedJsObject shouldBe jsObject
     }
 
-  }
-
-  trait Test extends MockTimescalesService {
-    implicit val ec: ExecutionContext = ExecutionContext.global
-    val timescales: Timescales = new Timescales(new DefaultTodayProvider)
-    var rates: Rates = new Rates()
-    val pageBuilder = new PageBuilder(new LabelledData(timescales, rates))
-    val validatingPageBuilder = new ValidatingPageBuilder(pageBuilder)
-    val processFinalisationService = new ProcessFinalisationService(
-                    mockAppConfig,
-                    validatingPageBuilder,
-                    mockTimescalesService,
-                    new EncrypterService(mockAppConfig)
-                  )
   }
 
   "guidancePagesAndProcess" should {
@@ -262,14 +253,20 @@ class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService
     """.stripMargin
     )
 
-    "Add a complete timescales table to process and json" in new Test {
-      val process: Process = rawOcelotTimescalesJson.as[Process]
+    "Add a complete timescales table to process and json" in {
+      val process: Process = rawOcelotTimescalesNoPasswdJson.as[Process]
+      val pages = pageBuilder.pages(process, "start").fold(_ => fail(), p => p)
 
       process.timescales shouldBe Map()
 
-      MockTimescalesService.get().returns(Future.successful(Right((Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0), 0L))))
+      val processWithTimescales = process.copy(timescales = Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0))
+      val jsonWithTimescales = Json.toJson(processWithTimescales)
 
-      whenReady(processFinalisationService.guidancePagesAndProcess(rawOcelotTimescalesJson.as[JsObject])(MockAppConfig, ec)){
+      MockLabelledDataService
+        .addLabelledDataTables(pages, process, None)
+        .returns(Future.successful(Right((processWithTimescales, pages, jsonWithTimescales.as[JsObject]))))
+
+      whenReady(service.guidancePagesAndProcess(rawOcelotTimescalesNoPasswdJson.as[JsObject])(MockAppConfig, ec)){
         case Left(err) => fail(s"Failed with $err")
         case Right((updatedProcess, pages, updatedJsObject)) =>
           updatedProcess.timescales shouldBe Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0)
@@ -278,20 +275,22 @@ class ProcessFinalisationServiceSpec extends BaseSpec with MockTimescalesService
       }
     }
 
-    "detect mismatched English and Welsh Link ids" in new Test {
-
-      MockTimescalesService.get().returns(Future.successful(Right((Map(), 0L))))
-
-      whenReady(processFinalisationService.guidancePagesAndProcess(jsonWithDiffLangIds.as[JsObject])(MockAppConfig, ec)){
+    "detect mismatched English and Welsh Link ids" in {
+      whenReady(service.guidancePagesAndProcess(jsonWithDiffLangIds.as[JsObject])(MockAppConfig, ec)){
         case Left(Error(_, List(LanguageLinkIdsDiffer("33"), LanguageLinkIdsDiffer("3")), _, _)) => succeed
         case Left(errs) => fail(errs.toString)
         case err => fail(err.toString)
       }
     }
 
-    "Ignore mismatched English and Welsh Link ids in unused phrases" in new Test {
+    "Ignore mismatched English and Welsh Link ids in unused phrases" in {
 
-      MockTimescalesService.get().returns(Future.successful(Right((Map(), 0L))))
+      val process: Process = jsonWithDiffLangIdsInUnusedPhrase.as[Process]
+      val pages = pageBuilder.pages(process, "start").fold(_ => fail(), p => p)
+
+      MockLabelledDataService
+        .addLabelledDataTables(pages, process, None)
+        .returns(Future.successful(Right((process, pages, jsonWithDiffLangIdsInUnusedPhrase.as[JsObject]))))
 
       whenReady(service.guidancePagesAndProcess(jsonWithDiffLangIdsInUnusedPhrase.as[JsObject])(MockAppConfig, ec)){
         case Right(_) => succeed
