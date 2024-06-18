@@ -28,8 +28,8 @@ import play.api.Logging
 import core.models.ocelot.errors.GuidanceError
 
 trait LabelledDataServiceProvider[A] {
-  def finaliseIds(ids: List[String]): List[String]
   def get(): Future[RequestOutcome[(Map[String, A], Long)]]
+  def finaliseIds(ids: List[String]): List[String]
   def addProcessDataTable(ids: List[String], process: Process): Process
   def updateProcessTable(js: JsObject, process: Process): Future[RequestOutcome[(JsObject, Process)]]
   def missingIdError(id: String): GuidanceError
@@ -59,15 +59,18 @@ class LabelledDataService @Inject() (
 
   def addLabelledDataTables(pages: Seq[Page], process: Process, js: Option[JsObject])
                              (implicit ec: ExecutionContext): Future[RequestOutcome[(Process, Seq[Page], JsObject)]] = {
-    def buildTable[A](process: Process, js: Option[JsObject], dataRef: LabelledDataReferencing, service: LabelledDataServiceProvider[A]): Future[RequestOutcome[(Process, Seq[Page], JsObject)]] =
+    def buildTable[A](process: Process,
+                      js: Option[JsObject],
+                      dataRef: LabelledDataReferencing,
+                      service: LabelledDataServiceProvider[A]): Future[RequestOutcome[(Process, Seq[Page], JsObject)]] =
       (dataRef.referencedNonPhraseIds(process.flow) ++ dataRef.referencedIds(process.phrases)).distinct match {
             case Nil => Future.successful(Right((process, pages, js.fold(Json.toJsObject(process))(json => json))))
             case rawIds =>
-              val ids = service.finaliseIds(rawIds)
+              val ids = service.finaliseIds(rawIds) // Generate full ids valid as oftoday for use in the contains test against current set of labelled data
               service.get().flatMap{
               case Left(err) => Future.successful(Left(err))
               case Right(data) if ids.forall(id => data._1.contains(id)) => // If labelled data used in process are available from the service
-                val updatedProcess =service.addProcessDataTable(ids, process)
+                val updatedProcess =service.addProcessDataTable(rawIds, process)
                 Future.successful(Right((updatedProcess, pages, Json.toJsObject(updatedProcess))))
               case Right(data) =>
                 Future.successful(Left(Error(ids.filterNot(data._1.contains).map(service.missingIdError))))

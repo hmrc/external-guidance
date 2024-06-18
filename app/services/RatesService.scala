@@ -20,7 +20,7 @@ import java.io.InputStream
 import java.nio.file.{Paths, Files}
 import javax.inject.{Inject, Singleton}
 import core.models.RequestOutcome
-import core.models.ocelot.{Process, asPositiveInt}
+import core.models.ocelot.Process
 import core.models.ocelot.errors.{GuidanceError, MissingRateDefinition}
 import core.models.errors.{InternalServerError, NotFoundError, ValidationError}
 import play.api.libs.json.{JsObject, JsValue, Json}
@@ -63,18 +63,14 @@ class RatesService @Inject() (
         Left(InternalServerError)
     }
 
-  def finaliseIds(ids: List[String]): List[String] =
-    ids.map{
-      case fullId if fullId.length > YearStringLength && asPositiveInt(fullId.reverse.take(YearStringLength)).isDefined => fullId
-      case shortId => s"$shortId${core.services.Rates.KeySeparator}${tp.year}"
-    }
+  def finaliseIds(ids: List[String]): List[String] = ids.map(coreRatesService.fullRateId(_, tp))
 
   def updateProcessTable(js: JsObject, process: Process): Future[RequestOutcome[(JsObject, Process)]] =
     process.rates.isEmpty match {
       case true => Future.successful(Right((js, process)))
       case _ => get().map{
         case Right((rates, version)) =>
-          val ratesTable: Map[String, BigDecimal] = process.rates.keys.toList.map(k => (k, rates(k))).toMap
+          val ratesTable: Map[String, BigDecimal] = process.rates.keys.toList.map(k => (k, rates(coreRatesService.fullRateId(k, tp)))).toMap
           val updatedProcess: Process = process.copy(meta = process.meta.copy(ratesVersion = Some(version)), rates = ratesTable)
           Json.toJson(updatedProcess).validate[JsObject].fold(_ => Left(ValidationError), jsObj => Right((jsObj, updatedProcess)))
         case Left(err) => Left(err)
