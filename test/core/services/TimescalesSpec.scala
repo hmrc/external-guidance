@@ -25,10 +25,15 @@ class TimescalesSpec extends BaseSpec with ProcessJson with TestTimescaleDefnsDB
   val earlyYearToday: LocalDate = LocalDate.of(2018, 2, 12)
   val taxStartForNow = LocalDate.of(2020, 4, 6)
   val taxYearForNow = taxStartForNow.getYear
-  val pls: Timescales = new Timescales(new TodayProvider{
-                                            def now = today
-                                            def year: String = now.getYear().toString
-                                          })
+  val todayProvider = new TodayProvider{
+                        def now = today
+                        def year: String = now.getYear().toString
+                      }
+  val taxStartProvider = new TodayProvider{
+                        def now = taxStartForNow
+                        def year: String = now.getYear().toString
+                      }
+  val pls: Timescales = new Timescales(todayProvider)
   val process: Process = prototypeJson.as[Process].copy(timescales = timescaleMap)
 
   "Timescales" must {
@@ -38,18 +43,18 @@ class TimescalesSpec extends BaseSpec with ProcessJson with TestTimescaleDefnsDB
     }
 
     "determine tax year start date from a current date" in {
-      pls.cy(0, today) shouldBe taxStartForNow
+      todayProvider.cy() shouldBe taxStartForNow
     }
 
     "determine previous and future tax year from a current date" in {
       for(i <- Range(0, 10)) {
-        pls.cy(i, today).getYear shouldBe taxYearForNow + i
-        pls.cy(-i, today).getYear shouldBe taxYearForNow -i
+        todayProvider.cy(Some(i.toString)).getYear shouldBe taxYearForNow + i
+        todayProvider.cy(Some(s"-$i")).getYear shouldBe taxYearForNow -i
       }
     }
 
     "determine start of current tax year when today is first day of tax year" in {
-      pls.cy(0, taxStartForNow) shouldBe taxStartForNow
+      taxStartProvider.cy() shouldBe taxStartForNow
     }
 
     "expand today" in {

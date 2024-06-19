@@ -63,9 +63,9 @@ class Rates @Inject() () extends LabelledDataExpansion with LabelledDataReferenc
   private val PrefixId: Int = 1
   private val CYId: Int = 2
   private val OffsetId: Int = 3
-  private val RateIdCYSuffixRegex: Regex = s"^(.+?)$CYPattern$$".r
-  private val TaxYearStartDay: Int = 6
-  private val TaxYearStartMonth: Int = 4
+  private val YearId: Int = 4
+  private val RateIdYearSpecSuffixPattern: String = s"^(.+?)(?:$KeySeparator$YearPattern)?$$"
+  private val RateIdYearSpecSuffixRegex: Regex = RateIdYearSpecSuffixPattern.r
 
   private def matchToKey(grp: Int => Option[String], default: String): String =
     grp(SectorId).fold(default){sector =>
@@ -102,21 +102,15 @@ class Rates @Inject() () extends LabelledDataExpansion with LabelledDataReferenc
     LookupRateIdFixedYearRegex.findFirstMatchIn(id).map(m => (m.group(LookupSectorId), m.group(LookupRateId), m.group(LookupYearId)))
 
   def fullRateId(id: String, tp: TodayProvider): String = {
-    def matchKey(grp: Int => Option[String]): Option[(String, Option[String])] =
-      grp(PrefixId).fold[Option[(String, Option[String])]](None){prefix =>
-        grp(CYId).fold[Option[(String, Option[String])]](Some((prefix, None))){_ => Some((prefix, grp(OffsetId)))}
+    def matchKey(grp: Int => Option[String]): String =
+      grp(PrefixId).fold(id){prefix =>
+        grp(CYId).fold{
+          grp(YearId).fold(s"$prefix$KeySeparator${tp.year}"){_ => id}
+        }(_ => s"$prefix$KeySeparator${tp.cyYear(grp(OffsetId))}")
+
       }
 
-    RateIdCYSuffixRegex.findFirstMatchIn(id).map{m =>
-      matchKey(matchGroup(m)).fold(id){
-        case (prefix, dcy) => s"${prefix}${KeySeparator}${taxYear(dcy, tp)}"
-      }
-    }.getOrElse(id)
+    RateIdYearSpecSuffixRegex.findFirstMatchIn(id).map(m => matchKey(matchGroup(m))).getOrElse(id)
   }
 
-  private def taxYear(off: Option[String], tp: TodayProvider): String = {
-    val offset:Int = off.fold(0)(_.toInt)
-    val candidateStartDate = tp.now.withMonth(TaxYearStartMonth).withDayOfMonth(TaxYearStartDay)
-    candidateStartDate.minusYears(-offset + (if (tp.now.isBefore(candidateStartDate)) 1 else 0)).getYear().toString
-  }
 }

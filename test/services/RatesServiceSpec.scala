@@ -367,6 +367,23 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
         result shouldBe Left(InternalServerError)
       }
     }
+
+    "return an internal error when rate table entry cannot be resolved" in new Test {
+    // |      "Legacy!higherrate!2016" : 0,
+    // |      "Legacy!basicrate!2022" : 0,
+    // |      "TaxNic!CTC!2016" : 0
+
+      val process: Process = jsonWithBlankRatesTable.as[Process]
+      val updatedProcess = process.copy(rates = rates + ("TaxNic!CND" -> BigDecimal(0)))
+      MockLabelledDataRepository
+        .get(Rates)
+        .returns(Future.successful(Right(labelledData)))
+
+      whenReady(target.updateProcessTable(jsonWithBlankRatesTable, updatedProcess)) { result =>
+        result shouldBe Left(InternalServerError)
+      }
+    }
+
   }
 
   "Calling finaliseIds method" should {

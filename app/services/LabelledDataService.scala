@@ -48,9 +48,7 @@ class LabelledDataService @Inject() (
       timescaleService.updateProcessTable(js, process).flatMap{
         case Right((jt, pt)) => ratesService.updateProcessTable(jt, pt).map{
           case Right((jr, pr)) => Right(jr)
-          case Left(err) =>
-            logger.error(s"Unable to update Process rates table due to error: $err")
-            Left(err)
+          case Left(err) => Left(err)
         }
       case Left(err) =>
         logger.error(s"Unable to update Process timescales table due to error: $err")
@@ -66,7 +64,7 @@ class LabelledDataService @Inject() (
       (dataRef.referencedNonPhraseIds(process.flow) ++ dataRef.referencedIds(process.phrases)).distinct match {
             case Nil => Future.successful(Right((process, pages, js.fold(Json.toJsObject(process))(json => json))))
             case rawIds =>
-              val ids = service.finaliseIds(rawIds) // Generate full ids valid as oftoday for use in the contains test against current set of labelled data
+              val ids = service.finaliseIds(rawIds) // Generate full ids valid as of today for use in the contains test against current set of labelled data
               service.get().flatMap{
               case Left(err) => Future.successful(Left(err))
               case Right(data) if ids.forall(id => data._1.contains(id)) => // If labelled data used in process are available from the service

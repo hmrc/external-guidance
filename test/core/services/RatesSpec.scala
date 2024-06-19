@@ -19,6 +19,7 @@ package core.services
 import base.BaseSpec
 import core.models.ocelot.ProcessJson
 import core.models.ocelot.Process
+import java.time.LocalDate
 
 class RatesSpec extends BaseSpec with ProcessJson {
   val rates: Rates = new Rates()
@@ -44,6 +45,15 @@ class RatesSpec extends BaseSpec with ProcessJson {
       s"section2${KeySeparator}rate1:sub2${KeySeparator}CY-1" -> 4.5
     )
   )
+  val today: LocalDate = LocalDate.of(2020, 6, 24)
+  val earlyYearToday: LocalDate = LocalDate.of(2018, 2, 12)
+  val taxStartForNow = LocalDate.of(2020, 4, 6)
+  val taxYearForNow = taxStartForNow.getYear
+  val todayProvider: TodayProvider = new TodayProvider{
+                            def now = earlyYearToday
+                            def year: String = now.getYear().toString
+                          }
+
 
   "Rates.expand" must {
     "expand valid rate placeholder" in {
@@ -95,7 +105,7 @@ class RatesSpec extends BaseSpec with ProcessJson {
 
   "Rates.referencedNonPhraseIds" must {
     "Find all rate ids used within non-phrase text" in {
-      val expected = List(s"TaxNic${KeySeparator}CTC${KeySeparator}2010", s"Legacy${KeySeparator}higherrate${KeySeparator}2016", s"Legacy${KeySeparator}basicrate${KeySeparator}2016")
+      val expected = List(s"TaxNic${KeySeparator}CTC${KeySeparator}2010", s"Legacy${KeySeparator}higherrate", s"Legacy${KeySeparator}basicrate${KeySeparator}2016")
       rates.referencedNonPhraseIds(process.flow) shouldBe expected
     }
   }
@@ -112,4 +122,20 @@ class RatesSpec extends BaseSpec with ProcessJson {
       rates.reverseRateId(s"Sector${KeySeparator}rate${KeySeparator}2001") shouldBe Some(("Sector", "rate", Some("2001")))
     }
   }
+
+  "Rates.fullRateId" must {
+    "Correctly complete rateId with implicit year" in {
+      rates.fullRateId(s"Sector${KeySeparator}rate", todayProvider) shouldBe s"Sector${KeySeparator}rate${KeySeparator}${todayProvider.year}"
+    }
+
+    "Correctly complete rateId with CY year" in {
+      rates.fullRateId(s"Sector${KeySeparator}rate${KeySeparator}CY", todayProvider) shouldBe s"Sector${KeySeparator}rate${KeySeparator}${todayProvider.cyYear()}"
+    }
+
+    "Correctly complete rateId with CY arithmetic year" in {
+      rates.fullRateId(s"Sector${KeySeparator}rate${KeySeparator}CY-1", todayProvider) shouldBe s"Sector${KeySeparator}rate${KeySeparator}${todayProvider.cyYear(Some("-1"))}"
+    }
+
+  }
+
 }
