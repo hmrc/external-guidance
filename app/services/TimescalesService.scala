@@ -50,8 +50,6 @@ class TimescalesService @Inject() (
         Left(InternalServerError)
     }
 
-  def finaliseIds(ids: List[String]): List[String] = ids
-
   def updateProcessTable(js: JsObject, process: Process): Future[RequestOutcome[(JsObject, Process)]] =
     process.timescales.isEmpty match {
       case true => Future.successful(Right((js, process)))

@@ -29,7 +29,7 @@ import core.models.ocelot.errors.GuidanceError
 
 trait LabelledDataServiceProvider[A] {
   def get(): Future[RequestOutcome[(Map[String, A], Long)]]
-  def finaliseIds(ids: List[String]): List[String]
+  def expandDataIds(ids: List[String]): List[String] = ids
   def addProcessDataTable(ids: List[String], process: Process): Process
   def updateProcessTable(js: JsObject, process: Process): Future[RequestOutcome[(JsObject, Process)]]
   def missingIdError(id: String): GuidanceError
@@ -64,7 +64,7 @@ class LabelledDataService @Inject() (
       (dataRef.referencedNonPhraseIds(process.flow) ++ dataRef.referencedIds(process.phrases)).distinct match {
             case Nil => Future.successful(Right((process, pages, js.fold(Json.toJsObject(process))(json => json))))
             case rawIds =>
-              val ids = service.finaliseIds(rawIds) // Generate full ids valid as of today for use in the contains test against current set of labelled data
+              val ids = service.expandDataIds(rawIds) // Generate full ids valid as of today for use in the contains test against current set of labelled data
               service.get().flatMap{
               case Left(err) => Future.successful(Left(err))
               case Right(data) if ids.forall(id => data._1.contains(id)) => // If labelled data used in process are available from the service

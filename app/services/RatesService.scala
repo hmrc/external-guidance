@@ -63,7 +63,7 @@ class RatesService @Inject() (
         Left(InternalServerError)
     }
 
-  def finaliseIds(ids: List[String]): List[String] = ids.map(coreRatesService.fullRateId(_, tp))
+  override def expandDataIds(ids: List[String]): List[String] = ids.map(coreRatesService.fullRateId(_, tp))
 
   def updateProcessTable(js: JsObject, process: Process): Future[RequestOutcome[(JsObject, Process)]] = {
     @tailrec
