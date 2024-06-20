@@ -84,7 +84,7 @@ class RatesService @Inject() (
         case Right((rates, version)) =>
           tableUpdate(process.rates.keys.toList, rates) match {
             case Left(err) =>
-              logger.error(s"RuntimeError: Uunable to update process rate table due to error: ${err.errors}")
+              logger.error(s"Unable to update process rate table due to error: ${err.errors}")
               Left(InternalServerError)
             case Right(updatedTable) =>
               val updatedProcess: Process = process.copy(meta = process.meta.copy(ratesVersion = Some(version)), rates = updatedTable)

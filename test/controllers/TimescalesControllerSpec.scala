@@ -18,10 +18,10 @@ package controllers
 
 import base.BaseSpec
 import core.models.errors.{InternalServerError, ValidationError}
-import mocks.{MockTimescalesRepository, MockTimescalesService}
+import mocks.{MockLabelledDataRepository, MockTimescalesService}
 import controllers.actions.FakeAllRolesAction
 import mocks.{MockApprovalReviewService, MockPublishedService}
-import models.{TimescalesResponse, TimescalesUpdate, UpdateDetails}
+import models.{LabelledDataUpdateStatus, LabelledData, UpdateDetails, Timescales}
 import play.api.http.ContentTypes
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc._
@@ -33,7 +33,7 @@ import scala.concurrent.Future
 
 class TimescalesControllerSpec extends BaseSpec {
 
-  trait Test extends MockTimescalesService with MockTimescalesRepository with MockPublishedService with MockApprovalReviewService {
+  trait Test extends MockTimescalesService with MockLabelledDataRepository with MockPublishedService with MockApprovalReviewService {
     val timescaleJson: JsValue = Json.parse("""{"First": 1, "Second": 2, "Third": 3}""")
     lazy val target: TimescalesController = new TimescalesController(mockTimescalesService,
                                                                      mockPublishedService,
@@ -46,16 +46,16 @@ class TimescalesControllerSpec extends BaseSpec {
     val credId: String = FakeAllRolesAction.credential
     val user: String = FakeAllRolesAction.name
     val email: String = FakeAllRolesAction.email
-    val timescalesUpdate = TimescalesUpdate(timescaleJson, lastUpdateTime, credId, user, email)
+    val timescalesUpdate = LabelledData(Timescales, timescaleJson, lastUpdateTime.toInstant, credId, user, email)
     val updateDetail = UpdateDetails(lastUpdateTime, credId, user, email, List("First"))
-    val timescalesResponse = TimescalesResponse(timescales.size, Some(updateDetail))
-    val timescalesResponseWithRetention = TimescalesResponse(timescales.size, Some(updateDetail))
+    val labelledDataUpdateStatus = LabelledDataUpdateStatus(timescales.size, Some(updateDetail))
+    val labelledDataUpdateStatusWithRetention = LabelledDataUpdateStatus(timescales.size, Some(updateDetail))
   }
 
   "Calling the save action" when {
 
     trait ValidSaveTest extends Test {
-      MockTimescalesService.save(timescaleJson, credId, user, email, Nil).returns(Future.successful(Right(timescalesResponse)))
+      MockTimescalesService.save(timescaleJson, credId, user, email, Nil).returns(Future.successful(Right(labelledDataUpdateStatus)))
       lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(timescaleJson)
     }
 
@@ -75,7 +75,7 @@ class TimescalesControllerSpec extends BaseSpec {
         MockPublishedService.getTimescalesInUse().returns(Future.successful(Right(List("First"))))
         MockApprovalReviewService.getTimescalesInUse().returns(Future.successful(Right(Nil)))
 
-        MockTimescalesService.save(timescalesJsonWithDeletion, credId, user, email, List("First")).returns(Future.successful(Right(timescalesResponseWithRetention)))
+        MockTimescalesService.save(timescalesJsonWithDeletion, credId, user, email, List("First")).returns(Future.successful(Right(labelledDataUpdateStatusWithRetention)))
         lazy val request: FakeRequest[JsValue] = FakeRequest().withBody(timescalesJsonWithDeletion)
         val result = target.save()(request)
         status(result) shouldBe ACCEPTED
@@ -155,14 +155,14 @@ class TimescalesControllerSpec extends BaseSpec {
     "the request is valid" should {
 
       trait ValidDetailsTest extends Test {
-        MockTimescalesService.details().returns(Future.successful(Right(timescalesResponse)))
+        MockTimescalesService.details().returns(Future.successful(Right(labelledDataUpdateStatus)))
         lazy val request: FakeRequest[AnyContent] = FakeRequest()
       }
 
       "return a no content response" in new ValidDetailsTest {
         private val result = target.details(request)
         status(result) shouldBe OK
-        contentAsJson(result) shouldBe Json.toJson(timescalesResponse)
+        contentAsJson(result) shouldBe Json.toJson(labelledDataUpdateStatus)
       }
     }
 

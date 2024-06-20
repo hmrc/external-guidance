@@ -14,31 +14,25 @@
  * limitations under the License.
  */
 
-package repositories
+package migrate.repositories
 
 import javax.inject.{Inject, Singleton}
-import java.time.ZonedDateTime
+
 import core.models.errors.{DatabaseError, NotFoundError}
 import core.models.RequestOutcome
-import play.api.libs.json.JsValue
 import play.api.Logger
 import config.AppConfig
 
 import scala.concurrent.{ExecutionContext, Future}
 import models.TimescalesUpdate
-import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
-import org.mongodb.scala.model.Updates._
-import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
-import core.models.MongoDateTimeFormats.Implicits._
 
 //$COVERAGE-OFF$
 trait TimescalesRepository {
   val CurrentTimescalesID: String = "1"
-  def save(timescales: JsValue, when: ZonedDateTime, credId: String, user: String, email: String): Future[RequestOutcome[TimescalesUpdate]]
   def get(id: String): Future[RequestOutcome[TimescalesUpdate]]
 }
 
@@ -54,34 +48,6 @@ class TimescalesRepositoryImpl @Inject() (component: MongoComponent, appConfig: 
     with TimescalesRepository {
   val logger: Logger = Logger(getClass)
   override lazy val requiresTtlIndex: Boolean = false
-
-  def save(timescales: JsValue, when: ZonedDateTime, credId: String, user: String, email: String): Future[RequestOutcome[TimescalesUpdate]] =
-    collection
-      .findOneAndUpdate(
-        equal("_id", CurrentTimescalesID),
-        combine(
-          set("timescales", Codecs.toBson(timescales)),
-          set("when", Codecs.toBson(when.toInstant)),
-          set("credId", credId),
-          set("user", user),
-          set("email", email)
-        ),
-        FindOneAndUpdateOptions()
-          .upsert(true)
-          .returnDocument(ReturnDocument.AFTER)
-      )
-      .toFutureOption()
-      .map{
-        case None =>
-          logger.error(s"Failed to find and update/insert TimescalesUpdate")
-          Left(DatabaseError)
-        case Some(tsUpdate) => Right(tsUpdate)
-      }
-      .recover {
-        case e =>
-          logger.warn(s"Failed to save TimescalesUpdate due to error, ${e.getMessage}")
-          Left(DatabaseError)
-      }
 
   def get(id: String): Future[RequestOutcome[TimescalesUpdate]] =
     collection

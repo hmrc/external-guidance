@@ -22,7 +22,7 @@ import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsObject, JsValue}
 import services.TimescalesService
-import models.TimescalesResponse
+import models.LabelledDataUpdateStatus
 import core.models.ocelot.Process
 import scala.concurrent.Future
 
@@ -31,7 +31,7 @@ trait MockTimescalesService extends MockFactory {
 
   object MockTimescalesService {
 
-    def save(timescales: JsValue, credId: String, user: String, email: String, inUse: List[String]): CallHandler[Future[RequestOutcome[TimescalesResponse]]] =
+    def save(timescales: JsValue, credId: String, user: String, email: String, inUse: List[String]): CallHandler[Future[RequestOutcome[LabelledDataUpdateStatus]]] =
       (mockTimescalesService
         .save(_: JsValue, _: String, _: String, _: String, _: List[String]))
         .expects(timescales, credId, user, email, inUse)
@@ -46,7 +46,7 @@ trait MockTimescalesService extends MockFactory {
         .get _)
         .expects()
 
-    def details(): CallHandler[Future[RequestOutcome[TimescalesResponse]]] =
+    def details(): CallHandler[Future[RequestOutcome[LabelledDataUpdateStatus]]] =
       (mockTimescalesService
         .details _)
         .expects()

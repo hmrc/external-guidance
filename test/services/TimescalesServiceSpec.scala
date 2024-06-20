@@ -17,15 +17,15 @@
 package services
 
 import base.BaseSpec
-import mocks.MockTimescalesRepository
+import mocks.MockLabelledDataRepository
 import core.models.RequestOutcome
 import core.models.errors._
 import play.api.libs.json.{JsValue, Json, JsObject}
 import mocks.MockAppConfig
 import scala.concurrent.Future
 import core.models.ocelot.Process
-import java.time.ZonedDateTime
-import models.{TimescalesResponse, UpdateDetails, TimescalesUpdate}
+import java.time.{ZoneId, ZonedDateTime}
+import models.{Timescales, LabelledData, UpdateDetails, LabelledDataUpdateStatus}
 import core.models.MongoDateTimeFormats.localZoneID
 
 class TimescalesServiceSpec extends BaseSpec {
@@ -214,10 +214,11 @@ class TimescalesServiceSpec extends BaseSpec {
   """.stripMargin
   ).as[JsObject]
 
-  private trait Test extends MockTimescalesRepository {
+  private trait Test extends MockLabelledDataRepository {
 
-    lazy val target: TimescalesService = new TimescalesService(mockTimescalesRepository, MockAppConfig)
+    lazy val target: TimescalesService = new TimescalesService(mockLabelledDataRepository, MockAppConfig)
     val lastUpdateTime: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, localZoneID)
+    val lastUpdateTimeUTC: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, ZoneId.of("UTC"))
     val timescalesJson: JsValue = Json.parse("""{"First": 1, "Second": 2, "Third": 3}""")
     val timescalesJsonWithDeletion: JsValue = Json.parse("""{"Second": 2, "Third": 3, "Fourth": 4}""")
 
@@ -227,28 +228,32 @@ class TimescalesServiceSpec extends BaseSpec {
     val credId: String = "234324234"
     val user: String = "User Blah"
     val email: String = "user@blah.com"
-    val timescalesUpdate = TimescalesUpdate(timescalesJson, lastUpdateTime, credId, user, email)
-    val updateDetail = UpdateDetails(lastUpdateTime, "234324234", "User Blah", "user@blah.com")
-    val timescalesResponse = TimescalesResponse(timescales.size, Some(updateDetail))
+    val labelledData = LabelledData(Timescales, timescalesJson, lastUpdateTime.toInstant(), credId, user, email)
+    val updateDetail = UpdateDetails(lastUpdateTimeUTC, "234324234", "User Blah", "user@blah.com")
+    val labelledDataUpdateStatus = LabelledDataUpdateStatus(timescales.size, Some(updateDetail))
 
-    val expected: RequestOutcome[TimescalesUpdate] = Right(timescalesUpdate)
+    val expected: RequestOutcome[LabelledData] = Right(labelledData)
   }
 
   "Calling save method" when {
 
     "the JSON is valid" should {
-      "return TimescalesResponse" in new Test{
+      "return LabelledDataUpdateStatus" in new Test{
 
-        MockTimescalesRepository
-          .get(mockTimescalesRepository.CurrentTimescalesID)
+        MockLabelledDataRepository
+          .get(Timescales)
           .returns(Future.successful(expected))
 
-        MockTimescalesRepository
-          .save(timescalesJson, lastUpdateTime, credId, user, email)
+        MockLabelledDataRepository
+          .save(Timescales, timescalesJson, lastUpdateTime.toInstant(), credId, user, email)
           .returns(Future.successful(expected))
 
         whenReady(target.save(timescalesJson, credId, user, email, Nil)) {
-          case Right(response) if response == timescalesResponse => succeed
+          case Right(response) if response == labelledDataUpdateStatus => succeed
+          case Right(response) =>
+            println(labelledDataUpdateStatus)
+            println(response)
+            fail()
           case _ => fail()
         }
       }
@@ -258,12 +263,12 @@ class TimescalesServiceSpec extends BaseSpec {
       "return TimescalesResponse" in new Test{
         val timescalesWithRetainedDefn: JsValue = Json.parse("""{"First": 1, "Second": 2, "Third": 3, "Fourth": 4}""")
 
-        MockTimescalesRepository
-          .get(mockTimescalesRepository.CurrentTimescalesID)
+        MockLabelledDataRepository
+          .get(Timescales)
           .returns(Future.successful(expected))
 
-        MockTimescalesRepository
-          .save(timescalesWithRetainedDefn, lastUpdateTime, credId, user, email)
+        MockLabelledDataRepository
+          .save(Timescales, timescalesWithRetainedDefn, lastUpdateTime.toInstant(), credId, user, email)
           .returns(Future.successful(expected))
 
         whenReady(target.save(timescalesJsonWithDeletion, credId, user, email, List("First"))) {
@@ -277,12 +282,12 @@ class TimescalesServiceSpec extends BaseSpec {
     "the JSON is valid but published service call fails" should {
       "return TimescalesResponse" in new Test{
 
-        MockTimescalesRepository
-          .get(mockTimescalesRepository.CurrentTimescalesID)
+        MockLabelledDataRepository
+          .get(Timescales)
           .returns(Future.successful(Left(DatabaseError)))
 
-        MockTimescalesRepository
-          .save(timescalesJson, lastUpdateTime, credId, user, email)
+        MockLabelledDataRepository
+          .save(Timescales, timescalesJson, lastUpdateTime.toInstant(), credId, user, email)
           .returns(Future.successful(Left(DatabaseError)))
 
         whenReady(target.save(timescalesJsonWithDeletion, credId, user, email, Nil)) {
@@ -306,7 +311,7 @@ class TimescalesServiceSpec extends BaseSpec {
 
     "the JSON is invalid" should {
       "not call the scratch repository" in new Test {
-        MockTimescalesRepository.save(Json.parse("""{"Hello": "World"}"""), lastUpdateTime, credId, user, email).never()
+        MockLabelledDataRepository.save(Timescales, Json.parse("""{"Hello": "World"}"""), lastUpdateTime.toInstant(), credId, user, email).never()
 
         target.save(Json.parse("""{"Hello": "World"}"""), credId, user, email, Nil)
       }
@@ -314,12 +319,12 @@ class TimescalesServiceSpec extends BaseSpec {
 
     "a database error occurs" should {
       "return a internal error" in new Test {
-        MockTimescalesRepository
-          .get(mockTimescalesRepository.CurrentTimescalesID)
+        MockLabelledDataRepository
+          .get(Timescales)
           .returns(Future.successful(expected))
 
-        MockTimescalesRepository
-          .save(timescalesJson, lastUpdateTime, credId, user, email)
+        MockLabelledDataRepository
+          .save(Timescales, timescalesJson, lastUpdateTime.toInstant(), credId, user, email)
           .returns(Future.successful(Left(DatabaseError)))
 
         whenReady(target.save(timescalesJson, credId, user, email, Nil)) {
@@ -333,9 +338,9 @@ class TimescalesServiceSpec extends BaseSpec {
   "Calling get method" should {
 
     "return the timescales" in new Test {
-      MockTimescalesRepository
-        .get("1")
-        .returns(Future.successful(Right(timescalesUpdate)))
+      MockLabelledDataRepository
+        .get(Timescales)
+        .returns(Future.successful(Right(labelledData)))
 
       whenReady(target.get()) { result =>
         result shouldBe Right(timeScalesWithVersion)
@@ -343,8 +348,8 @@ class TimescalesServiceSpec extends BaseSpec {
     }
 
     "return Seed defnitions if no DB data found" in new Test {
-      MockTimescalesRepository
-        .get("1")
+      MockLabelledDataRepository
+        .get(Timescales)
         .returns(Future.successful(Left(NotFoundError)))
 
       whenReady(target.get()) { result =>
@@ -353,8 +358,8 @@ class TimescalesServiceSpec extends BaseSpec {
     }
 
     "return an internal error when a database error occurs" in new Test {
-      MockTimescalesRepository
-        .get("1")
+      MockLabelledDataRepository
+        .get(Timescales)
         .returns(Future.successful(Left(DatabaseError)))
 
       whenReady(target.get()) { result =>
@@ -365,29 +370,29 @@ class TimescalesServiceSpec extends BaseSpec {
 
   "Calling details method" should {
     "Return complete details if timescales exist" in new Test {
-      MockTimescalesRepository
-        .get("1")
-        .returns(Future.successful(Right(timescalesUpdate)))
+      MockLabelledDataRepository
+        .get(Timescales)
+        .returns(Future.successful(Right(labelledData)))
 
       whenReady(target.details()) { result =>
-        result shouldBe Right(timescalesResponse)
+        result shouldBe Right(labelledDataUpdateStatus)
       }
     }
 
     "Return details with no datetime if only seed timescales exist" in new Test {
-      MockTimescalesRepository
-        .get("1")
+      MockLabelledDataRepository
+        .get(Timescales)
         .returns(Future.successful(Left(NotFoundError)))
 
       whenReady(target.details()) { result =>
-        result shouldBe Right(TimescalesResponse(timescales.size, None))
+        result shouldBe Right(LabelledDataUpdateStatus(timescales.size, None))
       }
 
     }
 
     "return an internal error when a database error occurs" in new Test {
-      MockTimescalesRepository
-        .get("1")
+      MockLabelledDataRepository
+        .get(Timescales)
         .returns(Future.successful(Left(DatabaseError)))
 
       whenReady(target.details()) { result =>
@@ -401,14 +406,14 @@ class TimescalesServiceSpec extends BaseSpec {
 
     "Update table using mongo timescale defns" in new Test {
       val process: Process = jsonWithBlankTsTable.as[Process]
-      MockTimescalesRepository
-        .get("1")
-        .returns(Future.successful(Right(timescalesUpdate)))
+      MockLabelledDataRepository
+        .get(Timescales)
+        .returns(Future.successful(Right(labelledData)))
 
       whenReady(target.updateProcessTable(jsonWithBlankTsTable, process)) { result =>
         result match {
           case Right((json, p)) =>
-            p.meta.timescalesVersion shouldBe Some(timescalesUpdate.when.toInstant().toEpochMilli())
+            p.meta.timescalesVersion shouldBe Some(labelledData.when.toEpochMilli())
             p.timescales shouldBe timescales
           case _ => fail()
         }
@@ -427,8 +432,8 @@ class TimescalesServiceSpec extends BaseSpec {
 
     "Update table using seed timescale defns when no DB data found" in new Test {
       val process: Process = jsonWithBlankTsTable.as[Process]
-      MockTimescalesRepository
-        .get("1")
+      MockLabelledDataRepository
+        .get(Timescales)
         .returns(Future.successful(Left(NotFoundError)))
 
       whenReady(target.updateProcessTable(jsonWithBlankTsTable, process)) { result =>
@@ -442,8 +447,8 @@ class TimescalesServiceSpec extends BaseSpec {
 
     "return an internal error if a database error occurs" in new Test {
       val process: Process = jsonWithBlankTsTable.as[Process]
-      MockTimescalesRepository
-        .get("1")
+      MockLabelledDataRepository
+        .get(Timescales)
         .returns(Future.successful(Left(DatabaseError)))
 
       whenReady(target.updateProcessTable(jsonWithBlankTsTable, process)) { result =>

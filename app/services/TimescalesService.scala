@@ -22,29 +22,29 @@ import core.models.ocelot.Process
 import core.models.ocelot.errors.{GuidanceError, MissingTimescaleDefinition}
 import core.models.errors.{InternalServerError, NotFoundError, ValidationError}
 import play.api.libs.json.{JsObject, JsValue, Json}
-import repositories.TimescalesRepository
+import repositories.LabelledDataRepository
 import scala.concurrent.{ExecutionContext, Future}
 import config.AppConfig
 import play.api.Logger
-import java.time.ZonedDateTime
-import models.{TimescalesResponse, UpdateDetails}
+import java.time.{ZoneId, ZonedDateTime, Instant}
+import models.{LabelledDataUpdateStatus, UpdateDetails, Timescales}
 
 @Singleton
 class TimescalesService @Inject() (
-    repository: TimescalesRepository,
+    repository: LabelledDataRepository,
     appConfig: AppConfig)(implicit ec: ExecutionContext) extends LabelledDataServiceProvider[Int] {
 
   val logger: Logger = Logger(getClass)
 
-  def details(): Future[RequestOutcome[TimescalesResponse]] =
-    repository.get(repository.CurrentTimescalesID) map {
+  def details(): Future[RequestOutcome[LabelledDataUpdateStatus]] =
+    repository.get(Timescales) map {
       case Right(update) =>
-        update.timescales.validate[Map[String, Int]].fold(_ => Left(InternalServerError),
-          mp => Right(TimescalesResponse(mp.size, Some(UpdateDetails(update.when, update.credId, update.user, update.email))))
+        update.data.validate[Map[String, Int]].fold(_ => Left(InternalServerError),
+          mp => Right(LabelledDataUpdateStatus(mp.size, Some(UpdateDetails(ZonedDateTime.ofInstant(update.when, ZoneId.of("UTC")), update.credId, update.user, update.email))))
         )
       case Left(NotFoundError) =>
         logger.warn(s"No timescales found returning seed timescale details")
-        Right(TimescalesResponse(appConfig.seedTimescales.size, None))
+        Right(LabelledDataUpdateStatus(appConfig.seedTimescales.size, None))
       case Left(err) =>
         logger.error(s"Unbale to retrieve timescale update details due to error, $err")
         Left(InternalServerError)
@@ -69,9 +69,9 @@ class TimescalesService @Inject() (
   def missingIdError(id: String): GuidanceError = MissingTimescaleDefinition(id)
 
   def get(): Future[RequestOutcome[(Map[String, Int], Long)]] =
-    repository.get(repository.CurrentTimescalesID) map {
-      case Right(tsUpdate) => tsUpdate.timescales.validate[Map[String, Int]].fold(_ => Left(InternalServerError), mp =>
-        Right((mp, tsUpdate.when.toInstant.toEpochMilli)))
+    repository.get(Timescales) map {
+      case Right(update) => update.data.validate[Map[String, Int]].fold(_ => Left(InternalServerError), mp =>
+        Right((mp, update.when.toEpochMilli)))
       case Left(NotFoundError) =>
         logger.warn(s"No timescales found returning seed timescale details")
         Right((appConfig.seedTimescales, 0L))
@@ -80,7 +80,7 @@ class TimescalesService @Inject() (
         Left(InternalServerError)
     }
 
-  def save(json: JsValue, credId: String, user: String, email: String, inUse: List[String]): Future[RequestOutcome[TimescalesResponse]] =
+  def save(json: JsValue, credId: String, user: String, email: String, inUse: List[String]): Future[RequestOutcome[LabelledDataUpdateStatus]] =
     json.validate[Map[String, Int]].fold(_ => Future.successful(Left(ValidationError)), mp =>
       // Get the current timescale definitions
       get().flatMap{
@@ -111,12 +111,13 @@ class TimescalesService @Inject() (
                              credId: String,
                              user: String,
                              email: String,
-                             retained: List[String] = Nil): Future[RequestOutcome[TimescalesResponse]] =
-    repository.save(Json.toJson(ts), ZonedDateTime.now, credId, user, email).map{
+                             retained: List[String] = Nil): Future[RequestOutcome[LabelledDataUpdateStatus]] =
+    repository.save(Timescales,Json.toJson(ts), Instant.now, credId, user, email).map{
       case Left(err) =>
         logger.error(s"Unable to save timescale definitions due error, $err")
         Left(InternalServerError)
       case Right(update) =>
-        Right(TimescalesResponse(ts.size, Some(UpdateDetails(update.when, update.credId, update.user, update.email, retained))))
+        val updateDetails: UpdateDetails = UpdateDetails(ZonedDateTime.ofInstant(update.when, ZoneId.of("UTC")), update.credId, update.user, update.email, retained)
+        Right(LabelledDataUpdateStatus(ts.size, Some(updateDetails)))
     }
 }

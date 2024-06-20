@@ -20,7 +20,7 @@ import core.services.{DefaultTodayProvider, TodayProvider}
 import com.google.inject.AbstractModule
 import controllers.actions._
 import repositories._
-
+import migrate.repositories.{TimescalesRepository, TimescalesRepositoryImpl}
 class Module extends AbstractModule {
 
   override def configure(): Unit = {
