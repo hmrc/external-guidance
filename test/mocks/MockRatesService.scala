@@ -56,9 +56,9 @@ trait MockRatesService extends MockFactory {
         .details _)
         .expects()
 
-    def finaliseIds(ids: List[String]): CallHandler[List[String]] =
+    def expandDataIds(ids: List[String]): CallHandler[List[String]] =
       (mockRatesService
-        .finaliseIds(_: List[String]))
+        .expandDataIds(_: List[String]))
         .expects(ids)
 
     def missingIdError(id: String): CallHandler[GuidanceError] =

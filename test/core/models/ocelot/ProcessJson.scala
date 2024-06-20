@@ -609,7 +609,7 @@ trait ProcessJson {
       |        {
       |          "type": "scalar",
       |          "label": "Blah",
-      |          "value": "[rate:Legacy:higherrate:2016]"
+      |          "value": "[rate:Legacy:higherrate]"
       |        }
       |      ],
       |      "next": [

@@ -23,8 +23,15 @@ import scala.util.matching.Regex
 import Regex._
 
 trait TodayProvider {
+  private val TaxYearStartDay: Int = 6
+  private val TaxYearStartMonth: Int = 4
   def now: LocalDate
   def year: String
+  def cy(offset: Option[String] = None): LocalDate = {
+    val candidateStartDate = now.withMonth(TaxYearStartMonth).withDayOfMonth(TaxYearStartDay)
+    candidateStartDate.minusYears(-offset.map(_.toInt).getOrElse(0) + (if (now.isBefore(candidateStartDate)) 1 else 0))
+  }
+  def cyYear(offset: Option[String] = None): String = cy(offset).getYear().toString
 }
 
 @Singleton
@@ -44,18 +51,12 @@ class Timescales @Inject() (tp: TodayProvider) extends LabelledDataExpansion wit
     }(id => List(id))
   }
 
-  private val TaxYearStartDay: Int = 6
-  private val TaxYearStartMonth: Int = 4
   private val TaxYearPattern: String = "CY([\\-+]\\d+)?"
   private val timescalesPattern = s"\\[timescale:(?:(?:($TimescaleIdPattern):days)|(?:($DatePattern)|(today)|($TaxYearPattern))(?::(long|short))?)\\]"
   private val timescalesRegex: Regex = timescalesPattern.r
 
   private[services] def long(date: LocalDate): Int = date.getYear
   private[services] def short(date: LocalDate): Int = long(date) % 100
-  private[services] def cy(offset: Int, when: LocalDate): LocalDate = {
-    val candidateStartDate = when.withMonth(TaxYearStartMonth).withDayOfMonth(TaxYearStartDay)
-    candidateStartDate.minusYears(-offset + (if (when.isBefore(candidateStartDate)) 1 else 0))
-  }
 
   private val TimescaleIdGroup: Int = 1
   private val DateLiteralGroup: Int = 2
@@ -75,8 +76,8 @@ class Timescales @Inject() (tp: TodayProvider) extends LabelledDataExpansion wit
       Option(m.group(DateLiteralGroup)).fold{
         Option(m.group(TodayGroup)).fold{
           Option(m.group(CyOffsetGroup)).fold{
-            longOrShort(m, cy(0, todaysDate))
-          }{offset => longOrShort(m, cy(offset.toInt, todaysDate))}
+            longOrShort(m, tp.cy())
+          }{offset => longOrShort(m, tp.cy(Some(offset)))}
         }{_ => longOrShort(m, todaysDate)}
       }{literal => literal}
 

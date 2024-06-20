@@ -20,9 +20,9 @@ import java.io.InputStream
 import java.nio.file.{Paths, Files}
 import javax.inject.{Inject, Singleton}
 import core.models.RequestOutcome
-import core.models.ocelot.{Process, asPositiveInt}
+import core.models.ocelot.Process
 import core.models.ocelot.errors.{GuidanceError, MissingRateDefinition}
-import core.models.errors.{InternalServerError, NotFoundError, ValidationError}
+import core.models.errors.{Error, InternalServerError, NotFoundError, ValidationError}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import repositories.LabelledDataRepository
 import core.services.TodayProvider
@@ -63,23 +63,37 @@ class RatesService @Inject() (
         Left(InternalServerError)
     }
 
-  def finaliseIds(ids: List[String]): List[String] =
-    ids.map{
-      case fullId if fullId.length > YearStringLength && asPositiveInt(fullId.reverse.take(YearStringLength)).isDefined => fullId
-      case shortId => s"$shortId${core.services.Rates.KeySeparator}${tp.year}"
+  override def expandDataIds(ids: List[String]): List[String] = ids.map(coreRatesService.fullRateId(_, tp))
+
+  def updateProcessTable(js: JsObject, process: Process): Future[RequestOutcome[(JsObject, Process)]] = {
+    @tailrec
+    def tableUpdate(keys: List[String], rates: Map[String, BigDecimal], acc: List[(String, BigDecimal)] = Nil): RequestOutcome[Map[String, BigDecimal]] = {
+      keys match {
+        case Nil => Right(acc.toMap)
+        case x :: xs =>
+          rates.get(coreRatesService.fullRateId(x, tp)) match {
+            case None => Left(Error(missingIdError(x)))
+            case Some(v) => tableUpdate(xs, rates, (x, v) :: acc)
+          }
+      }
     }
 
-  def updateProcessTable(js: JsObject, process: Process): Future[RequestOutcome[(JsObject, Process)]] =
     process.rates.isEmpty match {
       case true => Future.successful(Right((js, process)))
       case _ => get().map{
         case Right((rates, version)) =>
-          val ratesTable: Map[String, BigDecimal] = process.rates.keys.toList.map(k => (k, rates(k))).toMap
-          val updatedProcess: Process = process.copy(meta = process.meta.copy(ratesVersion = Some(version)), rates = ratesTable)
-          Json.toJson(updatedProcess).validate[JsObject].fold(_ => Left(ValidationError), jsObj => Right((jsObj, updatedProcess)))
+          tableUpdate(process.rates.keys.toList, rates) match {
+            case Left(err) =>
+              logger.error(s"RuntimeError: Uunable to update process rate table due to error: ${err.errors}")
+              Left(InternalServerError)
+            case Right(updatedTable) =>
+              val updatedProcess: Process = process.copy(meta = process.meta.copy(ratesVersion = Some(version)), rates = updatedTable)
+              Json.toJson(updatedProcess).validate[JsObject].fold(_ => Left(ValidationError), jsObj => Right((jsObj, updatedProcess)))
+          }
         case Left(err) => Left(err)
       }
     }
+  }
 
   def addProcessDataTable(ids: List[String], process: Process): Process = process.copy(rates = ids.map((_, BigDecimal(0))).toMap)
 
@@ -114,7 +128,7 @@ class RatesService @Inject() (
   def save(json: JsValue, credId: String, user: String, email: String, inUse: List[String]): Future[RequestOutcome[LabelledDataUpdateStatus]] =
     json.validate[Map[String, Map[String, Map[String, BigDecimal]]]].fold(_ => Future.successful(Left(ValidationError)), mp => {
       val update2dMap = twoDimMapFromFour(mp) // Convert incoming map to 2d map
-      getNative().flatMap{                          // Get the current rates definitions as 2d map
+      getNative().flatMap{                    // Get the current rates definitions as 2d map
         case Right((fourDimMap, _)) =>
           val current2dMap = twoDimMapFromFour(fourDimMap)
           // Check for deletions from the existing list
@@ -156,7 +170,8 @@ class RatesService @Inject() (
 
   private[services] def fourDimMapFromTwo(rates: Map[String, BigDecimal]): Option[Map[String, Map[String, Map[String, BigDecimal]]]] = {
     @tailrec
-    def expand(rates: List[(String, BigDecimal)], acc: Map[String, Map[String, Map[String, BigDecimal]]] = Map.empty): Option[Map[String, Map[String, Map[String, BigDecimal]]]] =
+    def expand(rates: List[(String, BigDecimal)],
+               acc: Map[String, Map[String, Map[String, BigDecimal]]] = Map.empty): Option[Map[String, Map[String, Map[String, BigDecimal]]]] =
       rates match {
         case Nil => Some(acc)
         case (k, v) :: xs =>

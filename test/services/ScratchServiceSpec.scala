@@ -59,10 +59,10 @@ class ScratchServiceSpec extends BaseSpec {
         val json: JsObject = validOnePageWithTimescalesJson.as[JsObject]
 
         MockTimescalesService.missingIdError("RepayReimb").returns(MissingTimescaleDefinition("RepayReimb"))
-        MockTimescalesService.finaliseIds(List("RepayReimb")).returns(List("RepayReimb"))
+        MockTimescalesService.expandDataIds(List("RepayReimb")).returns(List("RepayReimb"))
         MockTimescalesService.get().returns(Future.successful(Right((Map(), 0L))))
 
-        MockRatesService.finaliseIds(List("Legacy!higherrate!2022", "Legacy!basicrate!2022")).returns(List("Legacy!higherrate!2022", "Legacy!basicrate!2022"))
+        MockRatesService.expandDataIds(List("Legacy!higherrate!2022", "Legacy!basicrate!2022")).returns(List("Legacy!higherrate!2022", "Legacy!basicrate!2022"))
         MockRatesService.missingIdError("Legacy!higherrate!2022").returns(MissingRateDefinition("Legacy!higherrate!2022"))
         MockRatesService.missingIdError("Legacy!basicrate!2022").returns(MissingRateDefinition("Legacy!basicrate!2022"))
 
@@ -75,7 +75,7 @@ class ScratchServiceSpec extends BaseSpec {
 
         val json: JsObject = validOnePageWithRatesJson.as[JsObject]
 
-        MockRatesService.finaliseIds(List("Legacy!higherrate!2022", "Legacy!basicrate!2022")).returns(List("Legacy!higherrate!2022", "Legacy!basicrate!2022"))
+        MockRatesService.expandDataIds(List("Legacy!higherrate!2022", "Legacy!basicrate!2022")).returns(List("Legacy!higherrate!2022", "Legacy!basicrate!2022"))
         MockRatesService.get().returns(Future.successful(Right((Map(), 0L))))
         MockRatesService.missingIdError("Legacy!higherrate!2022").returns(MissingRateDefinition("Legacy!higherrate!2022"))
         MockRatesService.missingIdError("Legacy!basicrate!2022").returns(MissingRateDefinition("Legacy!basicrate!2022"))

@@ -42,6 +42,7 @@ object UpgradeRequiredError extends Error("UPGRADE_REQUIRED")
 object IllegalPageSubmissionError extends Error("ILLEGAL_PAGE_SUBMISSION")
 object SessionNotFoundError extends Error("SESSION_NOT_FOUND")
 object TransactionFaultError extends Error("TRANSACTION_FAULT")
+object PageHistoryError extends Error("PAGE_HISTORY_FAULT")
 object CachedProcessNotFoundError extends Error("CACHED_PROCESS_NOT_FOUND")
 
 object Error {

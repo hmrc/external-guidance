@@ -367,19 +367,36 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
         result shouldBe Left(InternalServerError)
       }
     }
+
+    "return an internal error when rate table entry cannot be resolved" in new Test {
+    // |      "Legacy!higherrate!2016" : 0,
+    // |      "Legacy!basicrate!2022" : 0,
+    // |      "TaxNic!CTC!2016" : 0
+
+      val process: Process = jsonWithBlankRatesTable.as[Process]
+      val updatedProcess = process.copy(rates = rates + ("TaxNic!CND" -> BigDecimal(0)))
+      MockLabelledDataRepository
+        .get(Rates)
+        .returns(Future.successful(Right(labelledData)))
+
+      whenReady(target.updateProcessTable(jsonWithBlankRatesTable, updatedProcess)) { result =>
+        result shouldBe Left(InternalServerError)
+      }
+    }
+
   }
 
-  "Calling finaliseIds method" should {
+  "Calling expandDataIds method" should {
     "Return empty string if passed empty string" in new Test {
-      target.finaliseIds(Nil) shouldBe Nil
+      target.expandDataIds(Nil) shouldBe Nil
     }
 
     "Return ids unchanged if they terminate in a 4 digit value (year)" in new Test {
-      target.finaliseIds(List("Legacy!higherrate!2024", "Legacy!basicrate!2020")) shouldBe List("Legacy!higherrate!2024", "Legacy!basicrate!2020")
+      target.expandDataIds(List("Legacy!higherrate!2024", "Legacy!basicrate!2020")) shouldBe List("Legacy!higherrate!2024", "Legacy!basicrate!2020")
     }
 
     "Replace shortIds (do not terminate in a 4 digit value (year)) with fully qualified ids" in new Test {
-      earlyRatesService.finaliseIds(List("Legacy!higherrate", "Legacy!basicrate!2020")) shouldBe List("Legacy!higherrate!2018", "Legacy!basicrate!2020")
+      earlyRatesService.expandDataIds(List("Legacy!higherrate", "Legacy!basicrate!2020")) shouldBe List("Legacy!higherrate!2018", "Legacy!basicrate!2020")
     }
 
   }

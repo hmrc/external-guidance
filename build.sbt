@@ -39,5 +39,5 @@ lazy val it = project
 coverageExcludedPackages := "migrate.*;controllers\\.javascript.*;testOnly\\..*;controllers\\.Reverse.*;Routes.*;testOnlyDoNotUseInAppConf.*;prod;repositories;app"
 coverageHighlighting := true
 coverageFailOnMinimum := false
-coverageMinimumStmtTotal := 94.5
-coverageMinimumBranchTotal := 70
+coverageMinimumStmtTotal := 94.7
+coverageMinimumBranchTotal := 90
