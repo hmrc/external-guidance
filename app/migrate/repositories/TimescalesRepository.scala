@@ -22,9 +22,8 @@ import core.models.errors.{DatabaseError, NotFoundError}
 import core.models.RequestOutcome
 import play.api.Logger
 import config.AppConfig
-
+import migrate.models.TimescalesUpdate
 import scala.concurrent.{ExecutionContext, Future}
-import models.TimescalesUpdate
 import org.mongodb.scala.model.Filters._
 import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}

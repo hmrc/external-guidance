@@ -28,7 +28,7 @@ import repositories.LabelledDataRepository
 import core.services.TodayProvider
 import scala.concurrent.{ExecutionContext, Future}
 import config.AppConfig
-import play.api.Logger
+import play.api.Logging
 import scala.util.{Try, Success, Failure}
 import java.time.{ZoneId, ZonedDateTime, Instant}
 import models.{Rates, LabelledDataUpdateStatus, UpdateDetails}
@@ -40,10 +40,7 @@ class RatesService @Inject() (
     repository: LabelledDataRepository,
     coreRatesService: core.services.Rates,
     tp: TodayProvider,
-    appConfig: AppConfig)(implicit ec: ExecutionContext) extends LabelledDataServiceProvider[BigDecimal] {
-
-  val YearStringLength: Int = 4
-  val logger: Logger = Logger(getClass)
+    appConfig: AppConfig)(implicit ec: ExecutionContext) extends LabelledDataServiceProvider[BigDecimal] with Logging {
 
   def details(): Future[RequestOutcome[LabelledDataUpdateStatus]] =
     repository.get(Rates).map{
@@ -112,16 +109,14 @@ class RatesService @Inject() (
         Left(InternalServerError)
     }
 
-  def getNative(): Future[RequestOutcome[(Map[String, Map[String, Map[String, BigDecimal]]], Long)]] =
+  def getNativeAsJson(): Future[RequestOutcome[JsValue]] =
     repository.get(Rates).map{
-      case Right(update) => update.data.validate[Map[String, Map[String, Map[String, BigDecimal]]]].fold(_ => Left(InternalServerError), mp =>
-        Right((mp, update.when.toEpochMilli)))
+      case Right(update) => Right(update.data)
       case Left(NotFoundError) =>
         logger.warn(s"No rates found returning seed rates details")
-        seedRates()
-          .fold[RequestOutcome[(Map[String, Map[String, Map[String, BigDecimal]]], Long)]](Left(InternalServerError))(mp => Right((mp, 0L)))
+        seedRatesAsJson().fold[RequestOutcome[JsValue]](Left(InternalServerError))(Right(_))
       case Left(err) =>
-        logger.error(s"Unable to retrieve rates table due error, $err")
+        logger.error(s"Unable to retrieve rates json due error, $err")
         Left(InternalServerError)
     }
 
@@ -151,6 +146,19 @@ class RatesService @Inject() (
           Future.successful(Left(InternalServerError))
       }
     })
+
+  private[services] def getNative(): Future[RequestOutcome[(Map[String, Map[String, Map[String, BigDecimal]]], Long)]] =
+    repository.get(Rates).map{
+      case Right(update) => update.data.validate[Map[String, Map[String, Map[String, BigDecimal]]]].fold(_ => Left(InternalServerError), mp =>
+        Right((mp, update.when.toEpochMilli)))
+      case Left(NotFoundError) =>
+        logger.warn(s"No rates found returning seed rates details")
+        seedRates()
+          .fold[RequestOutcome[(Map[String, Map[String, Map[String, BigDecimal]]], Long)]](Left(InternalServerError))(mp => Right((mp, 0L)))
+      case Left(err) =>
+        logger.error(s"Unable to retrieve rates table due error, $err")
+        Left(InternalServerError)
+    }
 
   private def saveRates(rates: Map[String, BigDecimal],
                         credId: String,

@@ -25,16 +25,14 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import repositories.LabelledDataRepository
 import scala.concurrent.{ExecutionContext, Future}
 import config.AppConfig
-import play.api.Logger
+import play.api.Logging
 import java.time.{ZoneId, ZonedDateTime, Instant}
 import models.{LabelledDataUpdateStatus, UpdateDetails, Timescales}
 
 @Singleton
 class TimescalesService @Inject() (
     repository: LabelledDataRepository,
-    appConfig: AppConfig)(implicit ec: ExecutionContext) extends LabelledDataServiceProvider[Int] {
-
-  val logger: Logger = Logger(getClass)
+    appConfig: AppConfig)(implicit ec: ExecutionContext) extends LabelledDataServiceProvider[Int] with Logging {
 
   def details(): Future[RequestOutcome[LabelledDataUpdateStatus]] =
     repository.get(Timescales) map {
@@ -65,6 +63,17 @@ class TimescalesService @Inject() (
   def addProcessDataTable(ids: List[String], process: Process): Process = process.copy(timescales = ids.map((_, 0)).toMap)
 
   def missingIdError(id: String): GuidanceError = MissingTimescaleDefinition(id)
+
+  def getNativeAsJson(): Future[RequestOutcome[JsValue]] =
+    repository.get(Timescales) map {
+      case Right(update) => Right(update.data)
+      case Left(NotFoundError) =>
+        logger.warn(s"No timescales found returning seed timescale details")
+        Right(Json.toJson(appConfig.seedTimescales))
+      case Left(err) =>
+        logger.error(s"Unable to retrieve timescale table due error, $err")
+        Left(InternalServerError)
+    }
 
   def get(): Future[RequestOutcome[(Map[String, Int], Long)]] =
     repository.get(Timescales) map {

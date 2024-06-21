@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import play.sbt.routes.RoutesKeys
 
 val appName = "external-guidance"
 
@@ -31,6 +32,8 @@ lazy val microservice = Project(appName, file("."))
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test
   )
   .settings(resolvers += Resolver.jcenterRepo)
+  .settings(RoutesKeys.routesImport ++= Seq("models._", "models.LabelledDataId._"))
+
 
 lazy val it = project
   .enablePlugins(PlayScala)

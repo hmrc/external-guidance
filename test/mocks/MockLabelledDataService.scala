@@ -20,8 +20,9 @@ import core.models.RequestOutcome
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import core.models.ocelot.{Page, Process}
-import play.api.libs.json.JsObject
+import play.api.libs.json.{JsValue, JsObject}
 import services.LabelledDataService
+import models.{LabelledDataUpdateStatus, LabelledDataId}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -41,5 +42,21 @@ trait MockLabelledDataService extends MockFactory {
       (mockLabelledDataService
         .addLabelledDataTables(_: Seq[Page], _: Process, _: Option[JsObject])(_: ExecutionContext))
         .expects(pages, process, js, *)
+
+    def save(dataId: LabelledDataId, rates: JsValue, credId: String, user: String, email: String, inUse: List[String]): CallHandler[Future[RequestOutcome[LabelledDataUpdateStatus]]] =
+      (mockLabelledDataService
+        .save(_: LabelledDataId, _: JsValue, _: String, _: String, _: String, _: List[String]))
+        .expects(dataId, rates, credId, user, email, inUse)
+
+    def get(dataId: LabelledDataId): CallHandler[Future[RequestOutcome[JsValue]]] =
+      (mockLabelledDataService
+        .get(_: LabelledDataId))
+        .expects(dataId)
+
+    def details(dataId: LabelledDataId): CallHandler[Future[RequestOutcome[LabelledDataUpdateStatus]]] =
+      (mockLabelledDataService
+        .details(_: LabelledDataId))
+        .expects(dataId)
+
   }
 }

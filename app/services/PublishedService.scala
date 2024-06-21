@@ -20,12 +20,11 @@ import javax.inject.{Inject, Singleton}
 import core.models.errors.{BadRequestError, DuplicateKeyError, InternalServerError, NotFoundError}
 import core.models.ocelot._
 import core.models.RequestOutcome
-import models.{ProcessSummary, PublishedProcess}
+import models.{LabelledDataId, ProcessSummary, PublishedProcess}
 import play.api.Logger
 import play.api.libs.json.JsObject
 import repositories.{ApprovalsRepository, ArchiveRepository, PublishedRepository}
 import core.services.validateProcessId
-
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.libs.json.{JsValue, Json, OFormat}
 
@@ -79,9 +78,7 @@ class PublishedService @Inject() (published: PublishedRepository,
         }
       )
 
-  def getTimescalesInUse(): Future[RequestOutcome[List[String]]] = published.getTimescalesInUse()
-
-  def getRatesInUse(): Future[RequestOutcome[List[String]]] = published.getRatesInUse()
+  def getDataInUse(dataId: LabelledDataId): Future[RequestOutcome[List[String]]] = published.getDataInUse(dataId)
 
   def archive(id: String, user: String): Future[RequestOutcome[Unit]] =
     published.getById(id).flatMap {

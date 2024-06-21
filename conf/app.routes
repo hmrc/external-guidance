@@ -3,13 +3,13 @@
 GET         /scratch/:id                                controllers.ScratchController.get(id)
 POST        /scratch                                    controllers.ScratchController.save
 
-GET         /timescales                                 controllers.TimescalesController.details
-POST        /timescales                                 controllers.TimescalesController.save
-GET         /timescales/data                            controllers.TimescalesController.get
+GET         /timescales                                 controllers.LabelledDataController.details(dataId: LabelledDataId = Timescales)
+POST        /timescales                                 controllers.LabelledDataController.save(dataId: LabelledDataId = Timescales)
+GET         /timescales/data                            controllers.LabelledDataController.get(dataId: LabelledDataId = Timescales)
 
-GET         /rates                                      controllers.RatesController.details
-POST        /rates                                      controllers.RatesController.save
-GET         /rates/data                                 controllers.RatesController.get
+GET         /rates                                      controllers.LabelledDataController.details(dataId: LabelledDataId = Rates)
+POST        /rates                                      controllers.LabelledDataController.save(dataId: LabelledDataId = Rates)
+GET         /rates/data                                 controllers.LabelledDataController.get(dataId: LabelledDataId = Rates)
 
 GET         /published                                  controllers.PublishedController.list
 GET         /published/:processCode                     controllers.PublishedController.getByProcessCode(processCode)

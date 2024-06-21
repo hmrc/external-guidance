@@ -61,5 +61,9 @@ trait MockTimescalesService extends MockFactory {
         .missingIdError(_: String))
         .expects(id)
 
+    def getNativeAsJson(): CallHandler[Future[RequestOutcome[JsValue]]] =
+      (mockTimescalesService
+        .getNativeAsJson _)
+        .expects()
   }
 }

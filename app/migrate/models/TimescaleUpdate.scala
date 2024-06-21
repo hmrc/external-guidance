@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models
+package migrate.models
 
 import java.time.ZonedDateTime
 import play.api.libs.json.{__, _}

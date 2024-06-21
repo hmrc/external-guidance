@@ -19,7 +19,7 @@ package models
 import java.time.Instant
 import play.api.libs.json.{__, _}
 import play.api.libs.functional.syntax._
-
+import play.api.mvc.JavascriptLiteral
 import core.models.MongoDateTimeFormats.Implicits._
 
 sealed trait LabelledDataId
@@ -40,6 +40,13 @@ object LabelledDataId {
   }
 
   implicit val formats: Format[LabelledDataId] = Format(reads, writes)
+
+  implicit val jsLiteral: JavascriptLiteral[LabelledDataId] = new JavascriptLiteral[LabelledDataId] {
+    override def to(value: LabelledDataId): String = value match {
+      case Timescales => "Timescales"
+      case Rates      => "Rates"
+    }
+  }
 }
 
 case class LabelledData(id: LabelledDataId, data: JsValue, when: Instant, credId: String, user: String, email: String)

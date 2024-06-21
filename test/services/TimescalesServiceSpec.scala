@@ -250,10 +250,6 @@ class TimescalesServiceSpec extends BaseSpec {
 
         whenReady(target.save(timescalesJson, credId, user, email, Nil)) {
           case Right(response) if response == labelledDataUpdateStatus => succeed
-          case Right(response) =>
-            println(labelledDataUpdateStatus)
-            println(response)
-            fail()
           case _ => fail()
         }
       }
@@ -354,6 +350,39 @@ class TimescalesServiceSpec extends BaseSpec {
 
       whenReady(target.get()) { result =>
         result shouldBe Right(timeScalesWithZeroVersion)
+      }
+    }
+
+    "return an internal error when a database error occurs" in new Test {
+      MockLabelledDataRepository
+        .get(Timescales)
+        .returns(Future.successful(Left(DatabaseError)))
+
+      whenReady(target.get()) { result =>
+        result shouldBe Left(InternalServerError)
+      }
+    }
+  }
+
+  "Calling getNativeAsJson method" should {
+
+    "return the timescales" in new Test {
+      MockLabelledDataRepository
+        .get(Timescales)
+        .returns(Future.successful(Right(labelledData)))
+
+      whenReady(target.getNativeAsJson()) { result =>
+        result shouldBe Right(labelledData.data)
+      }
+    }
+
+    "return Seed defnitions if no DB data found" in new Test {
+      MockLabelledDataRepository
+        .get(Timescales)
+        .returns(Future.successful(Left(NotFoundError)))
+
+      whenReady(target.get()) { result =>
+        result shouldBe Right((MockAppConfig.seedTimescales, 0L))
       }
     }
 

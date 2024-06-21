@@ -21,59 +21,59 @@ import core.models.errors.{ValidationError, InternalServerError => ServerError}
 import models.errors.OcelotError
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import services.{ApprovalReviewService, PublishedService, TimescalesService}
+import services.{ApprovalReviewService, PublishedService, LabelledDataService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.Logger
 import controllers.actions.AllRolesAction
-
 import scala.concurrent.{ExecutionContext, Future}
 import models.requests.IdentifierRequest
+import models.LabelledDataId
 
 @Singleton()
-class TimescalesController @Inject() (timescaleService: TimescalesService,
-                                      publishService: PublishedService,
-                                      approvalService: ApprovalReviewService,
-                                      cc: ControllerComponents,
-                                      allRolesAction: AllRolesAction)(implicit ec: ExecutionContext) extends BackendController(cc) {
+class LabelledDataController @Inject() (labelledDataService: LabelledDataService,
+                                        publishService: PublishedService,
+                                        approvalService: ApprovalReviewService,
+                                        cc: ControllerComponents,
+                                        allRolesAction: AllRolesAction)(implicit ec: ExecutionContext) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass)
 
-  def save(): Action[JsValue] = allRolesAction.async(parse.json) { implicit request: IdentifierRequest[JsValue] =>
-    publishService.getTimescalesInUse().flatMap{
+  def save(dataId: LabelledDataId): Action[JsValue] = allRolesAction.async(parse.json) { implicit request: IdentifierRequest[JsValue] =>
+    publishService.getDataInUse(dataId).flatMap{
       case Left(err) =>
-        logger.error(s"Unable to retreive list of timescales within published guidance, $err")
+        logger.error(s"Unable to retreive list of $dataId within published guidance, $err")
         Future.successful(InternalServerError(Json.toJson(OcelotError(ServerError))))
       case Right(publishedInUse) =>
-        approvalService.getTimescalesInUse().flatMap{
+        approvalService.getDataInUse(dataId).flatMap{
           case Left(err) =>
-            logger.error(s"Unable to retreive list of timescales within for-approval guidance, $err")
+            logger.error(s"Unable to retreive list of $dataId within for-approval guidance, $err")
             Future.successful(InternalServerError(Json.toJson(OcelotError(ServerError))))
           case Right(approvalInUse) =>
-            timescaleService.save(request.body, request.credId, request.name, request.email, (publishedInUse ++ approvalInUse).distinct).map {
+            labelledDataService.save(dataId, request.body, request.credId, request.name, request.email, (publishedInUse ++ approvalInUse).distinct).map {
               case Right(response) =>
-                logger.warn(s"TIMESCALES: ${response.count} Timescale definitions received from ${request.name} (${request.credId}), email ${request.email}")
+                logger.warn(s"$dataId: ${response.count} definitions received from ${request.name} (${request.credId}), email ${request.email}")
                 Accepted(Json.toJson(response))
               case Left(ValidationError) =>
-                logger.error(s"Failed to save of updated timescales due to ValidationError")
+                logger.error(s"Failed to save of updated $dataId due to ValidationError")
                 BadRequest(Json.toJson(OcelotError(ValidationError)))
               case Left(err) =>
-                logger.error(s"Failed to save of updated timescales due to $err, returning internal server error")
+                logger.error(s"Failed to save of updated $dataId due to $err, returning internal server error")
                 InternalServerError(Json.toJson(OcelotError(ServerError)))
             }
         }
     }
   }
 
-  def details: Action[AnyContent] = allRolesAction.async { _ =>
-    timescaleService.details().map {
+  def details(dataId: LabelledDataId): Action[AnyContent] = allRolesAction.async { _ =>
+    labelledDataService.details(dataId).map {
       case Right(response) => Ok(Json.toJson(response))
       case Left(_) => InternalServerError(Json.toJson(OcelotError(ServerError)))
     }
   }
 
-  def get: Action[AnyContent] = Action.async { _ =>
-    timescaleService.get().map {
-      case Right(response) => Ok(Json.toJson(response))
+  def get(dataId: LabelledDataId): Action[AnyContent] = Action.async { _ =>
+    labelledDataService.get(dataId).map {
+      case Right(jsValue) => Ok(jsValue)
       case Left(_) => InternalServerError(Json.toJson(OcelotError(ServerError)))
     }
   }

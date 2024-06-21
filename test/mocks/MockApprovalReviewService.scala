@@ -55,15 +55,10 @@ trait MockApprovalReviewService extends MockFactory {
       (mockApprovalReviewService.approvalSummaryList(_: List[String]))
         .expects(roles)
 
-    def getTimescalesInUse(): CallHandler[Future[RequestOutcome[List[String]]]] =
+    def getDataInUse(dataId: LabelledDataId): CallHandler[Future[RequestOutcome[List[String]]]] =
       (mockApprovalReviewService
-        .getTimescalesInUse _)
-        .expects()
-
-    def getRatesInUse(): CallHandler[Future[RequestOutcome[List[String]]]] =
-      (mockApprovalReviewService
-        .getRatesInUse _)
-        .expects()
+        .getDataInUse(_: LabelledDataId))
+        .expects(dataId)
 
     // Review service
 

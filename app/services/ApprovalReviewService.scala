@@ -73,9 +73,7 @@ class ApprovalReviewService @Inject() (
         }
     }
 
-  def getTimescalesInUse(): Future[RequestOutcome[List[String]]] = repository.getTimescalesInUse()
-
-  def getRatesInUse(): Future[RequestOutcome[List[String]]] = repository.getRatesInUse()
+  def getDataInUse(dataId: LabelledDataId): Future[RequestOutcome[List[String]]] = repository.getDataInUse(dataId)
 
   def getById(id: String): Future[RequestOutcome[JsObject]] =
     repository.getById(id) map {
@@ -257,5 +255,4 @@ class ApprovalReviewService @Inject() (
         logger.warn(s"getApprovalProcessToUpdate - error retrieving process $id - error returned $errors.")
         Left(errors)
     }
-
 }
