@@ -21,6 +21,7 @@ import com.google.inject.AbstractModule
 import controllers.actions._
 import repositories._
 import migrate.repositories.{TimescalesRepository, TimescalesRepositoryImpl}
+import migrate.services.{MigrateData, DataMigrationService}
 class Module extends AbstractModule {
 
   override def configure(): Unit = {
@@ -35,6 +36,7 @@ class Module extends AbstractModule {
     bind(classOf[FactCheckerAction]).to(classOf[FactCheckerAuthenticatedAction])
     bind(classOf[TwoEyeReviewerAction]).to(classOf[TwoEyeReviewerAuthenticatedAction])
     bind(classOf[TodayProvider]).to(classOf[DefaultTodayProvider])
+    bind(classOf[MigrateData]).to(classOf[DataMigrationService]).asEagerSingleton()
   }
 }
 
