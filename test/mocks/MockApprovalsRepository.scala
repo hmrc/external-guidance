@@ -17,7 +17,7 @@
 package mocks
 
 import core.models.RequestOutcome
-import models.{Approval, ApprovalProcessPageReview, ApprovalProcessSummary}
+import models.{Approval, ApprovalProcessPageReview, ApprovalProcessSummary, LabelledDataId}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import repositories.ApprovalsRepository
@@ -59,15 +59,10 @@ trait MockApprovalsRepository extends MockFactory {
         .delete(_: String))
         .expects(id)
 
-    def getTimescalesInUse(): CallHandler[Future[RequestOutcome[List[String]]]] =
+    def getDataInUse(dataId: LabelledDataId): CallHandler[Future[RequestOutcome[List[String]]]] =
       (mockApprovalsRepository
-        .getTimescalesInUse _)
-        .expects()
-
-    def getRatesInUse(): CallHandler[Future[RequestOutcome[List[String]]]] =
-      (mockApprovalsRepository
-        .getRatesInUse _)
-        .expects()
+        .getDataInUse(_: LabelledDataId))
+        .expects(dataId)
 
     def updatePageReview(id: String, pageUrl: String, reviewType: String, reviewInfo: ApprovalProcessPageReview): CallHandler[Future[RequestOutcome[Unit]]] =
       (mockApprovalsRepository

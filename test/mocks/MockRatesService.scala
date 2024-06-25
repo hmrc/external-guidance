@@ -46,11 +46,6 @@ trait MockRatesService extends MockFactory {
         .get _)
         .expects()
 
-    def getNative(): CallHandler[Future[RequestOutcome[(Map[String, Map[String, Map[String, BigDecimal]]], Long)]]] =
-      (mockRatesService
-        .getNative _)
-        .expects()
-
     def details(): CallHandler[Future[RequestOutcome[LabelledDataUpdateStatus]]] =
       (mockRatesService
         .details _)
@@ -65,5 +60,10 @@ trait MockRatesService extends MockFactory {
       (mockRatesService
         .missingIdError(_: String))
         .expects(id)
+
+    def getNativeAsJson(): CallHandler[Future[RequestOutcome[JsValue]]] =
+      (mockRatesService
+        .getNativeAsJson _)
+        .expects()
   }
 }

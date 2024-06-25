@@ -21,11 +21,12 @@ import core.models.RequestOutcome
 import core.models.ocelot.{Page, Process}
 import core.models.errors.{Error, ValidationError}
 import core.services.LabelledDataReferencing
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json._
 import scala.concurrent.{ExecutionContext, Future}
 import config.AppConfig
 import play.api.Logging
 import core.models.ocelot.errors.GuidanceError
+import models.{Rates, LabelledDataId, LabelledDataUpdateStatus, Timescales}
 
 trait LabelledDataServiceProvider[A] {
   def get(): Future[RequestOutcome[(Map[String, A], Long)]]
@@ -33,20 +34,23 @@ trait LabelledDataServiceProvider[A] {
   def addProcessDataTable(ids: List[String], process: Process): Process
   def updateProcessTable(js: JsObject, process: Process): Future[RequestOutcome[(JsObject, Process)]]
   def missingIdError(id: String): GuidanceError
+  def details(): Future[RequestOutcome[LabelledDataUpdateStatus]]
+  def getNativeAsJson(): Future[RequestOutcome[JsValue]]
+  def save(json: JsValue, credId: String, user: String, email: String, inUse: List[String]): Future[RequestOutcome[LabelledDataUpdateStatus]]
 }
 
 @Singleton
 class LabelledDataService @Inject() (
-    timescaleService: TimescalesService,
+    timescaleProvider: TimescalesService,
     timescales: core.services.Timescales,
-    ratesService: RatesService,
+    ratesProvider: RatesService,
     rates: core.services.Rates,
     appConfig: AppConfig)(implicit ec: ExecutionContext) extends Logging {
 
   def updateProcessLabelledDataTablesAndVersions(js: JsObject): Future[RequestOutcome[JsObject]] =
     js.validate[Process].fold(_ => Future.successful(Left(ValidationError)), process =>
-      timescaleService.updateProcessTable(js, process).flatMap{
-        case Right((jt, pt)) => ratesService.updateProcessTable(jt, pt).map{
+      timescaleProvider.updateProcessTable(js, process).flatMap{
+        case Right((jt, pt)) => ratesProvider.updateProcessTable(jt, pt).map{
           case Right((jr, pr)) => Right(jr)
           case Left(err) => Left(err)
         }
@@ -75,9 +79,27 @@ class LabelledDataService @Inject() (
             }
       }
 
-    buildTable(process, js, timescales, timescaleService).flatMap {
-      case Right((p, _, j)) => buildTable(p, Some(j), rates, ratesService)
+    buildTable(process, js, timescales, timescaleProvider).flatMap {
+      case Right((p, _, j)) => buildTable(p, Some(j), rates, ratesProvider)
       case Left(err) => Future.successful(Left(err))
     }
   }
+
+  def save(dataId: LabelledDataId, json: JsValue, credId: String, user: String, email: String, inUse: List[String]): Future[RequestOutcome[LabelledDataUpdateStatus]] =
+    dataId match {
+      case Rates => ratesProvider.save(json, credId, user, email, inUse)
+      case Timescales => timescaleProvider.save(json, credId, user, email, inUse)
+    }
+
+  def details(dataId: LabelledDataId): Future[RequestOutcome[LabelledDataUpdateStatus]] =
+    dataId match {
+      case Rates => ratesProvider.details()
+      case Timescales => timescaleProvider.details()
+    }
+
+  def get(dataId: LabelledDataId): Future[RequestOutcome[JsValue]] =
+    dataId match {
+      case Rates => ratesProvider.getNativeAsJson()
+      case Timescales => timescaleProvider.getNativeAsJson()
+    }
 }

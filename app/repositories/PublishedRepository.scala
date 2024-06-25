@@ -21,7 +21,7 @@ import javax.inject.{Inject, Singleton}
 import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
 import core.models.RequestOutcome
 import core.models.ocelot.Process
-import models.{ProcessSummary, PublishedProcess}
+import models.{LabelledDataId, Timescales, ProcessSummary, PublishedProcess}
 import play.api.libs.json.JsObject
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.Logger
@@ -43,8 +43,7 @@ trait PublishedRepository {
   def getByProcessCode(processCode: String): Future[RequestOutcome[PublishedProcess]]
   def processSummaries(): Future[RequestOutcome[List[ProcessSummary]]]
   def delete(id: String): Future[RequestOutcome[Unit]]
-  def getTimescalesInUse(): Future[RequestOutcome[List[String]]]
-  def getRatesInUse(): Future[RequestOutcome[List[String]]]
+  def getDataInUse(dataId: LabelledDataId): Future[RequestOutcome[List[String]]]
   def list(): Future[RequestOutcome[List[PublishedProcess]]]
 }
 
@@ -125,10 +124,10 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
           Left(DatabaseError)
       }
 
-  def getRatesInUse(): Future[RequestOutcome[List[String]]] =
+  def getDataInUse(dataId: LabelledDataId): Future[RequestOutcome[List[String]]] =
     collection
       .withReadPreference(ReadPreference.primaryPreferred())
-      .find(RatesInUseQuery)
+      .find(if (dataId.equals(Timescales)) TimescalesInUseQuery else RatesInUseQuery)
       .collect()
       .toFutureOption()
       .map{
@@ -137,7 +136,7 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec:
       }
       .recover{
         case error =>
-          logger.error(s"Listing rates used in the published processes failed with error : ${error.getMessage}")
+          logger.error(s"Listing $dataId used in the published processes failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
 

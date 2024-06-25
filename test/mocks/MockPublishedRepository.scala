@@ -21,7 +21,7 @@ import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.JsObject
 import repositories.PublishedRepository
 import core.models.RequestOutcome
-import models.PublishedProcess
+import models.{LabelledDataId, PublishedProcess}
 import scala.concurrent.Future
 
 trait MockPublishedRepository extends MockFactory {
@@ -50,15 +50,10 @@ trait MockPublishedRepository extends MockFactory {
         .delete(_: String))
         .expects(id)
 
-    def getTimescalesInUse(): CallHandler[Future[RequestOutcome[List[String]]]] =
+    def getDataInUse(dataId: LabelledDataId): CallHandler[Future[RequestOutcome[List[String]]]] =
       (mockPublishedRepository
-        .getTimescalesInUse _)
-        .expects()
-
-    def getRatesInUse(): CallHandler[Future[RequestOutcome[List[String]]]] =
-      (mockPublishedRepository
-        .getRatesInUse _)
-        .expects()
+        .getDataInUse(_: LabelledDataId))
+        .expects(dataId)
 
     def list(): CallHandler[Future[RequestOutcome[List[PublishedProcess]]]] =
       (mockPublishedRepository

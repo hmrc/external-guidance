@@ -17,7 +17,7 @@
 package mocks
 
 import core.models.RequestOutcome
-import models.PublishedProcess
+import models.{LabelledDataId, PublishedProcess}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsValue, JsObject}
@@ -51,15 +51,10 @@ trait MockPublishedService extends MockFactory {
         .archive(_: String, _: String))
         .expects(id, user)
 
-    def getTimescalesInUse(): CallHandler[Future[RequestOutcome[List[String]]]] =
+    def getDataInUse(dataId: LabelledDataId): CallHandler[Future[RequestOutcome[List[String]]]] =
       (mockPublishedService
-        .getTimescalesInUse _)
-        .expects()
-
-    def getRatesInUse(): CallHandler[Future[RequestOutcome[List[String]]]] =
-      (mockPublishedService
-        .getRatesInUse _)
-        .expects()
+        .getDataInUse(_: LabelledDataId))
+        .expects(dataId)
 
     def list: CallHandler[Future[RequestOutcome[JsValue]]] =
       (() => mockPublishedService
