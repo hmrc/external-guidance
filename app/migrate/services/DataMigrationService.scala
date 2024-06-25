@@ -18,16 +18,21 @@ package migrate.services
 
 import play.api.Logging
 import config.AppConfig
+import migrate.models.TimescalesUpdate
 import migrate.repositories.TimescalesRepository
 import uk.gov.hmrc.mongo.lock._
 import repositories._
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{Future, ExecutionContext}
-import models.Timescales
 import core.models.RequestOutcome
+import models.Timescales
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
 import core.models.errors.NotFoundError
+import uk.gov.hmrc.mongo.MongoComponent
+import cats.data.EitherT
+import cats.implicits._
+import core.models.errors.DatabaseError
 
 trait MigrateData
 
@@ -35,54 +40,71 @@ trait MigrateData
 class DataMigrationService @Inject()(
   appConfig: AppConfig,
   timescalesRespository: TimescalesRepository,
-  labelledDataRepository: LabelledDataRepository,
-  lockRepository: MongoLockRepository
+  dataRepository: LabelledDataRepository,
+  lockRepository: MongoLockRepository,
+  component: MongoComponent
 )(implicit ec: ExecutionContext) extends Logging with MigrateData {
 
-  val InstanceLockOut: Long = 3L
+  val InstanceLockOut: Long = 2L
   private val lock: TimePeriodLockService = TimePeriodLockService(lockRepository, "data_migration_lock", Duration(InstanceLockOut, TimeUnit.MINUTES))
 
   private def migrationRequired(): Future[RequestOutcome[Boolean]] =
-    labelledDataRepository.get(Timescales).map{
+    dataRepository.get(Timescales).map{
       case Left(NotFoundError) => Right(true)
       case Right(_) => Right(false)
-      case Left(err) => Left(err)
+      case Left(error) =>
+        logger.error(s"Failed to query data repository for Timescales, error = $error")
+        Left(error)
     }
 
-  private def migrateData(): Future[RequestOutcome[Boolean]] =
+  private def migrateData(): Future[RequestOutcome[Unit]] =
+    (for{
+      timescales <- EitherT(timescalesData())
+      _ <- EitherT(saveTimescales(timescales))
+      _ <- EitherT(dropCollection("timescales"))
+    } yield ()).value
+
+  private def timescalesData(): Future[RequestOutcome[TimescalesUpdate]] =
+    timescalesRespository.get(timescalesRespository.CurrentTimescalesID).map{
+      case Left(error) =>
+        logger.error(s"Unable to retrieve current Timescales data, error = $error")
+        Left(error)
+      case ok => ok
+    }
+
+  private def saveTimescales(ts: TimescalesUpdate): Future[RequestOutcome[Unit]] =
+    dataRepository.save(Timescales, ts.timescales, ts.when.toInstant(), ts.credId, ts.user, ts.email).map{
+      _.fold(error => {
+        logger.error(s"Attempt to save to LabelledData Repository failed with error: $error")
+        Left(error)
+      }, _ => Right(()))
+    }
+
+  private def dropCollection(name: String): Future[RequestOutcome[Unit]] =
+    component.database.getCollection(name).drop().headOption().map{outcome =>
+      outcome.fold[RequestOutcome[Unit]]{
+        logger.warn(s"Collection $name either does not exist or could not be dropped")
+        Left(NotFoundError)
+      }{_ =>
+        logger.warn(s"Collection $name sucessfully dropped")
+        Right(())
+      }
+    }.recover{
+      case error: Throwable =>
+        logger.error(s"Dropping collection $name returned an error. Error: $error")
+        Left(DatabaseError)
+    }
+
+  lock.withRenewedLock{
     migrationRequired().flatMap{
-      case Right(false) => Future.successful(Right(false))
+      case Right(false) => Future.successful(logger.warn(s"Data migration not required"))
       case Right(true) =>
-        logger.warn(s"Migrating Timescales data to LabelledData Repository")
-        timescalesRespository.get(timescalesRespository.CurrentTimescalesID).flatMap{
-          case Right(timescalesUpdate) =>
-            labelledDataRepository.save(
-                                    Timescales,
-                                    timescalesUpdate.timescales,
-                                    timescalesUpdate.when.toInstant(),
-                                    timescalesUpdate.credId,
-                                    timescalesUpdate.user,
-                                    timescalesUpdate.email
-                                  ).map{
-              case Right(labelledData) =>
-                logger.warn(s"Timescales data stored")
-                Right(true)
-              case Left(err) =>
-                logger.error(s"Attempt to save to LabelledData Repository failed with error: $err")
-                Left(err)
-            }
-          case Left(err) =>
-            logger.error(s"Unable to retrieve current Timescales data, error = $err")
-            Future.successful(Left(err))
+        logger.warn(s"Migrating timescales data to labelled data repository")
+        migrateData() map {
+          case Right(_) => logger.warn(s"Timescales data migration completed successfully")
+          case Left(error) => logger.error(s"Data migration failed with error $error")
         }
-      case Left(err) => Future.successful(Left(err))
+      case _ => Future.successful(())
     }
-
-    logger.warn(s"Data migration lock claim")
-    lock.withRenewedLock(migrateData()).map{
-      case None => logger.warn(s"Data migration lock already taken")
-      case Some(Right(true)) => logger.warn("Timescale data migration complete")
-      case Some(Right(false)) => logger.warn("Timescale data migration not required")
-      case Some(Left(err)) => logger.error(s"Migration failed with error $err")
-    }
+  }
 }
