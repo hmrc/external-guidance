@@ -30,6 +30,7 @@ import models.UpdateDetails
 import scala.concurrent.Future
 import data.RatesTestData
 import java.time.ZonedDateTime
+import core.models.ocelot.errors.MissingRateDefinition
 
 class RatesServiceSpec extends BaseSpec with RatesTestData {
 
@@ -369,18 +370,16 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
     }
 
     "return an internal error when rate table entry cannot be resolved" in new Test {
-    // |      "Legacy!higherrate!2016" : 0,
-    // |      "Legacy!basicrate!2022" : 0,
-    // |      "TaxNic!CTC!2016" : 0
 
       val process: Process = jsonWithBlankRatesTable.as[Process]
       val updatedProcess = process.copy(rates = rates + ("TaxNic!CND" -> BigDecimal(0)))
+      val expectedError = Error(Error.UnprocessableEntity, List(MissingRateDefinition("TaxNic!CND!2024")), None, None)
       MockLabelledDataRepository
         .get(Rates)
         .returns(Future.successful(Right(labelledData)))
 
       whenReady(target.updateProcessTable(jsonWithBlankRatesTable, updatedProcess)) { result =>
-        result shouldBe Left(InternalServerError)
+        result shouldBe Left(expectedError)
       }
     }
 
