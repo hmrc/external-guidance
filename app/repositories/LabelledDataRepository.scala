@@ -76,7 +76,7 @@ class LabelledDataRepositoryImpl @Inject() (component: MongoComponent, appConfig
       }
       .recover {
         case e =>
-          logger.warn(s"Failed to update/insert LabelledData due to error, ${e.getMessage}")
+          logger.error(s"Failed to update/insert LabelledData due to error, ${e.getMessage}")
           Left(DatabaseError)
       }
 
@@ -90,7 +90,7 @@ class LabelledDataRepositoryImpl @Inject() (component: MongoComponent, appConfig
       }
       .recover {
         case e =>
-          logger.warn(s"Failed to retrieve LabelledData due to error, ${e.getMessage}")
+          logger.error(s"Failed to retrieve LabelledData due to error, ${e.getMessage}")
           Left(DatabaseError)
       }
     //$COVERAGE-ON$

@@ -69,7 +69,10 @@ class RatesService @Inject() (
         case Nil => Right(acc.toMap)
         case x :: xs =>
           rates.get(coreRatesService.fullRateId(x, tp)) match {
-            case None => Left(Error(missingIdError(x)))
+            case None =>
+              val missingRateId = coreRatesService.fullRateId(x, tp)
+              logger.error(s"RuntimeError: Missing rate definition: ${missingRateId}, referenced as $x on process load")
+              Left(Error(missingIdError(missingRateId)))
             case Some(v) => tableUpdate(xs, rates, (x, v) :: acc)
           }
       }
@@ -80,9 +83,7 @@ class RatesService @Inject() (
       case _ => get().map{
         case Right((rates, version)) =>
           tableUpdate(process.rates.keys.toList, rates) match {
-            case Left(err) =>
-              logger.error(s"Unable to update process rate table due to error: ${err.errors}")
-              Left(InternalServerError)
+            case Left(err) => Left(err)
             case Right(updatedTable) =>
               val updatedProcess: Process = process.copy(meta = process.meta.copy(ratesVersion = Some(version)), rates = updatedTable)
               Json.toJson(updatedProcess).validate[JsObject].fold(_ => Left(ValidationError), jsObj => Right((jsObj, updatedProcess)))
