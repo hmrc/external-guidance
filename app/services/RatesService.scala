@@ -136,7 +136,7 @@ class RatesService @Inject() (
               deletions.intersect(inUse) match {
                 case Nil => saveRates(update2dMap, credId, user, email)
                 case inUseDeletions =>
-                  logger.warn(s"RATES: Rates deletions still in-use retained: ${inUseDeletions.mkString(",")}")
+                  logger.warn(s"RATES-WARNING: Rates deletions still in-use retained: ${inUseDeletions.mkString(",")}")
                   // Save new rates retaining the in-use deletions
                   saveRates(current2dMap.view.filterKeys(inUseDeletions.contains(_)).toMap ++ update2dMap, credId, user, email, inUseDeletions)
               }
