@@ -20,12 +20,13 @@ import core.models.RequestOutcome
 import models.{LabelledDataId, PublishedProcess}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
-import play.api.libs.json.{JsValue, JsObject}
+import org.scalatest.TestSuite
+import play.api.libs.json.{JsObject, JsValue}
 import services.PublishedService
 
 import scala.concurrent.Future
 
-trait MockPublishedService extends MockFactory {
+trait MockPublishedService extends TestSuite with MockFactory {
 
   val mockPublishedService: PublishedService = mock[PublishedService]
 

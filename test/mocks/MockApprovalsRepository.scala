@@ -20,11 +20,12 @@ import core.models.RequestOutcome
 import models.{Approval, ApprovalProcessPageReview, ApprovalProcessSummary, LabelledDataId}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.TestSuite
 import repositories.ApprovalsRepository
 
 import scala.concurrent.Future
 
-trait MockApprovalsRepository extends MockFactory {
+trait MockApprovalsRepository extends TestSuite with MockFactory {
 
   val mockApprovalsRepository: ApprovalsRepository = mock[ApprovalsRepository]
 

@@ -20,13 +20,14 @@ import core.models._
 import models._
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
-import play.api.libs.json.{JsValue, JsObject}
+import play.api.libs.json.{JsObject, JsValue}
 import services.ApprovalReviewService
 import models.Constants._
+import org.scalatest.TestSuite
 
 import scala.concurrent.Future
 
-trait MockApprovalReviewService extends MockFactory {
+trait MockApprovalReviewService extends TestSuite with MockFactory {
   val mockApprovalReviewService: ApprovalReviewService = mock[ApprovalReviewService]
 
   object MockApprovalReviewService {

@@ -17,16 +17,16 @@
 package mocks
 
 import java.util.UUID
-
 import core.models.RequestOutcome
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.TestSuite
 import play.api.libs.json.JsObject
 import repositories.ScratchRepository
 
 import scala.concurrent.Future
 
-trait MockScratchRepository extends MockFactory {
+trait MockScratchRepository extends TestSuite with MockFactory {
   val mockScratchRepository: ScratchRepository = mock[ScratchRepository]
 
   object MockScratchRepository {

@@ -139,7 +139,7 @@ class LabelledDataServiceSpec extends BaseSpec {
       "Call the correct data provider" in new Test {
         val dummyJson = validOnePageJson.as[JsValue]
         MockTimescalesService
-          .getNativeAsJson()
+          .getNativeAsJson
           .returns(Future.successful(Right(dummyJson)))
         whenReady(target.get(Timescales)) {
           case Right(dummyJson) => succeed
@@ -152,7 +152,7 @@ class LabelledDataServiceSpec extends BaseSpec {
       "Call the correct data provider" in new Test {
         val dummyJson = validOnePageJson.as[JsValue]
         MockRatesService
-          .getNativeAsJson()
+          .getNativeAsJson
           .returns(Future.successful(Right(dummyJson)))
         whenReady(target.get(Rates)) {
           case Right(dummyJson) => succeed
