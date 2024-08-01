@@ -20,11 +20,13 @@ import core.models.RequestOutcome
 import models.ArchivedProcess
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.TestSuite
 import services.ArchiveService
 import play.api.libs.json.JsValue
+
 import scala.concurrent.Future
 
-trait MockArchiveService extends MockFactory {
+trait MockArchiveService extends TestSuite with MockFactory {
 
   val mockArchiveService: ArchiveService = mock[ArchiveService]
 

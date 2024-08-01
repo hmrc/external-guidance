@@ -22,9 +22,11 @@ import play.api.libs.json.JsObject
 import repositories.PublishedRepository
 import core.models.RequestOutcome
 import models.{LabelledDataId, PublishedProcess}
+import org.scalatest.TestSuite
+
 import scala.concurrent.Future
 
-trait MockPublishedRepository extends MockFactory {
+trait MockPublishedRepository extends TestSuite with MockFactory {
 
   val mockPublishedRepository: PublishedRepository = mock[PublishedRepository]
 

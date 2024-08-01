@@ -20,18 +20,19 @@ import core.models.RequestOutcome
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import core.models.ocelot.{Page, Process}
-import play.api.libs.json.{JsValue, JsObject}
+import play.api.libs.json.{JsObject, JsValue}
 import services.LabelledDataService
-import models.{LabelledDataUpdateStatus, LabelledDataId}
+import models.{LabelledDataId, LabelledDataUpdateStatus}
+import org.scalatest.TestSuite
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait MockLabelledDataService extends MockFactory {
+trait MockLabelledDataService extends TestSuite with MockFactory {
   val mockLabelledDataService: LabelledDataService = mock[LabelledDataService]
 
   object MockLabelledDataService {
-    val timescaleService =  new MockTimescalesService{}
-    val ratesService = new MockRatesService{}
+    val timescaleService: MockTimescalesService =  new MockTimescalesService{}
+    val ratesService: MockRatesService = new MockRatesService{}
 
     def updateProcessLabelledDataTablesAndVersions(js: JsObject): CallHandler[Future[RequestOutcome[JsObject]]] =
         (mockLabelledDataService

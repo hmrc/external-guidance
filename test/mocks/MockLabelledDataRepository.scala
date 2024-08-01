@@ -20,13 +20,15 @@ import core.models.RequestOutcome
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.JsValue
+
 import java.time.Instant
 import models.{LabelledData, LabelledDataId}
+import org.scalatest.TestSuite
 import repositories.LabelledDataRepository
 
 import scala.concurrent.Future
 
-trait MockLabelledDataRepository extends MockFactory {
+trait MockLabelledDataRepository extends TestSuite with MockFactory {
   val mockLabelledDataRepository: LabelledDataRepository = mock[LabelledDataRepository]
 
   object MockLabelledDataRepository {

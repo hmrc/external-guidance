@@ -24,9 +24,11 @@ import play.api.libs.json.{JsObject, JsValue}
 import services.RatesService
 import models.LabelledDataUpdateStatus
 import core.models.ocelot.Process
+import org.scalatest.TestSuite
+
 import scala.concurrent.Future
 
-trait MockRatesService extends MockFactory {
+trait MockRatesService extends TestSuite with MockFactory {
   val mockRatesService: RatesService = mock[RatesService]
 
   object MockRatesService {
@@ -61,7 +63,7 @@ trait MockRatesService extends MockFactory {
         .missingIdError(_: String))
         .expects(id)
 
-    def getNativeAsJson(): CallHandler[Future[RequestOutcome[JsValue]]] =
+    def getNativeAsJson: CallHandler[Future[RequestOutcome[JsValue]]] =
       (mockRatesService
         .getNativeAsJson _)
         .expects()

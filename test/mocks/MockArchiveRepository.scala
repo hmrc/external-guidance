@@ -17,14 +17,15 @@
 package mocks
 
 import core.models.RequestOutcome
-import models.{PublishedProcess, ArchivedProcess, ProcessSummary}
+import models.{ArchivedProcess, ProcessSummary, PublishedProcess}
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.TestSuite
 import repositories.ArchiveRepository
 
 import scala.concurrent.Future
 
-trait MockArchiveRepository extends MockFactory {
+trait MockArchiveRepository extends TestSuite with MockFactory {
 
   val mockArchiveRepository: ArchiveRepository = mock[ArchiveRepository]
 
