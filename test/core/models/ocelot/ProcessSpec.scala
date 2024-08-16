@@ -80,7 +80,6 @@ class ProcessSpec extends BaseSpec with ProcessJson {
     }
 
     "Be enabled when process contains a Value named _BetaPhaseBanner and set to yes" in {
-      //case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase], links: Vector[Link], timescales: Map[String, Int] = Map())
       val newValueStanza = flow(blankValueStanzaID) match {
         case v: ValueStanza => v.copy(values = List(Value(ScalarType, s"${Process.PhaseBannerPhase}", "Yes")))
         case _ => fail()
@@ -91,13 +90,46 @@ class ProcessSpec extends BaseSpec with ProcessJson {
     }
 
     "Be disabled when process contains a Value named _BetaPhaseBanner and set to a value other than yes" in {
-      //case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase], links: Vector[Link], timescales: Map[String, Int] = Map())
       val newValueStanza = flow(blankValueStanzaID) match {
         case v: ValueStanza => v.copy(values = List(Value(ScalarType, s"${Process.PhaseBannerPhase}", "no")))
         case _ => fail()
       }
       val newFlow = flow + (blankValueStanzaID -> newValueStanza)
       Process(meta, newFlow, phrases, links).betaPhaseBanner shouldBe false
+
+    }
+  }
+
+  "Ocelot Backlink Behaviour" must {
+
+    "Be disabled by default" in {
+      Process(meta, flow, phrases, links).ocelotBacklinkBehaviour shouldBe false
+    }
+
+    "Be enabled when process contains a Value named _GuidanceBacklinkBehaviour and set to ocelot" in {
+
+      def testWorkingBacklinkBehaviour(caseVariation: String): Unit = {
+        val newValueStanza = flow(blankValueStanzaID) match {
+          case v: ValueStanza => v.copy(values = List(Value(ScalarType, s"${Process.BacklinkBehaviourLabelName}", caseVariation)))
+          case _ => fail()
+        }
+        val newFlow = flow + (blankValueStanzaID -> newValueStanza)
+        Process(meta, newFlow, phrases, links).ocelotBacklinkBehaviour shouldBe true
+      }
+
+      testWorkingBacklinkBehaviour("ocelot")
+      testWorkingBacklinkBehaviour("Ocelot")
+      testWorkingBacklinkBehaviour("ocelOT")
+      testWorkingBacklinkBehaviour("OCELot")
+    }
+
+    "Be disabled when process contains a Value named _GuidanceBacklinkBehaviour and set to a value other than ocelot" in {
+      val newValueStanza = flow(blankValueStanzaID) match {
+        case v: ValueStanza => v.copy(values = List(Value(ScalarType, s"${Process.BacklinkBehaviourLabelName}", "not Ocelot")))
+        case _ => fail()
+      }
+      val newFlow = flow + (blankValueStanzaID -> newValueStanza)
+      Process(meta, newFlow, phrases, links).ocelotBacklinkBehaviour shouldBe false
 
     }
   }
