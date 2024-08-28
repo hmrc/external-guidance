@@ -65,6 +65,8 @@ trait Labels extends Flows with TimescaleDefns with Messages with Mode with Encr
   def updatedLabels: Map[String, Label]
   def labelMap:Map[String, Label]
   def flush(): Labels
+
+  def revertOperations(): List[LabelOperation]
 }
 
 object IdentityEncrypter extends Encrypter {
@@ -109,6 +111,11 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label],
   def updatedLabels: Map[String, Label] = cache
   def labelMap:Map[String, Label] = labels
   def flush(): Labels = new LabelCacheImpl(labels ++ cache.toList, Map(), stack, pool, poolCache, timescales, messages, runMode, encrypter)
+
+  def revertOperations(): List[LabelOperation] =
+    cache.values.flatMap(lbl =>
+      labels.get(lbl.name).fold[List[LabelOperation]]{List(Delete(lbl.name))}{l => List(Update(l))}
+    ).toList
 
   // Label ops
   private def label(name: String): Option[Label] = cache.get(name).fold(labels.get(name))(Some(_))
@@ -203,4 +210,5 @@ object LabelCache {
             messages: (String, Seq[Any]) => String,
             runMode: RunMode,
             encrypter: Encrypter): Labels = new LabelCacheImpl(labels, cache, stack, pool, Map(), timescales, messages, runMode, encrypter)
+
 }

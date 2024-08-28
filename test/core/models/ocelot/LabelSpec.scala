@@ -601,4 +601,49 @@ class LabelSpec extends BaseSpec with ProcessJson {
     }
 
   }
+
+  "Reverting operations to changes of labels" must {
+    "Be an empty list if on empty LabelCache" in new Test {
+      val labels: Labels = LabelCache()
+
+      labels.revertOperations() shouldBe Nil
+    }
+
+    "Be an empty list if no changes are made to a non-empty LabelCache" in new Test {
+      val labels: Labels = LabelCache(List(ScalarLabel("labelOne", List("valueOne")), ScalarLabel("labelTwo", List("valueTwo"))))
+
+      labels.revertOperations() shouldBe Nil
+    }
+
+
+    "Be a single Delete if one label is deleted" in new Test {
+      val labels: Labels = LabelCache()
+
+      val result: List[LabelOperation] = labels.update("labelName", "labelValue").revertOperations()
+
+      result shouldBe List(Delete("labelName"))
+    }
+
+    "Be a single Update if one label is updated" in new Test {
+      val labels: Labels = LabelCache(List(ScalarLabel("labelName", List("initialValue"))))
+
+      val result: List[LabelOperation] = labels.update("labelName", "updatedValue").revertOperations()
+
+      result shouldBe List(Update(ScalarLabel("labelName", List("initialValue"))))
+    }
+
+    "Mark correctly for update and deletion of labels" in new Test {
+
+      val labels: Labels = LabelCache(List(ScalarLabel("labelOne", List("valueOne")),
+        ScalarLabel("labelTwo", List("valueTwo")),
+        ScalarLabel("labelThree", List("valueThree")))
+      )
+      // we change the value of labelTwo, and add a new labelFour -> and expect compensating operations to be computed
+      val result: List[LabelOperation] = labels.update("labelTwo", "newValueForTwo").update("labelFour", "labelFourValue").revertOperations()
+
+       result shouldBe List(Update(ScalarLabel("labelTwo", List("valueTwo"))), Delete("labelFour"))
+
+    }
+  }
+
 }
