@@ -18,14 +18,18 @@ package core.models.ocelot
 
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json, OFormat, Reads, Writes}
 
-sealed trait LabelOperation
+sealed trait LabelOperation {
+  val name: String
+}
 
 final case class Delete(name: String) extends LabelOperation
 object Delete {
   implicit lazy val formats: OFormat[Delete] = Json.format[Delete]
 }
 
-final case class Update(l: Label) extends LabelOperation
+final case class Update(l: Label) extends LabelOperation {
+  val name: String = l.name
+}
 object Update {
   implicit lazy val formats: OFormat[Update] = Json.format[Update]
 }
