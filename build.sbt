@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import play.sbt.routes.RoutesKeys
 val appName = "external-guidance"
 
 ThisBuild / majorVersion := 0
-ThisBuild / scalaVersion := "2.13.15"
+ThisBuild / scalaVersion := "2.13.16"
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
@@ -39,7 +39,15 @@ lazy val it = project
   .enablePlugins(PlayScala)
   .dependsOn(microservice % "test->test") // the "test->test" allows reusing test code and test dependencies
 
-coverageExcludedPackages := "migrate.*;controllers\\.javascript.*;testOnly\\..*;controllers\\.Reverse.*;Routes.*;testOnlyDoNotUseInAppConf.*;prod;repositories;app"
+coverageExcludedPackages := "migrate.*;" +
+  "controllers\\.javascript.*;" +
+  "testOnly\\..*;" +
+  "controllers\\.Reverse.*;" +
+  "Routes.*;" +
+  "testOnlyDoNotUseInAppConf.*;" +
+  "prod;" +
+  "repositories;" +
+  "app"
 coverageHighlighting := true
 coverageFailOnMinimum := false
 coverageMinimumStmtTotal := 94.7
