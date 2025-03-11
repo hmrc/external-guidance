@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot.{SecuredProcess, Validation, validDate, Page, Labels, Phrase, asAnyInt, asCurrency}
-import core.models.ocelot.{asCurrencyPounds, asTextString, labelReferences, stringFromDate, Ten}
+import core.models.ocelot.stanzas.TaxCodeUtilities.retrieveTaxCodeComponents
+import core.models.ocelot.{Labels, Page, Phrase, SecuredProcess, Ten, Validation, asAnyInt, asCurrency,
+  asCurrencyPounds, asTextString, labelReferences, stringFromDate, taxCodeLabelPattern, taxCodePattern, validDate}
+import play.api.Logger
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -31,7 +33,7 @@ case class InputStanza(
   placeholder: Option[Int],
   stack: Boolean
 ) extends Stanza {
-  override val labels = List(label)
+  override val labels: List[String] = List(label)
 }
 
 object InputStanza {
@@ -96,8 +98,16 @@ case class TextInput(
   dontRepeatName: Boolean = false,
   width: String = Ten
 ) extends Input {
-  def validInput(value: String): Validation[String] = asTextString(value).fold[Validation[String]](Left(Nil))(v => Right(v.toString))
+  val logger: Logger = Logger(this.getClass)
+  def validInput(value: String): Validation[String] = asTextString(value).fold[Validation[String]](Left(Nil))(v => Right(v))
   override def rendered(expand: Phrase => Phrase): DataInputStanza = copy(name = expand(name), help = help.map(expand), placeholder = placeholder.map(expand))
+  override def eval(value: String, page: Page, labels: Labels): (Option[String], Labels) =
+    label match {
+      case labelName if taxCodeLabelPattern.matches(labelName) =>
+        logger.warn(s"__TaxCode_ label: $labelName received for page URL: ${page.url}")
+        (next.headOption, retrieveTaxCodeComponents(labels = labels, fullTaxCode = value, label = labelName).update(name = labelName, english = value))
+      case _ => super.eval(value, page, labels)
+    }
 }
 
 case class PassphraseInput(
@@ -110,7 +120,7 @@ case class PassphraseInput(
   dontRepeatName: Boolean = false,
   width: String = Ten
 ) extends Input {
-  def validInput(value: String): Validation[String] = asTextString(value).fold[Validation[String]](Left(Nil))(v => Right(v.toString))
+  def validInput(value: String): Validation[String] = asTextString(value).fold[Validation[String]](Left(Nil))(v => Right(v))
   override def rendered(expand: Phrase => Phrase): DataInputStanza = copy(name = expand(name), help = help.map(expand), placeholder = placeholder.map(expand))
   override def eval(value: String, page: Page, labels: Labels): (Option[String], Labels) =
     (next.headOption, labels.update(SecuredProcess.PassPhraseResponseLabelName, value)
@@ -171,4 +181,48 @@ object Input {
       case CurrencyPoundsOnly => CurrencyPoundsOnlyInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack, dontRepeatName, width)
       case Date => DateInput(stanza.next, name, help, stanza.label, placeholder, stanza.stack, dontRepeatName, width)
     }
+}
+
+private object TaxCodeUtilities {
+
+  private val DefaultValue: String = "BLANK"
+
+  def retrieveTaxCodeComponents(labels: Labels,
+                                fullTaxCode: String,
+                                label: String): Labels = {
+    val Prefix: Int = 2
+    val Main: Int = 3
+    val Suffix: Int = 4
+    val Cumulative: Int = 5
+
+    taxCodePattern findFirstMatchIn fullTaxCode match {
+      case Some(matcher) =>
+        updateLabels(labels = labels,
+          label = label,
+          prefix = matcher.group(Prefix),
+          main = matcher.group(Main),
+          suffix = matcher.group(Suffix),
+          cumulative = matcher.group(Cumulative))
+      case None =>
+        updateLabels(labels = labels,
+          label = label,
+          prefix = "",
+          main = DefaultValue,
+          suffix = "",
+          cumulative = "")
+    }
+  }
+
+  private def updateLabels(labels: Labels,
+                           label: String,
+                           prefix: String,
+                           main: String,
+                           suffix: String,
+                           cumulative: String): Labels = {
+    labels
+      .update(s"${label}_prefix", Option(prefix).getOrElse(""))
+      .update(s"${label}_main", Option(main).getOrElse(DefaultValue))
+      .update(s"${label}_suffix", Option(suffix).getOrElse(""))
+      .update(s"${label}_cumulative", Option(cumulative).getOrElse(""))
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -273,4 +273,6 @@ package object ocelot {
     }
   }
 
+  val taxCodePattern: Regex = "(?<!.)(([CS]|[CS][K]|[K])?([1]|[1-9][\\d]{1,3}|[0N][T]|[B][R]|[D][0-8])([LMNT])?([MW][1]|[X])?)(?!.)".r
+  val taxCodeLabelPattern: Regex = "^__TaxCode_(\\w)+".r
 }
