@@ -18,7 +18,7 @@ import sbt.*
 
 object AppDependencies {
 
-  val bootstrapVersion = "9.11.0"
+  val bootstrapVersion = "9.13.0"
   val mongoPlayVersion = "2.6.0"
 
   val compile: Seq[ModuleID] = Seq(
@@ -29,7 +29,7 @@ object AppDependencies {
   )
 
   val test: Seq[ModuleID] = Seq(
-    "org.scalamock"          %% "scalamock"               % "7.3.0",
+    "org.scalamock"          %% "scalamock"               % "7.3.2",
     "uk.gov.hmrc.mongo"      %% "hmrc-mongo-test-play-30" % mongoPlayVersion,
     "org.scalatestplus.play" %% "scalatestplus-play"      % "7.0.1",
     "uk.gov.hmrc"            %% "bootstrap-test-play-30"  % bootstrapVersion
