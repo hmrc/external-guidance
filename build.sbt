@@ -31,7 +31,6 @@ lazy val microservice = Project(appName, file("."))
     ),
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test
   )
-  .settings(resolvers += Resolver.jcenterRepo)
   .settings(RoutesKeys.routesImport ++= Seq("models._", "models.LabelledDataId._"))
 
 
