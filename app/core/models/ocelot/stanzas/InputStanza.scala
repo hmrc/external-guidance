@@ -105,7 +105,7 @@ case class TextInput(
     label match {
       case labelName if taxCodeLabelPattern.matches(labelName) =>
         logger.warn(s"__TaxCode_ label: $labelName received for page URL: ${page.url}")
-        (next.headOption, retrieveTaxCodeComponents(labels = labels, fullTaxCode = value, label = labelName).update(name = labelName, english = value))
+        (next.headOption, retrieveTaxCodeComponents(labels = labels, taxCodeInput = value, label = labelName).update(name = labelName, english = value))
       case _ => super.eval(value, page, labels)
     }
 }
@@ -188,22 +188,18 @@ private object TaxCodeUtilities {
   private val DefaultValue: String = "BLANK"
 
   def retrieveTaxCodeComponents(labels: Labels,
-                                fullTaxCode: String,
+                                taxCodeInput: String,
                                 label: String): Labels = {
-    val Prefix: Int = 2
-    val Main: Int = 3
-    val Suffix: Int = 4
-    val Cumulative: Int = 5
 
-    taxCodePattern findFirstMatchIn fullTaxCode match {
-      case Some(matcher) =>
+    taxCodeInput match {
+      case taxCodePattern(_, prefix, main, suffix, cumulative) if taxCodePatternIsValid(prefix, suffix) =>
         updateLabels(labels = labels,
           label = label,
-          prefix = matcher.group(Prefix),
-          main = matcher.group(Main),
-          suffix = matcher.group(Suffix),
-          cumulative = matcher.group(Cumulative))
-      case None =>
+          prefix = prefix,
+          main = main,
+          suffix = suffix,
+          cumulative = cumulative)
+      case _ =>
         updateLabels(labels = labels,
           label = label,
           prefix = "",
@@ -213,16 +209,27 @@ private object TaxCodeUtilities {
     }
   }
 
+  private def taxCodePatternIsValid(prefix: String, suffix: String): Boolean = {
+    // Valid unless prefix ends with K AND suffix is non-empty
+    !Option(prefix).exists(p => p.endsWith("K") && Option(suffix).nonEmpty)
+  }
+
   private def updateLabels(labels: Labels,
                            label: String,
                            prefix: String,
                            main: String,
                            suffix: String,
                            cumulative: String): Labels = {
+
+    val finalPrefix: String = Option(prefix).getOrElse("")
+    val finalMain: String = Option(main).getOrElse(DefaultValue)
+    val finalSuffix: String = Option(suffix).getOrElse("")
+    val finalCumulative: String = Option(cumulative).getOrElse("")
+
     labels
-      .update(s"${label}_prefix", Option(prefix).getOrElse(""))
-      .update(s"${label}_main", Option(main).getOrElse(DefaultValue))
-      .update(s"${label}_suffix", Option(suffix).getOrElse(""))
-      .update(s"${label}_cumulative", Option(cumulative).getOrElse(""))
+      .update(s"${label}_prefix", finalPrefix)
+      .update(s"${label}_main", finalMain)
+      .update(s"${label}_suffix", finalSuffix)
+      .update(s"${label}_cumulative", finalCumulative)
   }
 }

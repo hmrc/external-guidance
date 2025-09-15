@@ -25,13 +25,42 @@ class InputStanzaSpec extends BaseSpec {
 
   // Valid tax codes
   val validTaxCodes: List[String] = List(
-    "0T", "BR", "SBR", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8",
-    "NT", "45L", "145L", "K585", "K630", "K45", "285", "K401", "K27", "K159", "K306",
-    "999L", "1000L", "1001L", "SK678X", "CBRW1"
+    // Special codes
+    "0T", "NT", "BR", "SBR",
+
+    // D codes
+    "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8",
+
+    // Numeric with suffix
+    "5L", "9L", "45L", "145L", "999L", "1000L", "1001L",
+
+    // Prefix K with numeric only
+    "K9", "K27", "K45", "K159", "K306", "K401", "K585", "K630", "K1257W1",
+
+    // Prefix C
+    "C5L", "CK9", "CK1257W1", "CBRW1",
+
+    // Prefix S
+    "S5L", "SK9", "SK678X",
+
+    // Numeric with cumulative
+    "1257W1", "285", "BRLW1"
   )
 
   // Invalid tax codes
-  val invalidTaxCodes: List[String] = List("D9", "D15", "X100", "12345", "9L", "KT999", "A1", "ZZZ")
+  val invalidTaxCodes: List[String] = List(
+    // Invalid D codes (outside D0-D8)
+    "D9", "D15",
+
+    // Invalid prefixes
+    "A1", "KT999", "ZZZ",
+
+    // Invalid numeric / length
+    "12345",
+
+    // Invalid unknown codes
+    "X100"
+  )
 
   def getStanzaJson(inputType: String): JsValue = Json.parse(
     s"""|{
@@ -287,7 +316,6 @@ class InputStanzaSpec extends BaseSpec {
       val encrypter = new Encrypter { def encrypt(p: String): String = p.reverse }
       val labels: Labels =
         LabelCache(Map[String, Label](), Map[String, Label](), Nil, Map[String, Stanza](), Map[String, Int](), message(Lang("en")), Published, encrypter)
-      //val labels = LabelCache()
       val inputText = "Hello"
       val encryptedInput = labels.encrypt(inputText)
       val input = Input(expectedPassphraseStanza, Phrase("", ""), None, None)
@@ -353,8 +381,7 @@ class InputStanzaSpec extends BaseSpec {
 
   "TaxCodeInput " should {
     "Extract components from a valid tax code for a specific label" in {
-      val labels = LabelCache()
-      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(labels, "1250L", "__TaxCode_primary")
+      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(LabelCache(), "1250L", "__TaxCode_primary")
 
       updatedLabels.updatedLabels("__TaxCode_primary_prefix").english shouldBe List("")
       updatedLabels.updatedLabels("__TaxCode_primary_main").english shouldBe List("1250")
@@ -363,8 +390,7 @@ class InputStanzaSpec extends BaseSpec {
     }
 
     "Extract components from a valid tax code for any other label" in {
-      val labels = LabelCache()
-      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(labels, "1250L", "__TaxCode_test")
+      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(LabelCache(), "1250L", "__TaxCode_test")
 
       updatedLabels.updatedLabels("__TaxCode_test_prefix").english shouldBe List("")
       updatedLabels.updatedLabels("__TaxCode_test_main").english shouldBe List("1250")
@@ -373,8 +399,7 @@ class InputStanzaSpec extends BaseSpec {
     }
 
     "Set _main to 'BLANK' and others to empty string for an invalid tax code" in {
-      val labels = LabelCache()
-      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(labels, "INVALID", "__TaxCode_primary")
+      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(LabelCache(), "INVALID", "__TaxCode_primary")
 
       updatedLabels.updatedLabels("__TaxCode_primary_prefix").english shouldBe List("")
       updatedLabels.updatedLabels("__TaxCode_primary_main").english shouldBe List("BLANK")
@@ -383,8 +408,7 @@ class InputStanzaSpec extends BaseSpec {
     }
 
     "Handle the shortest valid tax code" in {
-      val labels = LabelCache()
-      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(labels, "1L", "__TaxCode_primary")
+      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(LabelCache(), "1L", "__TaxCode_primary")
 
       updatedLabels.updatedLabels("__TaxCode_primary_prefix").english shouldBe List("")
       updatedLabels.updatedLabels("__TaxCode_primary_main").english shouldBe List("1")
@@ -392,9 +416,8 @@ class InputStanzaSpec extends BaseSpec {
       updatedLabels.updatedLabels("__TaxCode_primary_cumulative").english shouldBe List("")
     }
 
-    "Handle the longest valid tax code" in {
-      val labels = LabelCache()
-      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(labels, "SK9999L X", "__TaxCode_primary")
+    "Handle the longest invalid tax code" in {
+      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(LabelCache(), "SK9999L X", "__TaxCode_primary")
 
       updatedLabels.updatedLabels("__TaxCode_primary_prefix").english shouldBe List("")
       updatedLabels.updatedLabels("__TaxCode_primary_main").english shouldBe List("BLANK")
@@ -402,13 +425,121 @@ class InputStanzaSpec extends BaseSpec {
       updatedLabels.updatedLabels("__TaxCode_primary_cumulative").english shouldBe List("")
     }
 
-    "Extract components from a tax code with a prefix" in {
-      val labels = LabelCache()
-      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(labels, "K1250L", "__TaxCode_primary")
+    "Handle the longest valid tax code" in {
+      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(LabelCache(), "S9959TM1", "__TaxCode_primary")
 
-      updatedLabels.updatedLabels("__TaxCode_primary_prefix").english shouldBe List("K")
+      updatedLabels.updatedLabels("__TaxCode_primary_prefix").english shouldBe List("S")
+      updatedLabels.updatedLabels("__TaxCode_primary_main").english shouldBe List("9959")
+      updatedLabels.updatedLabels("__TaxCode_primary_suffix").english shouldBe List("T")
+      updatedLabels.updatedLabels("__TaxCode_primary_cumulative").english shouldBe List("M1")
+    }
+
+    "Extract components from a tax code with a K prefix" in {
+      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(LabelCache(), "K1250L", "__TaxCode_primary")
+
+      updatedLabels.updatedLabels("__TaxCode_primary_prefix").english shouldBe List("")
+      updatedLabels.updatedLabels("__TaxCode_primary_main").english shouldBe List("BLANK")
+      updatedLabels.updatedLabels("__TaxCode_primary_suffix").english shouldBe List("")
+      updatedLabels.updatedLabels("__TaxCode_primary_cumulative").english shouldBe List("")
+    }
+
+    "Extract components from a tax code with C prefix" in {
+      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(LabelCache(), "C1250L", "__TaxCode_primary")
+
+      updatedLabels.updatedLabels("__TaxCode_primary_prefix").english shouldBe List("C")
       updatedLabels.updatedLabels("__TaxCode_primary_main").english shouldBe List("1250")
       updatedLabels.updatedLabels("__TaxCode_primary_suffix").english shouldBe List("L")
+      updatedLabels.updatedLabels("__TaxCode_primary_cumulative").english shouldBe List("")
+    }
+
+    "Extract components from a tax code with S prefix" in {
+      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(LabelCache(), "S1250L", "__TaxCode_primary")
+
+      updatedLabels.updatedLabels("__TaxCode_primary_prefix").english shouldBe List("S")
+      updatedLabels.updatedLabels("__TaxCode_primary_main").english shouldBe List("1250")
+      updatedLabels.updatedLabels("__TaxCode_primary_suffix").english shouldBe List("L")
+      updatedLabels.updatedLabels("__TaxCode_primary_cumulative").english shouldBe List("")
+    }
+
+    "Extract components from a tax code with CK prefix" in {
+      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(LabelCache(), "CK1250L", "__TaxCode_primary")
+
+      updatedLabels.updatedLabels("__TaxCode_primary_prefix").english shouldBe List("")
+      updatedLabels.updatedLabels("__TaxCode_primary_main").english shouldBe List("BLANK")
+      updatedLabels.updatedLabels("__TaxCode_primary_suffix").english shouldBe List("")
+      updatedLabels.updatedLabels("__TaxCode_primary_cumulative").english shouldBe List("")
+    }
+
+    "Extract components from a tax code with SK prefix" in {
+      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(LabelCache(), "SK1250L", "__TaxCode_primary")
+
+      updatedLabels.updatedLabels("__TaxCode_primary_prefix").english shouldBe List("")
+      updatedLabels.updatedLabels("__TaxCode_primary_main").english shouldBe List("BLANK")
+      updatedLabels.updatedLabels("__TaxCode_primary_suffix").english shouldBe List("")
+      updatedLabels.updatedLabels("__TaxCode_primary_cumulative").english shouldBe List("")
+    }
+
+    "Extract components with suffix M" in {
+      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(LabelCache(), "1250M", "__TaxCode_primary")
+
+      updatedLabels.updatedLabels("__TaxCode_primary_prefix").english shouldBe List("")
+      updatedLabels.updatedLabels("__TaxCode_primary_main").english shouldBe List("1250")
+      updatedLabels.updatedLabels("__TaxCode_primary_suffix").english shouldBe List("M")
+      updatedLabels.updatedLabels("__TaxCode_primary_cumulative").english shouldBe List("")
+    }
+
+    "Extract components with suffix N" in {
+      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(LabelCache(), "1250N", "__TaxCode_primary")
+
+      updatedLabels.updatedLabels("__TaxCode_primary_prefix").english shouldBe List("")
+      updatedLabels.updatedLabels("__TaxCode_primary_main").english shouldBe List("1250")
+      updatedLabels.updatedLabels("__TaxCode_primary_suffix").english shouldBe List("N")
+      updatedLabels.updatedLabels("__TaxCode_primary_cumulative").english shouldBe List("")
+
+    }
+
+    "Extract components with suffix T" in {
+      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(LabelCache(), "1250T", "__TaxCode_primary")
+
+      updatedLabels.updatedLabels("__TaxCode_primary_prefix").english shouldBe List("")
+      updatedLabels.updatedLabels("__TaxCode_primary_main").english shouldBe List("1250")
+      updatedLabels.updatedLabels("__TaxCode_primary_suffix").english shouldBe List("T")
+      updatedLabels.updatedLabels("__TaxCode_primary_cumulative").english shouldBe List("")
+    }
+
+    "Extract components with cumulative M1" in {
+      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(LabelCache(), "1250LM1", "__TaxCode_primary")
+
+      updatedLabels.updatedLabels("__TaxCode_primary_prefix").english shouldBe List("")
+      updatedLabels.updatedLabels("__TaxCode_primary_main").english shouldBe List("1250")
+      updatedLabels.updatedLabels("__TaxCode_primary_suffix").english shouldBe List("L")
+      updatedLabels.updatedLabels("__TaxCode_primary_cumulative").english shouldBe List("M1")
+    }
+
+    "Extract components with cumulative W1" in {
+      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(LabelCache(), "1250LW1", "__TaxCode_primary")
+
+      updatedLabels.updatedLabels("__TaxCode_primary_prefix").english shouldBe List("")
+      updatedLabels.updatedLabels("__TaxCode_primary_main").english shouldBe List("1250")
+      updatedLabels.updatedLabels("__TaxCode_primary_suffix").english shouldBe List("L")
+      updatedLabels.updatedLabels("__TaxCode_primary_cumulative").english shouldBe List("W1")
+    }
+
+    "Extract components with cumulative X" in {
+      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(LabelCache(), "1250LX", "__TaxCode_primary")
+
+      updatedLabels.updatedLabels("__TaxCode_primary_prefix").english shouldBe List("")
+      updatedLabels.updatedLabels("__TaxCode_primary_main").english shouldBe List("1250")
+      updatedLabels.updatedLabels("__TaxCode_primary_suffix").english shouldBe List("L")
+      updatedLabels.updatedLabels("__TaxCode_primary_cumulative").english shouldBe List("X")
+    }
+
+    "Reject tax code with invalid numeric part" in {
+      val updatedLabels = TaxCodeUtilities.retrieveTaxCodeComponents(LabelCache(), "0123L", "__TaxCode_primary")
+
+      updatedLabels.updatedLabels("__TaxCode_primary_prefix").english shouldBe List("")
+      updatedLabels.updatedLabels("__TaxCode_primary_main").english shouldBe List("BLANK")
+      updatedLabels.updatedLabels("__TaxCode_primary_suffix").english shouldBe List("")
       updatedLabels.updatedLabels("__TaxCode_primary_cumulative").english shouldBe List("")
     }
   }
