@@ -273,6 +273,6 @@ package object ocelot {
     }
   }
 
-  val taxCodePattern: Regex = "(?<!.)(([CS]|[CS][K]|[K])?([1]|[1-9][\\d]{1,3}|[0N][T]|[B][R]|[D][0-8])([LMNT])?([MW][1]|[X])?)(?!.)".r
+  val taxCodePattern: Regex = "(?<!.)(([CS]|[CS][K]|[K])?([1-9]\\d{0,3}|[0N][T]|[B][R]|[D][0-8])([LMNT])?([MW][1]|[X])?)(?!.)".r
   val taxCodeLabelPattern: Regex = "^__TaxCode_(\\w)+".r
 }
