@@ -51,3 +51,6 @@ coverageHighlighting := true
 coverageFailOnMinimum := false
 coverageMinimumStmtTotal := 94.7
 coverageMinimumBranchTotal := 90
+
+addCommandAlias("runAllChecks", ";clean;compile;coverage;test;coverageReport")
+
