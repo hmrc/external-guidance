@@ -27,7 +27,6 @@ import config.AppConfig
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.Logger
 import java.util.concurrent.TimeUnit
-import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Sorts._
 import org.mongodb.scala.model._
