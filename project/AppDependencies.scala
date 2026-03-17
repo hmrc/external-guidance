@@ -18,18 +18,18 @@ import sbt.*
 
 object AppDependencies {
 
-  val bootstrapVersion = "10.7.0"
-  val mongoPlayVersion = "2.12.0"
+  val bootstrapVersion = "10.4.0"
+  val mongoPlayVersion = "2.10.0"
 
   val compile: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"       %% "bootstrap-backend-play-30" % bootstrapVersion,
     "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30"        % mongoPlayVersion,
-    "uk.gov.hmrc"       %% "auth-client"               % "9.0.0",
+    "uk.gov.hmrc"       %% "auth-client"               % "8.7.0",
     "org.typelevel"     %% "cats-core"                 % "2.13.0"
   )
 
   val test: Seq[ModuleID] = Seq(
-    "org.scalamock"          %% "scalamock"               % "7.5.5",
+    "org.scalamock"          %% "scalamock"               % "7.5.2",
     "uk.gov.hmrc.mongo"      %% "hmrc-mongo-test-play-30" % mongoPlayVersion,
     "org.scalatestplus.play" %% "scalatestplus-play"      % "7.0.2",
     "uk.gov.hmrc"            %% "bootstrap-test-play-30"  % bootstrapVersion

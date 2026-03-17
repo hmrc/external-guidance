@@ -25,6 +25,7 @@ import play.api.Logger
 import config.AppConfig
 import scala.concurrent.{ExecutionContext, Future}
 import models.{LabelledDataId, LabelledData}
+import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.model._

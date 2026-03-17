@@ -21,6 +21,7 @@ import core.models.errors.DatabaseError
 import core.models.RequestOutcome
 import models.PublishedProcess
 import play.api.Logger
+import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.model._
