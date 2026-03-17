@@ -21,7 +21,6 @@ import core.models.errors.DatabaseError
 import core.models.RequestOutcome
 import models.ScratchProcess
 import play.api.Logger
-import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
 import uk.gov.hmrc.mongo._
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
