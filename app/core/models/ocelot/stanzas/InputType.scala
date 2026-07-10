@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import play.api.libs.json._
+import play.api.libs.json.*
 
 sealed trait InputType
 
@@ -29,7 +29,7 @@ case object Date extends InputType
 
 object InputType {
 
-  implicit val reads: Reads[InputType] = {
+  given reads: Reads[InputType] = {
     case JsString("Currency") => JsSuccess(Currency, __)
     case JsString("CurrencyPoundsOnly") => JsSuccess(CurrencyPoundsOnly, __)
     case JsString("Date") => JsSuccess(Date, __)
@@ -40,7 +40,7 @@ object InputType {
     case unknown => JsError(JsonValidationError(Seq("InputType"), unknown.toString))
   }
 
-  implicit val writes: Writes[InputType] = {
+  given writes: Writes[InputType] = {
     case Currency => Json.toJson("Currency")
     case CurrencyPoundsOnly => Json.toJson("CurrencyPoundsOnly")
     case Date => Json.toJson("Date")

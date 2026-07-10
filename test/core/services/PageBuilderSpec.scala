@@ -17,10 +17,10 @@
 package core.services
 
 import base.BaseSpec
-import core.models.ocelot.errors._
-import core.models.ocelot.stanzas._
-import core.models.ocelot._
-import play.api.libs.json._
+import core.models.ocelot.errors.*
+import core.models.ocelot.stanzas.*
+import core.models.ocelot.*
+import play.api.libs.json.*
 
 import base.TestConstants
 
@@ -286,7 +286,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with PageDefns {
 
       pageBuilder.buildPage("unknown", process) match {
         case Right(_) => fail("Invalid key should not return a page")
-        case Left(err) => succeed
+        case Left(_) => succeed
       }
     }
 
@@ -339,7 +339,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with PageDefns {
 
             pages.head.id shouldBe Process.StartStanzaId
 
-          case Left(err) => fail(s"First page must be the requested start page")
+          case Left(_) => fail(s"First page must be the requested start page")
         }
 
       }
@@ -486,7 +486,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with PageDefns {
             indexedSeqOfPages(1).next shouldBe Nil
           }
 
-        case Left(err) => //fail(s"Flow error $err")
+        case Left(_) => //fail(s"Flow error $err")
       }
     }
 
@@ -694,7 +694,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with PageDefns {
       pageBuilder.pages(process) match {
 
         case Right(pages) =>
-          val pageInfo = fromPageDetails(pages)(Dummy)
+          val pageInfo = fromPageDetails(pages)(Dummy.apply)
           pageInfo.length shouldBe 1
           pageInfo.head.id shouldBe "start"
           pageInfo.head.pageUrl shouldBe "/page/1"
@@ -734,7 +734,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with PageDefns {
 
         case Right(pages) =>
 
-            val pageInfo = fromPageDetails(pages)(Dummy)
+            val pageInfo = fromPageDetails(pages)(Dummy.apply)
 
             pageInfo.length shouldBe 1
             pageInfo.head.id shouldBe "start"
@@ -1000,7 +1000,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with PageDefns {
 
       pageBuilder.pages(Json.parse(processWithCallouts).as[Process]) match {
         case Right(pages) =>
-          val pageInfo = fromPageDetails(pages)(Dummy)
+          val pageInfo = fromPageDetails(pages)(Dummy.apply)
 
           pageInfo shouldNot be(Nil)
           pageInfo.length shouldBe 7
@@ -1031,7 +1031,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with PageDefns {
 
       pageBuilder.pages(validOnePageProcessWithProcessCodeJson.as[Process]) match {
         case Right(pages) =>
-          val pageInfo = fromPageDetails(pages)(Dummy)
+          val pageInfo = fromPageDetails(pages)(Dummy.apply)
 
           pageInfo shouldNot be(Nil)
           pageInfo.length shouldBe 1
@@ -1069,7 +1069,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with PageDefns {
 
       pageBuilder.pages(process) match {
         case Right(pages) =>
-          val pageInfo = fromPageDetails(pages)(Dummy)
+          val pageInfo = fromPageDetails(pages)(Dummy.apply)
 
           pageInfo shouldNot be(Nil)
           pageInfo.length shouldBe 2
@@ -1104,7 +1104,7 @@ class PageBuilderSpec extends BaseSpec with ProcessJson with PageDefns {
       case class Dummy(id: String, pageUrl: String, pageTitle: String)
       pageBuilder.pages(process) match {
         case Right(pages) =>
-          val pageInfo = fromPageDetails(pages)(Dummy)
+          val pageInfo = fromPageDetails(pages)(Dummy.apply)
 
           pageInfo shouldNot be(Nil)
           pageInfo.length shouldBe 1

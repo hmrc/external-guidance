@@ -17,9 +17,9 @@
 package models
 
 import java.time.{LocalDate, ZonedDateTime}
-import data.ProcessData._
+import data.ProcessData.*
 import play.api.libs.json.{JsObject, Json}
-import models.Constants._
+import models.Constants.*
 
 trait ApprovalProcessJson {
 

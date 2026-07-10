@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import play.api.libs.json._
+import play.api.libs.json.*
 
 sealed trait CalloutType
 
@@ -41,7 +41,7 @@ case object Note extends CalloutType // Used to display Inset Text
 
 object CalloutType {
 
-  implicit val reads: Reads[CalloutType] = {
+  given reads: Reads[CalloutType] = {
     case JsString("Title") => JsSuccess(Title, __)
     case JsString("SubTitle") => JsSuccess(SubTitle, __)
     case JsString("Section") => JsSuccess(Section, __)
@@ -61,7 +61,7 @@ object CalloutType {
     case unknown => JsError(JsonValidationError(Seq("CalloutType"), unknown.toString))
   }
 
-  implicit val writes: Writes[CalloutType] = {
+  given writes: Writes[CalloutType] = {
     case Title => Json.toJson("Title")
     case SubTitle => Json.toJson("SubTitle")
     case Section => Json.toJson("Section")

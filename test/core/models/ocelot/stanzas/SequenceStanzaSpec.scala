@@ -17,11 +17,11 @@
 package core.models.ocelot.stanzas
 
 import base.BaseSpec
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.i18n.Lang
 import core.models.ocelot.{hintRegex, Page, Phrase, LabelCache, Labels, Process, Flow, LabelValue, Continuation, stripHintPlaceholder}
 
-class SequenceStanzaSpec extends BaseSpec {
+class SequenceStanzaSpec extends BaseSpec  {
   val langEn: Lang = Lang("en")
   val langCy: Lang = Lang("cy")
 
@@ -176,8 +176,8 @@ class SequenceStanzaSpec extends BaseSpec {
       next shouldBe Some("1")
       updatedLabels.flowStack shouldBe List(Flow("1", Some(LabelValue("Items", stripHintPlaceholder(phraseOne)))), Continuation(Process.EndStanzaId))
       updatedLabels.value("Items") shouldBe Some(hintRegex.replaceAllIn(oneEn, ""))
-      updatedLabels.displayValue("Items")(langEn) shouldBe Some(hintRegex.replaceAllIn(oneEn, ""))
-      updatedLabels.displayValue("Items")(langCy) shouldBe Some(hintRegex.replaceAllIn(oneCy, ""))
+      updatedLabels.displayValue("Items")(using langEn) shouldBe Some(hintRegex.replaceAllIn(oneEn, ""))
+      updatedLabels.displayValue("Items")(using langCy) shouldBe Some(hintRegex.replaceAllIn(oneCy, ""))
     }
 
     "Evaluate valid input and set labels without hint placeholders" in new Test {
@@ -187,8 +187,8 @@ class SequenceStanzaSpec extends BaseSpec {
       next shouldBe Some("1")
       updatedLabels.flowStack shouldBe List(Flow("1", Some(LabelValue("Items", stripHintPlaceholder(phraseOne)))), Continuation(Process.EndStanzaId))
       updatedLabels.value("Items") shouldBe Some(hintRegex.replaceAllIn(oneEn, ""))
-      updatedLabels.displayValue("Items")(langEn) shouldBe Some(hintRegex.replaceAllIn(oneEn, ""))
-      updatedLabels.displayValue("Items")(langCy) shouldBe Some(hintRegex.replaceAllIn(oneCy, ""))
+      updatedLabels.displayValue("Items")(using langEn) shouldBe Some(hintRegex.replaceAllIn(oneEn, ""))
+      updatedLabels.displayValue("Items")(using langCy) shouldBe Some(hintRegex.replaceAllIn(oneCy, ""))
     }
 
     "Evaluate invalid input to error return" in new Test {
@@ -240,8 +240,8 @@ class SequenceStanzaSpec extends BaseSpec {
       next shouldBe Some("1")
       updatedLabels.flowStack shouldBe List(Flow("1", Some(LabelValue("Items", stripHintPlaceholder(phraseOne)))), Continuation(Process.EndStanzaId))
       updatedLabels.value("Items") shouldBe Some(hintRegex.replaceAllIn(oneEn, ""))
-      updatedLabels.displayValue("Items")(langEn) shouldBe Some(hintRegex.replaceAllIn(oneEn, ""))
-      updatedLabels.displayValue("Items")(langCy) shouldBe Some(hintRegex.replaceAllIn(oneCy, ""))
+      updatedLabels.displayValue("Items")(using langEn) shouldBe Some(hintRegex.replaceAllIn(oneEn, ""))
+      updatedLabels.displayValue("Items")(using langCy) shouldBe Some(hintRegex.replaceAllIn(oneCy, ""))
     }
 
     "Evaluate invalid input to error return" in new Test {

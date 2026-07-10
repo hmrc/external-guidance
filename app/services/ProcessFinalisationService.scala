@@ -18,11 +18,11 @@ package services
 
 import javax.inject.{Inject, Singleton}
 import core.models.errors.Error
-import core.models.ocelot.errors._
-import core.models._
+import core.models.ocelot.errors.*
+import core.models.*
 import core.models.ocelot.{Phrase, SecuredProcess, Process, Page}
 import core.models.ocelot.stanzas.{Value, Stanza}
-import play.api.libs.json._
+import play.api.libs.json.*
 import scala.concurrent.{Future, ExecutionContext}
 import config.AppConfig
 import play.api.Logging
@@ -30,13 +30,12 @@ import core.services.EncrypterService
 
 @Singleton
 class ProcessFinalisationService @Inject() (
-    appConfig: AppConfig,
     vpb: ValidatingPageBuilder,
     labelledDataService: LabelledDataService,
     encrypter: EncrypterService) extends Logging {
 
   def guidancePagesAndProcess(jsObject: JsObject, checkLevel: GuidanceCheckLevel = Strict)
-                             (implicit c: AppConfig, ec: ExecutionContext): Future[RequestOutcome[(Process, Seq[Page], JsObject)]] =
+                             (using c: AppConfig, ec: ExecutionContext): Future[RequestOutcome[(Process, Seq[Page], JsObject)]] =
     jsObject.validate[Process].fold(errs => Future.successful(Left(Error(GuidanceError.fromJsonValidationErrors(errs)))),
       incomingProcess => {
         // Transform process if fake welsh, secured process or timescales are indicated
@@ -48,7 +47,7 @@ class ProcessFinalisationService @Inject() (
       }
     )
 
-  private[services] def fakeWelshTextIfRequired(process: Process, jsObject: Option[JsObject])(implicit c: AppConfig): (Process,  Option[JsObject]) =
+  private[services] def fakeWelshTextIfRequired(process: Process, jsObject: Option[JsObject])(using c: AppConfig): (Process,  Option[JsObject]) =
     if (process.passPhrase.isDefined || process.encryptedPassPhrase.isDefined || c.fakeWelshInUnauthenticatedGuidance) {
       val fakedWelshProcess = process.copy(phrases = process.phrases.map(p => if (p.welsh.trim.isEmpty) Phrase(p.english, s"Welsh: ${p.english}") else p))
       (fakedWelshProcess, None)

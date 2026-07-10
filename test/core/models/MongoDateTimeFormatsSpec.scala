@@ -17,12 +17,12 @@
 package core.models
 
 import base.BaseSpec
-import play.api.libs.json._
+import play.api.libs.json.*
 import java.time.{Instant, ZonedDateTime, LocalDate}
 import MongoDateTimeFormats.localZoneID
-import MongoDateTimeFormats.Implicits._
+import MongoDateTimeFormats.Implicits.given
 
-class MongoDateTimeSpec extends  BaseSpec {
+class MongoDateTimeFormatsSpec extends  BaseSpec {
   "a LocalDate" must {
     val localDate = LocalDate.of(2018,2,1)
     val localDateMillis = localDate.atStartOfDay(ZonedDateTime.now.getZone).toInstant.toEpochMilli

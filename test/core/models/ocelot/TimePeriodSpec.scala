@@ -46,7 +46,7 @@ class TimePeriodSpec extends BaseSpec {
     }
   }
 
-  import TimePeriodArithmetic._
+  import TimePeriodArithmetic.*
 
   "TimePeriodArithmetic" must {
     "Allow addition of Days to LocalDates" in {

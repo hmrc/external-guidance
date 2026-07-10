@@ -17,10 +17,10 @@
 package models
 
 import java.time.{LocalDate, ZonedDateTime}
-import core.models.MongoDateTimeFormats.Implicits._
-import play.api.libs.json._
-import play.api.libs.functional.syntax._
-import models.Constants._
+import core.models.MongoDateTimeFormats.Implicits.given
+import play.api.libs.json.*
+import play.api.libs.functional.syntax.*
+import models.Constants.*
 
 case class ApprovalProcessMeta(
   id: String,
@@ -80,7 +80,7 @@ object ApprovalProcessMeta {
       (__ \ "ocelotVersion").write[Int] and
       (__ \ "reviewType").write[String] and
       (__ \ "processCode").write[String]
-  )(unlift(ApprovalProcessMeta.unapply))
+  )(Tuple.fromProductTyped(_))
 
-  implicit val mongoFormat: OFormat[ApprovalProcessMeta] = OFormat(reads, writes)
+  given mongoFormat: OFormat[ApprovalProcessMeta] = OFormat(reads, writes)
 }

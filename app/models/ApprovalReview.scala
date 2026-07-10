@@ -16,9 +16,9 @@
 
 package models
 
-import play.api.libs.json._
+import play.api.libs.json.*
 import java.time.{LocalDate, ZonedDateTime}
-import core.models.MongoDateTimeFormats.Implicits._
+import core.models.MongoDateTimeFormats.Implicits.given
 
 case class ApprovalReview(
   pages: List[ApprovalProcessPageReview],
@@ -29,6 +29,6 @@ case class ApprovalReview(
 )
 
 object ApprovalReview {
-  implicit val pageReviewMongoFormat: OFormat[ApprovalProcessPageReview]  = ApprovalProcessPageReview.mongoFormat
-  implicit val format: OFormat[ApprovalReview] = Json.format[ApprovalReview]
+  given pageReviewMongoFormat: OFormat[ApprovalProcessPageReview]  = ApprovalProcessPageReview.mongoFormat
+  given format: OFormat[ApprovalReview] = Json.format[ApprovalReview]
 }

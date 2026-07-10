@@ -32,7 +32,7 @@ import models.{LabelledDataUpdateStatus, UpdateDetails, Timescales}
 @Singleton
 class TimescalesService @Inject() (
     repository: LabelledDataRepository,
-    appConfig: AppConfig)(implicit ec: ExecutionContext) extends LabelledDataServiceProvider[Int] with Logging {
+    appConfig: AppConfig)(using ec: ExecutionContext) extends LabelledDataServiceProvider[Int] with Logging {
 
   def details(): Future[RequestOutcome[LabelledDataUpdateStatus]] =
     repository.get(Timescales) map {

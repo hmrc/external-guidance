@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import play.api.libs.json._
+import play.api.libs.json.*
 
 import base.BaseSpec
 

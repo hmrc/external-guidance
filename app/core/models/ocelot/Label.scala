@@ -16,8 +16,8 @@
 
 package core.models.ocelot
 
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.*
 
 sealed trait Label {
   val name: String
@@ -30,7 +30,7 @@ case class ListLabel(name: String, english: List[String] = Nil, welsh: List[Stri
 
 object Label {
 
-  implicit val reads: Reads[Label] = (js: JsValue) =>
+  given reads: Reads[Label] = (js: JsValue) =>
     (js \ "type").validate[String] match {
       case error @ JsError(_) => error
       case JsSuccess(typ, _) => typ match {
@@ -40,40 +40,39 @@ object Label {
       }
     }
 
-  implicit val writes: Writes[Label] = {
+  given writes: Writes[Label] = {
     case s: ScalarLabel => Json.obj("type" -> "scalar") ++ Json.toJsObject[ScalarLabel](s)
     case l: ListLabel => Json.obj("type" -> "list") ++ Json.toJsObject[ListLabel](l)
-    case _ => Json.toJson("")
   }
 }
 
 object ScalarLabel {
 
-  implicit val reads: Reads[ScalarLabel] = (
+  given reads: Reads[ScalarLabel] = (
     (__ \ "name").read[String] and
       (__ \ "english").read[List[String]] and
       (__ \ "welsh").read[List[String]]
   )(ScalarLabel.apply _)
 
-  implicit val owrites: OWrites[ScalarLabel] = (
+  given owrites: OWrites[ScalarLabel] = (
     (__ \ "name").write[String] and
       (__ \ "english").write[List[String]] and
       (__ \ "welsh").write[List[String]]
-  )(unlift(ScalarLabel.unapply))
+  )(Tuple.fromProductTyped(_))
 }
 
 object ListLabel {
 
-  implicit val reads: Reads[ListLabel] = (
+  given reads: Reads[ListLabel] = (
     (__ \ "name").read[String] and
       (__ \ "english").read[List[String]] and
       (__ \ "welsh").read[List[String]]
   )(ListLabel.apply _)
 
-  implicit val owrites: OWrites[ListLabel] = (
+  given owrites: OWrites[ListLabel] = (
     (__ \ "name").write[String] and
       (__ \ "english").write[List[String]] and
       (__ \ "welsh").write[List[String]]
-  )(unlift(ListLabel.unapply))
+  )(Tuple.fromProductTyped(_))
 
 }

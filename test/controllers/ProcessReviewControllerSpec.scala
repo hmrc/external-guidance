@@ -18,17 +18,17 @@ package controllers
 
 import base.BaseSpec
 import controllers.actions.{FakeFactCheckerAction, FakeTwoEyeReviewerAction}
-import core.models.errors._
+import core.models.errors.*
 import data.ReviewData
 import mocks.MockApprovalReviewService
-import models.Constants._
-import models._
+import models.Constants.*
+import models.*
 import org.scalamock.scalatest.MockFactory
 import play.api.http.ContentTypes
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 
 import scala.concurrent.Future
 
@@ -57,7 +57,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       trait ValidTest extends Test {
         MockApprovalReviewService
-          .approvalReviewInfo(validProcessIdForReview, ReviewType2i)
+          .approvalReviewInfo(validProcessIdForReview)
           .returns(Future.successful(Right(processReviewInfo)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -85,7 +85,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
       trait ValidTest extends Test {
         val expectedErrorCode = "DUPLICATE_KEY_ERROR"
         MockApprovalReviewService
-          .approvalReviewInfo(validProcessIdForReview, ReviewType2i)
+          .approvalReviewInfo(validProcessIdForReview)
           .returns(Future.successful(Left(DuplicateKeyError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -111,7 +111,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
       trait InvalidTest extends Test {
         val expectedErrorCode = "BAD_REQUEST"
         MockApprovalReviewService
-          .approvalReviewInfo(invalidId, ReviewType2i)
+          .approvalReviewInfo(invalidId)
           .returns(Future.successful(Left(BadRequestError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -139,7 +139,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
       trait NotFoundTest extends Test {
         val expectedErrorCode = "NOT_FOUND"
         MockApprovalReviewService
-          .approvalReviewInfo(validProcessIdForReview, ReviewType2i)
+          .approvalReviewInfo(validProcessIdForReview)
           .returns(Future.successful(Left(NotFoundError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -167,7 +167,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
       trait StaleDataTest extends Test {
         val expectedErrorCode = "STALE_DATA_ERROR"
         MockApprovalReviewService
-          .approvalReviewInfo(validProcessIdForReview, ReviewType2i)
+          .approvalReviewInfo(validProcessIdForReview)
           .returns(Future.successful(Left(StaleDataError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -195,7 +195,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
       trait ErrorTest extends Test {
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         MockApprovalReviewService
-          .approvalReviewInfo(validProcessIdForReview, ReviewType2i)
+          .approvalReviewInfo(validProcessIdForReview)
           .returns(Future.successful(Left(InternalServerError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -493,7 +493,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
         val pageReview: ApprovalProcessPageReview = ApprovalProcessPageReview("id", pageUrl, "Title", None, "status")
 
         MockApprovalReviewService
-          .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewType2i)
+          .approvalPageInfo(validProcessIdForReview, pageUrl)
           .returns(Future.successful(Right(pageReview)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -515,7 +515,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
         val expectedErrorCode = "BAD_REQUEST"
         val pageUrl: String = "/pageUrl"
         MockApprovalReviewService
-          .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewType2i)
+          .approvalPageInfo(validProcessIdForReview, pageUrl)
           .returns(Future.successful(Left(BadRequestError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -536,7 +536,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
         val expectedErrorCode = "NOT_FOUND"
         val pageUrl: String = "/pageUrl"
         MockApprovalReviewService
-          .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewType2i)
+          .approvalPageInfo(validProcessIdForReview, pageUrl)
           .returns(Future.successful(Left(NotFoundError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -557,7 +557,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
         val expectedErrorCode = "STALE_DATA_ERROR"
         val pageUrl: String = "/pageUrl"
         MockApprovalReviewService
-          .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewType2i)
+          .approvalPageInfo(validProcessIdForReview, pageUrl)
           .returns(Future.successful(Left(StaleDataError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -578,7 +578,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
         val expectedErrorCode = "INTERNAL_SERVER_ERROR"
         val pageUrl: String = "/pageUrl"
         MockApprovalReviewService
-          .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewType2i)
+          .approvalPageInfo(validProcessIdForReview, pageUrl)
           .returns(Future.successful(Left(InternalServerError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -703,7 +703,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
 
       trait ValidTest extends Test {
         MockApprovalReviewService
-          .approvalReviewInfo(validProcessIdForReview, ReviewTypeFactCheck)
+          .approvalReviewInfo(validProcessIdForReview)
           .returns(Future.successful(Right(processReviewInfo.copy(reviewType = ReviewTypeFactCheck))))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -834,7 +834,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
         val pageReview: ApprovalProcessPageReview = ApprovalProcessPageReview("2", pageUrl, "title", Some("result2"))
 
         MockApprovalReviewService
-          .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewTypeFactCheck)
+          .approvalPageInfo(validProcessIdForReview, pageUrl)
           .returns(Future.successful(Right(pageReview)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
@@ -852,7 +852,7 @@ class ProcessReviewControllerSpec extends BaseSpec with MockFactory with ReviewD
         val expectedErrorCode = "STALE_DATA_ERROR"
         val pageUrl: String = "/pageUrl"
         MockApprovalReviewService
-          .approvalPageInfo(validProcessIdForReview, pageUrl, ReviewTypeFactCheck)
+          .approvalPageInfo(validProcessIdForReview, pageUrl)
           .returns(Future.successful(Left(StaleDataError)))
 
         lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")

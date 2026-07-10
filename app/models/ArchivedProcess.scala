@@ -17,15 +17,13 @@
 package models
 
 import java.time.ZonedDateTime
-import play.api.libs.json._
-import play.api.libs.functional.syntax._
+import play.api.libs.json.*
+import play.api.libs.functional.syntax.*
 
 case class ArchivedProcess(id: Long, dateArchived: ZonedDateTime, process: JsObject, archivedBy: String, processCode: String)
 
 trait ArchivedProcessFormats {
   val standardformat: Format[ArchivedProcess] = Json.format[ArchivedProcess]
-
-  import core.models.MongoDateTimeFormats.Implicits._
 
   val reads: Reads[ArchivedProcess] = (
     (__ \ "_id").read[Long] and
@@ -41,16 +39,16 @@ trait ArchivedProcessFormats {
       (__ \ "process").write[JsObject] and
       (__ \ "archivedBy").write[String] and
       (__ \ "processCode").write[String]
-  )(unlift(ArchivedProcess.unapply))
+  )(Tuple.fromProductTyped(_))
 
   val mongoFormat: Format[ArchivedProcess] = Format(reads, writes)
 
   trait Implicits {
-    implicit val ppformats: Format[ArchivedProcess] = standardformat
+    given ppformats: Format[ArchivedProcess] = standardformat
   }
 
   trait MongoImplicits {
-    implicit val formats: Format[ArchivedProcess] = mongoFormat
+    given formats: Format[ArchivedProcess] = mongoFormat
   }
 
   object Implicits extends Implicits

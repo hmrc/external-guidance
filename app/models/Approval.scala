@@ -16,15 +16,15 @@
 
 package models
 
-import play.api.libs.json._
-import play.api.libs.functional.syntax._
+import play.api.libs.json.*
+import play.api.libs.functional.syntax.*
 
 case class Approval(id: String, meta: ApprovalProcessMeta, review: ApprovalReview, process: JsObject)
 
 object Approval {
 
-  implicit val metaFormat: Format[ApprovalProcessMeta] = ApprovalProcessMeta.mongoFormat
-  implicit val reviewFormat: Format[ApprovalReview] = ApprovalReview.format
+  given metaFormat: Format[ApprovalProcessMeta] = ApprovalProcessMeta.mongoFormat
+  given reviewFormat: Format[ApprovalReview] = ApprovalReview.format
 
   def build(id: Option[String], meta: ApprovalProcessMeta, review: ApprovalReview, process: JsObject): Approval =
     Approval(id.getOrElse(meta.id), meta, review, process)
@@ -41,7 +41,7 @@ object Approval {
       (__ \ "meta").write[ApprovalProcessMeta] and
       (__ \ "review").write[ApprovalReview] and
       (__ \ "process").write[JsObject]
-  )(unlift(Approval.unapply))
+  )(Tuple.fromProductTyped(_))
 
-  implicit val format: OFormat[Approval] = OFormat(reads, writes)
+  given format: OFormat[Approval] = OFormat(reads, writes)
 }

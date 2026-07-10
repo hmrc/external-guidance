@@ -37,7 +37,7 @@ class ScratchProcessSpec extends BaseSpec {
     "result in a successful conversion" in {
       json.validate[ScratchProcess](ScratchProcess.mongoFormat) match {
         case JsSuccess(result, _) if result == process => succeed
-        case JsSuccess(result, _) =>
+        case JsSuccess(_, _) =>
           fail("JSON parsed with incorrect values")
         case JsError(errs) =>
           fail(s"Unable to parse valid JSON, $errs")

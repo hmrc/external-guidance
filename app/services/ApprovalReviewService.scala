@@ -19,13 +19,13 @@ package services
 import config.AppConfig
 
 import javax.inject.{Inject, Singleton}
-import models._
-import Constants._
-import core.models._
-import core.models.errors._
+import models.*
+import Constants.*
+import core.models.*
+import core.models.errors.*
 import core.services.fromPageDetails
 import play.api.Logger
-import play.api.libs.json._
+import play.api.libs.json.*
 import repositories.{ApprovalsRepository, PublishedRepository}
 import core.models.ocelot.Process
 import scala.concurrent.{ExecutionContext, Future}
@@ -38,7 +38,7 @@ class ApprovalReviewService @Inject() (
     publishedRepository: PublishedRepository,
     publishedService: PublishedService,
     finalisationService: ProcessFinalisationService
-)(implicit ec: ExecutionContext, val appConfig: AppConfig) {
+)(using ec: ExecutionContext, val appConfig: AppConfig) {
 
   val logger: Logger = Logger(this.getClass)
 
@@ -105,7 +105,7 @@ class ApprovalReviewService @Inject() (
     }
 
   def list(): Future[RequestOutcome[JsValue]] = {
-    implicit val formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
+    given formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
     repository.processSummaries() map {
       case Left(_) => Left(InternalServerError)
       case Right(summaries) => Right(Json.toJson(summaries))
@@ -113,7 +113,7 @@ class ApprovalReviewService @Inject() (
   }
 
   // ReviewService
-  def approvalReviewInfo(id: String, reviewType: String): Future[RequestOutcome[ProcessReview]] =
+  def approvalReviewInfo(id: String): Future[RequestOutcome[ProcessReview]] =
     repository.getById(id) flatMap {
       case Left(NotFoundError) => Future.successful(Left(NotFoundError))
       case Left(_) => Future.successful(Left(InternalServerError))
@@ -129,7 +129,7 @@ class ApprovalReviewService @Inject() (
         }
     }
 
-  def approvalPageInfo(id: String, pageUrl: String, reviewType: String): Future[RequestOutcome[ApprovalProcessPageReview]] =
+  def approvalPageInfo(id: String, pageUrl: String): Future[RequestOutcome[ApprovalProcessPageReview]] =
     repository.getById(id) map {
       case Left(NotFoundError) => Left(NotFoundError)
       case Left(_) => Left(InternalServerError)

@@ -23,17 +23,17 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 trait AppConfig {
 
-  val scratchExpiryHour: Int
-  val scratchExpiryMinutes: Int
-  val scratchExpiryTZ: String
-  val archivedExpiryHours: Int
+  lazy val scratchExpiryHour: Int
+  lazy val scratchExpiryMinutes: Int
+  lazy val scratchExpiryTZ: String
+  lazy val archivedExpiryHours: Int
 
-  val designerRole: String
-  val factCheckerRole: String
-  val twoEyeReviewerRole: String
-  val fakeWelshInUnauthenticatedGuidance: Boolean
-  val seedTimescales: Map[String, Int]
-  val passphraseHashKey: String
+  lazy val designerRole: String
+  lazy val factCheckerRole: String
+  lazy val twoEyeReviewerRole: String
+  lazy val fakeWelshInUnauthenticatedGuidance: Boolean
+  lazy val seedTimescales: Map[String, Int]
+  lazy val passphraseHashKey: String
 }
 
 @Singleton

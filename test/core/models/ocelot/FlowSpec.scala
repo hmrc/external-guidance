@@ -17,7 +17,7 @@
 package core.models.ocelot
 
 import base.BaseSpec
-import play.api.libs.json._
+import play.api.libs.json.*
 
 class FlowSpec extends BaseSpec {
 
@@ -117,7 +117,7 @@ class FlowSpec extends BaseSpec {
 
       invalidflowStageJson.validate[FlowStage] match {
         case JsSuccess(value, _) => fail("Should generate a JsonValidationError")
-        case JsError(error) => succeed
+        case JsError(_) => succeed
       }
     }
   }

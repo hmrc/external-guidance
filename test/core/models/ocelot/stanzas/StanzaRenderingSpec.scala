@@ -17,7 +17,7 @@
 package core.models.ocelot.stanzas
 
 import base.BaseSpec
-import core.models.ocelot._
+import core.models.ocelot.*
 
 class StanzaRenderingSpec extends BaseSpec {
 

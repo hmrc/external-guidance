@@ -21,5 +21,5 @@ import play.api.libs.json.{Json, OFormat}
 case class PageReview(id: String, title: String, url: String, status: String, result: Option[String])
 
 object PageReview {
-  implicit val formats: OFormat[PageReview] = Json.format[PageReview]
+  given formats: OFormat[PageReview] = Json.format[PageReview]
 }

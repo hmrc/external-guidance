@@ -54,8 +54,8 @@ trait Encrypter {
 trait Labels extends Flows with TimescaleDefns with Messages with Mode with Encrypter {
   def value(name: String): Option[String]
   def valueAsList(name: String): Option[List[String]]
-  def displayValue(name: String)(implicit lang: Lang): Option[String]
-  def displayListValue(name: String)(implicit lang: Lang): Option[List[String]]
+  def displayValue(name: String)(using lang: Lang): Option[String]
+  def displayListValue(name: String)(using lang: Lang): Option[List[String]]
   def update(name: String, english: String): Labels
   def update(name: String, english: String, welsh: String): Labels
   def updateList(name: String, english: List[String]): Labels
@@ -79,20 +79,20 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label],
                                      pool: Map[String, Stanza],
                                      poolCache: Map[String, Stanza],
                                      timescales: Map[String, Int],
-                                     messages: (String, Seq[Any]) => String,
+                                     messages: String => String,
                                      val runMode: RunMode,
                                      encrypter: Encrypter) extends Labels {
 
   // Labels
   def value(name: String): Option[String] = label(name).collect{case s: ScalarLabel => s.english.headOption.getOrElse("")}
   def valueAsList(name: String): Option[List[String]] = label(name).collect{case l: ListLabel => l.english}
-  def displayValue(name: String)(implicit lang: Lang): Option[String] = label(name).map{lbl =>
+  def displayValue(name: String)(using lang: Lang): Option[String] = label(name).map{lbl =>
     lang.code match {
       case "cy" if lbl.welsh.nonEmpty => lbl.welsh.mkString(",")
       case _ => lbl.english.mkString(",")
     }
   }
-  def displayListValue(name: String)(implicit lang: Lang): Option[List[String]] = label(name).map{lbl =>
+  def displayListValue(name: String)(using lang: Lang): Option[List[String]] = label(name).map{lbl =>
     lang.code match {
       case "cy" if lbl.welsh.nonEmpty => lbl.welsh
       case _ => lbl.english
@@ -187,7 +187,7 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label],
   def timescaleDays(id: String): Option[Int] = timescales.get(id)
 
   // Messages
-  def msg(id: String, param: Seq[Any]): String = messages(id, param)
+  def msg(id: String, param: Seq[Any]): String = messages(id)
 
   // Encrypter
   def encrypt(text: String): String = encrypter.encrypt(text)
@@ -195,19 +195,19 @@ private[ocelot] class LabelCacheImpl(labels: Map[String, Label],
 
 object LabelCache {
   // TEST only
-  def apply(): Labels = new LabelCacheImpl(Map(),Map(), Nil,Map(),Map(),Map(),(_,_) => "", Published, IdentityEncrypter)
+  def apply(): Labels = new LabelCacheImpl(Map(),Map(), Nil,Map(),Map(),Map(),_ => "", Published, IdentityEncrypter)
   def apply(labels: List[Label]): Labels =
-    new LabelCacheImpl(labels.map(l => (l.name -> l)).toMap,Map(), Nil,Map(),Map(),Map(),(_,_) => "", Published, IdentityEncrypter)
-  def apply(labels: Map[String, Label]): Labels = new LabelCacheImpl(labels,Map(), Nil,Map(),Map(),Map(),(_,_) => "", Published, IdentityEncrypter)
+    new LabelCacheImpl(labels.map(l => (l.name -> l)).toMap,Map(), Nil,Map(),Map(),Map(),_ => "", Published, IdentityEncrypter)
+  def apply(labels: Map[String, Label]): Labels = new LabelCacheImpl(labels,Map(), Nil,Map(),Map(),Map(),_ => "", Published, IdentityEncrypter)
   def apply(labels: Map[String, Label], cache: Map[String, Label]): Labels =
-    new LabelCacheImpl(labels, cache,Nil, Map(),Map(),Map(), (_,_) => "", Published, IdentityEncrypter)
+    new LabelCacheImpl(labels, cache,Nil, Map(),Map(),Map(), _ => "", Published, IdentityEncrypter)
 
   def apply(labels: Map[String, Label],
             cache: Map[String, Label],
             stack: List[FlowStage],
             pool: Map[String, Stanza],
             timescales: Map[String, Int],
-            messages: (String, Seq[Any]) => String,
+            messages: (String) => String,
             runMode: RunMode,
             encrypter: Encrypter): Labels = new LabelCacheImpl(labels, cache, stack, pool, Map(), timescales, messages, runMode, encrypter)
 

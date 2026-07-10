@@ -17,19 +17,20 @@
 package services
 
 import java.time.ZonedDateTime
-import core.services.{Timescales, PageBuilder}
+import core.services.{PageBuilder, Timescales}
 import base.BaseSpec
 import data.ReviewData
-import mocks.{MockAppConfig, MockApprovalsRepository, MockPublishedRepository, MockPublishedService, MockLabelledDataService}
-import models._
-import core.models.errors._
+import mocks.{MockApprovalsRepository, MockLabelledDataService, MockPublishedRepository, MockPublishedService, mockAppConfig}
+import models.*
+import core.models.errors.*
 import core.models.ocelot.{Process, ProcessJson}
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsArray, JsObject, Json, OFormat}
-import models.Constants._
+import models.Constants.*
 import core.models.RequestOutcome
+
 import scala.concurrent.Future
-import core.services.{EncrypterService, DefaultTodayProvider, LabelledData, Rates}
+import core.services.{DefaultTodayProvider, EncrypterService, LabelledData, Rates}
 
 class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactory with ApprovalProcessJson {
 
@@ -47,15 +48,14 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
 
     val invalidProcess: JsObject = Json.obj("idx" -> invalidId)
     val fsService = new ProcessFinalisationService(
-                          MockAppConfig,
                           new ValidatingPageBuilder(pageBuilder),
                           mockLabelledDataService,
-                          new EncrypterService(MockAppConfig))
+                          new EncrypterService(mockAppConfig))
     val service = new ApprovalReviewService(mockApprovalsRepository,
                           mockPublishedRepository,
                           mockPublishedService,
                           fsService
-                          )(ec, MockAppConfig)
+                          )(using ec, mockAppConfig)
 
     val publishedProcessSuccessResponse: RequestOutcome[PublishedProcess] =
       Right(PublishedProcess(validId, 1, ZonedDateTime.now(), JsObject.empty, "publishedBy", approvalProcess.meta.processCode))
@@ -67,7 +67,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
       PublishedProcess(validPublishedId, 1, ZonedDateTime.now(), validOnePageJson.as[JsObject], "user", processCode = "processCode")
 
     val process = validOnePageJson.as[Process]
-    val pages = pageBuilder.pages(process, "start").fold(err => fail(), p => p)
+    val pages = pageBuilder.pages(process, "start").fold(_ => fail(), p => p)
   }
 
   "Calling the getById method" when {
@@ -274,7 +274,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
 
       "return a HTTP 422 error" in new Test {
         whenReady(service.save(invalidProcess, ReviewType2i, StatusSubmittedFor2iReview)) {
-          case result @ Left(err) if err.code == Error.UnprocessableEntity => succeed
+          case Left(err) if err.code == Error.UnprocessableEntity => succeed
           case _ => fail()
         }
       }
@@ -308,7 +308,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
   "Calling the approvalSummaryList method" when {
     "there are entries to return and role is not 2iReviewer" should {
       "return a List of approval processes" in new Test {
-        implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
+        given formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
 
         val expected: RequestOutcome[List[ApprovalProcessSummary]] = Right(List(approvalProcessSummary))
 
@@ -333,7 +333,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
 
     "there are entries to return and role is 2iReviewer" should {
       "return a List of approval processes and published" in new Test {
-        implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
+        given formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
 
         val expectedApproval: RequestOutcome[List[ApprovalProcessSummary]] = Right(List(approvalProcessSummary))
         val expectedPublished: RequestOutcome[List[PublishedProcess]] = Right(List(publishedProcess))
@@ -412,7 +412,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
           .getById(validId)
           .returns(Future.successful(Right(approvalProcess)))
 
-        whenReady(service.approvalReviewInfo(validId, ReviewType2i)) {
+        whenReady(service.approvalReviewInfo(validId)) {
           case Right(entry) =>
             entry.ocelotId shouldBe validId
             entry.pages.size shouldBe 1
@@ -432,7 +432,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
           .getById(validId)
           .returns(Future.successful(Right(approvalProcess)))
 
-        whenReady(service.approvalReviewInfo(validId, ReviewType2i)) {
+        whenReady(service.approvalReviewInfo(validId)) {
           case Left(DuplicateKeyError) => succeed
           case _ => fail()
         }
@@ -448,7 +448,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
           .getById(validId)
           .returns(Future.successful(Left(NotFoundError)))
 
-        whenReady(service.approvalReviewInfo(validId, ReviewTypeFactCheck)) {
+        whenReady(service.approvalReviewInfo(validId)) {
           case result @ Left(_) => result shouldBe expected
           case _ => fail()
         }
@@ -464,7 +464,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
           .getById(validId)
           .returns(Future.successful(Left(DatabaseError)))
 
-        whenReady(service.approvalReviewInfo(validId, ReviewType2i)) {
+        whenReady(service.approvalReviewInfo(validId)) {
           case result @ Left(_) => result shouldBe expected
           case _ => fail()
         }
@@ -769,7 +769,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
             .getById("validId")
             .returns(Future.successful(Right(incompleteApprovalProcess)))
 
-          whenReady(service.approvalPageInfo("validId", "/pageUrl2", ReviewTypeFactCheck)) { result =>
+          whenReady(service.approvalPageInfo("validId", "/pageUrl2")) { result =>
             result shouldBe expected
           }
         }
@@ -783,7 +783,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
             .getById("validId")
             .returns(Future.successful(Right(approvalProcess)))
 
-          whenReady(service.approvalPageInfo("validId", "/pageUrl26", ReviewTypeFactCheck)) { result =>
+          whenReady(service.approvalPageInfo("validId", "/pageUrl26")) { result =>
             result shouldBe expected
           }
         }
@@ -800,7 +800,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
             .getById("validId")
             .returns(Future.successful(Left(NotFoundError)))
 
-          whenReady(service.approvalPageInfo("validId", "/pageUrl2", ReviewType2i)) { result =>
+          whenReady(service.approvalPageInfo("validId", "/pageUrl2")) { result =>
             result shouldBe expected
           }
         }
@@ -815,7 +815,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
             .getById("validId")
             .returns(Future.successful(Left(DatabaseError)))
 
-          whenReady(service.approvalPageInfo("validId", "/pageUrl2", ReviewTypeFactCheck)) { result =>
+          whenReady(service.approvalPageInfo("validId", "/pageUrl2")) { result =>
             result shouldBe expected
           }
         }
@@ -829,7 +829,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
             .getById("validId")
             .returns(Future.successful(Left(NotFoundError)))
 
-          whenReady(service.approvalPageInfo("validId", "/pageUrl2", ReviewType2i)) { result =>
+          whenReady(service.approvalPageInfo("validId", "/pageUrl2")) { result =>
             result shouldBe expected
           }
         }
@@ -844,7 +844,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
             .getById("validId")
             .returns(Future.successful(Left(DatabaseError)))
 
-          whenReady(service.approvalPageInfo("validId", "/pageUrl2", ReviewTypeFactCheck)) { result =>
+          whenReady(service.approvalPageInfo("validId", "/pageUrl2")) { result =>
             result shouldBe expected
           }
         }
@@ -1144,7 +1144,7 @@ class ApprovalReviewServiceSpec extends BaseSpec with ReviewData with MockFactor
             .getById("validId")
             .returns(Future.successful(Right(incompleteApprovalProcess)))
 
-         whenReady(service.checkProcessInCorrectStateForCompletion(validId, ReviewType2i)) { result =>
+          whenReady(service.checkProcessInCorrectStateForCompletion(validId, ReviewType2i)) { result =>
             result shouldBe expected
           }
         }

@@ -18,12 +18,12 @@ package services
 
 import base.BaseSpec
 import core.models.RequestOutcome
-import core.models.errors._
+import core.models.errors.*
 import core.models.ocelot.Process
 import core.models.ocelot.errors.MissingRateDefinition
 import core.services.TodayProvider
 import data.RatesTestData
-import mocks.{MockAppConfig, MockLabelledDataRepository}
+import mocks.MockLabelledDataRepository
 import models.{LabelledData, LabelledDataUpdateStatus, Rates, UpdateDetails}
 import play.api.libs.json.{JsValue, Json}
 
@@ -42,7 +42,7 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
                               def year: String = now.getYear.toString
                             }
 
-    lazy val target: RatesService = new RatesService(mockLabelledDataRepository, new core.services.Rates(), earlyTodayProvider, MockAppConfig)
+    lazy val target: RatesService = new RatesService(mockLabelledDataRepository, new core.services.Rates(), earlyTodayProvider)
 
     val seedRates: Map[String, Map[String, Map[String, BigDecimal]]] =  target.seedRates().getOrElse(fail())
     val seedRatesTwoDimMap: Map[String, BigDecimal] = target.twoDimMapFromFour(seedRates)
@@ -120,7 +120,7 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
 
         whenReady(target.save(ratesJson, credId, user, email, Nil)) {
           case Right(response) =>
-            if (response == expectedStatus) succeed
+            if (response == expectedStatus) succeed: Unit
           case _ => fail()
         }
       }
@@ -138,13 +138,13 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
 
         whenReady(target.save(ratesJsonWithDeletion, credId, user, email, List("TaxNic!CTC!2016"))) {
           case Right(response) if response.lastUpdate.map(_.retainedDeletions).contains(List("TaxNic!CTC!2016")) => succeed
-          case Right(response) => fail()
+          case Right(_) => fail()
           case Left(_) => fail()
         }
       }
     }
 
-   "the JSON is valid but published service call fails" should {
+    "the JSON is valid but published service call fails" should {
       "return LabelledDataUpdateStatus" in new Test{
 
         MockLabelledDataRepository
@@ -156,7 +156,7 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
           .returns(Future.successful(Left(DatabaseError)))
 
         whenReady(target.save(ratesJsonWithDeletion, credId, user, email, Nil)) {
-          case Right(response) => fail()
+          case Right(_) => fail()
           case Left(_) => succeed
         }
       }
@@ -169,7 +169,7 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
         whenReady(target.save(invalidTs, credId, user, email, Nil)) {
           case Right(_) => fail()
           case Left(ValidationError) => succeed
-          case err => fail()
+          case _ => fail()
         }
       }
     }
@@ -319,7 +319,7 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
         .returns(Future.successful(Right(labelledData)))
 
       whenReady(target.updateProcessTable(jsonWithBlankRatesTable, process)) {
-        case Right((json, p)) =>
+        case Right((_, p)) =>
           p.meta.ratesVersion shouldBe Some(labelledData.when.toEpochMilli)
           p.rates shouldBe rates
         case _ => fail()
@@ -330,7 +330,7 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
       val process: Process = jsonWithNoRatesTable.as[Process]
 
       whenReady(target.updateProcessTable(jsonWithNoRatesTable, process)) {
-        case Right((json, p)) => p.rates shouldBe Map()
+        case Right((_, p)) => p.rates shouldBe Map()
         case _ => fail()
       }
     }
@@ -342,7 +342,7 @@ class RatesServiceSpec extends BaseSpec with RatesTestData {
         .returns(Future.successful(Left(NotFoundError)))
 
       whenReady(target.updateProcessTable(jsonWithBlankRatesTable, process)) {
-        case Right((json, p)) => p.rates shouldBe rates
+        case Right((_, p)) => p.rates shouldBe rates
         case _ => fail()
       }
     }

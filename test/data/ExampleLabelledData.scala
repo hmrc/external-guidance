@@ -17,7 +17,7 @@
 package data
 
 import java.io.FileInputStream
-import play.api.libs.json._
+import play.api.libs.json.*
 
 object ExampleLabelledData {
   lazy val rates: JsValue = Json.parse(new FileInputStream("test/data/rates.json"))

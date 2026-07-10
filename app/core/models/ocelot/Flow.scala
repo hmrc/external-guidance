@@ -16,8 +16,8 @@
 
 package core.models.ocelot
 
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.*
 
 // FlowStack: Flow, Flow, Flow, Continuation, Flow, Flow, Flow, Continuation
 // Continuation: continuation next and post sequence, non-visual stanzas from page
@@ -30,36 +30,36 @@ final case class Flow(next: String, labelValue: Option[LabelValue]) extends Flow
 final case class Continuation(next: String) extends FlowStage
 
 object LabelValue {
-  implicit val reads: Reads[LabelValue] = (
+  given reads: Reads[LabelValue] = (
     (__ \ "name").read[String] and
       (__ \ "value").read[Phrase]
   )(LabelValue.apply _)
 
-  implicit val writes: Writes[LabelValue] = (
+  given writes: Writes[LabelValue] = (
     (__ \ "name").write[String] and
       (__ \ "value").write[Phrase]
-  )(unlift(LabelValue.unapply))
+  )(Tuple.fromProductTyped(_))
 }
 
 object Flow {
-  implicit val reads: Reads[Flow] = (
+  given reads: Reads[Flow] = (
     (__ \ "next").read[String] and
       (__ \ "labelValue").readNullable[LabelValue]
   )(Flow.apply _)
 
-  implicit val writes: OWrites[Flow] = (
+  given writes: OWrites[Flow] = (
     (__ \ "next").write[String] and
       (__ \ "labelValue").writeNullable[LabelValue]
-  )(unlift(Flow.unapply))
+  )(Tuple.fromProductTyped(_))
 }
 
 object Continuation {
-  implicit val reads: Reads[Continuation] = (__ \ "next").read[String].map(Continuation.apply)
-  implicit val writes: OWrites[Continuation] = (__ \ "next").write[String].contramap(_.next)
+  given reads: Reads[Continuation] = (__ \ "next").read[String].map(Continuation.apply)
+  given writes: OWrites[Continuation] = (__ \ "next").write[String].contramap(_.next)
 }
 
 object FlowStage {
-  implicit val reads: Reads[FlowStage] = (js: JsValue) => {
+  given reads: Reads[FlowStage] = (js: JsValue) => {
     (js \ "type").validate[String] match {
       case err @ JsError(_) => err
       case JsSuccess(typ, _) => typ match {
@@ -70,7 +70,7 @@ object FlowStage {
     }
   }
 
-  implicit val writes: Writes[FlowStage] = {
+  given writes: Writes[FlowStage] = {
     case f: Flow => Json.obj("type" -> "flow") ++ Json.toJsObject[Flow](f)
     case c: Continuation => Json.obj("type" -> "cont") ++ Json.toJsObject[Continuation](c)
   }

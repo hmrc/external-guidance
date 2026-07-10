@@ -17,9 +17,9 @@
 package core.services
 
 import base.BaseSpec
-import core.models.ocelot.stanzas._
-import core.models.ocelot._
-import play.api.libs.json._
+import core.models.ocelot.stanzas.*
+import core.models.ocelot.*
+import play.api.libs.json.*
 
 
 class GraphPageBuilderSpec extends BaseSpec with ProcessJson {
@@ -43,7 +43,7 @@ class GraphPageBuilderSpec extends BaseSpec with ProcessJson {
     Phrase(Vector("Text 8", "Welsh: Text 8"))
   )
 
- val links: Vector[Link] = Vector(Link(0, "http://my.com/news", "MyCOM Daily News", window = true))
+  val links: Vector[Link] = Vector(Link(0, "http://my.com/news", "MyCOM Daily News", window = true))
 
   trait GraphTest {
     val pageId1 = Process.StartStanzaId
@@ -175,8 +175,8 @@ class GraphPageBuilderSpec extends BaseSpec with ProcessJson {
       override val process = Process(metaSection, loopFlow, phrases, links)
 
       pageBuilder.pages(process) match {
-        case Right(pages) => succeed
-        case Left(err) => fail()
+        case Right(_) => succeed
+        case Left(_) => fail()
       }
     }
   }

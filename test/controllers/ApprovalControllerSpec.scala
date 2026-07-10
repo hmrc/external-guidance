@@ -21,15 +21,15 @@ import controllers.actions.FakeAllRolesAction
 import core.models.errors.{BadRequestError, DuplicateKeyError, Error, InternalServerError, NotFoundError, ValidationError}
 import core.models.ocelot.errors.DuplicatePageUrl
 import mocks.{MockApprovalReviewService, MockLabelledDataService}
-import models.Constants._
-import models.errors._
+import models.Constants.*
+import models.errors.*
 import models.{Approval, ApprovalProcessJson, ApprovalProcessSummary, ProcessSummary}
 import play.api.http.ContentTypes
 import play.api.http.Status.UNPROCESSABLE_ENTITY
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 
 import scala.concurrent.Future
 
@@ -570,7 +570,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalReviewService wit
     "the request is valid" should {
 
       trait ValidListTest extends Test {
-        implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
+        given formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
         MockApprovalReviewService
           .approvalSummaryList(List("FactChecker", "2iReviewer"))
           .returns(Future.successful(Right(Json.toJson(List(approvalProcessSummary)).as[JsArray])))
@@ -623,7 +623,7 @@ class ApprovalControllerSpec extends BaseSpec with MockApprovalReviewService wit
     "the request is valid" should {
 
       trait ValidListTest extends Test {
-        implicit val formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
+        given formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
         MockApprovalReviewService
           .list()
           .returns(Future.successful(Right(Json.toJson(List(processSummary)).as[JsArray])))

@@ -17,9 +17,9 @@
 package core.models.ocelot.stanzas
 
 import core.models.ocelot.{labelReferences, pageLinkIds, Phrase}
-import play.api.libs.functional.syntax._
-import play.api.libs.json.Reads._
-import play.api.libs.json._
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.Reads.*
+import play.api.libs.json.*
 
 sealed trait Callout extends VisualStanza {
   val text: Phrase
@@ -32,19 +32,19 @@ sealed trait Heading
 case class CalloutStanza(noteType: CalloutType, text: Int, override val next: Seq[String], stack: Boolean) extends Stanza
 
 object CalloutStanza {
-  implicit val calloutReads: Reads[CalloutStanza] =
+  given calloutReads: Reads[CalloutStanza] =
     ((JsPath \ "noteType").read[CalloutType] and
       (JsPath \ "text").read[Int] and
       (JsPath \ "next").read[Seq[String]](minLength[Seq[String]](1)) and
       (JsPath \ "stack").read[Boolean])(CalloutStanza.apply _)
 
-  implicit val owrites: OWrites[CalloutStanza] =
+  given owrites: OWrites[CalloutStanza] =
     (
       (JsPath \ "noteType").write[CalloutType] and
         (JsPath \ "text").write[Int] and
         (JsPath \ "next").write[Seq[String]] and
         (JsPath \ "stack").write[Boolean]
-    )(unlift(CalloutStanza.unapply))
+    )(Tuple.fromProductTyped(_))
 }
 
 object Callout {

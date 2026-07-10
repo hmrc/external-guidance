@@ -24,18 +24,18 @@ sealed trait LabelOperation {
 
 final case class Delete(name: String) extends LabelOperation
 object Delete {
-  implicit lazy val formats: OFormat[Delete] = Json.format[Delete]
+  given formats: OFormat[Delete] = Json.format[Delete]
 }
 
 final case class Update(l: Label) extends LabelOperation {
   val name: String = l.name
 }
 object Update {
-  implicit lazy val formats: OFormat[Update] = Json.format[Update]
+  given formats: OFormat[Update] = Json.format[Update]
 }
 
 object LabelOperation {
-  implicit val reads: Reads[LabelOperation] = (js: JsValue) => {
+  given reads: Reads[LabelOperation] = (js: JsValue) => {
     (js \ "t").validate[String] match {
       case err @ JsError(_) => err
       case JsSuccess(typ, _) => typ match {
@@ -45,7 +45,7 @@ object LabelOperation {
     }
   }
 
-  implicit val writes: Writes[LabelOperation] = {
+  given writes: Writes[LabelOperation] = {
     case d: Delete => Json.obj("t" -> "D") ++ Json.toJsObject[Delete](d)
     case u: Update => Json.obj("t" -> "U") ++ Json.toJsObject[Update](u)  }
 }

@@ -16,13 +16,13 @@
 
 package testOnly.controllers
 
-import core.models._
+import core.models.*
 import core.models.errors.{BadRequestError, DuplicateKeyError, Error, ValidationError, InternalServerError => ServerError}
-import models.Constants._
+import models.Constants.*
 import models.errors.{DuplicateProcessCodeError, OcelotError}
 import play.api.Logger
 import play.api.libs.json.Json.toJson
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ApprovalReviewService
 import testOnly.repositories.ApprovalsRepository
@@ -34,7 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class ApprovalController @Inject() (approvalService: ApprovalReviewService,
                                     testRepo: ApprovalsRepository,
-                                    cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) {
+                                    cc: ControllerComponents)(using ec: ExecutionContext) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass)
 
@@ -45,11 +45,11 @@ class ApprovalController @Inject() (approvalService: ApprovalReviewService,
     }
   }
 
-  def saveFor2iReview: Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def saveFor2iReview: Action[JsValue] = Action.async(parse.json) { request =>
     saveProcess(request.body, ReviewType2i)
   }
 
-  def saveForFactCheck: Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def saveForFactCheck: Action[JsValue] = Action.async(parse.json) { request =>
     saveProcess(request.body, ReviewTypeFactCheck)
   }
 

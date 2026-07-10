@@ -17,7 +17,7 @@
 package support
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder
-import com.github.tomakehurst.wiremock.client.WireMock._
+import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.matching.UrlPattern
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import play.api.libs.json.Writes
@@ -47,7 +47,7 @@ trait WireMockMethods {
       }
     }
 
-    def thenReturn[T](status: Int, body: T)(implicit writes: Writes[T]): StubMapping = {
+    def thenReturn[T](status: Int, body: T)(using writes: Writes[T]): StubMapping = {
       val stringBody = writes.writes(body).toString()
       thenReturnInternal(status, Map.empty, Some(stringBody))
     }

@@ -18,7 +18,7 @@ package models.errors
 
 import play.api.libs.json.{Json, OFormat}
 import core.models.errors.Error
-import core.models.ocelot.errors._
+import core.models.ocelot.errors.*
 
 case class ErrorReport(message: String, stanza: String)
 case class OcelotError(code: String, messages: List[ErrorReport] = Nil)
@@ -28,6 +28,6 @@ object OcelotError {
   def apply(errorReports: List[ErrorReport]): OcelotError = OcelotError(Error.UnprocessableEntity, errorReports)
   def apply(errorReport: ErrorReport): OcelotError = OcelotError(List(errorReport))
 
-  implicit val erformat: OFormat[ErrorReport] = Json.format[ErrorReport]
-  implicit val formats: OFormat[OcelotError] = Json.format[OcelotError]
+  given erformat: OFormat[ErrorReport] = Json.format[ErrorReport]
+  given formats: OFormat[OcelotError] = Json.format[OcelotError]
 }

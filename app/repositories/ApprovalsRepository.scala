@@ -21,13 +21,13 @@ import core.models.RequestOutcome
 import core.models.errors.{DatabaseError, DuplicateKeyError, NotFoundError}
 import models.{LabelledDataId, Timescales, Approval, ApprovalProcessPageReview, ApprovalProcessSummary, Constants, ProcessSummary}
 import play.api.Logger
-import org.mongodb.scala._
-import org.mongodb.scala.model.Filters._
-import org.mongodb.scala.model.Sorts._
-import org.mongodb.scala.model.Updates._
-import org.mongodb.scala.model.Projections._
-import org.mongodb.scala.model._
-import uk.gov.hmrc.mongo._
+import org.mongodb.scala.*
+import org.mongodb.scala.model.Filters.*
+import org.mongodb.scala.model.Sorts.*
+import org.mongodb.scala.model.Updates.*
+import org.mongodb.scala.model.Projections.*
+import org.mongodb.scala.model.*
+import uk.gov.hmrc.mongo.*
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import models.ApprovalProcessMeta
 import core.models.ocelot.Process
@@ -35,7 +35,7 @@ import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
-import core.models.MongoDateTimeFormats.Implicits._
+import core.models.MongoDateTimeFormats.Implicits.given
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.result.DeleteResult
 import models.ApprovalReview
@@ -56,7 +56,7 @@ trait ApprovalsRepository {
 }
 
 @Singleton
-class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(implicit appConfig: AppConfig, ec: ExecutionContext) extends
+class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(using appConfig: AppConfig, ec: ExecutionContext) extends
   PlayMongoRepository[Approval](
       mongoComponent = component,
       collectionName = "approvals",

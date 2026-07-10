@@ -17,16 +17,16 @@
 package core.models.ocelot.stanzas
 
 import core.models.ocelot.{labelReferences, asAnyInt, Labels}
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
-import play.api.libs.json.Reads._
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.*
+import play.api.libs.json.Reads.*
 import core.models.ocelot.errors.RuntimeError
 import scala.annotation.tailrec
 
 case class CalcOperation(left:String, op: CalcOperationType, right: String, label: String)
 
 object CalcOperation {
-  implicit val reads: Reads[CalcOperation] = (js: JsValue) =>
+  given reads: Reads[CalcOperation] = (js: JsValue) =>
     ((js \ "left").validate[String] and
       (js \ "op").validate[CalcOperationType] and
       (js \ "right").validate[String] and
@@ -40,13 +40,13 @@ object CalcOperation {
         }
     }
 
-  implicit val writes: OWrites[CalcOperation] =
+  given writes: OWrites[CalcOperation] =
     (
       (JsPath \ "left").write[String] and
         (JsPath \ "op").write[CalcOperationType] and
         (JsPath \ "right").write[String] and
         (JsPath \ "label").write[String]
-    )(unlift(CalcOperation.unapply))
+    )(Tuple.fromProductTyped(_))
 }
 
 case class CalculationStanza(calcs: Seq[CalcOperation], override val next: Seq[String], stack: Boolean) extends Stanza {
@@ -56,19 +56,19 @@ case class CalculationStanza(calcs: Seq[CalcOperation], override val next: Seq[S
 
 object CalculationStanza {
 
-  implicit val calculationReads: Reads[CalculationStanza] =
+  given calculationReads: Reads[CalculationStanza] =
     (
       (JsPath \ "calcs").read[Seq[CalcOperation]](minLength[Seq[CalcOperation]](1)) and
         (JsPath \ "next").read[Seq[String]](minLength[Seq[String]](1)) and
         (JsPath \ "stack").read[Boolean]
     )(CalculationStanza.apply _)
 
-  implicit val calculationWrites: OWrites[CalculationStanza] =
+  given calculationWrites: OWrites[CalculationStanza] =
     (
       (JsPath \ "calcs").write[Seq[CalcOperation]] and
         (JsPath \ "next").write[Seq[String]] and
         (JsPath \ "stack").write[Boolean]
-    )(unlift(CalculationStanza.unapply))
+    )(Tuple.fromProductTyped(_))
 }
 
 case class Calculation(override val next: Seq[String], calcs: Seq[Operation]) extends PopulatedStanza with Evaluate {
@@ -93,11 +93,11 @@ case class Calculation(override val next: Seq[String], calcs: Seq[Operation]) ex
 
 object Calculation {
   def buildCalculation(next: Seq[String], calcs: Seq[Operation]): Calculation = Calculation(next, calcs)
-  implicit val reads: Reads[Calculation] =
+  given reads: Reads[Calculation] =
     ((JsPath \ "next").read[Seq[String]](minLength[Seq[String]](1)) and (JsPath \ "calcs").read[Seq[Operation]])(buildCalculation _)
 
-  implicit val writes: OWrites[Calculation] =
-    ((JsPath \ "next").write[Seq[String]] and (JsPath \ "calcs").write[Seq[Operation]])(unlift(Calculation.unapply))
+  given writes: OWrites[Calculation] =
+    ((JsPath \ "next").write[Seq[String]] and (JsPath \ "calcs").write[Seq[Operation]])(Tuple.fromProductTyped(_))
 
 
   def apply(stanza: CalculationStanza): Calculation =

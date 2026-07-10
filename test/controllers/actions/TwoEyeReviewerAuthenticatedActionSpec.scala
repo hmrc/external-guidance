@@ -17,11 +17,11 @@
 package controllers.actions
 
 import base.ControllerBaseSpec
-import mocks.{MockAppConfig, MockAuthConnector}
+import mocks.{MockAuthConnector, mockAppConfig}
 import play.api.http.Status
-import play.api.mvc._
+import play.api.mvc.*
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name, ~}
 import uk.gov.hmrc.auth.core.{AuthorisationException, Enrolment, Enrolments}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -45,12 +45,12 @@ class TwoEyeReviewerAuthenticatedActionSpec extends ControllerBaseSpec with Mock
 
     val enrolments: Enrolments = Enrolments(Set(Enrolment(key = "2iReviewer")))
 
-    implicit val hc: HeaderCarrier = HeaderCarrier()
-    implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
+    given hc: HeaderCarrier = HeaderCarrier()
+    given ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
     lazy val twoEyeReviewerAuthAction = new TwoEyeReviewerAuthenticatedAction(
       mockAuthConnector,
-      MockAppConfig,
+      mockAppConfig,
       bodyParser,
       config,
       env

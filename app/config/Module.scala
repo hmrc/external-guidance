@@ -18,8 +18,8 @@ package config
 
 import core.services.{DefaultTodayProvider, TodayProvider}
 import com.google.inject.AbstractModule
-import controllers.actions._
-import repositories._
+import controllers.actions.*
+import repositories.*
 
 class Module extends AbstractModule {
 

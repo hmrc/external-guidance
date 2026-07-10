@@ -20,9 +20,9 @@ import core.models.ocelot.stanzas.TaxCodeUtilities.retrieveTaxCodeComponents
 import core.models.ocelot.{Labels, Page, Phrase, SecuredProcess, Ten, Validation, asAnyInt, asCurrency,
   asCurrencyPounds, asTextString, labelReferences, stringFromDate, taxCodeLabelPattern, taxCodePattern, validDate}
 import play.api.Logger
-import play.api.libs.functional.syntax._
-import play.api.libs.json.Reads._
-import play.api.libs.json._
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.Reads.*
+import play.api.libs.json.*
 
 case class InputStanza(
   ipt_type: InputType,
@@ -38,7 +38,7 @@ case class InputStanza(
 
 object InputStanza {
 
-  implicit val reads: Reads[InputStanza] =
+  given reads: Reads[InputStanza] =
     ((JsPath \ "ipt_type").read[InputType] and
       (JsPath \ "next").read[Seq[String]](minLength[Seq[String]](1)) and
       (JsPath \ "name").read[Int] and
@@ -47,7 +47,7 @@ object InputStanza {
       (JsPath \ "placeholder").readNullable[Int] and
       (JsPath \ "stack").read[Boolean])(InputStanza.apply _)
 
-  implicit val writes: OWrites[InputStanza] =
+  given writes: OWrites[InputStanza] =
     (
       (JsPath \ "ipt_type").write[InputType] and
         (JsPath \ "next").write[Seq[String]] and
@@ -56,7 +56,7 @@ object InputStanza {
         (JsPath \ "label").write[String] and
         (JsPath \ "placeholder").writeNullable[Int] and
         (JsPath \ "stack").write[Boolean]
-    )(unlift(InputStanza.unapply))
+    )(Tuple.fromProductTyped(_))
 
 }
 

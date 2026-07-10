@@ -20,7 +20,7 @@ import java.time.ZonedDateTime
 
 import base.BaseSpec
 import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
-import models.PublishedProcess.MongoImplicits._
+import models.PublishedProcess.MongoImplicits.formats
 import core.models.MongoDateTimeFormats.localZoneID
 
 class PublishedProcessSpec extends BaseSpec {
@@ -60,7 +60,7 @@ class PublishedProcessSpec extends BaseSpec {
     "Result in a failure when for invalid JSON" in {
 
       invalidJson.validate[PublishedProcess] match {
-        case e: JsError => succeed
+        case _: JsError => succeed
         case _ => fail("Invalid JSON payload should not have been successfully deserialized")
       }
     }

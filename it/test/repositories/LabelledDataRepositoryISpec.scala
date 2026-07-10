@@ -18,12 +18,12 @@ package repositories
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatest._
+import org.scalatest.*
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits, Injecting}
 import data.ExampleLabelledData
 import java.time.Instant
-import models._
+import models.*
 
 class LabelledDataRepositoryISpec
     extends AnyWordSpec

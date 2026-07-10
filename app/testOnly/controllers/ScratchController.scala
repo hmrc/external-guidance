@@ -19,7 +19,7 @@ package testOnly.controllers
 import javax.inject.{Inject, Singleton}
 import core.models.errors.{InternalServerError => ServerError}
 import models.errors.OcelotError
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import testOnly.repositories.ScratchRepository
@@ -27,7 +27,7 @@ import testOnly.repositories.ScratchRepository
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class ScratchController @Inject() (testRepo: ScratchRepository, cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) {
+class ScratchController @Inject() (testRepo: ScratchRepository, cc: ControllerComponents)(using ec: ExecutionContext) extends BackendController(cc) {
 
   def delete(id: String): Action[AnyContent] = Action.async {
     testRepo.delete(id).map {

@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import play.api.libs.functional.syntax._
+import play.api.libs.functional.syntax.*
 import play.api.libs.json.{OWrites, Reads, _}
 
 case class PageStanza(url: String, override val next: Seq[String], stack: Boolean) extends PopulatedStanza
@@ -26,16 +26,16 @@ object PageStanza {
   def buildPageStanza(url: String, next: Seq[String], stack: Boolean): PageStanza =
     PageStanza(s"/${url.trim.dropWhile(_.equals('/'))}", next, stack)
 
-  implicit val reads: Reads[PageStanza] =
+  given reads: Reads[PageStanza] =
     ((__ \ "url").read[String] and
       (__ \ "next").read[Seq[String]](Reads.minLength[Seq[String]](1)) and
       (__ \ "stack").read[Boolean])(buildPageStanza _)
 
-  implicit val writes: OWrites[PageStanza] =
+  given writes: OWrites[PageStanza] =
     (
       (__ \ "url").write[String] and
         (__ \ "next").write[Seq[String]] and
         (__ \ "stack").write[Boolean]
-    )(unlift(PageStanza.unapply))
+    )(Tuple.fromProductTyped(_))
 
 }

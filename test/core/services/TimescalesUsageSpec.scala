@@ -17,7 +17,7 @@
 package core.services
 
 import base.BaseSpec
-import core.models.ocelot._
+import core.models.ocelot.*
 
 class TimescalesUsageSpec extends BaseSpec with ProcessJson {
   val tids: Seq[String] = Seq(

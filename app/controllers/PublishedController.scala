@@ -31,9 +31,9 @@ import scala.concurrent.{ExecutionContext, Future}
 class PublishedController @Inject() (publishedService: PublishedService,
                                      labelledDataService: LabelledDataService,
                                      cc: ControllerComponents,
-                                     identify: AllRolesAction)(implicit ec: ExecutionContext) extends BackendController(cc) {
-  import Json._
-  import models.PublishedProcess.Implicits._
+                                     identify: AllRolesAction)(using ec: ExecutionContext) extends BackendController(cc) {
+  import Json.*
+  import models.PublishedProcess.Implicits.ppformats
 
   def get(id: String): Action[AnyContent] = Action.async {
     publishedService.getById(id).map {
@@ -56,7 +56,7 @@ class PublishedController @Inject() (publishedService: PublishedService,
     }
   }
 
-  def archive(id: String): Action[AnyContent] = identify.async { implicit request =>
+  def archive(id: String): Action[AnyContent] = identify.async { request =>
     publishedService.archive(id, request.credId) map {
       case Right(_) => Ok
       case Left(BadRequestError) => BadRequest(toJson(OcelotError(BadRequestError)))

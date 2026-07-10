@@ -17,7 +17,7 @@
 package core.models.ocelot.stanzas
 
 import base.BaseSpec
-import core.models.ocelot._
+import core.models.ocelot.*
 
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -30,7 +30,7 @@ class OperationsSpec extends BaseSpec {
   val aString: String = "Some text"
   val aList: List[String] = List("One")
   val otherList: List[String] = List("One", "Two", "London")
-  implicit val runMode: RunMode = Scratch
+  given runMode: RunMode = Scratch
 
   def result(res: Either[RuntimeError, Labels]): Labels = res match {
     case Right(labels) => labels

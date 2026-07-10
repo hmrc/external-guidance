@@ -22,15 +22,14 @@ import core.models.errors.{DatabaseError, NotFoundError}
 import core.models.RequestOutcome
 import play.api.libs.json.JsValue
 import play.api.Logger
-import config.AppConfig
 import scala.concurrent.{ExecutionContext, Future}
 import models.{LabelledDataId, LabelledData}
-import org.mongodb.scala.model.Filters._
-import org.mongodb.scala.model.Updates._
-import org.mongodb.scala.model._
-import uk.gov.hmrc.mongo._
+import org.mongodb.scala.model.Filters.*
+import org.mongodb.scala.model.Updates.*
+import org.mongodb.scala.model.*
+import uk.gov.hmrc.mongo.*
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import core.models.MongoDateTimeFormats.Implicits._
+import core.models.MongoDateTimeFormats.Implicits.given
 
 //$COVERAGE-OFF$
 trait LabelledDataRepository {
@@ -39,7 +38,7 @@ trait LabelledDataRepository {
 }
 
 @Singleton
-class LabelledDataRepositoryImpl @Inject() (component: MongoComponent, appConfig: AppConfig)(implicit ec: ExecutionContext)
+class LabelledDataRepositoryImpl @Inject() (component: MongoComponent)(using ec: ExecutionContext)
     extends PlayMongoRepository[LabelledData](
       collectionName = "labelledData",
       mongoComponent = component,

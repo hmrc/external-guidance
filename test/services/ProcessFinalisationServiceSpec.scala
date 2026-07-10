@@ -18,12 +18,12 @@ package services
 
 import base.BaseSpec
 import core.models.errors.Error
-import mocks._
-import core.models.ocelot._
+import mocks.*
+import core.models.ocelot.*
 import core.models.ocelot.stanzas.ValueStanza
 import core.models.ocelot.errors.LanguageLinkIdsDiffer
-import play.api.libs.json._
-import core.services._
+import play.api.libs.json.*
+import core.services.*
 import mocks.MockAppConfig
 import mocks.MockLabelledDataService
 import scala.concurrent.Future
@@ -40,29 +40,28 @@ class ProcessFinalisationServiceSpec extends BaseSpec
   val pageBuilder = new PageBuilder(new LabelledData(timescales, rates))
   val validatingPageBuilder = new ValidatingPageBuilder(pageBuilder)
   val service = new ProcessFinalisationService(
-                  mockAppConfig,
                   validatingPageBuilder,
                   mockLabelledDataService,
                   encrypter
                 )
 
   "updateFlowPassPhrase" should {
-      "should replace orignal plaintext password in originating ValueStanza with supplied string" in {
-        val process: Process = validOnePageProcessWithPassPhrase.as[Process]
-        val updatedFlow = service.updateFlowPassPhrase(process, "ENCRYPTED")
-        updatedFlow("33") match {
-         case v: ValueStanza =>
-            v.values.find(_.label == "_GuidancePassPhrase").map(_.value) shouldBe Some("ENCRYPTED")
-         case _ => fail()
-        }
+    "should replace orignal plaintext password in originating ValueStanza with supplied string" in {
+      val process: Process = validOnePageProcessWithPassPhrase.as[Process]
+      val updatedFlow = service.updateFlowPassPhrase(process, "ENCRYPTED")
+      updatedFlow("33") match {
+        case v: ValueStanza =>
+          v.values.find(_.label == "_GuidancePassPhrase").map(_.value) shouldBe Some("ENCRYPTED")
+        case _ => fail()
       }
+    }
   }
 
   "securedProcessIfRequired" should {
       "encrypt plaintext password and store in process property encryptedPassPhrase" in {
         val json = Some(validOnePageProcessWithPassPhrase.as[JsObject])
         val process: Process = validOnePageProcessWithPassPhrase.as[Process]
-        val (updatedProcess, updatedJson) = service.securedProcessIfRequired(process, json)
+        val (updatedProcess, _) = service.securedProcessIfRequired(process, json)
         val encryptedPassPhrase = process.passPhrase.map(encrypter.encrypt)
         updatedProcess.encryptedPassPhrase shouldBe encryptedPassPhrase
       }
@@ -73,7 +72,7 @@ class ProcessFinalisationServiceSpec extends BaseSpec
       val json = Some(validOnePageProcessWithPassPhrase.as[JsObject])
       val process: Process = validOnePageProcessWithPassPhrase.as[Process]
       val withMissingWelsh = process.copy(phrases = process.phrases.map(p => Phrase(p.english, "")))
-      val (fakedProcess, _) = service.fakeWelshTextIfRequired(withMissingWelsh, json)(mockAppConfig)
+      val (fakedProcess, _) = service.fakeWelshTextIfRequired(withMissingWelsh, json)(using mockAppConfig)
 
       fakedProcess.phrases shouldBe process.phrases
     }
@@ -82,8 +81,10 @@ class ProcessFinalisationServiceSpec extends BaseSpec
       val process: Process = validOnePageJson.as[Process]
       val withMissingWelsh = process.copy(phrases = process.phrases.map(p => Phrase(p.english, "")))
       val jsObjectWithMissingwelsh = Some(Json.toJsObject(withMissingWelsh))
-      val configFakeWelshFalse = mockAppConfig.copy(fakeWelshInUnauthenticatedGuidance = false)
-      val (fakedProcess, _) = service.fakeWelshTextIfRequired(withMissingWelsh, jsObjectWithMissingwelsh)(configFakeWelshFalse)
+      val configFakeWelshFalse = new MockAppConfig() {
+        override lazy val fakeWelshInUnauthenticatedGuidance = false
+      }
+      val (fakedProcess, _) = service.fakeWelshTextIfRequired(withMissingWelsh, jsObjectWithMissingwelsh)(using configFakeWelshFalse)
 
       fakedProcess.phrases shouldBe withMissingWelsh.phrases
     }
@@ -92,7 +93,7 @@ class ProcessFinalisationServiceSpec extends BaseSpec
       val process: Process = validOnePageJson.as[Process]
       val jsObject = Some(validOnePageJson.as[JsObject])
       val withMissingWelsh = process.copy(phrases = process.phrases.map(p => Phrase(p.english, "")))
-      val (fakedProcess, _) = service.fakeWelshTextIfRequired(withMissingWelsh, jsObject)(mockAppConfig)
+      val (fakedProcess, _) = service.fakeWelshTextIfRequired(withMissingWelsh, jsObject)(using mockAppConfig)
 
       fakedProcess.phrases shouldBe process.phrases
     }
@@ -100,8 +101,10 @@ class ProcessFinalisationServiceSpec extends BaseSpec
     "Return the original process and JsObject unchanged if welsh already exists within the process" in {
       val process: Process = validOnePageJson.as[Process]
       val jsObject = Some(validOnePageJson.as[JsObject])
-      val configFakeWelshFalse = mockAppConfig.copy(fakeWelshInUnauthenticatedGuidance = false)
-      val (fakedProcess, fakedJsObject) = service.fakeWelshTextIfRequired(process, jsObject)(configFakeWelshFalse)
+      val configFakeWelshFalse = new MockAppConfig(){
+        override lazy val fakeWelshInUnauthenticatedGuidance = false
+      }
+      val (fakedProcess, fakedJsObject) = service.fakeWelshTextIfRequired(process, jsObject)(using configFakeWelshFalse)
 
       fakedProcess shouldBe process
       fakedJsObject shouldBe jsObject
@@ -266,9 +269,9 @@ class ProcessFinalisationServiceSpec extends BaseSpec
         .addLabelledDataTables(pages, process, None)
         .returns(Future.successful(Right((processWithTimescales, pages, jsonWithTimescales.as[JsObject]))))
 
-      whenReady(service.guidancePagesAndProcess(rawOcelotTimescalesNoPasswdJson.as[JsObject])(MockAppConfig, ec)){
+      whenReady(service.guidancePagesAndProcess(rawOcelotTimescalesNoPasswdJson.as[JsObject])(using mockAppConfig, ec)){
         case Left(err) => fail(s"Failed with $err")
-        case Right((updatedProcess, pages, updatedJsObject)) =>
+        case Right((updatedProcess, _, updatedJsObject)) =>
           updatedProcess.timescales shouldBe Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0)
 
           updatedJsObject.as[Process].timescales shouldBe Map("JRSProgChaseCB" -> 0, "CHBFLCertabroad" -> 0, "JRSRefCB" -> 0)
@@ -276,7 +279,7 @@ class ProcessFinalisationServiceSpec extends BaseSpec
     }
 
     "detect mismatched English and Welsh Link ids" in {
-      whenReady(service.guidancePagesAndProcess(jsonWithDiffLangIds.as[JsObject])(MockAppConfig, ec)){
+      whenReady(service.guidancePagesAndProcess(jsonWithDiffLangIds.as[JsObject])(using mockAppConfig, ec)){
         case Left(Error(_, List(LanguageLinkIdsDiffer("33"), LanguageLinkIdsDiffer("3")), _, _)) => succeed
         case Left(errs) => fail(errs.toString)
         case err => fail(err.toString)
@@ -292,7 +295,7 @@ class ProcessFinalisationServiceSpec extends BaseSpec
         .addLabelledDataTables(pages, process, None)
         .returns(Future.successful(Right((process, pages, jsonWithDiffLangIdsInUnusedPhrase.as[JsObject]))))
 
-      whenReady(service.guidancePagesAndProcess(jsonWithDiffLangIdsInUnusedPhrase.as[JsObject])(MockAppConfig, ec)){
+      whenReady(service.guidancePagesAndProcess(jsonWithDiffLangIdsInUnusedPhrase.as[JsObject])(using mockAppConfig, ec)){
         case Right(_) => succeed
         case err => fail(err.toString)
       }

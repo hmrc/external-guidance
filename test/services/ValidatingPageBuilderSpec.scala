@@ -17,11 +17,11 @@
 package services
 
 import base.BaseSpec
-import core.models.ocelot.errors._
-import core.models.ocelot.stanzas._
-import core.models.ocelot._
-import play.api.libs.json._
-import core.services._
+import core.models.ocelot.errors.*
+import core.models.ocelot.stanzas.*
+import core.models.ocelot.*
+import play.api.libs.json.*
+import core.services.*
 
 class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
 
@@ -92,7 +92,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
     def confirmInvalidLabelNameError(f: Map[String, Stanza]): Unit = {
       val process = processWithLinks.copy(flow = f)
       pageBuilder.pagesWithValidation(process) match {
-        case Right(pages) => fail(s"Attempt to parse page with invalid label name succeeded")
+        case Right(_) => fail(s"Attempt to parse page with invalid label name succeeded")
         case Left(List(InvalidLabelName("2"))) =>
         case Left(err) => fail(s"Attempt to parse page with invalid label name failed with error ${err}")
       }
@@ -101,7 +101,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
     def confirmValidLabelNameUsage(f: Map[String, Stanza]): Unit = {
       val process = processWithLinks.copy(flow = f)
       pageBuilder.pagesWithValidation(process) match {
-        case Right(pages) =>
+        case Right(_) =>
         case Left(List(InvalidLabelName("2"))) => fail(s"Attempt to parse page with valid label name failed")
         case Left(err) => fail(s"Attempt to parse page with valid label name failed with error ${err}")
       }
@@ -123,7 +123,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
       val process = processWithLinks.copy(flow = flow)
 
       pageBuilder.pagesWithValidation(process) match {
-        case Right(pages) => fail(s"Attempt to parse page with invalid label name succeeded")
+        case Right(_) => fail(s"Attempt to parse page with invalid label name succeeded")
         case Left(List(IncompleteInputPage("start"), InvalidLabelName("2"), InvalidLabelName("3"), InvalidLabelName("4"))) =>
         case Left(err) => fail(s"Attempt to parse page with invalid label name failed with error ${err}")
       }
@@ -237,7 +237,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
       val process = processWithLinks.copy(flow = flow)
 
       pageBuilder.pagesWithValidation(process) match {
-        case Right(pages) => fail(s"Attempt to parse page with unsupported page redirect succeeded")
+        case Right(_) => fail(s"Attempt to parse page with unsupported page redirect succeeded")
         case Left(List(AllFlowsMustContainMultiplePages("3"), AllFlowsMustContainMultiplePages("5"), PageOccursInMultiplSequenceFlows("5"), PageOccursInMultiplSequenceFlows("3"), MissingTitle("3"), MissingTitle("5"), MissingTitle("7"))) => succeed
         case Left(err) => fail(s"Attempt to parse page with unsupported page redirect failed with error ${err}")
       }
@@ -272,7 +272,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
       val process = processWithLinks.copy(flow = flow)
 
       pageBuilder.pagesWithValidation(process) match {
-        case Right(pages) => fail(s"Attempt to parse page with unsupported page redirect succeeded")
+        case Right(_) => fail(s"Attempt to parse page with unsupported page redirect succeeded")
         case Left(List(AllFlowsMustContainMultiplePages("5"), PageOccursInMultiplSequenceFlows("5"))) => succeed
         case Left(err) => fail(s"Attempt to parse page with unsupported page redirect failed with error ${err}")
       }
@@ -298,7 +298,7 @@ class ValidatingPageBuilderSpec extends BaseSpec with ProcessJson {
       val testProcess = processWithLinks.copy(flow = invalidFlow)
 
       pageBuilder.pagesWithValidation(testProcess) match {
-        case Right(pages) => fail(s"Attempt to parse page with unsupported page redirect succeeded")
+        case Right(_) => fail(s"Attempt to parse page with unsupported page redirect succeeded")
         case Left(err) if err == List(MissingTitle("4"), MissingTitle("17"), PageRedirectNotSupported("55")) => succeed
         case Left(err) => fail(s"Attempt to parse page with unsupported page redirect failed with error ${err}")
       }

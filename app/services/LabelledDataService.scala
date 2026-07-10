@@ -21,9 +21,8 @@ import core.models.RequestOutcome
 import core.models.ocelot.{Page, Process}
 import core.models.errors.{Error, ValidationError}
 import core.services.LabelledDataReferencing
-import play.api.libs.json._
+import play.api.libs.json.*
 import scala.concurrent.{ExecutionContext, Future}
-import config.AppConfig
 import play.api.Logging
 import core.models.ocelot.errors.GuidanceError
 import models.{Rates, LabelledDataId, LabelledDataUpdateStatus, Timescales}
@@ -44,21 +43,20 @@ class LabelledDataService @Inject() (
     timescaleProvider: TimescalesService,
     timescales: core.services.Timescales,
     ratesProvider: RatesService,
-    rates: core.services.Rates,
-    appConfig: AppConfig)(implicit ec: ExecutionContext) extends Logging {
+    rates: core.services.Rates)(using ec: ExecutionContext) extends Logging {
 
   def updateProcessLabelledDataTablesAndVersions(js: JsObject): Future[RequestOutcome[JsObject]] =
     js.validate[Process].fold(_ => Future.successful(Left(ValidationError)), process =>
       timescaleProvider.updateProcessTable(js, process).flatMap{
         case Right((jt, pt)) => ratesProvider.updateProcessTable(jt, pt).map{
-          case Right((jr, pr)) => Right(jr)
+          case Right((jr, _)) => Right(jr)
           case Left(err) => Left(err)
         }
         case Left(err) => Future.successful(Left(err))
       })
 
   def addLabelledDataTables(pages: Seq[Page], process: Process, js: Option[JsObject])
-                             (implicit ec: ExecutionContext): Future[RequestOutcome[(Process, Seq[Page], JsObject)]] = {
+                             (using ec: ExecutionContext): Future[RequestOutcome[(Process, Seq[Page], JsObject)]] = {
     def buildTable[A](process: Process,
                       js: Option[JsObject],
                       dataRef: LabelledDataReferencing,

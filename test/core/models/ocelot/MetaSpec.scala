@@ -17,7 +17,7 @@
 package core.models.ocelot
 
 import base.BaseSpec
-import play.api.libs.json._
+import play.api.libs.json.*
 
 class MetaSpec extends BaseSpec {
 

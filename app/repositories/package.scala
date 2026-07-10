@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import org.mongodb.scala._
-import org.mongodb.scala.model.Filters._
+import org.mongodb.scala.*
+import org.mongodb.scala.model.Filters.*
 import core.models.ocelot.Process
 import play.api.libs.json.Json
 

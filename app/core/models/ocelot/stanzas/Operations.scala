@@ -16,17 +16,17 @@
 
 package core.models.ocelot.stanzas
 
-import core.models.ocelot._
+import core.models.ocelot.*
 import core.models.ocelot.errors.{UnsupportedOperationError, RuntimeError, DivideByZeroError}
 import play.api.Logger
-import play.api.libs.functional.syntax._
-import play.api.libs.json.Reads._
-import play.api.libs.json._
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.Reads.*
+import play.api.libs.json.*
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import scala.math.BigDecimal.RoundingMode
 
-import TimePeriodArithmetic._
+import TimePeriodArithmetic.*
 
 sealed trait Operand[+A] {
   val v: A
@@ -47,7 +47,7 @@ object Operand {
     scalar(s, labels).fold[Option[Operand[_]]](collection(s, labels).fold[Option[Operand[_]]](None)(o => Some(o))) { o => Some(o) }
 
   def scalar(v: String, labels: Labels): Option[Scalar[_]] =
-    operandValue(v)(labels).fold[Option[Scalar[_]]](None) { s =>
+    operandValue(v)(using labels).fold[Option[Scalar[_]]](None) { s =>
       asDate(s).fold[Option[Scalar[_]]] {
         asTimePeriod(s).fold[Option[Scalar[_]]] {
           asNumeric(s).fold[Option[Scalar[_]]](Some(StringOperand(s)))(dec => Some(NumericOperand(dec)))
@@ -144,7 +144,7 @@ case class FloorOperation(left: String, right: String, label: String) extends Op
 }
 
 object Operation {
-  implicit val reads: Reads[Operation] = (js: JsValue) => {
+  given reads: Reads[Operation] = (js: JsValue) => {
     (js \ "type").validate[String] match {
       case err @ JsError(_) => err
       case JsSuccess(typ, _) => typ match {
@@ -159,7 +159,7 @@ object Operation {
     }
   }
 
-  implicit val writes: Writes[Operation] = {
+  given writes: Writes[Operation] = {
     case o: AddOperation => Json.obj("type" -> "add") ++ Json.toJsObject[AddOperation](o)
     case o: SubtractOperation => Json.obj("type" -> "sub") ++ Json.toJsObject[SubtractOperation](o)
     case o: MultiplyOperation => Json.obj("type" -> "mult") ++ Json.toJsObject[MultiplyOperation](o)
@@ -170,43 +170,43 @@ object Operation {
 }
 
 object AddOperation {
-  implicit val reads: Reads[AddOperation] =
+  given reads: Reads[AddOperation] =
     ((JsPath \ "left").read[String] and (JsPath \ "right").read[String] and (JsPath \ "label").read[String]) (AddOperation.apply _)
-  implicit val writes: OWrites[AddOperation] =
-    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String]) (unlift(AddOperation.unapply))
+  given writes: OWrites[AddOperation] =
+    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String]) (Tuple.fromProductTyped(_))
 }
 
 object SubtractOperation {
-  implicit val reads: Reads[SubtractOperation] =
+  given reads: Reads[SubtractOperation] =
     ((JsPath \ "left").read[String] and (JsPath \ "right").read[String] and (JsPath \ "label").read[String]) (SubtractOperation.apply _)
-  implicit val writes: OWrites[SubtractOperation] =
-    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String]) (unlift(SubtractOperation.unapply))
+  given writes: OWrites[SubtractOperation] =
+    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String]) (Tuple.fromProductTyped(_))
 }
 
 object MultiplyOperation {
-  implicit val reads: Reads[MultiplyOperation] =
+  given reads: Reads[MultiplyOperation] =
     ((JsPath \ "left").read[String] and (JsPath \ "right").read[String] and (JsPath \ "label").read[String]) (MultiplyOperation.apply _)
-  implicit val writes: OWrites[MultiplyOperation] =
-    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String]) (unlift(MultiplyOperation.unapply))
+  given writes: OWrites[MultiplyOperation] =
+    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String]) (Tuple.fromProductTyped(_))
 }
 
 object DivideOperation {
-  implicit val reads: Reads[DivideOperation] =
+  given reads: Reads[DivideOperation] =
     ((JsPath \ "left").read[String] and (JsPath \ "right").read[String] and (JsPath \ "label").read[String]) (DivideOperation.apply _)
-  implicit val writes: OWrites[DivideOperation] =
-    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String]) (unlift(DivideOperation.unapply))
+  given writes: OWrites[DivideOperation] =
+    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String]) (Tuple.fromProductTyped(_))
 }
 
 object CeilingOperation {
-  implicit val reads: Reads[CeilingOperation] =
+  given reads: Reads[CeilingOperation] =
     ((JsPath \ "left").read[String] and (JsPath \ "right").read[String] and (JsPath \ "label").read[String]) (CeilingOperation.apply _)
-  implicit val writes: OWrites[CeilingOperation] =
-    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String]) (unlift(CeilingOperation.unapply))
+  given writes: OWrites[CeilingOperation] =
+    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String]) (Tuple.fromProductTyped(_))
 }
 
 object FloorOperation {
-  implicit val reads: Reads[FloorOperation] =
+  given reads: Reads[FloorOperation] =
     ((JsPath \ "left").read[String] and (JsPath \ "right").read[String] and (JsPath \ "label").read[String]) (FloorOperation.apply _)
-  implicit val writes: OWrites[FloorOperation] =
-    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String]) (unlift(FloorOperation.unapply))
+  given writes: OWrites[FloorOperation] =
+    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String] and (JsPath \ "label").write[String]) (Tuple.fromProductTyped(_))
 }

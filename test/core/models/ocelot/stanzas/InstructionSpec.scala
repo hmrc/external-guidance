@@ -18,7 +18,7 @@ package core.models.ocelot.stanzas
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import core.models.ocelot._
+import core.models.ocelot.*
 
 class InstructionSpec extends AnyWordSpec with Matchers {
 

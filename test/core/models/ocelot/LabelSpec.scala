@@ -17,7 +17,7 @@
 package core.models.ocelot
 
 import base.BaseSpec
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.i18n.Lang
 
 class LabelSpec extends BaseSpec with ProcessJson {
@@ -277,14 +277,14 @@ class LabelSpec extends BaseSpec with ProcessJson {
 
       val labels = LabelCache(labelsMap)
 
-      labels.displayValue("Empty")(englishLang) shouldBe Some("")
-      labels.displayValue("Empty")(welshLang) shouldBe Some("")
-      labels.displayValue("EnglishOnly")(englishLang) shouldBe Some("Welcome")
-      labels.displayValue("EnglishOnly")(welshLang) shouldBe Some("Welcome")
-      labels.displayValue("Door")(englishLang) shouldBe Some("Open")
-      labels.displayValue("Door")(welshLang) shouldBe Some("Drws")
-      labels.displayValue("Name")(englishLang) shouldBe Some("Coltrane")
-      labels.displayValue("Name")(welshLang) shouldBe Some("Coltrane")
+      labels.displayValue("Empty")(using englishLang) shouldBe Some("")
+      labels.displayValue("Empty")(using welshLang) shouldBe Some("")
+      labels.displayValue("EnglishOnly")(using englishLang) shouldBe Some("Welcome")
+      labels.displayValue("EnglishOnly")(using welshLang) shouldBe Some("Welcome")
+      labels.displayValue("Door")(using englishLang) shouldBe Some("Open")
+      labels.displayValue("Door")(using welshLang) shouldBe Some("Drws")
+      labels.displayValue("Name")(using englishLang) shouldBe Some("Coltrane")
+      labels.displayValue("Name")(using welshLang) shouldBe Some("Coltrane")
     }
 
     "Return a language specific value of a multi-value list label" in new Test {
@@ -297,14 +297,14 @@ class LabelSpec extends BaseSpec with ProcessJson {
 
       val labels = LabelCache(labelsMap)
 
-      labels.displayValue("one")(englishLang) shouldBe Some("")
-      labels.displayValue("one")(welshLang) shouldBe Some("")
-      labels.displayValue("two")(englishLang) shouldBe Some("Home")
-      labels.displayValue("two")(welshLang) shouldBe Some("Hafan")
-      labels.displayValue("three")(englishLang) shouldBe Some("Hello,World")
-      labels.displayValue("three")(welshLang) shouldBe Some("Helo,Byd")
-      labels.displayValue("four")(englishLang) shouldBe Some("Welcome")
-      labels.displayValue("four")(welshLang) shouldBe Some("Welcome")
+      labels.displayValue("one")(using englishLang) shouldBe Some("")
+      labels.displayValue("one")(using welshLang) shouldBe Some("")
+      labels.displayValue("two")(using englishLang) shouldBe Some("Home")
+      labels.displayValue("two")(using welshLang) shouldBe Some("Hafan")
+      labels.displayValue("three")(using englishLang) shouldBe Some("Hello,World")
+      labels.displayValue("three")(using welshLang) shouldBe Some("Helo,Byd")
+      labels.displayValue("four")(using englishLang) shouldBe Some("Welcome")
+      labels.displayValue("four")(using welshLang) shouldBe Some("Welcome")
     }
 
     "Allow access to the main label map" in new Test {
@@ -327,12 +327,12 @@ class LabelSpec extends BaseSpec with ProcessJson {
       )
 
       val updatedLabels0 = labels.update("Door", "Ajar", "Dysgu")
-      updatedLabels0.displayValue("Door")(englishLang) shouldBe Some("Ajar")
-      updatedLabels0.displayValue("Door")(welshLang) shouldBe Some("Dysgu")
+      updatedLabels0.displayValue("Door")(using englishLang) shouldBe Some("Ajar")
+      updatedLabels0.displayValue("Door")(using welshLang) shouldBe Some("Dysgu")
 
       val updatedLabels1 = updatedLabels0.update("Door", "Open", "Drws")
-      updatedLabels1.displayValue("Door")(englishLang) shouldBe Some("Open")
-      updatedLabels1.displayValue("Door")(welshLang) shouldBe Some("Drws")
+      updatedLabels1.displayValue("Door")(using englishLang) shouldBe Some("Open")
+      updatedLabels1.displayValue("Door")(using welshLang) shouldBe Some("Drws")
     }
 
     "Construct a LabelCache from a label map a cache of updated labels and a Flow stack" in new Test {
@@ -359,8 +359,8 @@ class LabelSpec extends BaseSpec with ProcessJson {
         val (nxt, updatedLabels) = t
         nxt shouldBe "2"
         updatedLabels.value("loop") shouldBe Some(twoEn)
-        updatedLabels.displayValue("loop")(englishLang) shouldBe Some(twoEn)
-        updatedLabels.displayValue("loop")(welshLang) shouldBe Some(twoCy)
+        updatedLabels.displayValue("loop")(using englishLang) shouldBe Some(twoEn)
+        updatedLabels.displayValue("loop")(using welshLang) shouldBe Some(twoCy)
 
       }
     }

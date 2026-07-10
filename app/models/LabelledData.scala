@@ -18,9 +18,9 @@ package models
 
 import java.time.Instant
 import play.api.libs.json.{__, _}
-import play.api.libs.functional.syntax._
+import play.api.libs.functional.syntax.*
 import play.api.mvc.JavascriptLiteral
-import core.models.MongoDateTimeFormats.Implicits._
+import core.models.MongoDateTimeFormats.Implicits.mdInstantFormat
 
 sealed trait LabelledDataId
 
@@ -39,9 +39,9 @@ object LabelledDataId {
     case Rates => Json.toJson("Rates")
   }
 
-  implicit val formats: Format[LabelledDataId] = Format(reads, writes)
+  given formats: Format[LabelledDataId] = Format(reads, writes)
 
-  implicit val jsLiteral: JavascriptLiteral[LabelledDataId] = new JavascriptLiteral[LabelledDataId] {
+  given jsLiteral: JavascriptLiteral[LabelledDataId] = new JavascriptLiteral[LabelledDataId] {
     override def to(value: LabelledDataId): String = value match {
       case Timescales => "Timescales"
       case Rates      => "Rates"
@@ -53,7 +53,7 @@ case class LabelledData(id: LabelledDataId, data: JsValue, when: Instant, credId
 
 object LabelledData {
 
-  implicit val reads: Reads[LabelledData] =
+  given reads: Reads[LabelledData] =
     ((__ \ "_id").read[LabelledDataId] and
       (__ \ "data").read[JsValue] and
       (__ \ "when").read[Instant] and
@@ -61,14 +61,14 @@ object LabelledData {
       (__ \ "user").read[String] and
       (__ \ "email").read[String])(LabelledData.apply _)
 
-  implicit val writes: OWrites[LabelledData] =
+  given writes: OWrites[LabelledData] =
     ((__ \ "_id").write[LabelledDataId] and
         (__ \ "data").write[JsValue] and
         (__ \ "when").write[Instant] and
         (__ \ "credId").write[String] and
         (__ \ "user").write[String] and
         (__ \ "email").write[String]
-    )(unlift(LabelledData.unapply))
+    )(Tuple.fromProductTyped(_))
 
   val format: OFormat[LabelledData] = OFormat(reads, writes)
 }

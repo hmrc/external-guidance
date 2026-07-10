@@ -18,14 +18,14 @@ package controllers.actions
 
 import base.ControllerBaseSpec
 import models.requests.IdentifierRequest
-import play.api.mvc._
+import play.api.mvc.*
 import play.api.test.Helpers.stubControllerComponents
 
 import scala.concurrent.{ExecutionContext, Future}
 
 object FakeAllRolesAction extends ControllerBaseSpec with AllRolesAction {
 
-  override implicit protected def executionContext: ExecutionContext = ExecutionContext.global
+  override given executionContext: ExecutionContext = ExecutionContext.global
 
   override def parser: BodyParser[AnyContent] = stubControllerComponents().parsers.defaultBodyParser
 

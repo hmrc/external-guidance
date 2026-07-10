@@ -34,11 +34,11 @@ class LabelledDataController @Inject() (labelledDataService: LabelledDataService
                                         publishService: PublishedService,
                                         approvalService: ApprovalReviewService,
                                         cc: ControllerComponents,
-                                        allRolesAction: AllRolesAction)(implicit ec: ExecutionContext) extends BackendController(cc) {
+                                        allRolesAction: AllRolesAction)(using ec: ExecutionContext) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass)
 
-  def save(dataId: LabelledDataId): Action[JsValue] = allRolesAction.async(parse.json) { implicit request: IdentifierRequest[JsValue] =>
+  def save(dataId: LabelledDataId): Action[JsValue] = allRolesAction.async(parse.json) { (request: IdentifierRequest[JsValue]) =>
     publishService.getDataInUse(dataId).flatMap{
       case Left(err) =>
         logger.error(s"Unable to retreive list of $dataId within published guidance, $err")

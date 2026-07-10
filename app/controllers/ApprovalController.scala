@@ -20,11 +20,11 @@ import controllers.actions.AllRolesAction
 
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.{ApprovalReviewService, LabelledDataService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import models.Constants._
+import models.Constants.*
 import core.models.errors.{BadRequestError, DuplicateKeyError, Error}
 import core.models.errors.{NotFoundError, ValidationError, InternalServerError => ServerError}
 import models.errors.{DuplicateProcessCodeError, OcelotError}
@@ -36,15 +36,15 @@ import scala.concurrent.{ExecutionContext, Future}
 class ApprovalController @Inject() (allRolesAction: AllRolesAction,
                                     approvalService: ApprovalReviewService,
                                     labelledDataService: LabelledDataService,
-                                    cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) {
+                                    cc: ControllerComponents)(using ec: ExecutionContext) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass)
 
-  def saveFor2iReview: Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def saveFor2iReview: Action[JsValue] = Action.async(parse.json) { request =>
     saveProcess(request.body, ReviewType2i)
   }
 
-  def saveForFactCheck: Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def saveForFactCheck: Action[JsValue] = Action.async(parse.json) { request =>
     saveProcess(request.body, ReviewTypeFactCheck)
   }
 
@@ -99,7 +99,7 @@ class ApprovalController @Inject() (allRolesAction: AllRolesAction,
     }
   }
 
-  def approvalSummaryList: Action[AnyContent] = allRolesAction.async { implicit request =>
+  def approvalSummaryList: Action[AnyContent] = allRolesAction.async { request =>
     approvalService.approvalSummaryList(request.roles).map {
       case Right(list) => Ok(list)
       case _ => InternalServerError(toJson(OcelotError(ServerError)))

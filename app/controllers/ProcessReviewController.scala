@@ -22,11 +22,11 @@ import javax.inject.{Inject, Singleton}
 import core.models.errors.{InternalServerError => ServerError, _}
 import models.errors.OcelotError
 import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange}
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ApprovalReviewService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import models.Constants._
+import models.Constants.*
 import play.api.Logger
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -37,20 +37,20 @@ class ProcessReviewController @Inject() (
   twoEyeReviewerAction: TwoEyeReviewerAction,
   reviewService: ApprovalReviewService,
   cc: ControllerComponents
-)(implicit ec: ExecutionContext) extends BackendController(cc) {
+)(using ec: ExecutionContext) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass())
 
   def approval2iReviewInfo(id: String): Action[AnyContent] = twoEyeReviewerAction.async { _ =>
-    getReviewInfo(id, ReviewType2i)
+    getReviewInfo(id)
   }
 
   def approvalFactCheckInfo(id: String): Action[AnyContent] = factCheckerAction.async { _ =>
-    getReviewInfo(id, ReviewTypeFactCheck)
+    getReviewInfo(id)
   }
 
-  private def getReviewInfo(id: String, reviewType: String): Future[Result] = {
-    reviewService.approvalReviewInfo(id, reviewType).map {
+  private def getReviewInfo(id: String): Future[Result] = {
+    reviewService.approvalReviewInfo(id).map {
       case Right(data) => Ok(Json.toJson(data))
       case Left(NotFoundError) => NotFound(Json.toJson(OcelotError(NotFoundError)))
       case Left(DuplicateKeyError) => BadRequest(Json.toJson(OcelotError(DuplicateKeyError)))
@@ -112,15 +112,15 @@ class ProcessReviewController @Inject() (
   }
 
   def approval2iReviewPageInfo(id: String, pageUrl: String): Action[AnyContent] = twoEyeReviewerAction.async { _ =>
-    pageReviewInfo(id, pageUrl, ReviewType2i)
+    pageReviewInfo(id, pageUrl)
   }
 
   def approvalFactCheckPageInfo(id: String, pageUrl: String): Action[AnyContent] = factCheckerAction.async { _ =>
-    pageReviewInfo(id, pageUrl, ReviewTypeFactCheck)
+    pageReviewInfo(id, pageUrl)
   }
 
-  private def pageReviewInfo(id: String, pageUrl: String, reviewType: String): Future[Result] = {
-    reviewService.approvalPageInfo(id, s"/$pageUrl", reviewType).map {
+  private def pageReviewInfo(id: String, pageUrl: String): Future[Result] = {
+    reviewService.approvalPageInfo(id, s"/$pageUrl").map {
       case Right(data) => Ok(Json.toJson(data))
       case Left(NotFoundError) => NotFound(Json.toJson(OcelotError(NotFoundError)))
       case Left(StaleDataError) => NotFound(Json.toJson(OcelotError(StaleDataError)))

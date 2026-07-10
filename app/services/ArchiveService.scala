@@ -28,12 +28,12 @@ import play.api.libs.json.{JsValue, Json, OFormat}
 import core.services.isTimeValueInMilliseconds
 
 @Singleton
-class ArchiveService @Inject() (archive: ArchiveRepository)(implicit ec: ExecutionContext) {
+class ArchiveService @Inject() (archive: ArchiveRepository)(using ec: ExecutionContext) {
 
   val logger: Logger = Logger(this.getClass)
 
   def list: Future[RequestOutcome[JsValue]] = {
-    implicit val formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
+    given formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
     archive.processSummaries() map {
       case Left(_) => Left(InternalServerError)
       case Right(summaries) => Right(Json.toJson(summaries))

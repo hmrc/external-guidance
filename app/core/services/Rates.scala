@@ -17,7 +17,7 @@
 package core.services
 
 import javax.inject.{Inject, Singleton}
-import core.models.ocelot._
+import core.models.ocelot.*
 import scala.util.matching.Regex
 
 object Rates {

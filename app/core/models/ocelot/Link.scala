@@ -16,8 +16,8 @@
 
 package core.models.ocelot
 
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.*
 
 case class Link(id: Int, dest: String, title: String, window: Boolean)
 
@@ -25,18 +25,18 @@ object Link {
 
   def isLinkableStanzaId(dest: String): Boolean = dest.equals(Process.StartStanzaId) || dest.forall(_.isDigit)
 
-  implicit val reads: Reads[Link] = (
+  given reads: Reads[Link] = (
     (__ \ "id").read[Int] and
       (__ \ "dest").read[String] and
       (__ \ "title").read[String] and
       (__ \ "window").read[Boolean]
   )(Link.apply _)
 
-  implicit val writes: Writes[Link] = (
+  given writes: Writes[Link] = (
     (__ \ "id").write[Int] and
       (__ \ "dest").write[String] and
       (__ \ "title").write[String] and
       (__ \ "window").write[Boolean]
-  )(unlift(Link.unapply))
+  )(Tuple.fromProductTyped(_))
 
 }

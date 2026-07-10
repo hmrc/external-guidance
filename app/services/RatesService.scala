@@ -27,7 +27,6 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import repositories.LabelledDataRepository
 import core.services.TodayProvider
 import scala.concurrent.{ExecutionContext, Future}
-import config.AppConfig
 import play.api.Logging
 import scala.util.{Try, Success, Failure}
 import java.time.{ZoneId, ZonedDateTime, Instant}
@@ -39,8 +38,7 @@ import scala.annotation.tailrec
 class RatesService @Inject() (
     repository: LabelledDataRepository,
     coreRatesService: core.services.Rates,
-    tp: TodayProvider,
-    appConfig: AppConfig)(implicit ec: ExecutionContext) extends LabelledDataServiceProvider[BigDecimal] with Logging {
+    tp: TodayProvider)(using ec: ExecutionContext) extends LabelledDataServiceProvider[BigDecimal] with Logging {
 
   def details(): Future[RequestOutcome[LabelledDataUpdateStatus]] =
     repository.get(Rates).map{
