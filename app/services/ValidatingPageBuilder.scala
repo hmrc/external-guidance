@@ -18,9 +18,9 @@ package services
 
 import javax.inject.{Inject, Singleton}
 import core.services.PageBuilder
-import core.models.ocelot._
-import core.models.ocelot.stanzas._
-import core.models.ocelot.errors._
+import core.models.ocelot.*
+import core.models.ocelot.stanzas.*
+import core.models.ocelot.errors.*
 import play.api.Logger
 import core.models.{GuidanceCheckLevel, Strict}
 
@@ -55,7 +55,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
                           checkLevel: GuidanceCheckLevel = Strict): Either[List[GuidanceError], Seq[Page]] =
     pageBuilder.pages(process, start).fold[Either[List[GuidanceError], Seq[Page]]](Left(_),
       pages => {
-        implicit val stanzaMap: Map[String, Stanza] = process.flow
+        given stanzaMap: Map[String, Stanza] = process.flow
         val vertices: List[PageVertex] = pages.map(PageVertex(_)).toList
         val vertexMap = vertices.map(pv => (pv.id, pv)).toMap
         val mainFlow: List[String] = pageGraph(List(Process.StartStanzaId), vertexMap).map(_.id)
@@ -96,7 +96,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
     pageLinkIds(phrase.english).sorted == pageLinkIds(phrase.welsh).sorted
 
   private def checkSequenceErrors(vertices: List[PageVertex], vertexMap: Map[String, PageVertex], mainFlow: List[String])
-                            (implicit stanzaMap: Map[String, Stanza]): List[GuidanceError] =
+                            (using stanzaMap: Map[String, Stanza]): List[GuidanceError] =
     checkForMinimumTwoPageFlows(vertices, vertexMap) match {
       case Nil =>
         Nil
@@ -117,27 +117,28 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
     def inputCalloutState(stanzas: List[PopulatedStanza],
                           requiredError: Boolean = false,
                           typeError: Boolean = false,
-                          input: Option[DataInput] = None):(Boolean, Boolean, Option[DataInput]) =
+                          input: Option[DataInput] = None):(Boolean, Boolean, Option[DataInput]) = {
       stanzas match {
         case Nil => (requiredError, typeError, input)
         case (s: DataInput) :: xs => inputCalloutState(xs, requiredError, typeError, Some(s))
-        case (r: ErrorCallout) :: xs => inputCalloutState(xs, requiredError = true, typeError = typeError, input)
-        case (t: TypeErrorCallout) :: xs => inputCalloutState(xs, requiredError, typeError = true, input)
-        case x :: xs => inputCalloutState(xs, requiredError, typeError, input)
+        case (_: ErrorCallout) :: xs => inputCalloutState(xs, requiredError = true, typeError = typeError, input)
+        case (_: TypeErrorCallout) :: xs => inputCalloutState(xs, requiredError, typeError = true, input)
+        case _ :: xs => inputCalloutState(xs, requiredError, typeError, input)
       }
+    }
 
-      pages match {
-        case Nil => errors
-        case x :: xs =>
-          inputCalloutState(x.stanzas.toList) match {
-            case (_, _, None) => confirmInputPageErrorCallouts(xs, errors)
-            case (true, _, Some(x: Question)) => confirmInputPageErrorCallouts(xs, errors)
-            case (true, _, Some(x: Sequence)) => confirmInputPageErrorCallouts(xs, errors)
-            case (true, _, Some(x: TextInput)) => confirmInputPageErrorCallouts(xs, errors)
-            case (true, _, Some(x: DataInput)) => confirmInputPageErrorCallouts(xs, errors)
-            case (_, _, _) => confirmInputPageErrorCallouts(xs, IncompleteInputPage(x.id) :: errors)
-          }
-      }
+    pages match {
+      case Nil => errors
+      case x :: xs =>
+        inputCalloutState(x.stanzas.toList) match {
+          case (_, _, None) => confirmInputPageErrorCallouts(xs, errors)
+          case (true, _, Some(_: Question)) => confirmInputPageErrorCallouts(xs, errors)
+          case (true, _, Some(_: Sequence)) => confirmInputPageErrorCallouts(xs, errors)
+          case (true, _, Some(_: TextInput)) => confirmInputPageErrorCallouts(xs, errors)
+          case (true, _, Some(_: DataInput)) => confirmInputPageErrorCallouts(xs, errors)
+          case (_, _, _) => confirmInputPageErrorCallouts(xs, IncompleteInputPage(x.id) :: errors)
+        }
+    }
   }
 
   @tailrec
@@ -152,7 +153,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
     pages match {
       case Nil => errors
       case x :: xs if missingPageTitle(x) => confirmPageTitles(xs, MissingTitle(x.id) :: errors)
-      case x :: xs => confirmPageTitles(xs, errors)
+      case _ :: xs => confirmPageTitles(xs, errors)
     }
   }
 
@@ -173,7 +174,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
        match {
                       // Sufficient: 3 stacked callouts with messages containing 0,1 and 2 embedded parameters
           case cos if cos.size == 3 && cos(1)._1.stack && cos(2)._1.stack && List(0,1,2).forall(cos.map(_._2).contains) => Nil
-          case cos => List(IncompleteDateInputPage(pId))
+          case _ => List(IncompleteDateInputPage(pId))
        }
 
     pages match {
@@ -248,7 +249,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
   }
 
   private def checkForSequencePageReuse(vertices: List[PageVertex], vertexMap: Map[String, PageVertex], mainFlow: List[String])
-                                       (implicit stanzaMap: Map[String, Stanza]): List[PageOccursInMultiplSequenceFlows] = {
+                                       (using stanzaMap: Map[String, Stanza]): List[PageOccursInMultiplSequenceFlows] = {
     val sequencePageIds: List[String] = for{
       pv <- vertices.filterNot(_.flows.isEmpty)                 // Sequences
       flw <- pv.flows                                           // Flow Ids
@@ -260,7 +261,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
 
   @tailrec
   // Given a list of stanza ids, find all connected pages (wont follow links)
-  private def findPageIds(ids: List[String], seen: List[String] = Nil, acc: List[String] = Nil)(implicit stanzaMap: Map[String, Stanza]): List[String] =
+  private def findPageIds(ids: List[String], seen: List[String] = Nil, acc: List[String] = Nil)(using stanzaMap: Map[String, Stanza]): List[String] =
     ids match {
       case Nil => acc
       case x :: xs if seen.contains(x) => findPageIds(xs, seen, acc)
@@ -279,7 +280,7 @@ class ValidatingPageBuilder @Inject() (val pageBuilder: PageBuilder){
                         ignore: List[String] = Nil,
                         dontFollowFlows: Boolean = true,
                         seen: List[String] = Nil,
-                        acc: List[PageVertex] = Nil)(implicit stanzaMap: Map[String, Stanza]): List[PageVertex] =
+                        acc: List[PageVertex] = Nil)(using stanzaMap: Map[String, Stanza]): List[PageVertex] =
     keys match {
       case Nil => acc
       case Process.EndStanzaId :: xs => pageGraph(xs, vertices, ignore, dontFollowFlows, seen, acc)

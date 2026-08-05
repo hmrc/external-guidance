@@ -19,7 +19,7 @@ package services
 import java.time.ZonedDateTime
 import base.BaseSpec
 import mocks.MockArchiveRepository
-import core.models.errors._
+import core.models.errors.*
 import core.models.ocelot.ProcessJson
 import core.models.RequestOutcome
 import models.{ProcessSummary, ArchivedProcess}
@@ -98,7 +98,7 @@ class ArchiveServiceSpec extends BaseSpec {
   "Calling the list method" when {
     "there are entries to return" should {
       "return a List of approval processes" in new Test {
-        implicit val formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
+        given formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
 
         val expected: RequestOutcome[List[ProcessSummary]] = Right(List(processSummary))
 

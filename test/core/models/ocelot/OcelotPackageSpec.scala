@@ -17,13 +17,13 @@
 package core.models.ocelot
 
 import base.{EnglishLanguage, WelshLanguage, BaseSpec}
-import core.models._
+import core.models.*
 import org.scalatest.Inspectors.forAll
 import play.api.i18n.Lang
 import java.time.LocalDate
 
 class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
-  implicit val labels: Labels = new LabelCacheImpl(Map(), Map(), Nil, Map(), Map(), timescaleMap, message(Lang("en")), Published, IdentityEncrypter)
+  given labels: Labels = new LabelCacheImpl(Map(), Map(), Nil, Map(), Map(), timescaleMap, message(Lang("en")), Published, IdentityEncrypter)
 
   "Label name validation" must {
     "Not allow invalid characters @ £ % etc in label names" in {
@@ -352,28 +352,28 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
 
   "operandValue function" must {
     "parse date_add placeholder with literal date" in {
-      operandValue("[date_add:22/9/1973:NTCReAwardManAward]")(labels) shouldBe Some("6/10/1973")
+      operandValue("[date_add:22/9/1973:NTCReAwardManAward]")(using labels) shouldBe Some("6/10/1973")
     }
 
     "parse date_add placeholders with label date" in {
       val labelsWithMyDate = labels.update("MyDate", "22/9/1973")
-      operandValue("[date_add:MyDate:NTCReAwardManAward]")(labelsWithMyDate) shouldBe Some("6/10/1973")
+      operandValue("[date_add:MyDate:NTCReAwardManAward]")(using labelsWithMyDate) shouldBe Some("6/10/1973")
     }
 
     "parse date label reference" in {
       val labelsWithMyDate = labels.update("MyDate", "22/9/1973")
-      operandValue("[label:MyDate]")(labelsWithMyDate) shouldBe Some("22/9/1973")
+      operandValue("[label:MyDate]")(using labelsWithMyDate) shouldBe Some("22/9/1973")
     }
 
     "parse list place holder using a numeric index" in {
       val labels = LabelCache().updateList("L", List("6", "7", "8"))
-      operandValue("[list:L:2]")(labels) shouldBe Some("7")
+      operandValue("[list:L:2]")(using labels) shouldBe Some("7")
     }
 
     "parse list place holder using a label index" in {
       val labels = LabelCache().updateList("L", List("6", "7", "8"))
                                .update("Idx", "3")
-      operandValue("[list:L:[label:Idx]]")(labels) shouldBe Some("8")
+      operandValue("[list:L:[label:Idx]]")(using labels) shouldBe Some("8")
     }
   }
 
@@ -500,62 +500,62 @@ class OcelotPackageSpec extends BaseSpec with TestTimescaleDefnsDB {
 
   "operandValue date placholder function using date literal" must {
     "Ignore the value if not in the format of a date placeholder" in {
-      operandValue("[date:1/2/-bad-date:dow_name]")(labels) shouldBe Some("[date:1/2/-bad-date:dow_name]")
+      operandValue("[date:1/2/-bad-date:dow_name]")(using labels) shouldBe Some("[date:1/2/-bad-date:dow_name]")
     }
     "correctly convert a date place holder into a year" in {
-      operandValue("[date:12/12/2021:year]")(labels) shouldBe Some("2021")
+      operandValue("[date:12/12/2021:year]")(using labels) shouldBe Some("2021")
     }
     "correctly convert a date place holder into a day name" in {
-      operandValue("[date:12/12/2021:dow_name]")(labels) shouldBe Some("Sunday")
+      operandValue("[date:12/12/2021:dow_name]")(using labels) shouldBe Some("Sunday")
     }
     "correctly convert a date place holder into a month number" in {
-      operandValue("[date:12/12/2021:month]")(labels) shouldBe Some("12")
+      operandValue("[date:12/12/2021:month]")(using labels) shouldBe Some("12")
     }
     "correctly convert a date place holder into a month start" in {
-      operandValue("[date:12/12/2021:month_start]")(labels) shouldBe Some("1/12/2021")
+      operandValue("[date:12/12/2021:month_start]")(using labels) shouldBe Some("1/12/2021")
     }
     "correctly convert a date place holder into a month end" in {
-      operandValue("[date:12/12/2021:month_end]")(labels) shouldBe Some("31/12/2021")
+      operandValue("[date:12/12/2021:month_end]")(using labels) shouldBe Some("31/12/2021")
     }
     "correctly convert a date place holder into a month name" in {
-      operandValue("[date:12/12/2021:month_name]")(labels) shouldBe Some("December")
+      operandValue("[date:12/12/2021:month_name]")(using labels) shouldBe Some("December")
     }
     "correctly convert a date place holder into a day of the week number" in {
-      operandValue("[date:12/12/2021:dow]")(labels) shouldBe Some("7")
+      operandValue("[date:12/12/2021:dow]")(using labels) shouldBe Some("7")
     }
     "correctly convert a date place holder into a day of the month" in {
-      operandValue("[date:12/12/2021:day]")(labels) shouldBe Some("12")
+      operandValue("[date:12/12/2021:day]")(using labels) shouldBe Some("12")
     }
   }
 
   "operandValue date placholder function using date label" must {
     val labelsWithMyDate = labels.update("MyDate", "12/12/2021")
     "Ignore the value if not in the format of a date placeholder" in {
-      operandValue("[date:[label:AnotherDate]:dow_name]")(labelsWithMyDate) shouldBe None
+      operandValue("[date:[label:AnotherDate]:dow_name]")(using labelsWithMyDate) shouldBe None
     }
     "correctly convert a date place holder into a year" in {
-      operandValue("[date:[label:MyDate]:year]")(labelsWithMyDate) shouldBe Some("2021")
+      operandValue("[date:[label:MyDate]:year]")(using labelsWithMyDate) shouldBe Some("2021")
     }
     "correctly convert a date place holder into a day name" in {
-      operandValue("[date:[label:MyDate]:dow_name]")(labelsWithMyDate) shouldBe Some("Sunday")
+      operandValue("[date:[label:MyDate]:dow_name]")(using labelsWithMyDate) shouldBe Some("Sunday")
     }
     "correctly convert a date place holder into a month number" in {
-      operandValue("[date:[label:MyDate]:month]")(labelsWithMyDate) shouldBe Some("12")
+      operandValue("[date:[label:MyDate]:month]")(using labelsWithMyDate) shouldBe Some("12")
     }
     "correctly convert a date place holder into a month start" in {
-      operandValue("[date:[label:MyDate]:month_start]")(labelsWithMyDate) shouldBe Some("1/12/2021")
+      operandValue("[date:[label:MyDate]:month_start]")(using labelsWithMyDate) shouldBe Some("1/12/2021")
     }
     "correctly convert a date place holder into a month end" in {
-      operandValue("[date:[label:MyDate]:month_end]")(labelsWithMyDate) shouldBe Some("31/12/2021")
+      operandValue("[date:[label:MyDate]:month_end]")(using labelsWithMyDate) shouldBe Some("31/12/2021")
     }
     "correctly convert a date place holder into a month name" in {
-      operandValue("[date:[label:MyDate]:month_name]")(labelsWithMyDate) shouldBe Some("December")
+      operandValue("[date:[label:MyDate]:month_name]")(using labelsWithMyDate) shouldBe Some("December")
     }
     "correctly convert a date place holder into a day of the week number" in {
-      operandValue("[date:[label:MyDate]:dow]")(labelsWithMyDate) shouldBe Some("7")
+      operandValue("[date:[label:MyDate]:dow]")(using labelsWithMyDate) shouldBe Some("7")
     }
     "correctly convert a date place holder into a day of the month" in {
-      operandValue("[date:[label:MyDate]:day]")(labelsWithMyDate) shouldBe Some("12")
+      operandValue("[date:[label:MyDate]:day]")(using labelsWithMyDate) shouldBe Some("12")
     }
   }
 

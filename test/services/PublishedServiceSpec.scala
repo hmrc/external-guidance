@@ -19,7 +19,7 @@ package services
 import java.time.ZonedDateTime
 import base.BaseSpec
 import mocks.{MockApprovalsRepository, MockArchiveRepository, MockPublishedRepository}
-import core.models.errors._
+import core.models.errors.*
 import core.models.ocelot.ProcessJson
 import core.models.RequestOutcome
 import models.PublishedProcess
@@ -37,7 +37,7 @@ class PublishedServiceSpec extends BaseSpec {
     val publishedProcess: PublishedProcess =
       PublishedProcess(validId, 1, ZonedDateTime.now(), validOnePageJson.as[JsObject], "user", processCode = "processCode")
 
-    lazy val target: PublishedService = new PublishedService(mockPublishedRepository, mockArchiveRepository, mockApprovalsRepository)
+    lazy val target: PublishedService = new PublishedService(mockPublishedRepository, mockArchiveRepository)
   }
 
   "The method getById of class PublishedService" should {

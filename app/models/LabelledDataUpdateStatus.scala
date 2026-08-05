@@ -16,10 +16,10 @@
 
 package models
 
-import play.api.libs.json._
+import play.api.libs.json.*
 
 case class LabelledDataUpdateStatus(count: Int, lastUpdate: Option[UpdateDetails])
 
 object LabelledDataUpdateStatus {
-  implicit val format: OFormat[LabelledDataUpdateStatus] = Json.format[LabelledDataUpdateStatus]
+  given format: OFormat[LabelledDataUpdateStatus] = Json.format[LabelledDataUpdateStatus]
 }

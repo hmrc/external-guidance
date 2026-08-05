@@ -18,7 +18,7 @@ package core.models
 
 import java.time.{ZonedDateTime, ZoneOffset, Instant, LocalDate}
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
-import play.api.libs.json._
+import play.api.libs.json.*
 
 trait MongoDateTimeFormats {
   val localZoneID = ZonedDateTime.now.getZone
@@ -36,11 +36,11 @@ trait MongoDateTimeFormats {
 
   final val tolerantLocalDateReads: Reads[LocalDate] = (js: JsValue) =>
     (js \ "$date" \ "$numberLong").validate[String] match {
-      case err @ JsError(_) =>
+      case _ @ JsError(_) =>
         // Fall back to try and read date as string
         (js).validate[String] match {
           case err2 @ JsError(_) => err2
-          case res2 @ JsSuccess(dt, pth) => JsSuccess(LocalDate.parse(dt), pth)
+          case _ @ JsSuccess(dt, pth) => JsSuccess(LocalDate.parse(dt), pth)
         }
       case JsSuccess(dt, pth) => JsSuccess(Instant.ofEpochMilli(dt.toLong).atZone(ZoneOffset.UTC).toLocalDate, pth)
       }
@@ -49,13 +49,11 @@ trait MongoDateTimeFormats {
     Format(tolerantLocalDateReads, MongoJavatimeFormats.localDateWrites)
 
 
-  trait Implicits {
-    implicit val mdInstantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
-    implicit val mdLocalDateFormat: Format[LocalDate] = tolerantLocalDateFormat
-    implicit val mdZonedDateTimeFormat: Format[ZonedDateTime] = zonedDateTimeFormat
+  object Implicits {
+    given mdInstantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
+    given mdLocalDateFormat: Format[LocalDate] = tolerantLocalDateFormat
+    given mdZonedDateTimeFormat: Format[ZonedDateTime] = zonedDateTimeFormat
   }
-
-  object Implicits extends Implicits
 }
 
 object MongoDateTimeFormats extends MongoDateTimeFormats

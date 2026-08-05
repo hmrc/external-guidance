@@ -18,14 +18,14 @@ package controllers
 
 import base.BaseSpec
 import core.models.errors.{BadRequestError, Error, InternalServerError, NotFoundError, ValidationError}
-import core.models.ocelot.errors._
+import core.models.ocelot.errors.*
 import mocks.{MockScratchService, MockLabelledDataService}
-import models.errors._
+import models.errors.*
 import play.api.http.ContentTypes
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 
 import java.util.UUID
 import scala.concurrent.Future

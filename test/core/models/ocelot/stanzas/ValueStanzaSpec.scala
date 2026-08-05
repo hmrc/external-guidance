@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import play.api.libs.json._
+import play.api.libs.json.*
 
 import core.models.ocelot.{Label, Labels, LabelCache, ListLabel, ScalarLabel}
 
@@ -367,7 +367,7 @@ class ValueStanzaSpec extends base.BaseSpec {
 
       val labels = LabelCache()
 
-      val (nextStanza, updatedLabels, err) = stanza.eval(labels)
+      val (nextStanza, updatedLabels, _) = stanza.eval(labels)
 
       nextStanza shouldBe next
 
@@ -385,7 +385,7 @@ class ValueStanzaSpec extends base.BaseSpec {
 
       val labels: Labels = LabelCache(labelMap)
 
-      val (nextStanza, updatedLabels, err) = stanza.eval(labels)
+      val (nextStanza, updatedLabels, _) = stanza.eval(labels)
 
       nextStanza shouldBe next
 
@@ -402,7 +402,7 @@ class ValueStanzaSpec extends base.BaseSpec {
 
       val labels: Labels = LabelCache(labelMap)
 
-      val (nextStanza, updatedLabels, err) = stanza.eval(labels)
+      val (nextStanza, updatedLabels, _) = stanza.eval(labels)
 
       nextStanza shouldBe next
 
@@ -415,7 +415,7 @@ class ValueStanzaSpec extends base.BaseSpec {
 
       val labels = LabelCache()
 
-      val (nextStanza, updatedLabels, err) = stanza.eval(labels)
+      val (nextStanza, updatedLabels, _) = stanza.eval(labels)
 
       nextStanza shouldBe next
 
@@ -434,7 +434,7 @@ class ValueStanzaSpec extends base.BaseSpec {
 
       val labels: Labels = LabelCache(labelMap)
 
-      val (nextStanza, updatedLabels, err) = stanza.eval(labels)
+      val (nextStanza, updatedLabels, _) = stanza.eval(labels)
 
       nextStanza shouldBe next
 
@@ -451,7 +451,7 @@ class ValueStanzaSpec extends base.BaseSpec {
 
       val labels: Labels = LabelCache(labelMap)
 
-      val (nextStanza, updatedLabels, err) = stanza.eval(labels)
+      val (nextStanza, updatedLabels, _) = stanza.eval(labels)
 
       nextStanza shouldBe next
 
@@ -464,7 +464,7 @@ class ValueStanzaSpec extends base.BaseSpec {
 
       val labels = LabelCache()
 
-      val (nextStanza, updatedLabels, err) = stanza.eval(labels)
+      val (nextStanza, updatedLabels, _) = stanza.eval(labels)
 
       nextStanza shouldBe next
 

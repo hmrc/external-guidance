@@ -16,7 +16,7 @@
 
 package core.models.ocelot
 
-import play.api.libs.json._
+import play.api.libs.json.*
 
 sealed trait RunMode
 
@@ -44,5 +44,5 @@ object RunMode {
     case Debugging => Json.toJson("Debugging")
   }
 
-  implicit val formats: Format[RunMode] = Format(reads, writes)
+  given formats: Format[RunMode] = Format(reads, writes)
 }

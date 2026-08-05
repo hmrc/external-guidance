@@ -21,7 +21,7 @@ import java.time.{LocalDate, ZonedDateTime}
 import base.BaseSpec
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import models.ApprovalProcessMeta.mongoFormat
-import models.Constants._
+import models.Constants.*
 
 class ApprovalProcessMetaSpec extends BaseSpec with ApprovalProcessJson {
 
@@ -90,7 +90,7 @@ class ApprovalProcessMetaSpec extends BaseSpec with ApprovalProcessJson {
     "Result in a failure when for invalid JSON" in {
 
       invalidJson.validate[ApprovalProcessMeta] match {
-        case e: JsError => succeed
+        case _: JsError => succeed
         case _ => fail("Invalid JSON payload should not have been successfully deserialized")
       }
     }

@@ -17,7 +17,7 @@
 package core.models.ocelot.stanzas
 
 import base.BaseSpec
-import play.api.libs.json._
+import play.api.libs.json.*
 
 class CalcOperationSpec extends BaseSpec {
 
@@ -51,7 +51,7 @@ class CalcOperationSpec extends BaseSpec {
 
       additionOperation.validate[CalcOperation] match {
         case JsSuccess(calcOperation, _) => calcOperation shouldBe CalcOperation( "[label:inputA]", Addition, "[label:inputB]", "result")
-        case e: JsError => fail("Unable to parse valid addition operation")
+        case _: JsError => fail("Unable to parse valid addition operation")
       }
     }
 
@@ -60,7 +60,7 @@ class CalcOperationSpec extends BaseSpec {
 
       subtractionOperation.validate[CalcOperation] match {
         case JsSuccess(calcOperation, _) => calcOperation shouldBe CalcOperation( "[label:inputA]", Subtraction, "[label:inputB]", "result")
-        case e: JsError => fail("Unable to parse valid subtraction operation")
+        case _: JsError => fail("Unable to parse valid subtraction operation")
       }
     }
 
@@ -69,7 +69,7 @@ class CalcOperationSpec extends BaseSpec {
 
       multiplyOperation.validate[CalcOperation] match {
         case JsSuccess(calcOperation, _) => calcOperation shouldBe CalcOperation( "[label:inputA]", Multiply, "[label:inputB]", "result")
-        case e: JsError => fail("Unable to parse valid subtraction operation")
+        case _: JsError => fail("Unable to parse valid subtraction operation")
       }
     }
 
@@ -78,7 +78,7 @@ class CalcOperationSpec extends BaseSpec {
 
       divideOperation.validate[CalcOperation] match {
         case JsSuccess(calcOperation, _) => calcOperation shouldBe CalcOperation( "[label:inputA]", Divide, "[label:inputB]", "result")
-        case e: JsError => fail("Unable to parse valid subtraction operation")
+        case _: JsError => fail("Unable to parse valid subtraction operation")
       }
     }
 
@@ -87,7 +87,7 @@ class CalcOperationSpec extends BaseSpec {
 
       ceilingOperation.validate[CalcOperation] match {
         case JsSuccess(calcOperation, _) => calcOperation shouldBe CalcOperation( "[label:inputA]", Ceiling, "0", "result")
-        case e: JsError => fail("Unable to parse valid subtraction operation")
+        case _: JsError => fail("Unable to parse valid subtraction operation")
       }
     }
 
@@ -96,7 +96,7 @@ class CalcOperationSpec extends BaseSpec {
 
       floorOperation.validate[CalcOperation] match {
         case JsSuccess(calcOperation, _) => calcOperation shouldBe CalcOperation( "[label:inputA]", Floor, "-1", "result")
-        case e: JsError => fail("Unable to parse valid subtraction operation")
+        case _: JsError => fail("Unable to parse valid subtraction operation")
       }
     }
 
@@ -109,7 +109,7 @@ class CalcOperationSpec extends BaseSpec {
       val invalidOperation: JsValue = getCalcOperationAsJsValue(sqrt, rightOperand)
 
         invalidOperation.validate[CalcOperation] match {
-          case e: JsError => succeed
+          case _: JsError => succeed
           case _ => fail("An instance of CalcOperation should not be created when the operation type is invalid")
       }
 
@@ -122,7 +122,7 @@ class CalcOperationSpec extends BaseSpec {
       val result: JsResult[CalcOperation] = invalidOperation.validate[CalcOperation]
 
       result match {
-        case e: JsError => succeed
+        case _: JsError => succeed
         case _ => fail("An instance of CalcOperation should not be created for a ceiling operation with an invalid scale factor")
       }
 
@@ -135,7 +135,7 @@ class CalcOperationSpec extends BaseSpec {
       val result: JsResult[CalcOperation] = invalidOperation.validate[CalcOperation]
 
       result match {
-        case e: JsError => succeed
+        case _: JsError => succeed
         case _ => fail("An instance of CalcOperation should not be created for a floor operation with an invalid scale factor")
       }
 
@@ -148,7 +148,7 @@ class CalcOperationSpec extends BaseSpec {
       val result: JsResult[CalcOperation] = invalidOperation.validate[CalcOperation]
 
       result match {
-        case e: JsError => succeed
+        case _: JsError => succeed
         case _ => fail("An instance of CalcOperation should not be created when an operand and the operation are missing")
       }
 

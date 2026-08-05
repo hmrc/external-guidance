@@ -570,7 +570,7 @@ trait SequenceJson {
     }"""
   )
 
-val nestedSeqWithFlowInputJson: JsValue = Json.parse(
+  val nestedSeqWithFlowInputJson: JsValue = Json.parse(
     """
     {
       "meta": {

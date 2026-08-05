@@ -24,9 +24,9 @@ import mocks.{MockApprovalReviewService, MockPublishedService}
 import models.{LabelledDataUpdateStatus, LabelledData, UpdateDetails, Timescales, Rates}
 import play.api.http.ContentTypes
 import play.api.libs.json.{JsObject, JsValue, Json}
-import play.api.mvc._
+import play.api.mvc.*
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import java.time.{ZoneId, ZonedDateTime}
 import scala.concurrent.Future
 import data.RatesTestData

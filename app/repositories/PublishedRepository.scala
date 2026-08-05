@@ -25,16 +25,16 @@ import models.{LabelledDataId, Timescales, ProcessSummary, PublishedProcess}
 import play.api.libs.json.JsObject
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.Logger
-import org.mongodb.scala._
-import org.mongodb.scala.model.Filters._
-import org.mongodb.scala.model.Sorts._
-import org.mongodb.scala.model.Updates._
-import org.mongodb.scala.model._
+import org.mongodb.scala.*
+import org.mongodb.scala.model.Filters.*
+import org.mongodb.scala.model.Sorts.*
+import org.mongodb.scala.model.Updates.*
+import org.mongodb.scala.model.*
 import org.mongodb.scala.result.DeleteResult
-import uk.gov.hmrc.mongo._
+import uk.gov.hmrc.mongo.*
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
-import core.models.MongoDateTimeFormats.Implicits._
+import core.models.MongoDateTimeFormats.Implicits.given
 
 //$COVERAGE-OFF$
 trait PublishedRepository {
@@ -48,7 +48,7 @@ trait PublishedRepository {
 }
 
 @Singleton
-class PublishedRepositoryImpl @Inject() (component: MongoComponent)(implicit ec: ExecutionContext)
+class PublishedRepositoryImpl @Inject() (component: MongoComponent)(using ec: ExecutionContext)
     extends PlayMongoRepository[PublishedProcess](
       collectionName = "publishedProcesses",
       mongoComponent = component,

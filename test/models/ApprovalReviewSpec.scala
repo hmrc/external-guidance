@@ -17,7 +17,7 @@
 package models
 
 import base.BaseSpec
-import play.api.libs.json._
+import play.api.libs.json.*
 import models.ApprovalReview.format
 import Constants.ReviewCompleteStatus
 
@@ -46,7 +46,7 @@ class ApprovalReviewSpec extends BaseSpec with ApprovalProcessJson {
     "Result in a failure when for invalid JSON" in {
 
       invalidJson.validate[ApprovalReview] match {
-        case e: JsError => succeed
+        case _: JsError => succeed
         case _ => fail("Invalid JSON payload should not have been successfully deserialized")
       }
     }

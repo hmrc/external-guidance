@@ -16,7 +16,7 @@
 
 package services
 
-import core.services._
+import core.services.*
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
@@ -33,7 +33,7 @@ import config.AppConfig
 @Singleton
 class ScratchService @Inject() (repository: ScratchRepository,
                                 finalisationService: ProcessFinalisationService)
-                               (implicit ec: ExecutionContext, val c: AppConfig) {
+                               (using ec: ExecutionContext, val c: AppConfig) {
   val logger: Logger = Logger(getClass)
 
   def save(json: JsObject): Future[RequestOutcome[UUID]] =

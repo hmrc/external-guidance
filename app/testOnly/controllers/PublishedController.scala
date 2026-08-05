@@ -19,7 +19,7 @@ package testOnly.controllers
 import javax.inject.{Inject, Singleton}
 import core.models.ocelot.Process
 import models.errors.OcelotError
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import repositories.PublishedRepository
 import testOnly.repositories.{PublishedRepository => TestPublishedRepository}
@@ -30,7 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class PublishedController @Inject() (publishedRepo: PublishedRepository, testRepo: TestPublishedRepository, cc: ControllerComponents)
-  (implicit ec: ExecutionContext) extends BackendController(cc) {
+  (using ec: ExecutionContext) extends BackendController(cc) {
 
   def postAtDate(day: String, month: String, year: String): Action[JsValue] = Action.async(parse.json) { request =>
     def save(process: Process, when: LocalDate): Future[Result] = {

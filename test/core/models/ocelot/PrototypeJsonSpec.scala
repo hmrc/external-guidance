@@ -35,7 +35,7 @@ class PrototypeJsonSpec extends AnyWordSpec with Matchers {
 
     "Parse into a valid Process object" in new Test {
       pageBuilder.pages(process) match {
-        case Right(pages) => succeed
+        case Right(_) => succeed
         case Left(err) => fail(s"Invalid json ${err}")
       }
     }

@@ -17,7 +17,7 @@
 package core.models.ocelot.stanzas
 
 import base.BaseSpec
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.i18n.Lang
 import core.models.ocelot.{Encrypter, Label, LabelCache, Labels, Page, Phrase, Published, SecuredProcess, taxCodePattern}
 

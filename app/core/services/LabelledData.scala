@@ -17,7 +17,7 @@
 package core.services
 
 import javax.inject.{Inject, Singleton}
-import core.models.ocelot._
+import core.models.ocelot.*
 
 @Singleton
 class LabelledData @Inject() (val timescales: Timescales, val rates: Rates) extends LabelledDataExpansion {

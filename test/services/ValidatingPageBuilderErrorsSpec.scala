@@ -17,11 +17,11 @@
 package services
 
 import base.BaseSpec
-import core.models.ocelot.errors._
-import core.models.ocelot.stanzas._
-import core.models.ocelot._
-import play.api.libs.json._
-import core.services._
+import core.models.ocelot.errors.*
+import core.models.ocelot.stanzas.*
+import core.models.ocelot.*
+import play.api.libs.json.*
+import core.services.*
 
 class ValidatingPageBuilderErrorsSpec extends BaseSpec with ProcessJson {
   // Define instance of class used in testing

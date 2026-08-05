@@ -17,7 +17,7 @@
 package models.errors
 
 import base.BaseSpec
-import core.models.ocelot.errors._
+import core.models.ocelot.errors.*
 import play.api.libs.json.{JsPath, JsonValidationError}
 
 class ProcessErrorSpec extends BaseSpec {

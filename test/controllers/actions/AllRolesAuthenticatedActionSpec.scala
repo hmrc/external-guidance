@@ -17,11 +17,11 @@
 package controllers.actions
 
 import base.ControllerBaseSpec
-import mocks.{MockAppConfig, MockAuthConnector}
+import mocks.{MockAuthConnector, mockAppConfig}
 import play.api.http.Status
-import play.api.mvc._
+import play.api.mvc.*
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name, ~}
 import uk.gov.hmrc.auth.core.{AuthorisationException, Enrolment, Enrolments}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -45,10 +45,10 @@ class AllRolesAuthenticatedActionSpec extends ControllerBaseSpec with MockAuthCo
 
     val enrolments: Enrolments = Enrolments(Set(Enrolment(key = "FactChecker")))
 
-    implicit val hc: HeaderCarrier = HeaderCarrier()
-    implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
+    given hc: HeaderCarrier = HeaderCarrier()
+    given ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
-    lazy val authAction = new AllRolesAuthenticatedAction(mockAuthConnector, MockAppConfig, bodyParser, config, env)
+    lazy val authAction = new AllRolesAuthenticatedAction(mockAuthConnector, mockAppConfig, bodyParser, config, env)
 
     lazy val target = new Harness(authAction)
   }

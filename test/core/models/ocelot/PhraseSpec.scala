@@ -17,7 +17,7 @@
 package core.models.ocelot
 
 import base.BaseSpec
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.i18n.Lang
 
 class PhraseSpec extends BaseSpec with ProcessJson {

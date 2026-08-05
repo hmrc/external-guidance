@@ -21,14 +21,14 @@ import core.models.errors.DatabaseError
 import core.models.RequestOutcome
 import models.ScratchProcess
 import play.api.Logger
-import org.mongodb.scala.model.Filters._
-import uk.gov.hmrc.mongo._
+import org.mongodb.scala.model.Filters.*
+import uk.gov.hmrc.mongo.*
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ScratchRepository @Inject() (component: MongoComponent)(implicit ec: ExecutionContext)
+class ScratchRepository @Inject() (component: MongoComponent)(using ec: ExecutionContext)
   extends PlayMongoRepository[ScratchProcess](
     collectionName = "scratchProcesses",
     mongoComponent = component,

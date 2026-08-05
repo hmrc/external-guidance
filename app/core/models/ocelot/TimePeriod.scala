@@ -33,7 +33,7 @@ trait TimePeriodArithmetic[A] {
 }
 
 object TimePeriodArithmetic {
-  implicit val dateArithmetic: TimePeriodArithmetic[LocalDate] =
+  given dateArithmetic: TimePeriodArithmetic[LocalDate] =
     new TimePeriodArithmetic[LocalDate]{
       def add(tp: TimePeriod)(value: LocalDate): LocalDate =
         tp.unit match {
@@ -52,8 +52,8 @@ object TimePeriodArithmetic {
     }
 
   // Syntax
-  implicit class TimePeriodArithmeticOps[A](value: A) {
-    def add(tp: TimePeriod)(implicit a: TimePeriodArithmetic[A]): A = a.add(tp)(value)
-    def minus(tp: TimePeriod)(implicit a: TimePeriodArithmetic[A]): A = a.minus(tp)(value)
+  extension [A](value: A) {
+    def add(tp: TimePeriod)(using a: TimePeriodArithmetic[A]): A = a.add(tp)(value)
+    def minus(tp: TimePeriod)(using a: TimePeriodArithmetic[A]): A = a.minus(tp)(value)
   }
 }

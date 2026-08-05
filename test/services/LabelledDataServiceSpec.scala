@@ -17,14 +17,15 @@
 package services
 
 import base.BaseSpec
-import mocks.{MockTimescalesService, MockRatesService}
+import mocks.{MockRatesService, MockTimescalesService}
+
 import java.time.LocalDate
-import core.models.errors._
-import play.api.libs.json.{Json, JsObject, JsValue}
-import mocks.MockAppConfig
+import core.models.errors.*
+import play.api.libs.json.{JsObject, JsValue, Json}
+
 import scala.concurrent.Future
 import core.models.ocelot.{Process, ProcessJson}
-import models._
+import models.*
 
 class LabelledDataServiceSpec extends BaseSpec {
   
@@ -36,7 +37,7 @@ class LabelledDataServiceSpec extends BaseSpec {
                                         def year: String = now.getYear().toString
                                      })
     val rates: core.services.Rates = new core.services.Rates()
-    lazy val target: LabelledDataService = new LabelledDataService(mockTimescalesService, timescales, mockRatesService, rates, MockAppConfig)
+    lazy val target: LabelledDataService = new LabelledDataService(mockTimescalesService, timescales, mockRatesService, rates)
   }
 
   "Calling updateProcessLabelledDataTablesAndVersions method" when {
@@ -142,7 +143,7 @@ class LabelledDataServiceSpec extends BaseSpec {
           .getNativeAsJson
           .returns(Future.successful(Right(dummyJson)))
         whenReady(target.get(Timescales)) {
-          case Right(dummyJson) => succeed
+          case Right(_) => succeed
           case _ => fail()
         }
       }
@@ -155,7 +156,7 @@ class LabelledDataServiceSpec extends BaseSpec {
           .getNativeAsJson
           .returns(Future.successful(Right(dummyJson)))
         whenReady(target.get(Rates)) {
-          case Right(dummyJson) => succeed
+          case Right(_) => succeed
           case _ => fail()
         }
       }

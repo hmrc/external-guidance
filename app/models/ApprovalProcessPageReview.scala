@@ -17,7 +17,7 @@
 package models
 
 import java.time.ZonedDateTime
-import play.api.libs.functional.syntax._
+import play.api.libs.functional.syntax.*
 import play.api.libs.json.{Json, OFormat, OWrites, Reads, __}
 
 case class ApprovalProcessPageReview(
@@ -31,9 +31,9 @@ case class ApprovalProcessPageReview(
 )
 
 object ApprovalProcessPageReview {
-  implicit val httpFormat: OFormat[ApprovalProcessPageReview] = Json.format[ApprovalProcessPageReview]
+  given httpFormat: OFormat[ApprovalProcessPageReview] = Json.format[ApprovalProcessPageReview]
 
-  import core.models.MongoDateTimeFormats.Implicits._
+  import core.models.MongoDateTimeFormats.Implicits.given
 
   val reads: Reads[ApprovalProcessPageReview] = (
     (__ \ "id").read[String] and
@@ -53,7 +53,7 @@ object ApprovalProcessPageReview {
       (__ \ "status").write[String] and
       (__ \ "updateDate").write[ZonedDateTime] and
       (__ \ "updateUser").writeNullable[String]
-  )(unlift(ApprovalProcessPageReview.unapply))
+  )(Tuple.fromProductTyped(_))
 
   val mongoFormat: OFormat[ApprovalProcessPageReview] = OFormat(reads, writes)
 }

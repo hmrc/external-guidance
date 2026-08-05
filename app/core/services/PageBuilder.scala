@@ -17,9 +17,9 @@
 package core.services
 
 import javax.inject.{Inject, Singleton}
-import core.models.ocelot._
-import core.models.ocelot.stanzas._
-import core.models.ocelot.errors._
+import core.models.ocelot.*
+import core.models.ocelot.stanzas.*
+import core.models.ocelot.errors.*
 import play.api.Logger
 import scala.annotation.tailrec
 
@@ -61,13 +61,13 @@ class PageBuilder @Inject() (val labelledData: LabelledData) extends ProcessPopu
   }
 
   def pages(process: Process, start: String = Process.StartStanzaId): Either[List[GuidanceError], List[Page]] =
-    pagesByKeys(List(start), Nil)(process) match {
+    pagesByKeys(List(start), Nil)(using process) match {
       case Left(err) => Left(List(err))
       case Right(pages) => Right(pages)
     }
 
   @tailrec
-  private def pagesByKeys(keys: List[String], acc: List[Page])(implicit process: Process): Either[GuidanceError, List[Page]] =
+  private def pagesByKeys(keys: List[String], acc: List[Page])(using process: Process): Either[GuidanceError, List[Page]] =
     keys match {
       case Nil => Right(acc)
       case key :: xs if !acc.exists(_.id == key) =>

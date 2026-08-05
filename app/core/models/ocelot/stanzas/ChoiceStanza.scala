@@ -20,27 +20,27 @@ import java.time.LocalDate
 import core.models.ocelot.errors.RuntimeError
 import core.models.ocelot.{asNumeric, asDate, Labels}
 import core.models.ocelot.{operandValue, labelReferences, labelReference}
-import play.api.libs.functional.syntax._
-import play.api.libs.json.Reads._
-import play.api.libs.json._
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.Reads.*
+import play.api.libs.json.*
 
 case class ChoiceStanzaTest(left: String, test: TestType, right: String)
 
 object ChoiceStanzaTest {
 
-  implicit val reads: Reads[ChoiceStanzaTest] =
+  given reads: Reads[ChoiceStanzaTest] =
     (
       (JsPath \ "left").read[String] and
         (JsPath \ "test").read[TestType] and
         (JsPath \ "right").read[String]
     )(ChoiceStanzaTest.apply _)
 
-  implicit val writes: OWrites[ChoiceStanzaTest] =
+  given writes: OWrites[ChoiceStanzaTest] =
     (
       (JsPath \ "left").write[String] and
         (JsPath \ "test").write[TestType] and
         (JsPath \ "right").write[String]
-    )(unlift(ChoiceStanzaTest.unapply))
+    )(Tuple.fromProductTyped(_))
 }
 
 case class ChoiceStanza(override val next: Seq[String], tests: Seq[ChoiceStanzaTest], stack: Boolean) extends Stanza {
@@ -49,19 +49,19 @@ case class ChoiceStanza(override val next: Seq[String], tests: Seq[ChoiceStanzaT
 
 object ChoiceStanza {
 
-  implicit val reads: Reads[ChoiceStanza] =
+  given reads: Reads[ChoiceStanza] =
     (
       (JsPath \ "next").read[Seq[String]](minLength[Seq[String]](2)) and
         (JsPath \ "tests").read[Seq[ChoiceStanzaTest]](minLength[Seq[ChoiceStanzaTest]](1)) and
         (JsPath \ "stack").read[Boolean]
     )(ChoiceStanza.apply _)
 
-  implicit val writes: OWrites[ChoiceStanza] =
+  given writes: OWrites[ChoiceStanza] =
     (
       (JsPath \ "next").write[Seq[String]] and
         (JsPath \ "tests").write[Seq[ChoiceStanzaTest]] and
         (JsPath \ "stack").write[Boolean]
-    )(unlift(ChoiceStanza.unapply))
+    )(Tuple.fromProductTyped(_))
 
 }
 
@@ -69,7 +69,7 @@ sealed trait ChoiceTest {
   val left: String
   val right: String
   def eval(labels: Labels): Boolean
-  def value(arg: String, labels: Labels): String = operandValue(arg)(labels).getOrElse("")
+  def value(arg: String, labels: Labels): String = operandValue(arg)(using labels).getOrElse("")
 
   def op(f: (BigDecimal, BigDecimal) => Boolean, g: (String, String) => Boolean, h: (LocalDate, LocalDate) => Boolean, labels: Labels): Boolean = {
     val x = value(left, labels)
@@ -132,7 +132,7 @@ case class ContainsTest(left: String, right: String) extends ChoiceTest {
 }
 
 object ChoiceTest {
-  implicit val reads: Reads[ChoiceTest] = (js: JsValue) => {
+  given reads: Reads[ChoiceTest] = (js: JsValue) => {
     (js \ "type").validate[String] match {
       case err @ JsError(_) => err
       case JsSuccess(typ, _) => typ match {
@@ -148,7 +148,7 @@ object ChoiceTest {
     }
   }
 
-  implicit val writes: Writes[ChoiceTest] = {
+  given writes: Writes[ChoiceTest] = {
     case t: EqualsTest => Json.obj("type" -> "eq") ++ Json.toJsObject[EqualsTest](t)
     case t: NotEqualsTest => Json.obj("type" -> "neq") ++ Json.toJsObject[NotEqualsTest](t)
     case t: MoreThanTest => Json.obj("type" -> "mt") ++ Json.toJsObject[MoreThanTest](t)
@@ -160,52 +160,52 @@ object ChoiceTest {
 }
 
 object EqualsTest {
-  implicit val reads: Reads[EqualsTest] =
+  given reads: Reads[EqualsTest] =
     ((JsPath \ "left").read[String] and (JsPath \ "right").read[String])(EqualsTest.apply _)
-  implicit val writes: OWrites[EqualsTest] =
-    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String])(unlift(EqualsTest.unapply))
+  given writes: OWrites[EqualsTest] =
+    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String])(Tuple.fromProductTyped(_))
 }
 
 object NotEqualsTest {
-  implicit val reads: Reads[NotEqualsTest] =
+  given reads: Reads[NotEqualsTest] =
     ((JsPath \ "left").read[String] and (JsPath \ "right").read[String])(NotEqualsTest.apply _)
-  implicit val writes: OWrites[NotEqualsTest] =
-    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String])(unlift(NotEqualsTest.unapply))
+  given writes: OWrites[NotEqualsTest] =
+    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String])(Tuple.fromProductTyped(_))
 }
 
 object MoreThanTest {
-  implicit val reads: Reads[MoreThanTest] =
+  given reads: Reads[MoreThanTest] =
     ((JsPath \ "left").read[String] and (JsPath \ "right").read[String])(MoreThanTest.apply _)
-  implicit val writes: OWrites[MoreThanTest] =
-    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String])(unlift(MoreThanTest.unapply))
+  given writes: OWrites[MoreThanTest] =
+    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String])(Tuple.fromProductTyped(_))
 }
 
 object MoreThanOrEqualsTest {
-  implicit val reads: Reads[MoreThanOrEqualsTest] =
+  given reads: Reads[MoreThanOrEqualsTest] =
     ((JsPath \ "left").read[String] and (JsPath \ "right").read[String])(MoreThanOrEqualsTest.apply _)
-  implicit val writes: OWrites[MoreThanOrEqualsTest] =
-    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String])(unlift(MoreThanOrEqualsTest.unapply))
+  given writes: OWrites[MoreThanOrEqualsTest] =
+    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String])(Tuple.fromProductTyped(_))
 }
 
 object LessThanTest {
-  implicit val reads: Reads[LessThanTest] =
+  given reads: Reads[LessThanTest] =
     ((JsPath \ "left").read[String] and (JsPath \ "right").read[String])(LessThanTest.apply _)
-  implicit val writes: OWrites[LessThanTest] =
-    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String])(unlift(LessThanTest.unapply))
+  given writes: OWrites[LessThanTest] =
+    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String])(Tuple.fromProductTyped(_))
 }
 
 object LessThanOrEqualsTest {
-  implicit val reads: Reads[LessThanOrEqualsTest] =
+  given reads: Reads[LessThanOrEqualsTest] =
     ((JsPath \ "left").read[String] and (JsPath \ "right").read[String])(LessThanOrEqualsTest.apply _)
-  implicit val writes: OWrites[LessThanOrEqualsTest] =
-    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String])(unlift(LessThanOrEqualsTest.unapply))
+  given writes: OWrites[LessThanOrEqualsTest] =
+    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String])(Tuple.fromProductTyped(_))
 }
 
 object ContainsTest {
-  implicit val reads: Reads[ContainsTest] =
+  given reads: Reads[ContainsTest] =
     ((JsPath \ "left").read[String] and (JsPath \ "right").read[String])(ContainsTest.apply _)
-  implicit val writes: OWrites[ContainsTest] =
-    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String])(unlift(ContainsTest.unapply))
+  given writes: OWrites[ContainsTest] =
+    ((JsPath \ "left").write[String] and (JsPath \ "right").write[String])(Tuple.fromProductTyped(_))
 }
 
 case class Choice(override val next: Seq[String], tests: Seq[ChoiceTest]) extends PopulatedStanza with Evaluate {
@@ -218,11 +218,11 @@ case class Choice(override val next: Seq[String], tests: Seq[ChoiceTest]) extend
 object Choice {
   def buildChoice(next: Seq[String], tests: Seq[ChoiceTest]): Choice = Choice(next, tests)
 
-  implicit val reads: Reads[Choice] =
+  given reads: Reads[Choice] =
     ((JsPath \ "next").read[Seq[String]](minLength[Seq[String]](1)) and (JsPath \ "tests").read[Seq[ChoiceTest]])(buildChoice _)
 
-  implicit val writes: OWrites[Choice] =
-    ((JsPath \ "next").write[Seq[String]] and (JsPath \ "tests").write[Seq[ChoiceTest]])(unlift(Choice.unapply))
+  given writes: OWrites[Choice] =
+    ((JsPath \ "next").write[Seq[String]] and (JsPath \ "tests").write[Seq[ChoiceTest]])(Tuple.fromProductTyped(_))
 
   def apply(stanza: ChoiceStanza): Choice =
     Choice(

@@ -19,6 +19,8 @@ package endpoints
 import data.ExamplePayloads
 import play.api.http.{ContentTypes, Status}
 import play.api.libs.json.{JsObject, JsValue}
+import play.api.libs.ws.JsonBodyReadables.readableAsJson
+import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 import play.api.libs.ws.WSResponse
 import stubs.{AuthStub, AuditStub}
 import support.IntegrationSpec

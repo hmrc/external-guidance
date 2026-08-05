@@ -100,7 +100,7 @@ package object ocelot {
   val boldOnlyPattern: String = s"^${boldPattern}$$"
 
   def matchGroup(m: Match)(grp: Int): Option[String] = Option(m.group(grp))
-  def operandValue(str: String)(implicit labels: Labels): Option[String] =
+  def operandValue(str: String)(using labels: Labels): Option[String] =
     OperandRegex.findFirstMatchIn(str).fold[Option[String]](Some(str)){m => scalarMatch(matchGroup(m), labels.value, labels.valueAsList)}
   val LabelNameGroup: Int = 1
   val LabelOutputFormatGroup: Int = 2
@@ -115,7 +115,7 @@ package object ocelot {
   val DatePlaceholderLabelNameGroup: Int = 11
   val DatePlaceholderFnGroup: Int = 13
 
-  def scalarMatch(capture: Int => Option[String], lbl: String => Option[String], listLbl: String => Option[List[String]])(implicit labels: Labels): Option[String] =
+  def scalarMatch(capture: Int => Option[String], lbl: String => Option[String], listLbl: String => Option[List[String]])(using labels: Labels): Option[String] =
     capture(LabelNameGroup).fold{
       capture(ListLabelNameGroup).fold{
         capture(DateAddTimescaleIdGroup).fold[Option[String]]{
@@ -165,8 +165,8 @@ package object ocelot {
       val capture = matchGroup(m) _
       capture(TextGroup).fold[(String, Boolean, Option[String])]((s, false, None)){field =>
         (capture(NoRepeatGroup1), capture(NoRepeatGroup2)) match {
-          case (Some(nr1), _) => (field, true, capture(WidthGroup1))
-          case (_, Some(nr2)) => (field, true, capture(WidthGroup2))
+          case (Some(_), _) => (field, true, capture(WidthGroup1))
+          case (_, Some(_)) => (field, true, capture(WidthGroup2))
           case (_, _) => (field, false, capture(WidthGroup2))
         }
       }
@@ -215,7 +215,7 @@ package object ocelot {
   def asListOfPositiveInt(value: String): Option[List[Int]] = listOfPositiveIntRegex.findFirstIn(value.filterNot(_.equals(' ')))
     .flatMap(s => lOfOtoOofL(s.split(",").toList.map(x => asPositiveInt(x))))
 
-  def datePlaceholder(date: Option[String], applyFunction: String)(implicit labels: Labels): Option[String] =
+  def datePlaceholder(date: Option[String], applyFunction: String)(using labels: Labels): Option[String] =
     date.flatMap { someDate =>
       asDate(someDate).flatMap(dte =>
         applyFunction match {
@@ -258,7 +258,7 @@ package object ocelot {
   // Creates a path-like string from the current flow stack made up of the current Sequence label value for each Sequence stanza in the
   // stack. E.g. Given a Sequence stanza within the parent Sequence stanza flow with labels "Child" and "Parent" respectively. If Child=March
   // and Parent=2023 on the current page, the flow path will be Some("2023/March"). The floe path could be used (along with the page url) to
-  // key answers within the guidance session. Although care will be needed to prevent '.' characters causing issues when the data is persisted
+  // key answers within the guidance session. Although care will be needed to prevent '.' characters causing  issues when the data is persisted
   // to Mongo as the user answer id is included in the persistence query (See DefaultSessionRepository.updateAfterFormSubmission()).
   def flowPath(stack: List[FlowStage]): Option[String] = {
     def isNewLabel(l: List[Flow], labelValue: Option[LabelValue]): Boolean =

@@ -17,9 +17,9 @@
 package core.models.ocelot.stanzas
 
 import core.models.ocelot.{Validation, labelReferences, Phrase, Labels, Page, hintRegex, asPositiveInt}
-import play.api.libs.functional.syntax._
-import play.api.libs.json.Reads._
-import play.api.libs.json._
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.Reads.*
+import play.api.libs.json.*
 
 case class QuestionStanza(text: Int,
                           answers: Seq[Int],
@@ -31,21 +31,21 @@ case class QuestionStanza(text: Int,
 
 object QuestionStanza {
 
-  implicit val questionReads: Reads[QuestionStanza] =
+  given questionReads: Reads[QuestionStanza] =
     ((JsPath \ "text").read[Int] and
       (JsPath \ "answers").read[Seq[Int]] and
       (JsPath \ "next").read[Seq[String]](minLength[Seq[String]](1)) and
       (JsPath \ "label").readNullable[String] and
       (JsPath \ "stack").read[Boolean])(QuestionStanza.apply _)
 
-  implicit val questionWrites: OWrites[QuestionStanza] =
+  given questionWrites: OWrites[QuestionStanza] =
     (
       (JsPath \ "text").write[Int] and
         (JsPath \ "answers").write[Seq[Int]] and
         (JsPath \ "next").write[Seq[String]] and
         (JsPath \ "label").writeNullable[String] and
         (JsPath \ "stack").write[Boolean]
-    )(unlift(QuestionStanza.unapply))
+    )(Tuple.fromProductTyped(_))
 
 }
 

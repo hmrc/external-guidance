@@ -22,7 +22,7 @@ import core.models.ocelot.Published
 import core.models.ocelot.errors.{GuidanceError, UnsupportedUiPatternError, InvalidFieldWidth}
 
 class ErrorSpec extends BaseSpec {
-  import Error._
+  import Error.*
 
   "Error companion object" should {
     "translate RuntimeError into Error" in {

@@ -17,16 +17,15 @@
 package controllers
 
 import base.BaseSpec
-import controllers.actions.FakeAllRolesAction
 import core.models.errors.{BadRequestError, InternalServerError, NotFoundError}
 import core.models.ocelot.ProcessJson
 import mocks.MockArchiveService
 import models.{ArchivedProcess, ProcessSummary}
 import play.api.http.ContentTypes
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 
 import java.time.ZonedDateTime
 import scala.concurrent.Future
@@ -41,8 +40,7 @@ class ArchivedControllerSpec extends BaseSpec with ProcessJson {
 
     lazy val target: ArchivedController = new ArchivedController(
       mockArchiveService,
-      stubControllerComponents(),
-      FakeAllRolesAction
+      stubControllerComponents()
     )
 
     lazy val getRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, "/")
@@ -185,7 +183,7 @@ class ArchivedControllerSpec extends BaseSpec with ProcessJson {
     "the request is valid" should {
 
       trait ValidListTest extends Test {
-        implicit val formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
+        given formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
         MockArchiveService
           .list
           .returns(Future.successful(Right(Json.toJson(List(processSummary)).as[JsArray])))

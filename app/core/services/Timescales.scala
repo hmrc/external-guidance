@@ -17,10 +17,10 @@
 package core.services
 
 import javax.inject.{Inject, Singleton}
-import core.models.ocelot._
+import core.models.ocelot.*
 import java.time.LocalDate
 import scala.util.matching.Regex
-import Regex._
+import Regex.*
 
 trait TodayProvider {
   private val TaxYearStartDay: Int = 6

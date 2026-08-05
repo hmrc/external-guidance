@@ -17,7 +17,7 @@
 package core.models.ocelot
 
 import base.BaseSpec
-import play.api.libs.json._
+import play.api.libs.json.*
 
 
 class RunModeSpec extends BaseSpec {
@@ -59,7 +59,7 @@ class RunModeSpec extends BaseSpec {
       try{
         Json.parse(""""Blah"""").as[RunMode]
       } catch {
-        case jse: JsResultException => succeed
+        case _: JsResultException => succeed
         case _: Throwable => fail()
       }
 

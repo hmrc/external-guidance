@@ -16,8 +16,8 @@
 
 package core.models.ocelot
 
-import play.api.libs.json.Reads._
-import play.api.libs.json._
+import play.api.libs.json.Reads.*
+import play.api.libs.json.*
 import play.api.i18n.Lang
 
 case class Phrase(english: String, welsh: String) {
@@ -26,9 +26,9 @@ case class Phrase(english: String, welsh: String) {
 
 object Phrase {
   def apply(langs: Vector[String]): Phrase = Phrase(langs(0), langs(1))
-  implicit val reads: Reads[Phrase] = __.read[Vector[String]](minLength[Vector[String]](2)).map(Phrase(_))
+  given reads: Reads[Phrase] = __.read[Vector[String]](minLength[Vector[String]](2)).map(Phrase(_))
 
-  implicit val writes: Writes[Phrase] = new Writes[Phrase] {
+  given writes: Writes[Phrase] = new Writes[Phrase] {
     override def writes(phrase: Phrase): JsValue = Json.toJson(Vector(phrase.english, phrase.welsh))
   }
 

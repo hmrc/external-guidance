@@ -16,9 +16,9 @@
 
 package core.models.ocelot
 
-import play.api.libs.functional.syntax._
+import play.api.libs.functional.syntax.*
 import play.api.libs.json.{Reads, OWrites, __}
-import core.models.ocelot.stanzas._
+import core.models.ocelot.stanzas.*
 
 object SecuredProcess {
   val InputId: String = "passinput"
@@ -31,8 +31,8 @@ object SecuredProcess {
 }
 
 case class Process(meta: Meta, flow: Map[String, Stanza], phrases: Vector[Phrase], links: Vector[Link], timescales: Map[String, Int] = Map(), rates: Map[String, BigDecimal] = Map()) {
-  import SecuredProcess._
-  import Process._
+  import SecuredProcess.*
+  import Process.*
   lazy val phraseOption: Int => Option[Phrase] = phrases.lift
   lazy val linkOption: Int => Option[Link] = links.lift
   lazy val title: Phrase = meta.titlePhrase.fold(Phrase(meta.title, meta.title))(idx => phraseOption(idx).getOrElse(Phrase(meta.title, meta.title)))
@@ -69,7 +69,7 @@ object Process {
   def buildProcess(m: Meta, f: Map[String, Stanza], p: Vector[Phrase], l: Vector[Link], t: Option[Map[String, Int]], r: Option[Map[String, BigDecimal]]): Process =
     Process(m, f, p, l, t.getOrElse(Map()), r.getOrElse(Map()))
 
-  implicit val reads: Reads[Process] = (
+  given reads: Reads[Process] = (
     (__ \ "meta").read[Meta] and
       (__ \ "flow").read[Map[String, Stanza]] and
       (__ \ "phrases").read[Vector[Phrase]] and
@@ -78,12 +78,12 @@ object Process {
       (__ \ "rates").readNullable[Map[String, BigDecimal]]
   )(buildProcess _)
 
-  implicit val writes: OWrites[Process] = (
+  given writes: OWrites[Process] = (
     (__ \ "meta").write[Meta] and
       (__ \ "flow").write[Map[String, Stanza]] and
       (__ \ "phrases").write[Vector[Phrase]] and
       (__ \ "links").write[Vector[Link]] and
       (__ \ "timescales").write[Map[String, Int]] and
       (__ \ "rates").write[Map[String, BigDecimal]]
-  )(unlift(Process.unapply))
+  )(Tuple.fromProductTyped(_))
 }

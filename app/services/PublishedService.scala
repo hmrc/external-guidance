@@ -18,25 +18,24 @@ package services
 
 import javax.inject.{Inject, Singleton}
 import core.models.errors.{BadRequestError, DuplicateKeyError, InternalServerError, NotFoundError}
-import core.models.ocelot._
+import core.models.ocelot.*
 import core.models.RequestOutcome
 import models.{LabelledDataId, ProcessSummary, PublishedProcess}
 import play.api.Logger
 import play.api.libs.json.JsObject
-import repositories.{ApprovalsRepository, ArchiveRepository, PublishedRepository}
+import repositories.{ArchiveRepository, PublishedRepository}
 import core.services.validateProcessId
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.libs.json.{JsValue, Json, OFormat}
 
 @Singleton
 class PublishedService @Inject() (published: PublishedRepository,
-                                  archive: ArchiveRepository,
-                                  approval: ApprovalsRepository)(implicit ec: ExecutionContext) {
+                                  archive: ArchiveRepository)(using ec: ExecutionContext) {
 
   val logger: Logger = Logger(this.getClass)
 
   def list: Future[RequestOutcome[JsValue]] = {
-    implicit val formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
+    given formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
     published.processSummaries() map {
       case Left(_) => Left(InternalServerError)
       case Right(summaries) => Right(Json.toJson(summaries))

@@ -18,16 +18,15 @@ package services
 
 import java.util.UUID
 import base.BaseSpec
-import mocks.MockScratchRepository
-import core.services._
-import core.models.errors._
-import core.models.ocelot.errors._
+import mocks.{MockRatesService, MockScratchRepository, MockTimescalesService, mockAppConfig}
+import core.services.*
+import core.models.errors.*
+import core.models.ocelot.errors.*
 import core.models.RequestOutcome
 import core.models.ocelot.ProcessJson
-import play.api.libs.json.{Json, JsObject}
-import mocks.MockAppConfig
+import play.api.libs.json.{JsObject, Json}
+
 import scala.concurrent.Future
-import mocks.{MockTimescalesService, MockRatesService}
 
 class ScratchServiceSpec extends BaseSpec {
 
@@ -40,17 +39,15 @@ class ScratchServiceSpec extends BaseSpec {
                                 mockTimescalesService,
                                 timescales,
                                 mockRatesService,
-                                rates,
-                                MockAppConfig
+                                rates
                               )
     val fsService = new ProcessFinalisationService(
-                    MockAppConfig,
                     pageBuilder,
                     labelledDataService,
-                    new EncrypterService(MockAppConfig)
+                    new EncrypterService(mockAppConfig)
                   )
 
-    lazy val target: ScratchService = new ScratchService(mockScratchRepository, fsService)(ec, MockAppConfig)
+    lazy val target: ScratchService = new ScratchService(mockScratchRepository, fsService)(using ec, mockAppConfig)
   }
 
     "Calling save" should {
@@ -130,7 +127,7 @@ class ScratchServiceSpec extends BaseSpec {
           .never()
 
         whenReady(target.save(process)) {
-          case result @ Left(err) if err.code == Error.UnprocessableEntity => succeed
+          case Left(err) if err.code == Error.UnprocessableEntity => succeed
           case _ => fail()
         }
       }

@@ -41,7 +41,7 @@ trait MockLabelledDataService extends TestSuite with MockFactory {
 
     def addLabelledDataTables(pages: Seq[Page], process: Process, js: Option[JsObject]): CallHandler[Future[RequestOutcome[(Process, Seq[Page], JsObject)]]] =
       (mockLabelledDataService
-        .addLabelledDataTables(_: Seq[Page], _: Process, _: Option[JsObject])(_: ExecutionContext))
+        .addLabelledDataTables(_: Seq[Page], _: Process, _: Option[JsObject])(using _: ExecutionContext))
         .expects(pages, process, js, *)
 
     def save(dataId: LabelledDataId, rates: JsValue, credId: String, user: String, email: String, inUse: List[String]): CallHandler[Future[RequestOutcome[LabelledDataUpdateStatus]]] =

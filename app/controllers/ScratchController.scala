@@ -29,12 +29,12 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton()
 class ScratchController @Inject() (scratchService: ScratchService,
                                    labelledDataService: LabelledDataService,
-                                   cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) {
+                                   cc: ControllerComponents)(using ec: ExecutionContext) extends BackendController(cc) {
 
   val logger: Logger = Logger(getClass)
-  import Json._
+  import Json.*
 
-  def save(): Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def save: Action[JsValue] = Action.async(parse.json) { request =>
     request.body.validate[JsObject].fold(errs => {
       logger.error(s"Unable to parse incoming json as a JsObject, Errors: $errs")
       Future.successful(BadRequest(toJson(OcelotError(BadRequestError))))
@@ -48,7 +48,7 @@ class ScratchController @Inject() (scratchService: ScratchService,
           logger.error(s"Save on scratch service returned ValidationError")
           BadRequest(toJson(OcelotError(BadRequestError)))
         case Left(BadRequestError) => BadRequest(toJson(OcelotError(BadRequestError)))
-        case Left(err) => InternalServerError(toJson(OcelotError(ServerError)))
+        case Left(_) => InternalServerError(toJson(OcelotError(ServerError)))
       }
     })
   }

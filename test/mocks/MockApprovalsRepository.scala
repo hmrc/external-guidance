@@ -23,6 +23,7 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.TestSuite
 import repositories.ApprovalsRepository
 
+import scala.annotation.unused
 import scala.concurrent.Future
 
 trait MockApprovalsRepository extends TestSuite with MockFactory {
@@ -31,17 +32,17 @@ trait MockApprovalsRepository extends TestSuite with MockFactory {
 
   object MockApprovalsRepository {
 
-    def createOrUpdate(process: Approval): CallHandler[Future[RequestOutcome[String]]] =
+    def createOrUpdate(@unused process: Approval): CallHandler[Future[RequestOutcome[String]]] =
       (mockApprovalsRepository
         .createOrUpdate(_: Approval))
         .expects(*)
 
-    def getById(id: String): CallHandler[Future[RequestOutcome[Approval]]] =
+    def getById(@unused id: String): CallHandler[Future[RequestOutcome[Approval]]] =
       (mockApprovalsRepository
         .getById(_: String))
         .expects(*)
 
-    def getByProcessCode(processCode: String): CallHandler[Future[RequestOutcome[Approval]]] =
+    def getByProcessCode(@unused processCode: String): CallHandler[Future[RequestOutcome[Approval]]] =
       (mockApprovalsRepository
         .getByProcessCode(_: String))
         .expects(*)

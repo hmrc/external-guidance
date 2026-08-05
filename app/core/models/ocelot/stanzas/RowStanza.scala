@@ -17,28 +17,28 @@
 package core.models.ocelot.stanzas
 
 import core.models.ocelot.{labelReferences, Phrase}
-import play.api.libs.functional.syntax._
-import play.api.libs.json.Reads._
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.Reads.*
 import play.api.libs.json.{JsPath, OWrites, Reads}
 
 case class RowStanza (cells: Seq[Int], override val next: Seq[String],  stack: Boolean) extends Stanza
 
 object RowStanza {
 
-  implicit val rowReads: Reads[RowStanza] =
+  given rowReads: Reads[RowStanza] =
     (
       (JsPath \ "cells").read[Seq[Int]] and
       (JsPath \ "next").read[Seq[String]](minLength[Seq[String]](1)) and
       (JsPath \ "stack").read[Boolean]
     )(RowStanza.apply _)
 
-  implicit val rowWrites: OWrites[RowStanza] =
+  given rowWrites: OWrites[RowStanza] =
     (
       (JsPath \ "cells").write[Seq[Int]] and
         (JsPath \ "next").write[Seq[String]] and
         (JsPath \ "stack").write[Boolean]
 
-    )(unlift(RowStanza.unapply))
+    )(Tuple.fromProductTyped(_))
 }
 
 case class Row( cells: Seq[Phrase],

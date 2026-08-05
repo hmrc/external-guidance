@@ -16,7 +16,6 @@
 
 package controllers
 
-import controllers.actions.AllRolesAction
 import models.errors.OcelotError
 
 import javax.inject.{Inject, Singleton}
@@ -30,9 +29,8 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class ArchivedController @Inject() (archivedService: ArchiveService,
-                                    cc: ControllerComponents,
-                                    identify: AllRolesAction)(implicit ec: ExecutionContext) extends BackendController(cc) {
-  import Json._
+                                    cc: ControllerComponents)(using ec: ExecutionContext) extends BackendController(cc) {
+  import Json.*
 
   def get(id: String): Action[AnyContent] = Action.async {
     archivedService.getById(id).map {

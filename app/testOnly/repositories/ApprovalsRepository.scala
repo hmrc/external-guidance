@@ -21,14 +21,14 @@ import core.models.errors.DatabaseError
 import core.models.RequestOutcome
 import models.Approval
 import play.api.Logger
-import org.mongodb.scala.model.Filters._
-import uk.gov.hmrc.mongo._
+import org.mongodb.scala.model.Filters.*
+import uk.gov.hmrc.mongo.*
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ApprovalsRepository @Inject() (component: MongoComponent)(implicit ec: ExecutionContext)
+class ApprovalsRepository @Inject() (component: MongoComponent)(using ec: ExecutionContext)
     extends PlayMongoRepository[Approval](
       collectionName = "approvals",
       mongoComponent = component,

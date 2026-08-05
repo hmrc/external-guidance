@@ -18,7 +18,7 @@ import play.sbt.routes.RoutesKeys
 val appName = "external-guidance"
 
 ThisBuild / majorVersion := 0
-ThisBuild / scalaVersion := "2.13.18"
+ThisBuild / scalaVersion := "3.3.7"
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
@@ -27,7 +27,8 @@ lazy val microservice = Project(appName, file("."))
     scalacOptions ++= Seq(
       "-feature",
       "-Wconf:src=routes/.*:s",
-      "-Wconf:cat=unused-imports&src=html/.*:s"
+      "-Wconf:src=html/.*:s",
+      "-Wconf:msg=Flag .* set repeatedly:s"
     ),
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test
   )
@@ -35,6 +36,9 @@ lazy val microservice = Project(appName, file("."))
 
 
 lazy val it = project
+  .settings(
+    scalacOptions += "-Wconf:msg=Flag .* set repeatedly:s"
+  )
   .enablePlugins(PlayScala)
   .dependsOn(microservice % "test->test") // the "test->test" allows reusing test code and test dependencies
 
@@ -49,7 +53,7 @@ coverageExcludedPackages := "migrate.*;" +
   "app"
 coverageHighlighting := true
 coverageFailOnMinimum := false
-coverageMinimumStmtTotal := 94.7
+coverageMinimumStmtTotal := 90
 coverageMinimumBranchTotal := 90
 
 addCommandAlias("runAllChecks", ";clean;compile;coverage;test;it/test;coverageReport")

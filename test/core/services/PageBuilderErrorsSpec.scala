@@ -17,10 +17,10 @@
 package core.services
 
 import base.BaseSpec
-import core.models.ocelot.errors._
-import core.models.ocelot.stanzas._
-import core.models.ocelot._
-import play.api.libs.json._
+import core.models.ocelot.errors.*
+import core.models.ocelot.stanzas.*
+import core.models.ocelot.*
+import play.api.libs.json.*
 
 class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
   // Define instance of class used in testing
@@ -309,7 +309,7 @@ class PageBuilderErrorsSpec extends BaseSpec with ProcessJson {
       )
       result.fold(
         {
-          case x :: xs if x.equals(TimescalesParseError("RepayReim", "error.expected.jsnumber", "")) => {
+          case x :: _ if x.equals(TimescalesParseError("RepayReim", "error.expected.jsnumber", "")) => {
             succeed
           }
           case errs => {

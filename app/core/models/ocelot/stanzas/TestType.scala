@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import play.api.libs.json._
+import play.api.libs.json.*
 
 sealed trait TestType
 
@@ -30,7 +30,7 @@ case object Contains extends TestType
 
 object TestType {
 
-  implicit val reads: Reads[TestType] = {
+  given reads: Reads[TestType] = {
     case JsString("equals") => JsSuccess(Equals, __)
     case JsString("notEquals") => JsSuccess(NotEquals, __)
     case JsString("moreThan") => JsSuccess(MoreThan, __)
@@ -42,7 +42,7 @@ object TestType {
     case unknown => JsError(JsonValidationError(Seq("TestType"), unknown.toString))
   }
 
-  implicit val writes: Writes[TestType] = {
+  given writes: Writes[TestType] = {
     case Equals => Json.toJson("equals")
     case NotEquals => Json.toJson("notEquals")
     case MoreThan => Json.toJson("moreThan")

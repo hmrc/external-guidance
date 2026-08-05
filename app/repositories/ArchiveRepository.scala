@@ -22,19 +22,19 @@ import core.models.ocelot.Process
 import core.models.errors.{DatabaseError, NotFoundError}
 import models.{ArchivedProcess, ProcessSummary, PublishedProcess}
 import play.api.Logger
-import org.mongodb.scala._
-import org.mongodb.scala.model.Filters._
-import org.mongodb.scala.model.Sorts._
-import org.mongodb.scala.model.Updates._
-import org.mongodb.scala.model._
-import uk.gov.hmrc.mongo._
+import org.mongodb.scala.*
+import org.mongodb.scala.model.Filters.*
+import org.mongodb.scala.model.Sorts.*
+import org.mongodb.scala.model.Updates.*
+import org.mongodb.scala.model.*
+import uk.gov.hmrc.mongo.*
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
-import core.models.MongoDateTimeFormats.Implicits._
+import core.models.MongoDateTimeFormats.Implicits.given
 
 import java.util.concurrent.TimeUnit
 
@@ -46,7 +46,7 @@ trait ArchiveRepository {
 }
 
 @Singleton
-class ArchiveRepositoryImpl @Inject() (config: AppConfig, mongo: MongoComponent)(implicit ec: ExecutionContext)
+class ArchiveRepositoryImpl @Inject() (config: AppConfig, mongo: MongoComponent)(using ec: ExecutionContext)
     extends PlayMongoRepository[ArchivedProcess](
       collectionName = "archivedProcesses",
       mongoComponent = mongo,
@@ -59,7 +59,7 @@ class ArchiveRepositoryImpl @Inject() (config: AppConfig, mongo: MongoComponent)
                               IndexOptions()
                                 .name("expiryIndex")
                                 .unique(false)
-                                .expireAfter(config.archivedExpiryHours, TimeUnit.HOURS))),
+                                .expireAfter(config.archivedExpiryHours.toLong, TimeUnit.HOURS))),
       extraCodecs = Seq(Codecs.playFormatCodec(zonedDateTimeFormat)),
       replaceIndexes = true
     )

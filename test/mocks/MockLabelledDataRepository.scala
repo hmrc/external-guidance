@@ -26,6 +26,7 @@ import models.{LabelledData, LabelledDataId}
 import org.scalatest.TestSuite
 import repositories.LabelledDataRepository
 
+import scala.annotation.unused
 import scala.concurrent.Future
 
 trait MockLabelledDataRepository extends TestSuite with MockFactory {
@@ -33,7 +34,7 @@ trait MockLabelledDataRepository extends TestSuite with MockFactory {
 
   object MockLabelledDataRepository {
 
-    def save(id: LabelledDataId, data: JsValue, when: Instant, credId: String, user: String, email: String): CallHandler[Future[RequestOutcome[LabelledData]]] =
+    def save(id: LabelledDataId, data: JsValue, @unused when: Instant, credId: String, user: String, email: String): CallHandler[Future[RequestOutcome[LabelledData]]] =
       (mockLabelledDataRepository
         .save(_: LabelledDataId, _: JsValue, _: Instant, _: String, _: String, _: String))
         .expects(id, data, *, credId, user, email)

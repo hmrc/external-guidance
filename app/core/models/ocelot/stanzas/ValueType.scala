@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import play.api.libs.json._
+import play.api.libs.json.*
 
 sealed trait ValueType
 
@@ -25,14 +25,14 @@ case object ListType extends ValueType
 
 object ValueType {
 
-  implicit val reads: Reads[ValueType] = {
+  given reads: Reads[ValueType] = {
     case JsString("scalar") => JsSuccess(ScalarType, __)
     case JsString("list") => JsSuccess(ListType, __)
     case typeName: JsString => JsError(JsonValidationError(Seq("ValueType"), typeName.value))
     case unknown => JsError(JsonValidationError(Seq("ValueType"), unknown.toString))
   }
 
-  implicit val writes: Writes[ValueType] = {
+  given writes: Writes[ValueType] = {
     case ScalarType => Json.toJson("scalar")
     case ListType => Json.toJson("list")
   }

@@ -17,8 +17,8 @@
 package core.models.ocelot.stanzas
 
 import core.models.ocelot.{Validation, KeyedStanza, labelReferences, Page, Labels, Phrase, stripHintPlaceholder, asListOfPositiveInt}
-import play.api.libs.functional.syntax._
-import play.api.libs.json.Reads._
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.Reads.*
 import play.api.libs.json.{JsSuccess, JsError, JsValue, JsonValidationError, JsPath, OWrites, Reads}
 
 case class SequenceStanza(text: Int,
@@ -30,7 +30,7 @@ case class SequenceStanza(text: Int,
 }
 
 object SequenceStanza {
-  implicit val reads: Reads[SequenceStanza] = (js: JsValue) =>
+  given reads: Reads[SequenceStanza] = (js: JsValue) =>
     ((js \ "text").validate[Int] and
       (js \ "next").validate[Seq[String]](minLength[Seq[String]](3)) and
       (js \ "options").validate[Seq[Int]](minLength[Seq[Int]](2)) and
@@ -43,14 +43,14 @@ object SequenceStanza {
         JsSuccess(SequenceStanza(text, next, options, label, stack))
     }
 
-  implicit val writes: OWrites[SequenceStanza] =
+  given writes: OWrites[SequenceStanza] =
     (
       (JsPath \ "text").write[Int] and
         (JsPath \ "next").write[Seq[String]] and
         (JsPath \ "options").write[Seq[Int]] and
         (JsPath \ "label").writeNullable[String] and
         (JsPath \ "stack").write[Boolean]
-    )(unlift(SequenceStanza.unapply))
+    )(Tuple.fromProductTyped(_))
 }
 
 object Sequence {

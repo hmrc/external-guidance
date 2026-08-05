@@ -27,10 +27,10 @@ import config.AppConfig
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.Logger
 import java.util.concurrent.TimeUnit
-import org.mongodb.scala.model.Filters._
-import org.mongodb.scala.model.Sorts._
-import org.mongodb.scala.model._
-import uk.gov.hmrc.mongo._
+import org.mongodb.scala.model.Filters.*
+import org.mongodb.scala.model.Sorts.*
+import org.mongodb.scala.model.*
+import uk.gov.hmrc.mongo.*
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import uk.gov.hmrc.mongo.play.json.formats.MongoUuidFormats.Implicits.uuidFormat
 import org.mongodb.scala.result.InsertOneResult
@@ -41,7 +41,7 @@ trait ScratchRepository {
 }
 
 @Singleton
-class ScratchRepositoryImpl @Inject() (component: MongoComponent, appConfig: AppConfig)(implicit ec: ExecutionContext)
+class ScratchRepositoryImpl @Inject() (component: MongoComponent, appConfig: AppConfig)(using ec: ExecutionContext)
     extends PlayMongoRepository[ScratchProcess](
       collectionName = "scratchProcesses",
       mongoComponent = component,

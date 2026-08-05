@@ -18,30 +18,19 @@ package mocks
 
 import config.AppConfig
 
-object MockAppConfig extends AppConfig {
+trait MockAppConfig extends AppConfig {
 
-  val scratchExpiryHour: Int = 23
-  val scratchExpiryMinutes: Int = 59
-  val scratchExpiryTZ: String = "Europe/London"
-  val archivedExpiryHours: Int = 720
+  lazy val scratchExpiryHour: Int = 23
+  lazy val scratchExpiryMinutes: Int = 59
+  lazy val scratchExpiryTZ: String = "Europe/London"
+  lazy val archivedExpiryHours: Int = 720
 
-  val designerRole: String = "Designer"
-  val factCheckerRole: String = "FactChecker"
-  val twoEyeReviewerRole: String = "2iReviewer"
-  val fakeWelshInUnauthenticatedGuidance: Boolean = true
-  val seedTimescales: Map[String,Int] = Map("First" -> 1, "Second" -> 2, "Third" -> 3)
-  val passphraseHashKey: String = "gvBoGdgzqG1AarzF1LY0zQ=="
+  lazy val designerRole: String = "Designer"
+  lazy val factCheckerRole: String = "FactChecker"
+  lazy val twoEyeReviewerRole: String = "2iReviewer"
+  lazy val fakeWelshInUnauthenticatedGuidance: Boolean = true
+  lazy val seedTimescales: Map[String,Int] = Map("First" -> 1, "Second" -> 2, "Third" -> 3)
+  lazy val passphraseHashKey: String = "gvBoGdgzqG1AarzF1LY0zQ=="
 }
-
-case class MockAppConfigCopyable(scratchExpiryHour: Int,
-                                 scratchExpiryMinutes: Int,
-                                 scratchExpiryTZ: String,
-                                 archivedExpiryHours: Int,
-                                 designerRole: String,
-                                 factCheckerRole: String,
-                                 twoEyeReviewerRole: String,
-                                 fakeWelshInUnauthenticatedGuidance: Boolean,
-                                 seedTimescales: Map[String,Int],
-                                 passphraseHashKey: String) extends AppConfig
 
 

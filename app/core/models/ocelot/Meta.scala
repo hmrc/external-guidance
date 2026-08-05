@@ -17,8 +17,8 @@
 package core.models.ocelot
 
 import java.time.ZonedDateTime
-import play.api.libs.json._
-import play.api.libs.functional.syntax._
+import play.api.libs.json.*
+import play.api.libs.functional.syntax.*
 
 case class Meta(id: String,
                 title: String,
@@ -64,7 +64,7 @@ object Meta {
          ratesVersion
        )
 
-  implicit val metaReads: Reads[Meta] = (
+  given metaReads: Reads[Meta] = (
     (__ \ "id").read[String] and
       (__ \ "title").read[String] and
       (__ \ "passPhrase").readNullable[String] and
@@ -80,7 +80,7 @@ object Meta {
       (__ \ "ratesVersion").readNullable[Long]
   )(buildMetaSection _)
 
-  implicit val writes: Writes[Meta] = (
+  given writes: Writes[Meta] = (
     (__ \ "id").write[String] and
       (__ \ "title").write[String] and
       (__ \ "passPhrase").writeNullable[String] and
@@ -94,5 +94,5 @@ object Meta {
       (__ \ "processCode").write[String] and
       (__ \ "timescalesVersion").writeNullable[Long] and
       (__ \ "ratesVersion").writeNullable[Long]
-  )(unlift(Meta.unapply))
+  )(Tuple.fromProductTyped(_))
 }

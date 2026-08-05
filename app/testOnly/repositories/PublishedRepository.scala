@@ -21,17 +21,17 @@ import core.models.errors.DatabaseError
 import core.models.RequestOutcome
 import models.PublishedProcess
 import play.api.Logger
-import org.mongodb.scala.model.Filters._
-import org.mongodb.scala.model.Updates._
-import org.mongodb.scala.model._
-import uk.gov.hmrc.mongo._
+import org.mongodb.scala.model.Filters.*
+import org.mongodb.scala.model.Updates.*
+import org.mongodb.scala.model.*
+import uk.gov.hmrc.mongo.*
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
 import scala.concurrent.{ExecutionContext, Future}
 import java.time.ZonedDateTime
 
 @Singleton
-class PublishedRepository @Inject() (component: MongoComponent)(implicit ec: ExecutionContext)
+class PublishedRepository @Inject() (component: MongoComponent)(using ec: ExecutionContext)
     extends PlayMongoRepository[PublishedProcess](
       collectionName = "publishedProcesses",
       mongoComponent = component,

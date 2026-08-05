@@ -16,13 +16,13 @@
 
 package mocks
 
-import core.models._
-import models._
+import core.models.*
+import models.*
 import org.scalamock.handlers.CallHandler
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{JsObject, JsValue}
 import services.ApprovalReviewService
-import models.Constants._
+import models.Constants.*
 import org.scalatest.TestSuite
 
 import scala.concurrent.Future
@@ -63,10 +63,10 @@ trait MockApprovalReviewService extends TestSuite with MockFactory {
 
     // Review service
 
-    def approvalReviewInfo(id: String, reviewType: String): CallHandler[Future[RequestOutcome[ProcessReview]]] = {
+    def approvalReviewInfo(id: String): CallHandler[Future[RequestOutcome[ProcessReview]]] = {
       (mockApprovalReviewService
-        .approvalReviewInfo(_: String, _: String))
-        .expects(id, reviewType)
+        .approvalReviewInfo(_: String))
+        .expects(id)
     }
 
     def twoEyeReviewComplete(id: String, statusInfo: ApprovalProcessStatusChange): CallHandler[Future[RequestOutcome[AuditInfo]]] = {
@@ -75,10 +75,10 @@ trait MockApprovalReviewService extends TestSuite with MockFactory {
         .expects(id, statusInfo)
     }
 
-    def approvalPageInfo(id: String, pageUrl: String, reviewType: String): CallHandler[Future[RequestOutcome[ApprovalProcessPageReview]]] = {
+    def approvalPageInfo(id: String, pageUrl: String): CallHandler[Future[RequestOutcome[ApprovalProcessPageReview]]] = {
       (mockApprovalReviewService
-        .approvalPageInfo(_: String, _: String, _: String))
-        .expects(id, pageUrl, reviewType)
+        .approvalPageInfo(_: String, _: String))
+        .expects(id, pageUrl)
     }
 
     def factCheckComplete(id: String, statusInfo: ApprovalProcessStatusChange): CallHandler[Future[RequestOutcome[AuditInfo]]] = {

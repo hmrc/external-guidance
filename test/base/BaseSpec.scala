@@ -21,18 +21,18 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.i18n.Lang
 import play.api.inject.Injector
 import play.api.inject.guice.GuiceApplicationBuilder
 import scala.concurrent.ExecutionContext
 
 trait EnglishLanguage {
-  implicit val lang: Lang = Lang("en")
+  given lang: Lang = Lang("en")
 }
 
 trait WelshLanguage {
-  implicit val lang: Lang = Lang("cy")
+  given lang: Lang = Lang("cy")
 }
 
 trait TestConstants {
@@ -100,7 +100,7 @@ trait TestConstants {
         "day.display.value.7" -> "Dydd Sul"
       )
 
-  def message(lang: Lang)(id: String, param: Seq[Any]): String =
+  def message(lang: Lang)(id: String): String =
     lang.code match {
       case "en" => enmessages(id)
       case "cy" => cymessages(id)
@@ -113,9 +113,9 @@ trait BaseSpec extends AnyWordSpec with Matchers with ScalaFutures with TestCons
     .build()
 
   lazy val injector: Injector = app.injector
-  implicit val ec: ExecutionContext = injector.instanceOf[ExecutionContext]
+  given ec: ExecutionContext = injector.instanceOf[ExecutionContext]
 
-  def missingJsObjectAttrTests[T](jsObject: JsObject, attrsToIgnore: List[String] = Nil)(implicit objectReads: Reads[T]): Unit =
+  def missingJsObjectAttrTests[T](jsObject: JsObject, attrsToIgnore: List[String] = Nil)(using objectReads: Reads[T]): Unit =
     jsObject.keys.filterNot(attrsToIgnore.contains(_)).foreach { attributeName =>
       s"return error when json is missing attribute $attributeName" in {
         val invalidJson = jsObject - attributeName
@@ -126,7 +126,7 @@ trait BaseSpec extends AnyWordSpec with Matchers with ScalaFutures with TestCons
       }
     }
 
-  def incorrectPropertyTypeJsObjectAttrTests[T](jsObject: JsObject, attrsToIgnore: List[String] = Nil)(implicit objectReads: Reads[T]): Unit = {
+  def incorrectPropertyTypeJsObjectAttrTests[T](jsObject: JsObject, attrsToIgnore: List[String] = Nil)(using objectReads: Reads[T]): Unit = {
 
     jsObject.keys.filterNot(attrsToIgnore.contains(_)).foreach { attributeName =>
       val attributeValue = jsObject.value(attributeName)

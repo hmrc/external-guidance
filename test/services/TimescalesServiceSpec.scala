@@ -17,15 +17,16 @@
 package services
 
 import base.BaseSpec
-import mocks.MockLabelledDataRepository
+import mocks.{MockLabelledDataRepository, mockAppConfig}
 import core.models.RequestOutcome
-import core.models.errors._
-import play.api.libs.json.{JsValue, Json, JsObject}
-import mocks.MockAppConfig
+import core.models.errors.*
+import play.api.libs.json.{JsObject, JsValue, Json}
+
 import scala.concurrent.Future
 import core.models.ocelot.Process
+
 import java.time.{ZoneId, ZonedDateTime}
-import models.{Timescales, LabelledData, UpdateDetails, LabelledDataUpdateStatus}
+import models.{LabelledData, LabelledDataUpdateStatus, Timescales, UpdateDetails}
 import core.models.MongoDateTimeFormats.localZoneID
 
 class TimescalesServiceSpec extends BaseSpec {
@@ -216,7 +217,7 @@ class TimescalesServiceSpec extends BaseSpec {
 
   private trait Test extends MockLabelledDataRepository {
 
-    lazy val target: TimescalesService = new TimescalesService(mockLabelledDataRepository, MockAppConfig)
+    lazy val target: TimescalesService = new TimescalesService(mockLabelledDataRepository, mockAppConfig)
     val lastUpdateTime: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, localZoneID)
     val lastUpdateTimeUTC: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 12, 0, 1, 0, ZoneId.of("UTC"))
     val timescalesJson: JsValue = Json.parse("""{"First": 1, "Second": 2, "Third": 3}""")
@@ -269,7 +270,7 @@ class TimescalesServiceSpec extends BaseSpec {
 
         whenReady(target.save(timescalesJsonWithDeletion, credId, user, email, List("First"))) {
           case Right(response) if response.lastUpdate.map(_.retainedDeletions).contains(List("First")) => succeed
-          case Right(response) => fail()
+          case Right(_) => fail()
           case Left(_) => fail()
         }
       }
@@ -287,7 +288,7 @@ class TimescalesServiceSpec extends BaseSpec {
           .returns(Future.successful(Left(DatabaseError)))
 
         whenReady(target.save(timescalesJsonWithDeletion, credId, user, email, Nil)) {
-          case Right(response) => fail()
+          case Right(_) => fail()
           case Left(_) => succeed
         }
       }
@@ -300,7 +301,7 @@ class TimescalesServiceSpec extends BaseSpec {
         whenReady(target.save(invalidTs, credId, user, email, Nil)) {
           case Right(_) => fail()
           case Left(ValidationError) => succeed
-          case err => fail()
+          case _ => fail()
         }
       }
     }
@@ -382,7 +383,7 @@ class TimescalesServiceSpec extends BaseSpec {
         .returns(Future.successful(Left(NotFoundError)))
 
       whenReady(target.get()) { result =>
-        result shouldBe Right((MockAppConfig.seedTimescales, 0L))
+        result shouldBe Right((mockAppConfig.seedTimescales, 0L))
       }
     }
 
@@ -441,7 +442,7 @@ class TimescalesServiceSpec extends BaseSpec {
 
       whenReady(target.updateProcessTable(jsonWithBlankTsTable, process)) { result =>
         result match {
-          case Right((json, p)) =>
+          case Right((_, p)) =>
             p.meta.timescalesVersion shouldBe Some(labelledData.when.toEpochMilli())
             p.timescales shouldBe timescales
           case _ => fail()
@@ -453,7 +454,7 @@ class TimescalesServiceSpec extends BaseSpec {
       val process: Process = jsonWithNoTsTable.as[Process]
       whenReady(target.updateProcessTable(jsonWithNoTsTable, process)) { result =>
         result match {
-          case Right((json, p)) => p.timescales shouldBe Map()
+          case Right((_, p)) => p.timescales shouldBe Map()
           case _ => fail()
         }
       }
@@ -467,7 +468,7 @@ class TimescalesServiceSpec extends BaseSpec {
 
       whenReady(target.updateProcessTable(jsonWithBlankTsTable, process)) { result =>
         result match {
-          case Right((json, p)) => p.timescales shouldBe timescales
+          case Right((_, p)) => p.timescales shouldBe timescales
           case _ => fail()
         }
       }

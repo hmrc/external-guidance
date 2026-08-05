@@ -33,5 +33,5 @@ object AuditInfo {
 
   def apply(pid: String, id: String, version: Int, title: String, p: Process): AuditInfo =
     AuditInfo(pid, id, title, version, p.meta.lastAuthor, p.meta.lastUpdate, p.meta.version)
-  implicit val formats: OFormat[AuditInfo] = Json.format[AuditInfo]
+  given formats: OFormat[AuditInfo] = Json.format[AuditInfo]
 }

@@ -16,7 +16,7 @@
 
 package core
 
-import core.models.ocelot._
+import core.models.ocelot.*
 import core.models.errors.{Error, ValidationError}
 import core.models.ocelot.stanzas.{TitleCallout, YourCallCallout, Question, Sequence, Input}
 import java.util.UUID

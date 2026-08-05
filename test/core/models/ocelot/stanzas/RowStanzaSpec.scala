@@ -17,7 +17,7 @@
 package core.models.ocelot.stanzas
 
 import base.BaseSpec
-import play.api.libs.json._
+import play.api.libs.json.*
 
 import core.models.ocelot.Process
 
@@ -143,21 +143,21 @@ class RowStanzaSpec extends BaseSpec {
 
       validRowStanzaWithZeroCells.validate[RowStanza] match {
         case JsSuccess(rowStanza, _) => rowStanza shouldBe expectedRowStanzaWithZeroCells
-        case e: JsError => fail( "Unable to parse row stanza with zero cells")
+        case _: JsError => fail( "Unable to parse row stanza with zero cells")
       }
     }
 
     "manage a row stanza with a single cell" in new Test {
       validRowStanzaWithSingleCell.validate[RowStanza] match {
         case JsSuccess(rowStanza, _) => rowStanza shouldBe expectedRowStanzaWithSingleCell
-        case e: JsError => fail( "Unable to parse row stanza with single cell")
+        case _: JsError => fail( "Unable to parse row stanza with single cell")
       }
     }
 
     "manage a row stanza with multiple cells" in new Test {
       validRowStanzaWithMultipleCells.validate[RowStanza] match {
         case JsSuccess(rowStanza, _) => rowStanza shouldBe expectedRowStanzaWithMultipleCells
-        case e: JsError => fail("Unable to parse rowe stanza with multiple cells")
+        case _: JsError => fail("Unable to parse rowe stanza with multiple cells")
       }
     }
 
@@ -173,7 +173,7 @@ class RowStanzaSpec extends BaseSpec {
           case _ => fail("Unexpected error tuple raised parsing invalid row stanza")
         }
         case JsError(_) => fail("Unexpected error raised parsing invalid row stanza")
-        case JsSuccess(rowStanza, _) => fail( "A row stanza with zero next entries should be invalid")
+        case JsSuccess(_, _) => fail( "A row stanza with zero next entries should be invalid")
       }
 
     }

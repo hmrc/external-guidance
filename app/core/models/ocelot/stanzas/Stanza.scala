@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import play.api.libs.json._
+import play.api.libs.json.*
 import core.models.ocelot.{Page, Labels, Phrase, Validation}
 import core.models.ocelot.errors.RuntimeError
 
@@ -54,7 +54,7 @@ case object EndStanza extends PopulatedStanza
 
 object Stanza {
 
-  implicit val reads: Reads[Stanza] = (js: JsValue) => {
+  given reads: Reads[Stanza] = (js: JsValue) => {
     (js \ "type").validate[String] match {
       case err @ JsError(_) => err
       case JsSuccess(typ, _) => typ match {
@@ -76,7 +76,7 @@ object Stanza {
     }
   }
 
-  implicit val writes: Writes[Stanza] = {
+  given writes: Writes[Stanza] = {
     case q: QuestionStanza => Json.obj("type" -> "QuestionStanza") ++ Json.toJsObject[QuestionStanza](q)
     case i: InstructionStanza => Json.obj("type" -> "InstructionStanza") ++ Json.toJsObject[InstructionStanza](i)
     case c: CalloutStanza => Json.obj("type" -> "CalloutStanza") ++ Json.toJsObject[CalloutStanza](c)

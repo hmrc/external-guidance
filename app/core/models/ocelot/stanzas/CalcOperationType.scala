@@ -16,7 +16,7 @@
 
 package core.models.ocelot.stanzas
 
-import play.api.libs.json._
+import play.api.libs.json.*
 
 sealed trait CalcOperationType
 
@@ -29,7 +29,7 @@ case object Floor extends CalcOperationType
 
 object CalcOperationType {
 
-  implicit val reads: Reads[CalcOperationType] = {
+  given reads: Reads[CalcOperationType] = {
     case JsString("add") => JsSuccess(Addition, __)
     case JsString("subtract") => JsSuccess(Subtraction, __)
     case JsString("multiply") => JsSuccess(Multiply, __)
@@ -40,7 +40,7 @@ object CalcOperationType {
     case unexpectedJsType => JsError(JsonValidationError(Seq("CalcOperationType"), unexpectedJsType.toString()))
   }
 
-  implicit val writes: Writes[CalcOperationType] = {
+  given writes: Writes[CalcOperationType] = {
     case Addition => Json.toJson("add")
     case Subtraction => Json.toJson("subtract")
     case Multiply => Json.toJson("multiply")

@@ -31,5 +31,5 @@ case class ProcessSummary(
 )
 
 object ProcessSummary {
-  implicit val formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
+  given formats: OFormat[ProcessSummary] = Json.format[ProcessSummary]
 }

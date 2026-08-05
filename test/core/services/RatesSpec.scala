@@ -23,7 +23,7 @@ import java.time.LocalDate
 
 class RatesSpec extends BaseSpec with ProcessJson {
   val rates: Rates = new Rates()
-  import Rates._
+  import Rates.*
   val process: Process = rawOcelotRatesJson.as[Process].copy(rates =
     Map(
       s"section1${KeySeparator}rate1${KeySeparator}2020" -> 32,

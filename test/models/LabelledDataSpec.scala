@@ -16,9 +16,9 @@
 
 package models
 
-import java.time._
+import java.time.*
 import base.BaseSpec
-import play.api.libs.json._
+import play.api.libs.json.*
 
 class LabelledDataSpec extends BaseSpec {
 
@@ -83,7 +83,7 @@ class LabelledDataSpec extends BaseSpec {
     "Result in a failure when for invalid JSON" in {
 
       invalidJson.validate[LabelledData] match {
-        case e: JsError => succeed
+        case _: JsError => succeed
         case _ => fail("Invalid JSON payload should not have been successfully deserialized")
       }
     }
@@ -91,7 +91,7 @@ class LabelledDataSpec extends BaseSpec {
     "Result in a failure when for valid JSON within invalid labelled data id" in {
 
       invalidLabelledDataJson.validate[LabelledData] match {
-        case e: JsError => succeed
+        case _: JsError => succeed
         case _ => fail("Invalid JSON payload should not have been successfully deserialized")
       }
     }

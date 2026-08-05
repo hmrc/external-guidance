@@ -16,16 +16,16 @@
 
 package core.services
 
-import core.models.ocelot.stanzas._
+import core.models.ocelot.stanzas.*
 import core.models.ocelot.{Link, Phrase, Process, pageLinkIds, ExclusivePlaceholder, fieldAndInputOptions, ValidInputFieldWidths}
-import core.models.ocelot.errors._
+import core.models.ocelot.errors.*
 import play.api.Logger
 import scala.annotation.tailrec
 
 abstract class ProcessPopulation(labelledDataExpansion: LabelledDataExpansion) {
   val logger: Logger
 
-  import labelledDataExpansion._
+  import labelledDataExpansion.*
 
   def stanza(id: String, process: Process): Either[GuidanceError, PopulatedStanza] =
     process.flow.get(id) match {

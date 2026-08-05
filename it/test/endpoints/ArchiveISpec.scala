@@ -19,6 +19,7 @@ package endpoints
 import data.ExamplePayloads
 import play.api.http.Status.{OK, BAD_REQUEST}
 import play.api.libs.json.JsObject
+import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 import play.api.libs.ws.WSResponse
 import repositories.PublishedRepository
 import stubs.{AuditStub, AuthStub}

@@ -18,17 +18,19 @@ package endpoints
 
 import java.time.ZonedDateTime
 
-import data.ExamplePayloads._
+import data.ExamplePayloads.*
 import core.models.ocelot.Process
 import core.models.errors.IncompleteDataError
 import models.errors.OcelotError
 import models.{ApprovalProcessPageReview, ApprovalProcessStatusChange, ApprovalProcessSummary}
-import play.api.http.Status._
+import play.api.http.Status.*
 import play.api.libs.json.{JsObject, JsValue}
+import play.api.libs.ws.JsonBodyReadables.readableAsJson
+import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 import play.api.libs.ws.WSResponse
 import stubs.{AuditStub, AuthStub}
 import support.IntegrationSpec
-import models.Constants._
+import models.Constants.*
 import play.api.libs.json.{Json, OFormat}
 import play.api.http.{ContentTypes, Status}
 
@@ -47,7 +49,7 @@ class PostProcessReviewISpec extends IntegrationSpec {
   }
 
 
-  implicit val formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
+  given formats: OFormat[ApprovalProcessSummary] = Json.format[ApprovalProcessSummary]
 
   val statusChangeInfo: ApprovalProcessStatusChange = ApprovalProcessStatusChange("user id", "user name", StatusComplete)
 
@@ -381,12 +383,12 @@ class PostProcessReviewISpec extends IntegrationSpec {
 
   "Calling the approvalFactCheckInfo GET endpoint without authorization" should {
 
-      lazy val request = buildRequest("/external-guidance/approval/oct90001/fact-check")
-      lazy val response: WSResponse = {
-        AuditStub.audit()
-        AuthStub.unauthorised()
-        await(request.get())
-      }
+    lazy val request = buildRequest("/external-guidance/approval/oct90001/fact-check")
+    lazy val response: WSResponse = {
+      AuditStub.audit()
+      AuthStub.unauthorised()
+      await(request.get())
+    }
 
     "return unauthorized" in {
       response.status shouldBe UNAUTHORIZED

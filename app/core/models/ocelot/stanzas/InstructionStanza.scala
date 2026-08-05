@@ -17,27 +17,27 @@
 package core.models.ocelot.stanzas
 
 import core.models.ocelot.{labelReferences, Link, Phrase, pageLinkIds, buttonLinkIds}
-import play.api.libs.functional.syntax._
-import play.api.libs.json.Reads._
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.Reads.*
 import play.api.libs.json.{JsPath, OWrites, Reads}
 
 case class InstructionStanza(text: Int, override val next: Seq[String], link: Option[Int], stack: Boolean) extends Stanza
 
 object InstructionStanza {
 
-  implicit val instructionReads: Reads[InstructionStanza] =
+  given instructionReads: Reads[InstructionStanza] =
     ((JsPath \ "text").read[Int] and
       (JsPath \ "next").read[Seq[String]](minLength[Seq[String]](1)) and
       (JsPath \ "link").readNullable[Int] and
       (JsPath \ "stack").read[Boolean])(InstructionStanza.apply _)
 
-  implicit val instructionWrites: OWrites[InstructionStanza] =
+  given instructionWrites: OWrites[InstructionStanza] =
     (
       (JsPath \ "text").write[Int] and
         (JsPath \ "next").write[Seq[String]] and
         (JsPath \ "link").writeNullable[Int] and
         (JsPath \ "stack").write[Boolean]
-    )(unlift(InstructionStanza.unapply))
+    )(Tuple.fromProductTyped(_))
 
 }
 
