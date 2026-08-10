@@ -19,6 +19,7 @@ package models
 import java.time.ZonedDateTime
 import play.api.libs.json.*
 import play.api.libs.functional.syntax.*
+import core.models.MongoDateTimeFormats.Implicits.given
 
 case class ArchivedProcess(id: Long, dateArchived: ZonedDateTime, process: JsObject, archivedBy: String, processCode: String)
 
@@ -52,6 +53,7 @@ trait ArchivedProcessFormats {
   }
 
   object Implicits extends Implicits
+
   object MongoImplicits extends MongoImplicits
 }
 
