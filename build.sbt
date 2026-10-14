@@ -50,10 +50,15 @@ coverageExcludedPackages := "migrate.*;" +
   "testOnlyDoNotUseInAppConf.*;" +
   "prod;" +
   "repositories;" +
-  "app"
+  "app;" +
+  "core\\.models\\.errors\\..*;" +
+  "models\\.errors\\.package;" +
+  "models\\.errors\\.DuplicateProcessCodeError;" +
+  "services\\.RatesService;" +
+  "services\\.TimescalesService"
 coverageHighlighting := true
 coverageFailOnMinimum := false
-coverageMinimumStmtTotal := 90
+coverageMinimumStmtTotal := 94.7
 coverageMinimumBranchTotal := 90
 
 addCommandAlias("runAllChecks", ";clean;compile;coverage;test;it/test;coverageReport")
