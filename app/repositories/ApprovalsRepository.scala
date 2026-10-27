@@ -40,8 +40,6 @@ import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.result.DeleteResult
 import models.ApprovalReview
 
- //$COVERAGE-OFF$
-
 trait ApprovalsRepository {
   def createOrUpdate(process: Approval): Future[RequestOutcome[String]]
   def updateReview(id: String, reviewType: String, updateUser: String, result: String): Future[RequestOutcome[Unit]]
@@ -111,7 +109,7 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(using appConf
       .findOneAndUpdate(equal("_id", id), modifier)
       .toFutureOption()
       .map{_.fold[RequestOutcome[Unit]](Left(NotFoundError))( _ => Right(()))}
-      //$COVERAGE-OFF$
+
       .recover {
         case error =>
           logger.error(s"Attempt to update review of approval $id from collection $collectionName failed with error : ${error.getMessage}")
@@ -133,7 +131,7 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(using appConf
       .findOneAndUpdate(selector, modifier)
       .toFutureOption()
       .map{_.fold[RequestOutcome[Unit]](Left(NotFoundError))( _ => Right(()))}
-      //$COVERAGE-OFF$
+
       .recover {
         case error =>
           logger.error(s"Update page review on url $pageUrl of approval $id from $collectionName failed with error : ${error.getMessage}")
@@ -141,7 +139,7 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(using appConf
       }
   }
 
-  //$COVERAGE-OFF$
+
   def getById(id: String): Future[RequestOutcome[Approval]] =
     collection
       .find(equal("_id", id))
@@ -157,7 +155,7 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(using appConf
       }
     //$COVERAGE-ON$
 
-  //$COVERAGE-OFF$
+
   def getByProcessCode(processCode: String): Future[RequestOutcome[Approval]] =
     collection
       .find(equal("meta.processCode", processCode))
@@ -282,5 +280,4 @@ class ApprovalsRepositoryImpl @Inject()(component: MongoComponent)(using appConf
           logger.error(s"Attempt to retrieve approval process summaries failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
- //$COVERAGE-ON$
 }

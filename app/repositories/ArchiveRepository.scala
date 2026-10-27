@@ -38,7 +38,6 @@ import core.models.MongoDateTimeFormats.Implicits.given
 
 import java.util.concurrent.TimeUnit
 
-//$COVERAGE-OFF$
 trait ArchiveRepository {
   def archive(id: String, user: String, processCode: String, process: PublishedProcess): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[ArchivedProcess]]

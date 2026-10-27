@@ -31,7 +31,6 @@ import uk.gov.hmrc.mongo.*
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import core.models.MongoDateTimeFormats.Implicits.given
 
-//$COVERAGE-OFF$
 trait LabelledDataRepository {
   def save(id: LabelledDataId, data: JsValue, when: Instant, credId: String, user: String, email: String): Future[RequestOutcome[LabelledData]]
   def get(id: LabelledDataId): Future[RequestOutcome[LabelledData]]
@@ -91,6 +90,5 @@ class LabelledDataRepositoryImpl @Inject() (component: MongoComponent)(using ec:
           logger.error(s"Failed to retrieve LabelledData due to error, ${e.getMessage}")
           Left(DatabaseError)
       }
-    //$COVERAGE-ON$
 
 }

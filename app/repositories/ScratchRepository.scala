@@ -56,8 +56,7 @@ class ScratchRepositoryImpl @Inject() (component: MongoComponent, appConfig: App
     )
     with ScratchRepository {
   val logger: Logger = Logger(getClass)
-
-  //$COVERAGE-OFF$
+  
   def save(process: JsObject): Future[RequestOutcome[UUID]] = {
     val expiryTime = ZonedDateTime.now.withHour(appConfig.scratchExpiryHour).withMinute(appConfig.scratchExpiryMinutes).withSecond(0)
     val document = ScratchProcess(UUID.randomUUID(), process, expiryTime)
@@ -87,12 +86,10 @@ class ScratchRepositoryImpl @Inject() (component: MongoComponent, appConfig: App
         case None => Left(NotFoundError)
         case Some(data) => Right(data.process)
       }
-      //$COVERAGE-OFF$
       .recover {
         case e =>
           logger.warn(e.getMessage)
           Left(DatabaseError)
       }
-    //$COVERAGE-ON$
 
 }

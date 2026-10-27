@@ -58,7 +58,7 @@ coverageExcludedPackages := "migrate.*;" +
   "services\\.TimescalesService"
 coverageHighlighting := true
 coverageFailOnMinimum := false
-coverageMinimumStmtTotal := 94.7
+coverageMinimumStmtTotal := 94.83
 coverageMinimumBranchTotal := 90
 
 addCommandAlias("runAllChecks", ";clean;compile;coverage;test;it/test;coverageReport")
