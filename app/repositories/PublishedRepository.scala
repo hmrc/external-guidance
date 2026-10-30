@@ -36,7 +36,6 @@ import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import core.models.MongoDateTimeFormats.zonedDateTimeFormat
 import core.models.MongoDateTimeFormats.Implicits.given
 
-//$COVERAGE-OFF$
 trait PublishedRepository {
   def save(id: String, user: String, processCode: String, process: JsObject, version: Int): Future[RequestOutcome[String]]
   def getById(id: String): Future[RequestOutcome[PublishedProcess]]
@@ -214,5 +213,4 @@ class PublishedRepositoryImpl @Inject() (component: MongoComponent)(using ec: Ex
           logger.error(s"Attempt to retrieve list of processes from collection $collectionName failed with error : ${error.getMessage}")
           Left(DatabaseError)
       }
-  //$COVERAGE-ON$
 }
